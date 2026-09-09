@@ -1,0 +1,1 @@
+export const MINIMUM_NEW_PASSWORD_LENGTH = 8;

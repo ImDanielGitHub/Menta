@@ -1,0 +1,33 @@
+export const proofRecoveryEnNZ = {
+  'proofRecovery.pending.accessibility': 'Proof waiting for review',
+  'proofRecovery.pending.title': 'Proof sent for review',
+  'proofRecovery.pending.description':
+    'A reviewer can now check it against the promise. The proof for {promise} counts after approval.',
+  'proofRecovery.pending.status': 'Waiting for review',
+  'proofRecovery.pending.not_counted': 'Does not count yet',
+  'proofRecovery.pending.action': 'Review another proof',
+  'proofRecovery.pending.more_waiting': '{count} more waiting',
+  'proofRecovery.pending.more_waiting.one': '{count} more waiting',
+  'proofRecovery.pending.more_waiting.other': '{count} more waiting',
+  'proofRecovery.queued.time.waiting': 'Waiting to send',
+  'proofRecovery.queued.time.requested': 'Send requested {time}',
+  'proofRecovery.queued.type.photo': 'Photo proof',
+  'proofRecovery.queued.type.video': 'Video proof',
+  'proofRecovery.queued.type.text': 'Text proof',
+  'proofRecovery.queued.type.saved': 'Saved proof',
+  'proofRecovery.queued.accessibility': 'Proof waiting to send',
+  'proofRecovery.queued.title': 'Proof waiting to send',
+  'proofRecovery.queued.description':
+    'It is saved on this phone but has not reached Menta yet. Try again when you are online.',
+  'proofRecovery.queued.meta': '{type} · {time}',
+  'proofRecovery.queued.last_try_failed': 'Last try did not finish.',
+  'proofRecovery.queued.not_sent': 'Not sent',
+  'proofRecovery.queued.more_waiting': '+{count} more waiting to send',
+  'proofRecovery.queued.more_waiting.one': '+{count} more waiting to send',
+  'proofRecovery.queued.more_waiting.other': '+{count} more waiting to send',
+  'proofRecovery.queued.retry_accessibility':
+    'Try sending saved proof again',
+  'proofRecovery.queued.sending': 'Sending again…',
+  'proofRecovery.queued.retry': 'Try sending again',
+  'proofRecovery.queued.checking': 'Checking saved proof…',
+} as const;

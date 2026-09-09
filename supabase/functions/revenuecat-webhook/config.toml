@@ -1,0 +1,6 @@
+# RevenueCat does not send a Supabase JWT. Keep platform JWT verification off
+# so the provider can reach this endpoint. The handler still rejects every POST
+# that does not match the existing REVENUECAT_WEBHOOK_AUTH or
+# REVENUECAT_WEBHOOK_SECRET shared secret.
+[function]
+verify_jwt = false

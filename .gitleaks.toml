@@ -1,0 +1,16 @@
+title = "Menta public source scanning"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Reviewed non-secret configuration names, not provider credentials"
+regexTarget = "secret"
+regexes = ['''^(notification_delivery_policy_v1|referral_inviter_annual_cap_v2|referral_reward_amount_v2)$''']
+
+[[allowlists]]
+description = "Exact CocoaPods dependency checksums, not authentication keys"
+condition = "AND"
+paths = ['''(^|/)ios/Podfile\.lock$''']
+regexTarget = "secret"
+regexes = ['''^(d4f13a8fe0baf391b2108511793e4b479691fb73|97d113f0f2680067e6e76d3c9249e7e1fc026b42|f69bd07d68cd3b766125f7e072c45d7340dea0de)$''']

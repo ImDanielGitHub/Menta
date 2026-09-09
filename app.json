@@ -1,0 +1,270 @@
+{
+  "expo": {
+    "name": "Menta",
+    "slug": "menta-community",
+    "version": "1.9.3",
+    "runtimeVersion": "1.9.3",
+    "orientation": "portrait",
+    "icon": "./assets/images/AppIcons/appstore.png",
+    "backgroundColor": "#080909",
+    "scheme": [
+      "menta",
+      "lockedin",
+      "lockedinprod"
+    ],
+    "userInterfaceStyle": "dark",
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "requireFullScreen": false,
+      "usesAppleSignIn": true,
+      "bundleIdentifier": "org.example.menta",
+      "buildNumber": "1",
+      "icon": "./assets/images/AppIcons/appstore.png",
+      "infoPlist": {
+        "CFBundleName": "Menta",
+        "UIRequiredDeviceCapabilities": [
+          "arm64"
+        ],
+        "UIBackgroundModes": [
+          "remote-notification"
+        ],
+        "NSCameraUsageDescription": "Menta uses your camera only when you choose to take a photo or video for proof, or scan a group or event check-in code.",
+        "NSMicrophoneUsageDescription": "Menta uses your microphone only when you choose to record a video for proof.",
+        "NSUserTrackingUsageDescription": "Menta uses this to measure whether ads from Meta helped someone sign up, create a group, create a promise, or invite a friend. You can decline and still use Menta.",
+        "FacebookAutoInitEnabled": false,
+        "FacebookAutoLogAppEventsEnabled": false,
+        "FacebookAdvertiserIDCollectionEnabled": false,
+        "SKAdNetworkItems": [
+          {
+            "SKAdNetworkIdentifier": "v9wttpbfk9.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "n38lu8286q.skadnetwork"
+          }
+        ],
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleAllowMixedLocalizations": true,
+        "CFBundleLocalizations": [
+          "en",
+          "de",
+          "es",
+          "es-MX",
+          "fr",
+          "fr-CA",
+          "pt-BR",
+          "pt-PT"
+        ],
+        "UISupportedInterfaceOrientations~ipad": [
+          "UIInterfaceOrientationPortrait",
+          "UIInterfaceOrientationPortraitUpsideDown",
+          "UIInterfaceOrientationLandscapeLeft",
+          "UIInterfaceOrientationLandscapeRight"
+        ],
+        "UIApplicationSceneManifest": {
+          "UIApplicationSupportsMultipleScenes": false,
+          "UISceneConfigurations": {
+            "UIWindowSceneSessionRoleApplication": [
+              {
+                "UISceneConfigurationName": "Default Configuration",
+                "UISceneDelegateClassName": "$(PRODUCT_MODULE_NAME).SceneDelegate"
+              }
+            ]
+          }
+        },
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "menta",
+              "lockedin",
+              "lockedinprod"
+            ]
+          }
+        ],
+        "UIApplicationShortcutItems": [
+          {
+            "UIApplicationShortcutItemType": "org.example.menta.add-proof",
+            "UIApplicationShortcutItemTitle": "Add proof",
+            "UIApplicationShortcutItemSubtitle": "Open the next promise due",
+            "UIApplicationShortcutItemIconSymbolName": "checkmark.circle",
+            "UIApplicationShortcutItemIconType": "UIApplicationShortcutIconTypeCompose"
+          },
+          {
+            "UIApplicationShortcutItemType": "org.example.menta.review-proof",
+            "UIApplicationShortcutItemTitle": "Review proof",
+            "UIApplicationShortcutItemSubtitle": "Check proof waiting for you",
+            "UIApplicationShortcutItemIconSymbolName": "checkmark.message",
+            "UIApplicationShortcutItemIconType": "UIApplicationShortcutIconTypeMessage"
+          },
+          {
+            "UIApplicationShortcutItemType": "org.example.menta.join-group",
+            "UIApplicationShortcutItemTitle": "Join a group",
+            "UIApplicationShortcutItemSubtitle": "Enter an invite code",
+            "UIApplicationShortcutItemIconSymbolName": "person.2.badge.plus",
+            "UIApplicationShortcutItemIconType": "UIApplicationShortcutIconTypeAdd"
+          }
+        ]
+      },
+      "entitlements": {
+        "aps-environment": "production",
+        "com.apple.developer.applesignin": [
+          "Default"
+        ]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/AppIcons/playstore.png",
+        "monochromeImage": "./assets/images/AppIcons/android-monochrome.png",
+        "backgroundColor": "#000000"
+      },
+      "package": "org.example.menta",
+      "softwareKeyboardLayoutMode": "pan",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.POST_NOTIFICATIONS",
+        "com.google.android.gms.permission.AD_ID"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "menta"
+            },
+            {
+              "scheme": "lockedin"
+            },
+            {
+              "scheme": "lockedinprod"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/AppIcons/notification-icon.png",
+          "color": "#FFFFFF",
+          "mode": "production"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Menta uses your camera only when you choose to take a photo or video for proof, or scan a group or event check-in code.",
+          "microphonePermission": "Menta uses your microphone only when you choose to record a video for proof.",
+          "recordAudioAndroid": true
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": false,
+          "cameraPermission": "Menta uses your camera only when you choose to take a photo or video for proof, or scan a group or event check-in code."
+        }
+      ],
+      "expo-apple-authentication",
+      "@react-native-google-signin/google-signin",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#080909",
+          "image": "./assets/images/menta-splash-welcome.png",
+          "imageWidth": 280,
+          "resizeMode": "contain",
+          "dark": {
+            "backgroundColor": "#080909",
+            "image": "./assets/images/menta-splash-welcome.png"
+          }
+        }
+      ],
+      "expo-web-browser",
+      "expo-font",
+      [
+        "expo-localization",
+        {
+          "supportedLocales": {
+            "ios": [
+              "en",
+              "de",
+              "es",
+              "es-MX",
+              "fr",
+              "fr-CA",
+              "pt-BR",
+              "pt-PT"
+            ],
+            "android": [
+              "en",
+              "de",
+              "es",
+              "es-MX",
+              "fr",
+              "fr-CA",
+              "pt-BR",
+              "pt-PT"
+            ]
+          }
+        }
+      ],
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511",
+          "delayAppMeasurementInit": true
+        }
+      ],
+      "./plugins/with-android-kotlin-metadata",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "16.4"
+          },
+          "android": {}
+        }
+      ],
+      "expo-image",
+      "expo-video",
+      [
+        "expo-tracking-transparency",
+        {
+          "userTrackingPermission": "Menta uses this to measure whether ads from Meta helped someone sign up, create a group, create a promise, or invite a friend. You can decline and still use Menta."
+        }
+      ]
+    ],
+    "extra": {
+      "oauthUseWeb": false,
+      "oauthWip": false,
+      "operationalFlags": {
+        "group_notifications_enabled": false,
+        "ads_enabled": false,
+        "safe_mode": false,
+        "disable_google_login": true,
+        "disable_apple_login": true
+      },
+      "ui": {
+        "sandWaveEnabled": false
+      }
+    },
+    "experiments": {
+      "typedRoutes": true
+    },
+    "updates": {
+      "enabled": false
+    }
+  }
+}

@@ -1,0 +1,283 @@
+import React, { memo } from 'react';
+import { Feather, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
+import type { ComponentProps } from 'react';
+import type { StyleProp, ViewStyle } from 'react-native';
+
+type IconFamily = 'feather' | 'material' | 'ionicons';
+
+type FeatherProps = ComponentProps<typeof Feather>;
+type MaterialProps = ComponentProps<typeof MaterialCommunityIcons>;
+type IoniconsProps = ComponentProps<typeof Ionicons>;
+
+type IconProps = {
+  color?: string;
+  size?: number;
+  style?: StyleProp<ViewStyle>;
+  strokeWidth?: number;
+  [key: string]: unknown;
+};
+
+const familyComponentMap: Record<IconFamily, any> = {
+  feather: Feather,
+  material: MaterialCommunityIcons,
+  ionicons: Ionicons,
+};
+
+const normalizeSpec = (family: IconFamily, name: string) => {
+  const Component = familyComponentMap[family];
+  const glyphMap = Component?.glyphMap ?? {};
+  if (name in glyphMap) {
+    return { family, name };
+  }
+  if (__DEV__) {
+    console.warn('[icons] Missing glyph "' + name + '" in family ' + family + ', falling back to circle.');
+  }
+  return { family: 'feather' as IconFamily, name: 'circle' };
+};
+
+const createIcon = (family: IconFamily, name: string) => {
+  const spec = normalizeSpec(family, name);
+  const Base = familyComponentMap[spec.family];
+  const IconComponent = ({ color = 'currentColor', size = 24, style, strokeWidth, ...rest }: IconProps) => (
+    <Base
+      name={spec.name as any}
+      color={color}
+      size={size}
+      style={style as any}
+      strokeWidth={strokeWidth as any}
+      {...rest}
+    />
+  );
+  return memo(IconComponent);
+};
+
+export const AlertCircle = createIcon('feather', 'alert-circle');
+export const AlertCircleIcon = AlertCircle;
+export const AlertTriangle = createIcon('feather', 'alert-triangle');
+export const AlertTriangleIcon = AlertTriangle;
+export const Angry = createIcon('feather', 'frown');
+export const AngryIcon = Angry;
+export const Apple = createIcon('ionicons', 'logo-apple');
+export const AppleIcon = Apple;
+export const ArrowLeft = createIcon('feather', 'arrow-left');
+export const ArrowLeftIcon = ArrowLeft;
+export const ArrowRight = createIcon('feather', 'arrow-right');
+export const ArrowRightIcon = ArrowRight;
+export const Award = createIcon('feather', 'award');
+export const AwardIcon = Award;
+export const Bell = createIcon('feather', 'bell');
+export const BellIcon = Bell;
+export const BellOff = createIcon('feather', 'bell-off');
+export const BellOffIcon = BellOff;
+export const BellRing = createIcon('material', 'bell-ring');
+export const BellRingIcon = BellRing;
+export const Book = createIcon('feather', 'book');
+export const BookIcon = Book;
+export const BookOpen = createIcon('feather', 'book-open');
+export const BookOpenIcon = BookOpen;
+export const Bot = createIcon('material', 'robot-outline');
+export const BotIcon = Bot;
+export const Bug = createIcon('material', 'bug-outline');
+export const BugIcon = Bug;
+export const Calendar = createIcon('feather', 'calendar');
+export const CalendarIcon = Calendar;
+export const Camera = createIcon('feather', 'camera');
+export const CameraIcon = Camera;
+export const Check = createIcon('feather', 'check');
+export const CheckIcon = Check;
+export const CheckCircle = createIcon('feather', 'check-circle');
+export const CheckCircleIcon = CheckCircle;
+export const CheckCircle2 = createIcon('feather', 'check-circle');
+export const CheckCircle2Icon = CheckCircle2;
+export const ChevronDown = createIcon('feather', 'chevron-down');
+export const ChevronDownIcon = ChevronDown;
+export const ChevronLeft = createIcon('feather', 'chevron-left');
+export const ChevronLeftIcon = ChevronLeft;
+export const ChevronRight = createIcon('feather', 'chevron-right');
+export const ChevronRightIcon = ChevronRight;
+export const Circle = createIcon('feather', 'circle');
+export const CircleIcon = Circle;
+export const CircleUser = createIcon('feather', 'user');
+export const CircleUserIcon = CircleUser;
+export const Clock = createIcon('feather', 'clock');
+export const ClockIcon = Clock;
+export const Coffee = createIcon('feather', 'coffee');
+export const CoffeeIcon = Coffee;
+export const Coins = createIcon('feather', 'dollar-sign');
+export const CoinsIcon = Coins;
+export const Copy = createIcon('feather', 'copy');
+export const CopyIcon = Copy;
+export const Crown = createIcon('material', 'crown-outline');
+export const CrownIcon = Crown;
+export const Diamond = createIcon('material', 'diamond-outline');
+export const DiamondIcon = Diamond;
+export const Edit = createIcon('feather', 'edit-2');
+export const EditIcon = Edit;
+export const ExternalLink = createIcon('feather', 'external-link');
+export const ExternalLinkIcon = ExternalLink;
+export const Eye = createIcon('feather', 'eye');
+export const EyeIcon = Eye;
+export const EyeOff = createIcon('feather', 'eye-off');
+export const EyeOffIcon = EyeOff;
+export const FileText = createIcon('feather', 'file-text');
+export const FileTextIcon = FileText;
+export const Filter = createIcon('feather', 'filter');
+export const FilterIcon = Filter;
+export const Fire = createIcon('ionicons', 'flame');
+export const FireIcon = Fire;
+export const Flame = createIcon('ionicons', 'flame');
+export const FlameIcon = Flame;
+export const Frown = createIcon('feather', 'frown');
+export const FrownIcon = Frown;
+export const Gift = createIcon('feather', 'gift');
+export const GiftIcon = Gift;
+export const Globe = createIcon('feather', 'globe');
+export const GlobeIcon = Globe;
+export const Grid = createIcon('feather', 'grid');
+export const GridIcon = Grid;
+export const Grid3x3 = createIcon('material', 'view-grid-outline');
+export const Grid3x3Icon = Grid3x3;
+export const Hash = createIcon('feather', 'hash');
+export const HashIcon = Hash;
+export const Heart = createIcon('feather', 'heart');
+export const HeartIcon = Heart;
+export const HelpCircle = createIcon('feather', 'help-circle');
+export const HelpCircleIcon = HelpCircle;
+export const Home = createIcon('feather', 'home');
+export const HomeIcon = Home;
+export const Hourglass = createIcon('material', 'timer-sand');
+export const HourglassIcon = Hourglass;
+export const Image = createIcon('feather', 'image');
+export const ImageIcon = Image;
+export const Infinity = createIcon('material', 'infinity');
+export const InfinityIcon = Infinity;
+export const Info = createIcon('feather', 'info');
+export const InfoIcon = Info;
+export const Lightbulb = createIcon('feather', 'sun');
+export const LightbulbIcon = Lightbulb;
+export const List = createIcon('feather', 'list');
+export const ListIcon = List;
+export const Loader = createIcon('feather', 'loader');
+export const LoaderIcon = Loader;
+export const Lock = createIcon('feather', 'lock');
+export const LockIcon = Lock;
+export const LogOut = createIcon('feather', 'log-out');
+export const LogOutIcon = LogOut;
+export const Mail = createIcon('feather', 'mail');
+export const MailIcon = Mail;
+export const Meh = createIcon('feather', 'meh');
+export const MehIcon = Meh;
+export const MessageCircle = createIcon('feather', 'message-circle');
+export const MessageCircleIcon = MessageCircle;
+export const MessageSquare = createIcon('feather', 'message-square');
+export const MessageSquareIcon = MessageSquare;
+export const Minus = createIcon('feather', 'minus');
+export const MinusIcon = Minus;
+export const Moon = createIcon('feather', 'moon');
+export const MoonIcon = Moon;
+export const MoreVertical = createIcon('feather', 'more-vertical');
+export const MoreVerticalIcon = MoreVertical;
+export const Mountain = createIcon('material', 'terrain');
+export const MountainIcon = Mountain;
+export const Palette = createIcon('material', 'palette');
+export const PaletteIcon = Palette;
+export const PartyPopper = createIcon('material', 'party-popper');
+export const PartyPopperIcon = PartyPopper;
+export const Pause = createIcon('feather', 'pause');
+export const PauseIcon = Pause;
+export const Play = createIcon('feather', 'play');
+export const PlayIcon = Play;
+export const PlayCircle = createIcon('feather', 'play-circle');
+export const PlayCircleIcon = PlayCircle;
+export const Plus = createIcon('feather', 'plus');
+export const PlusIcon = Plus;
+export const QrCode = createIcon('material', 'qrcode');
+export const QrCodeIcon = QrCode;
+export const RefreshCcw = createIcon('feather', 'refresh-ccw');
+export const RefreshCcwIcon = RefreshCcw;
+export const RefreshCw = createIcon('feather', 'refresh-cw');
+export const RefreshCwIcon = RefreshCw;
+export const RotateCcw = createIcon('feather', 'rotate-ccw');
+export const RotateCcwIcon = RotateCcw;
+export const Save = createIcon('feather', 'save');
+export const SaveIcon = Save;
+export const Search = createIcon('feather', 'search');
+export const SearchIcon = Search;
+export const Send = createIcon('feather', 'send');
+export const SendIcon = Send;
+export const Settings = createIcon('feather', 'settings');
+export const SettingsIcon = Settings;
+export const Share2 = createIcon('feather', 'share-2');
+export const Share2Icon = Share2;
+export const Shield = createIcon('feather', 'shield');
+export const ShieldIcon = Shield;
+export const ShieldCheck = createIcon('material', 'shield-check');
+export const ShieldCheckIcon = ShieldCheck;
+export const ShoppingBag = createIcon('feather', 'shopping-bag');
+export const ShoppingBagIcon = ShoppingBag;
+export const ShoppingCart = createIcon('feather', 'shopping-cart');
+export const ShoppingCartIcon = ShoppingCart;
+export const Smartphone = createIcon('feather', 'smartphone');
+export const SmartphoneIcon = Smartphone;
+export const Smile = createIcon('feather', 'smile');
+export const SmileIcon = Smile;
+export const SmilePlus = createIcon('ionicons', 'happy-outline');
+export const SmilePlusIcon = SmilePlus;
+export const Snowflake = createIcon('material', 'snowflake');
+export const SnowflakeIcon = Snowflake;
+export const Sparkles = createIcon('material', 'star-four-points-outline');
+export const SparklesIcon = Sparkles;
+export const Star = createIcon('feather', 'star');
+export const StarIcon = Star;
+export const Sun = createIcon('feather', 'sun');
+export const SunIcon = Sun;
+export const Tag = createIcon('feather', 'tag');
+export const TagIcon = Tag;
+export const Target = createIcon('feather', 'target');
+export const TargetIcon = Target;
+export const TestTube = createIcon('material', 'test-tube');
+export const TestTubeIcon = TestTube;
+export const ThumbsDown = createIcon('feather', 'thumbs-down');
+export const ThumbsDownIcon = ThumbsDown;
+export const ThumbsUp = createIcon('feather', 'thumbs-up');
+export const ThumbsUpIcon = ThumbsUp;
+export const Timer = createIcon('feather', 'clock');
+export const TimerIcon = Timer;
+export const Trash2 = createIcon('feather', 'trash-2');
+export const Trash2Icon = Trash2;
+export const TrendingUp = createIcon('feather', 'trending-up');
+export const TrendingUpIcon = TrendingUp;
+export const Trophy = createIcon('feather', 'award');
+export const TrophyIcon = Trophy;
+export const Type = createIcon('feather', 'type');
+export const TypeIcon = Type;
+export const Unlock = createIcon('feather', 'unlock');
+export const UnlockIcon = Unlock;
+export const Upload = createIcon('feather', 'upload');
+export const UploadIcon = Upload;
+export const User = createIcon('feather', 'user');
+export const UserIcon = User;
+export const UserCheck = createIcon('feather', 'user-check');
+export const UserCheckIcon = UserCheck;
+export const UserPlus = createIcon('feather', 'user-plus');
+export const UserPlusIcon = UserPlus;
+export const UserX = createIcon('feather', 'user-x');
+export const UserXIcon = UserX;
+export const Users = createIcon('feather', 'users');
+export const UsersIcon = Users;
+export const Video = createIcon('feather', 'video');
+export const VideoIcon = Video;
+export const Wallet = createIcon('material', 'wallet-outline');
+export const WalletIcon = Wallet;
+export const Wifi = createIcon('feather', 'wifi');
+export const WifiIcon = Wifi;
+export const WifiOff = createIcon('feather', 'wifi-off');
+export const WifiOffIcon = WifiOff;
+export const X = createIcon('feather', 'x');
+export const XIcon = X;
+export const XCircle = createIcon('feather', 'x-circle');
+export const XCircleIcon = XCircle;
+export const Zap = createIcon('feather', 'zap');
+export const ZapIcon = Zap;
+export const ZoomIn = createIcon('feather', 'zoom-in');
+export const ZoomInIcon = ZoomIn;

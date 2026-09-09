@@ -1,0 +1,96 @@
+{
+  "type": "storekit.config",
+  "identifier": "6d656e74615f73746f72",
+  "version": "1.0",
+  "data": {
+    "name": "Menta StoreKit Configuration",
+    "products": [
+      {
+        "referenceName": "Menta Pro Monthly",
+        "id": "org.example.menta.pro_monthly",
+        "type": "Auto-Renewable Subscription",
+        "familyShareable": false,
+        "subscription": {
+          "group": "70726f5f616363657373",
+          "duration": "P1M",
+          "level": 0
+        },
+        "prices": [
+          {
+            "id": "70726f5f6d6f6e74686c",
+            "value": 11.99,
+            "currency": "USD"
+          }
+        ]
+      },
+      {
+        "referenceName": "Menta Pro Yearly",
+        "id": "org.example.menta.pro_yearly",
+        "type": "Auto-Renewable Subscription",
+        "familyShareable": false,
+        "subscription": {
+          "group": "70726f5f616363657373",
+          "duration": "P1Y",
+          "level": 0
+        },
+        "prices": [
+          {
+            "id": "70726f5f796561726c79",
+            "value": 99.99,
+            "currency": "USD"
+          }
+        ]
+      },
+      {
+        "referenceName": "Momenta Pack (Small)",
+        "id": "org.example.menta.credits_small",
+        "type": "Consumable",
+        "familyShareable": false,
+        "prices": [
+          {
+            "id": "637265646974735f736d",
+            "value": 4.99,
+            "currency": "USD"
+          }
+        ]
+      },
+      {
+        "referenceName": "Momenta Pack (Medium)",
+        "id": "org.example.menta.credits_medium",
+        "type": "Consumable",
+        "familyShareable": false,
+        "prices": [
+          {
+            "id": "637265646974735f6d65",
+            "value": 14.99,
+            "currency": "USD"
+          }
+        ]
+      },
+      {
+        "referenceName": "Momenta Pack (Large)",
+        "id": "org.example.menta.credits_large",
+        "type": "Consumable",
+        "familyShareable": false,
+        "prices": [
+          {
+            "id": "637265646974735f6c61",
+            "value": 24.99,
+            "currency": "USD"
+          }
+        ]
+      }
+    ],
+    "subscriptionGroups": [
+      {
+        "referenceName": "Pro Access",
+        "id": "70726f5f616363657373"
+      },
+      {
+        "referenceName": "Momenta Packs",
+        "id": "6372656469745f706163"
+      }
+    ],
+    "storefront": "USA"
+  }
+}

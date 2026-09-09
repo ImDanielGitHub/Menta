@@ -1,0 +1,119 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FullScreenLoading matches snapshot 1`] = `
+<View
+  accessibilityLabel="Menta is loading"
+  accessibilityRole="progressbar"
+  accessible={true}
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#080909",
+      "flex": 1,
+      "justifyContent": "center",
+      "paddingHorizontal": 32,
+    }
+  }
+  testID="loading-container"
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "maxWidth": 360,
+        "width": "100%",
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "aspectRatio": 1,
+          "justifyContent": "center",
+          "maxWidth": 264,
+          "width": "100%",
+        }
+      }
+      testID="loading-mark-shell"
+    >
+      <Image
+        accessibilityIgnoresInvertColors={true}
+        resizeMode="contain"
+        source={
+          {
+            "testUri": "menta-splash-welcome.png",
+          }
+        }
+        style={
+          {
+            "height": "100%",
+            "width": "100%",
+          }
+        }
+        testID="loading-mark"
+      />
+    </View>
+    <View
+      collapsable={false}
+      style={
+        {
+          "alignItems": "center",
+          "opacity": 1,
+          "transform": [
+            {
+              "translateY": 0,
+            },
+          ],
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "#F8F7F1",
+            "fontFamily": "Inter_700Bold",
+            "fontSize": 24,
+            "letterSpacing": 0,
+            "lineHeight": 30,
+          }
+        }
+        testID="loading-wordmark"
+      >
+        Menta
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "backgroundColor": "rgba(248, 247, 241, 0.12)",
+          "borderRadius": 999,
+          "height": 2,
+          "marginTop": 24,
+          "overflow": "hidden",
+          "width": 96,
+        }
+      }
+      testID="loading-progress-track"
+    >
+      <View
+        collapsable={false}
+        style={
+          {
+            "backgroundColor": "#F8F7F1",
+            "borderRadius": 999,
+            "height": 2,
+            "opacity": 0.52,
+            "transform": [
+              {
+                "translateX": 0,
+              },
+            ],
+            "width": 40,
+          }
+        }
+      />
+    </View>
+  </View>
+</View>
+`;

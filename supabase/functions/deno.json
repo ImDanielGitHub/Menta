@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "lib": ["deno.ns", "dom"]
+  },
+  "lint": {
+    "files": {
+      "include": ["./"],
+      "exclude": ["./node_modules"]
+    }
+  },
+  "fmt": {
+    "files": {
+      "include": ["./"],
+      "exclude": ["./node_modules"]
+    }
+  }
+} 
