@@ -26,6 +26,29 @@ history, production keys, or the release pipeline for the hosted service.
 
 ## Run it
 
+### Ways to try Menta
+
+These are different tests. Only the first one checks this repository.
+
+1. **Download this open-source edition.** Clone, or download the GitHub ZIP of
+   `main`, then follow
+   [Download this edition](docs/SETUP.md#download-this-edition) and run your
+   own build. That is the independent-install path.
+2. **Sideload a build you made.** `npm run ios` and `npm run android` install a
+   development build on a simulator or a USB device. If you attach your own
+   Expo project, an EAS development or preview build can produce an IPA or APK
+   to install yourself. Expo Go is not sufficient. See
+   [Sideload a build](docs/SETUP.md#sideload-a-build).
+3. **Use the App Store app for partial product testing.**
+   [Menta: Proof & Progress](https://apps.apple.com/us/app/menta-proof-progress/id6747362646)
+   (seller Daniel Aneke / Aneke Digital Apps) is the hosted production product.
+   It is useful for real UX, auth, groups, proof and purchases against
+   production backends. It is not this fork, it does not prove this repo's
+   setup, and it only partially covers Next Gen: source, your own backend and
+   RevenueCat still matter. The store build is newer (about 1.9.5; this repo
+   is sourceVersion 1.9.3). See
+   [App Store, for partial product testing](docs/SETUP.md#app-store-for-partial-product-testing).
+
 Use Node.js **20.19.4**, npm, and the platform's native development tools.
 The app uses native modules and requires a development build; Expo Go is not
 sufficient.

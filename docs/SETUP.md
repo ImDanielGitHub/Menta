@@ -5,6 +5,90 @@ Menta's production database or give access to its signing, telemetry or billing
 accounts. Keep each provider's public client configuration separate from its
 server credentials.
 
+## Ways to try Menta
+
+These three are often treated as the same test. They are not.
+
+### Download this edition
+
+This is the open-source path. It tests this repository, not the App Store app.
+
+Clone, or download a ZIP of `main` from GitHub (Code → Download ZIP) and unzip
+it. A ZIP has no Git history. `npm ci` still uses the lockfile. The unzipped
+folder is `Menta-main`. Prefer `git clone` if you want later pulls.
+
+```sh
+git clone https://github.com/ImDanielGitHub/Menta.git
+cd Menta
+nvm use
+npm ci
+```
+
+Then continue with [Local backend](#local-backend) or a
+[new hosted Supabase project](#new-hosted-supabase-project). Copy
+`.env.example` to `.env.local` and fill in your own public configuration.
+Build with `npm run ios` or `npm run android`.
+
+A successful run is a development build you compiled, talking to the Supabase
+project in your `.env.local`. It does not use Menta's production database,
+signing or billing accounts.
+
+### Sideload a build
+
+Expo Go cannot run this app. Sideload here means installing a binary you
+built, on a simulator or a device, without the App Store.
+
+**Simulator or USB device (the usual path)**
+
+`npm run ios` is `expo run:ios`. `npm run android` is `expo run:android`. Both
+compile a development build and install it. The first native build compiles
+dependencies and takes a while.
+
+- iOS Simulator: macOS with Xcode, then `npm run ios`.
+- Android emulator: Android Studio/SDK, then `npm run android`.
+- A USB-connected iPhone: `npm run ios -- --device`. Turn on Developer Mode on
+  the phone. Xcode asks for your own Apple signing team. This project ships
+  with bundle ID `org.example.menta` and no team ID. Keep that bundle ID in
+  this public edition. If your own signing profile needs a different
+  identifier, change it only in your fork, as described under
+  [Native app configuration](#native-app-configuration).
+- A USB-connected Android device: enable USB debugging, then
+  `npm run android -- --device`.
+
+After that client is installed, `npm start` attaches Metro to it
+(`expo start --dev-client`).
+
+**Optional EAS development or preview build**
+
+This repository has no `eas.json`, Expo project ID or signing credentials. If
+you create your own Expo project and EAS configuration, a development or
+preview build can produce an IPA or APK for you to install (Xcode's Devices
+window, Apple Configurator, `adb install`, or the link EAS gives you). Do not
+reuse the official Menta app's Expo project ID or signing credentials. Point
+that build at your own Supabase and RevenueCat configuration if the binary
+should exercise this edition's independent setup.
+
+### App Store, for partial product testing
+
+The live App Store app is
+[Menta: Proof & Progress](https://apps.apple.com/us/app/menta-proof-progress/id6747362646).
+The seller is Daniel Aneke / Aneke Digital Apps. The store binary has
+historically used the bundle ID `com.anekedigitalapps.lockedin`. That is not
+the portable ID in this repository (`org.example.menta`).
+
+That app is the hosted production product. It is a practical way to exercise
+real UX, sign-in, groups, proof and purchases against the production backends.
+
+It is not this open-source edition. Installing it does not show that this
+repository builds, does not configure your own Supabase or RevenueCat project,
+and does not prove the independent setup in this guide. For Shipaton Next Gen,
+the source, your own backend and RevenueCat still matter. Treat the store app
+as partial product testing only.
+
+This repository's public source is `sourceVersion` 1.9.3
+(`source-manifest.json`). The App Store build is newer (about 1.9.5), so
+behaviour can differ. See [SOURCE.md](../SOURCE.md).
+
 ## Prerequisites
 
 - Node.js 20.19.4 and npm (`nvm use`).

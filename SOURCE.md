@@ -21,3 +21,9 @@ secret checks, preserve these public setup files, and keep provider integrations
 optional until the operator configures their own accounts. There is no automatic
 deployment to the hosted Menta app from this repository.
 
+This edition can lag the App Store app and the private development source.
+`source-manifest.json` records `sourceVersion` 1.9.3 and `sourceCommit`
+`89388cec2b39ec2fb52a68b0e85e9c8665055df7`. The hosted App Store build is newer
+(about 1.9.5). Updates published here are reviewed exports, not an automatic
+deploy of the store binary or of the private source.
+
