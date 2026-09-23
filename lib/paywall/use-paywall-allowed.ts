@@ -8,7 +8,7 @@ import {
 } from '@/lib/navigation/onboarding-invitation-lifecycle';
 
 /** Every paywall surface shares the same onboarding exclusion. */
-export function usePaywallAllowed(): boolean {
+export function usePaywallAllowed(onboardingOwnerId?: string): boolean {
   const pathname = usePathname();
   const ownerId = useAuthStore(state => state.user?.id);
   const completed = useAuthStore(state => state.hasCompletedOnboarding);
@@ -25,6 +25,16 @@ export function usePaywallAllowed(): boolean {
   useEffect(() => {
     void hydrateOnboardingInvitationLifecycle();
   }, []);
+  // Only the explicitly assigned pre-activation gate may open in onboarding.
+  // Ordinary upsells retain the shared exclusion below.
+  if (onboardingOwnerId) {
+    return Boolean(
+      ownerId === onboardingOwnerId &&
+      !completed &&
+      pathname === '/onboarding' &&
+      pending?.ownerUserId !== ownerId
+    );
+  }
   return Boolean(
     ownerId &&
     completed &&

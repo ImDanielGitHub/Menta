@@ -12,6 +12,10 @@ export type OneSignalSendInput = {
   title: string;
   body: string;
   data: Record<string, unknown>;
+  ttlSeconds?: number;
+  deadline?: { expiresAt: string; timezone: string };
+  pendingReviews?: number;
+  now?: Date;
 };
 
 export type OneSignalRequest = {
@@ -137,6 +141,119 @@ export const createOneSignalIdempotencyKey = async (
   return formatUuid(uuid);
 };
 
+/** Never use private inbox titles, promise text or proof text as push copy. */
+export const buildSafePushCopy = (input: {
+  notificationType: unknown;
+  deadline?: { expiresAt: string; timezone: string };
+  pendingReviews?: number;
+  now?: Date;
+}): { title: string; body: string } => {
+  if (input.notificationType === 'review_reminder') {
+    const count =
+      Number.isSafeInteger(input.pendingReviews) &&
+      (input.pendingReviews ?? 0) > 0 &&
+      (input.pendingReviews ?? 0) <= 10_000
+        ? input.pendingReviews!
+        : 1;
+    return {
+      title:
+        count === 1
+          ? 'A proof needs your review'
+          : `${count} proofs need your review`,
+      body: 'Open your review queue to make a decision.',
+    };
+  }
+  if (
+    input.notificationType === 'streak_reminder' ||
+    input.notificationType === 'challenge_expiring'
+  ) {
+    const expiresAt = Date.parse(input.deadline?.expiresAt ?? '');
+    if (input.deadline && Number.isFinite(expiresAt)) {
+      const label = new Intl.DateTimeFormat('en-NZ', {
+        timeZone: input.deadline.timezone,
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZoneName: 'short',
+      }).format(new Date(expiresAt));
+      const isSoon =
+        expiresAt - (input.now ?? new Date()).getTime() <= 3_600_000;
+      return {
+        title:
+          input.notificationType === 'challenge_expiring'
+            ? 'Your promise is ending soon'
+            : isSoon
+              ? 'Proof closes soon'
+              : 'Time for your proof',
+        body:
+          input.notificationType === 'challenge_expiring'
+            ? `Your promise ends at ${label}. Open Menta to see its status.`
+            : `Add your proof before ${label}.`,
+      };
+    }
+    return {
+      title: 'Time for your proof',
+      body: 'Open Menta to check your current proof window.',
+    };
+  }
+  switch (input.notificationType) {
+    case 'verification_approved':
+      return {
+        title: 'Proof approved',
+        body: 'Your review result is ready in Menta.',
+      };
+    case 'verification_rejected':
+      return {
+        title: 'Your proof needs a correction',
+        body: 'Open Menta to see the review and your next step.',
+      };
+    case 'verification_pending':
+      return {
+        title: 'Your proof is awaiting review',
+        body: 'Your submission is recorded. Check its status in Menta.',
+      };
+    case 'streak_recovery':
+      return {
+        title: 'Your streak was protected',
+        body: 'Open Menta to see your check-in result.',
+      };
+    case 'missed_streak':
+      return {
+        title: 'Your check-in window closed',
+        body: 'Your result and next step are ready in Menta.',
+      };
+    case 'challenge_expired':
+    case 'challenge_complete':
+      return {
+        title: 'Your promise has finished',
+        body: 'Open Menta to see the result and choose your next step.',
+      };
+    case 'streak_achievement':
+    case 'badge_unlocked':
+    case 'momenta_reward':
+      return {
+        title: 'You reached a milestone',
+        body: 'Your progress update is ready in Menta.',
+      };
+    case 'group_activity':
+    case 'group_milestone':
+    case 'group_streak_warning':
+      return {
+        title: 'Your group has an update',
+        body: 'Open Menta to see what changed.',
+      };
+    case 'test_notification':
+      return {
+        title: 'Menta notification test',
+        body: 'Open notification settings to finish checking delivery.',
+      };
+    default:
+      return { title: 'Menta update', body: 'Open Menta to see the update.' };
+  }
+};
+
 export const buildOneSignalRequest = (
   input: OneSignalSendInput
 ): OneSignalRequest => {
@@ -152,6 +269,25 @@ export const buildOneSignalRequest = (
     throw new Error('OneSignal idempotency key must be an RFC UUID.');
   }
 
+  const ttlSeconds = input.ttlSeconds ?? 3600;
+  if (
+    !Number.isInteger(ttlSeconds) ||
+    ttlSeconds < 0 ||
+    ttlSeconds > 2_419_200
+  ) {
+    throw new Error('OneSignal TTL must be a bounded number of seconds.');
+  }
+  const data = buildOneSignalDataPayload({
+    action: input.data.action,
+    notificationId: input.data.notificationId as number,
+    notificationType: input.data.type,
+  });
+  const copy = buildSafePushCopy({
+    notificationType: data.type,
+    deadline: input.deadline,
+    pendingReviews: input.pendingReviews,
+    now: input.now,
+  });
   return {
     url: 'https://api.onesignal.com/notifications',
     authorization: buildOneSignalAuthorization(input.restApiKey),
@@ -164,9 +300,10 @@ export const buildOneSignalRequest = (
       include_aliases: {
         external_id: [externalUserId],
       },
-      headings: { en: input.title },
-      contents: { en: input.body },
-      data: input.data,
+      headings: { en: copy.title },
+      contents: { en: copy.body },
+      data,
+      ttl: ttlSeconds,
       idempotency_key: input.idempotencyKey.trim(),
     },
   };
@@ -177,22 +314,43 @@ export const parseOneSignalSendResponse = (
 ):
   | { kind: 'accepted'; providerMessageId: string }
   | { kind: 'no-valid-subscription' } => {
-  if (!payload || typeof payload !== 'object') {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     throw new Error('OneSignal response was not an object.');
   }
-
-  const record = payload as {
-    id?: unknown;
-  };
-
+  const record = payload as { id?: unknown; errors?: unknown };
   if (typeof record.id === 'string' && record.id.trim()) {
     return { kind: 'accepted', providerMessageId: record.id.trim() };
   }
 
-  // OneSignal returns HTTP 200 for a valid request even when no subscribed
-  // recipient matched. In that case the response has no message id and may
-  // include errors such as "All included players are not subscribed". That is
-  // a definitive no-recipient result, so the delivery router can safely use
-  // the registered Expo-token compatibility path exactly once.
-  return { kind: 'no-valid-subscription' };
+  // An explicit empty id is the documented no-recipient response. Preserve
+  // the older, exact unsubscribed error too, but never infer this from {} or
+  // an unrelated error. Ambiguous acceptance stays on the idempotent retry path.
+  const errors = record.errors;
+  const noErrors =
+    errors === undefined ||
+    errors === null ||
+    (Array.isArray(errors) && errors.length === 0) ||
+    (typeof errors === 'object' &&
+      !Array.isArray(errors) &&
+      errors !== null &&
+      Object.keys(errors).length === 0);
+  const onlyUnsubscribed =
+    Array.isArray(errors) &&
+    errors.length > 0 &&
+    errors.every(
+      error =>
+        typeof error === 'string' &&
+        /^All included (players|subscriptions|users) are not subscribed[.!]?$/i.test(
+          error.trim()
+        )
+    );
+  if (
+    (record.id === '' && (noErrors || onlyUnsubscribed)) ||
+    ((record.id === undefined || record.id === null) && onlyUnsubscribed)
+  ) {
+    return { kind: 'no-valid-subscription' };
+  }
+  throw new Error(
+    'OneSignal response did not confirm acceptance or an empty audience.'
+  );
 };

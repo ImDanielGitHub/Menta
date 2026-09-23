@@ -2,6 +2,11 @@
   "sourceCommit": "89388cec2b39ec2fb52a68b0e85e9c8665055df7",
   "sourceVersion": "1.9.3",
   "exportPolicyVersion": 1,
+  "partialSync": {
+    "upstreamCommit": "a5e6a1e5871ae4baa7cce332ae1e453f9a64b1d1",
+    "upstreamVersion": "1.9.5",
+    "note": "Selected product files were refreshed from this LockedInProd commit. The rest of the tree remains the 1.9.3 export. This is not full parity with the hosted app."
+  },
   "sourceFiles": [
     {
       "path": ".env.example",
@@ -221,7 +226,7 @@
     },
     {
       "path": "app/__tests__/onboarding.test.tsx",
-      "sha256": "8a95616560889d5fb47d81eac9b637391c64a35309111a5795ca371bd812e36e"
+      "sha256": "37e8cb2435bd8079f7f5d988cd5237350ad9aaa89dec6b5311aaca425e138fed"
     },
     {
       "path": "app/__tests__/password-recovery.test.tsx",
@@ -469,7 +474,7 @@
     },
     {
       "path": "app/onboarding.tsx",
-      "sha256": "dcc350d7e8b8cd5c5bf2288641b26e1c13cfadc0e70241c2c8223ccdd2e6d2bc"
+      "sha256": "1cd6e4bc205d1e8e0861d9fdc5744319b011ff9a2316710ac06200e55f482d8d"
     },
     {
       "path": "app/password-recovery.tsx",
@@ -1509,7 +1514,7 @@
     },
     {
       "path": "components/paywall/PaywallModal.tsx",
-      "sha256": "3ed824d29d78a42bbffeb3c54545eda3806414864f947ac4dc17868ddd1f9b39"
+      "sha256": "e237a6f439586e5d86751ed3d3d9b4cec7d796fa58437fcfa9bb54003bf3901d"
     },
     {
       "path": "components/paywall/__tests__/PaywallHost.test.tsx",
@@ -1525,7 +1530,7 @@
     },
     {
       "path": "components/paywall/pro-offer-journey.tsx",
-      "sha256": "0e86ae499edc0217b8a84c4203f2496ba9dbc86e88e3f02215d71ff6eaa20b5d"
+      "sha256": "3dfc4af466308ce3d9f394ab87f95eb31e0134f0754d9c95a0b6d1d40065a3cf"
     },
     {
       "path": "components/profile/ProfileFollowThroughChart.tsx",
@@ -1697,7 +1702,7 @@
     },
     {
       "path": "components/ui/AppButton.tsx",
-      "sha256": "d079741087a56c186400fc05bd4fbdaff58a42baf8695da0dfa9a5e2a64a91b8"
+      "sha256": "2250ed25a6050a2e8255ade155696157009de7bc46aa0c378fb8d08124a08bb6"
     },
     {
       "path": "components/ui/AppCard.tsx",
@@ -2568,6 +2573,10 @@
       "sha256": "0e1c5eaa652991ce767a4f50d60431ec43fc487a497c7c9034bb52cd3b640515"
     },
     {
+      "path": "lib/__tests__/paywall-amplitude.test.ts",
+      "sha256": "f087178106017868d26a9db19e83922139d05681a088fa2910f09b86ec5420ac"
+    },
+    {
       "path": "lib/__tests__/pending-invite-open.test.ts",
       "sha256": "c7ba11fd8159c5a6c3587cc33e9bfca42af5e2a3c0be82d1979acbb5edaa2fef"
     },
@@ -2585,7 +2594,7 @@
     },
     {
       "path": "lib/__tests__/product-analytics.test.ts",
-      "sha256": "2ace4cda3e47a36e6bdef18d2dcae06909a7a2602bb4a1fe46cc4472baac2b26"
+      "sha256": "704ca0e498d903425c50d363dd5c69786ab3e68e3db8a27d884ca32c91daf21f"
     },
     {
       "path": "lib/__tests__/profile-api.test.ts",
@@ -2837,7 +2846,11 @@
     },
     {
       "path": "lib/amplitude.ts",
-      "sha256": "66f6e889950ee7121e27507c910c92020274d3dd457c3b5a7a4b7fd554a077ff"
+      "sha256": "89cde11a8f6251c6aa547c6a00667ab8eeca050c71434e0dbf4900f003de4b43"
+    },
+    {
+      "path": "lib/analytics/onboarding-paywall-context.ts",
+      "sha256": "fabe91fc00e72d544ab444a33654100f38a8047b03b1f2773c5a6bfc76b55568"
     },
     {
       "path": "lib/app-intents/deep-links.ts",
@@ -3229,7 +3242,7 @@
     },
     {
       "path": "lib/image-service.ts",
-      "sha256": "9815ea27c99a9cd908199e5d882d030909ab0d2fe8d94b4c449ec216b9da48a3"
+      "sha256": "4ffaafd450b919e88948e6c6bcacae69df37e9f2b30f1ae66c31e809f56c05e3"
     },
     {
       "path": "lib/invite-links.ts",
@@ -3361,7 +3374,7 @@
     },
     {
       "path": "lib/localization/catalogues/de-DE/onboarding.ts",
-      "sha256": "24cb2fa73c181fb1a2eb59f0ef203b79696d3a871482164831220af9fa37302b"
+      "sha256": "85c2e194508dc8e3afe13cfd16340c1f87f476544b612d11b553ab8af3ce2e5e"
     },
     {
       "path": "lib/localization/catalogues/de-DE/proof-recovery.ts",
@@ -3437,7 +3450,7 @@
     },
     {
       "path": "lib/localization/catalogues/en-NZ/onboarding.ts",
-      "sha256": "34d85e181acd8fb36ed3cf83eb88b3a6450b3671617f122cd5c356b865b82eef"
+      "sha256": "a7837bebb891fc42d29737b95b34122691a04eac890cc39d5b9512db0a76c07a"
     },
     {
       "path": "lib/localization/catalogues/en-NZ/proof-recovery.ts",
@@ -3521,7 +3534,7 @@
     },
     {
       "path": "lib/localization/catalogues/es-ES/onboarding.ts",
-      "sha256": "fbd85fa8974234bb0c7a8b576aefbfd99195b169ca0cf7e03a8e7765fa57b9d5"
+      "sha256": "f31c13cab76840d30539b419f9a784c0a7f0a69c3b1e88f5c9341bb6ba57b497"
     },
     {
       "path": "lib/localization/catalogues/es-ES/proof-recovery.ts",
@@ -3605,7 +3618,7 @@
     },
     {
       "path": "lib/localization/catalogues/es-MX/onboarding.ts",
-      "sha256": "9eba9067a1be9029aaaaf1b82cb4bbbe9072ed58dd985b3c1c6fa98d86711de0"
+      "sha256": "52bba4e1a69c6474ca30f9cbd41a50526f076caadb7b2ca1c8972e791688c89c"
     },
     {
       "path": "lib/localization/catalogues/es-MX/proof-recovery.ts",
@@ -3693,7 +3706,7 @@
     },
     {
       "path": "lib/localization/catalogues/fr-CA/onboarding.ts",
-      "sha256": "d67d05324250a1a8dc10912197447eccf7f91c07fd2019da3647efb34355ceaa"
+      "sha256": "84ed12b3254698ee09d121866b87fd51abb82ef370308d8cccbdbd6996c9c329"
     },
     {
       "path": "lib/localization/catalogues/fr-CA/proof-recovery.ts",
@@ -3777,7 +3790,7 @@
     },
     {
       "path": "lib/localization/catalogues/fr-FR/onboarding.ts",
-      "sha256": "d2a0b03891c49bed7c7262dc0133a9b4228e23e26f68a01af1b952bb6dc08145"
+      "sha256": "5f38281932a034714e43756043adadd9fcf70562db12b32d1858c8720f405f09"
     },
     {
       "path": "lib/localization/catalogues/fr-FR/proof-recovery.ts",
@@ -3865,7 +3878,7 @@
     },
     {
       "path": "lib/localization/catalogues/pt-BR/onboarding.ts",
-      "sha256": "74056135f470842795426a524aaa23fa2ecd6f850b575fc8f010ade9aae05e28"
+      "sha256": "f2db9819343466fb763d285cd3b840a9cb5f4315a5c3fb082bef7d38e0cd5378"
     },
     {
       "path": "lib/localization/catalogues/pt-BR/proof-recovery.ts",
@@ -3953,7 +3966,7 @@
     },
     {
       "path": "lib/localization/catalogues/pt-PT/onboarding.ts",
-      "sha256": "843a57b21f9d4d0d97dfaa8c9a023bdadfed3ef75e5f92ecd992d3b864519358"
+      "sha256": "d3f8ca2e5ce094c6b9db5dbfdab7ed5453c6f78d1cf97f9809e6065e8c528795"
     },
     {
       "path": "lib/localization/catalogues/pt-PT/proof-recovery.ts",
@@ -4197,7 +4210,7 @@
     },
     {
       "path": "lib/notifications/__tests__/onesignal-retention-provider.test.ts",
-      "sha256": "4c4ee634532994929c7c454b778ac42a2edd3fb5b239caab91b72c8cd4434548"
+      "sha256": "d292eda928bddd2e7141a48d43d527c5979d2395e7e20a9a2653d59ae64a5f77"
     },
     {
       "path": "lib/notifications/__tests__/retention-notification-client.test.ts",
@@ -4217,7 +4230,7 @@
     },
     {
       "path": "lib/notifications/onesignal-retention-provider.ts",
-      "sha256": "cf15e77d232813dcf742df42f33f5317cded886db77ccf66e1ce9a5b3ce4dc6e"
+      "sha256": "12138a17724dbb96511124362f1248f85bd5931eedc1bc3d4253172d706be0fa"
     },
     {
       "path": "lib/notifications/retention-event-bridge.ts",
@@ -4348,6 +4361,10 @@
       "sha256": "b50ea5b8f136693d36f3e1548fe68c42f26d22b9a5554a58fd54b0f31397b4ce"
     },
     {
+      "path": "lib/paywall/__tests__/onboarding-paywall.test.ts",
+      "sha256": "4f1db4f77beda9aaa6cd09d471e7bcf5fbac9a7c9c64133d579236d8bc7fec0d"
+    },
+    {
       "path": "lib/paywall/__tests__/pro-copy.test.ts",
       "sha256": "de6dbc8f9adb74d690bc98c48f34d4bbcf6ff0aebd4fca328bd1ad9c838b736e"
     },
@@ -4360,6 +4377,10 @@
       "sha256": "20ae3e9ba8cafacd51846bebfc0e2df1237b0a1719d6aa4db4416c73a1c1a491"
     },
     {
+      "path": "lib/paywall/onboarding-paywall.ts",
+      "sha256": "a00c9c8c57623a1ba0fa7e170faf882df2d1b8ae30ac0a036278e414a9ee0c57"
+    },
+    {
       "path": "lib/paywall/pro-copy.ts",
       "sha256": "93cf2246ed9983905bde2bd18a1314f63adab7d731bd1645caacc7d32fa93bd7"
     },
@@ -4369,15 +4390,15 @@
     },
     {
       "path": "lib/paywall/use-paywall-allowed.ts",
-      "sha256": "5b7b5483c7cd80d4182cc63f0b7b11fba90871865ff8954812cd29dbaa82ed5f"
+      "sha256": "6a0524d4e090e9c00cdb51bf89c5bce1fc2ca59ca1afb7beb3cc94e51b2f3b08"
     },
     {
       "path": "lib/posthog.tsx",
-      "sha256": "fa92879f2aae93067e05afe03829338fdc1d23817860d47b483e5a30be494bf8"
+      "sha256": "b2aac3d2e4622ffd0070bdf8936e45b312258fc75db9026e43fd2985dce287ac"
     },
     {
       "path": "lib/product-analytics.ts",
-      "sha256": "0deee7c13a31e0c112f85e81ffb0b1f731f5ddfe67deca7f0aac55c996500073"
+      "sha256": "dde421b654aed442b3523b10c45cbedd3ed7da2eca6ce725f860ae92c483e77a"
     },
     {
       "path": "lib/product-config.ts",
@@ -4801,7 +4822,7 @@
     },
     {
       "path": "supabase/functions/_shared/coach-copy.ts",
-      "sha256": "c3b9e3cccd4652a372b38b4cdd8c9648e124f7455a048637cf021354224617d2"
+      "sha256": "66c45aa198383ab79afb298a396670608cd100d790f50dc023acf744352d86e7"
     },
     {
       "path": "supabase/functions/_shared/cors.ts",
@@ -4821,7 +4842,7 @@
     },
     {
       "path": "supabase/functions/challenge-notification-scheduler/index.ts",
-      "sha256": "1aa03b44dc22b8a37acf3b403ed95ba9944cc5365c2902899645b432173df8ae"
+      "sha256": "a03cccc941a2664df0ce6e9c6657a37644b7b65f80f06a92293b7764dac9cdb2"
     },
     {
       "path": "supabase/functions/challenge-notification-scheduler/review-digest.ts",
@@ -4912,6 +4933,10 @@
       "sha256": "59ce43a60228a47a253437bd877dda219a261a7778b67bddaff7acc357e25386"
     },
     {
+      "path": "supabase/functions/notification-processor/__tests__/current-message-context.test.ts",
+      "sha256": "44638e3151ed6945ddbebceae5bd058b848486a384897074f72b84b961cf7974"
+    },
+    {
       "path": "supabase/functions/notification-processor/__tests__/delivery-guard.test.ts",
       "sha256": "c4b9076102e7dfec293912ae73e27681155aba10eeb51ff5611311732668e973"
     },
@@ -4920,8 +4945,12 @@
       "sha256": "a3a195317937e00bc37734af352996767a1986dd15cec797861086f0098ffce6"
     },
     {
+      "path": "supabase/functions/notification-processor/__tests__/notification-policy-regression.test.ts",
+      "sha256": "32421089376095e9476cbc4a6b56bfcb7af9b847663b17f391009c16c146e579"
+    },
+    {
       "path": "supabase/functions/notification-processor/__tests__/onesignal-sender.test.ts",
-      "sha256": "34bf3a5158e46c08f579d45828193c2b757f7022a4acf7901a470a363e83fd73"
+      "sha256": "87b2bf00ad217a0960398ec551def01c2ed1f019c097d84a2bdd7bd98cf07326"
     },
     {
       "path": "supabase/functions/notification-processor/__tests__/providers.test.ts",
@@ -4929,7 +4958,7 @@
     },
     {
       "path": "supabase/functions/notification-processor/delivery-guard.ts",
-      "sha256": "71ab692deb8ce5b944135fb8c3d9e94b78c29d517e008e604b0f60a05d70974f"
+      "sha256": "4fd0330d344676d70d9c8fcbcfd269528fb3956cbfb675a1b3f98b208cab69ce"
     },
     {
       "path": "supabase/functions/notification-processor/delivery-router.ts",
@@ -4937,11 +4966,11 @@
     },
     {
       "path": "supabase/functions/notification-processor/index.ts",
-      "sha256": "1fee12d8dcb94d2f0e026573a1ebc81327650c102a429186af27cd7628428cc1"
+      "sha256": "16f04e7e7796558e947a80db135d72504a66894499386a2389c2d82102b68a06"
     },
     {
       "path": "supabase/functions/notification-processor/onesignal-sender.ts",
-      "sha256": "73d366a3710722758d1e1b619d134f58ca7171f144f1f9f7e97082a5d30a456d"
+      "sha256": "43d52bb2a7d95e8d9a79e1a6f0c1001efe3104a5fdff379654d1e32467e5a4c2"
     },
     {
       "path": "supabase/functions/notification-processor/providers.ts",
@@ -4958,6 +4987,10 @@
     {
       "path": "supabase/functions/tsconfig.json",
       "sha256": "29e4ec28648919209c075c977832b803fb60de9160339ff5be3ec56e04151063"
+    },
+    {
+      "path": "supabase/migrations/20260923120000_expire_invites_after_creator_deletion.sql",
+      "sha256": "569a2468c29f004f4d64ea21f6fa7f78cfd6945665122ce57396c3aed566d637"
     },
     {
       "path": "tsconfig.json",

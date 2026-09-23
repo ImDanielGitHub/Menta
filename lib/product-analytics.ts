@@ -34,6 +34,7 @@ export const MENTA_ANALYTICS_EVENT_NAMES = [
   'First Miss Recovery',
   'Ad Outcome',
   'Paywall Viewed',
+  'Experiment Exposed',
   'Paywall Journey',
   'Subscription Started',
   'Subscription Outcome',
@@ -589,10 +590,15 @@ export type AnalyticsEventProperties = {
     placement: PaywallAnalyticsPlacement;
     variant: PaywallAnalyticsVariant;
   };
+  'Experiment Exposed': {
+    experiment_key: string;
+    experiment_variant: string;
+    experiment_surface: 'onboarding' | 'paywall' | 'today';
+  };
   'Paywall Journey': {
     stage: 'entry_tapped' | 'benefits' | 'plans' | 'offer' | 'purchase_tapped';
     source?: 'shop';
-    context: 'challenge' | 'group' | 'member' | 'general';
+    context: 'challenge' | 'group' | 'member' | 'general' | 'onboarding';
     plan: 'weekly' | 'annual' | 'none';
   };
   'Subscription Started': {

@@ -22,9 +22,11 @@ optional until the operator configures their own accounts. There is no automatic
 deployment to the hosted Menta app from this repository.
 
 This edition can lag the iOS App Store app and the private development source.
-`source-manifest.json` records `sourceVersion` 1.9.3 and `sourceCommit`
-`89388cec2b39ec2fb52a68b0e85e9c8665055df7`. The checked-in iOS target is the
-same marketing version, 1.9.3, build 154. The live iOS App Store build is
+`source-manifest.json` records the base export as `sourceVersion` 1.9.3 and
+`sourceCommit` `89388cec2b39ec2fb52a68b0e85e9c8665055df7`. A later partial sync
+refreshes selected product files from LockedInProd `a5e6a1e5871ae4baa7cce332ae1e453f9a64b1d1`
+(package 1.9.5). That sync is not a full re-export. The checked-in iOS target
+stays marketing version 1.9.3, build 154. The live iOS App Store build is
 1.9.5, released 10 September 2026. Both require iOS 16.4. Updates published
 here are reviewed exports, not an automatic deploy of the store binary or of
 the private source.

@@ -107,6 +107,12 @@ import {
 } from '@/constants/MentaDesignSystem';
 import { mentaFonts } from '@/lib/menta-fonts';
 import { trackProductEvent } from '@/lib/posthog';
+import { PaywallModal } from '@/components/paywall/PaywallModal';
+import {
+  resolveOnboardingPaywall,
+  recordOnboardingPaywallExposure,
+  type OnboardingPaywallDecision,
+} from '@/lib/paywall/onboarding-paywall';
 import { trackMetaAdsCreatePromise } from '@/lib/meta-ads';
 import {
   getPromiseDurationBucket,
@@ -622,6 +628,23 @@ export default function OnboardingScreen() {
     state => state.cancelPendingReferral
   );
   const [step, setStep] = useState<Step>('welcome');
+  const [paywallGate, setPaywallGate] = useState<{
+    ownerId: string;
+    decision: OnboardingPaywallDecision;
+    skipReferral: boolean;
+  } | null>(null);
+  const closeOnboardingPaywall = useCallback(() => {
+    setPaywallGate(null);
+    setStep('auth_method');
+  }, []);
+  useEffect(() => {
+    if (paywallGate && paywallGate.ownerId === user?.id) {
+      recordOnboardingPaywallExposure(
+        paywallGate.ownerId,
+        paywallGate.decision
+      );
+    }
+  }, [paywallGate, user?.id]);
   const [promise, setPromise] = useState('');
   const [proofType, setProofType] = useState<OnboardingProofType | null>(null);
   const [proofDisclosure, setProofDisclosure] = useState(false);
@@ -1798,6 +1821,46 @@ export default function OnboardingScreen() {
           ),
         });
         return;
+      }
+
+      if (!isReplay) {
+        const decision = await resolveOnboardingPaywall(attempt.userId);
+        assertActivationAttemptCurrent(attempt);
+        if (decision.requiresPurchase) {
+          // Legal acceptance already succeeded above. Keep that receipt visible
+          // so closing checkout returns to Create promise, not the terms step.
+          const confirmedVersions =
+            legalConsentVersions ??
+            (legalDocuments
+              ? legalVersionsForDocuments(legalDocuments)
+              : null);
+          const confirmedAt = legalConsentAt ?? new Date().toISOString();
+          // Keep an owned resumable draft; closing checkout never activates it.
+          await saveOnboardingDraft(
+            {
+              promise,
+              proofType,
+              durationDays: duration,
+              accountabilityChoice,
+              accountabilityChoiceConfirmed: accountabilityConfirmed,
+              legalConsentAt: confirmedAt,
+              legalConsentVersions: confirmedVersions,
+              referralCode,
+              marketingOptIn,
+            },
+            attempt.userId,
+            'auth_method'
+          );
+          assertActivationAttemptCurrent(attempt);
+          setLegalConsentAt(confirmedAt);
+          setLegalConsentVersions(confirmedVersions);
+          setLegalConfirmed(true);
+          setLegalReady(true);
+          setStep('auth_method');
+          setPaywallGate({ ownerId: attempt.userId, decision, skipReferral });
+          return;
+        }
+        recordOnboardingPaywallExposure(attempt.userId, decision);
       }
 
       const typedReferralCode = normalizeInviteCode(referralCode);
@@ -4244,9 +4307,11 @@ export default function OnboardingScreen() {
                         scaleTypeMetrics(bodySmallLeading, onboardingTextScale),
                       ]}
                     >
-                      {t(
-                        'fullAuth.onboarding.choose_how_you_want_to_continue_your_draft_stays'
-                      )}
+                      {!pendingInvite && !isReplay && !authNotice
+                        ? t('onboarding.paywall.disclosure')
+                        : t(
+                            'fullAuth.onboarding.choose_how_you_want_to_continue_your_draft_stays'
+                          )}
                     </Text>
                   </View>
                 ) : null}
@@ -4562,6 +4627,25 @@ export default function OnboardingScreen() {
       >
         {screen}
       </SafeAreaView>
+      {paywallGate && paywallGate.ownerId === user?.id ? (
+        <PaywallModal
+          visible
+          context="onboarding"
+          initialView={paywallGate.decision.accessPending ? 'pending' : 'plans'}
+          onboardingOwnerId={paywallGate.ownerId}
+          onClose={closeOnboardingPaywall}
+          onBuyPro={() => {
+            const { skipReferral } = paywallGate;
+            setPaywallGate(null);
+            // Re-check the server's entitlement before any promise mutation.
+            void Promise.resolve().then(() => {
+              if (useAuthStore.getState().user?.id === paywallGate.ownerId) {
+                return continueToFirstPromiseRef.current?.({ skipReferral });
+              }
+            });
+          }}
+        />
+      ) : null}
     </AppTextScaleProvider>
   );
 }

@@ -301,6 +301,26 @@ Deno.serve(async req => {
       for (const row of (submitDue || []) as SubmitReminderData[]) {
         try {
           const reminderKind = row.reminder_kind ?? 'primary';
+          if (!row.local_day || !/^\d{4}-\d{2}-\d{2}$/.test(row.local_day)) {
+            throw new Error('A coach reminder requires its obligation day.');
+          }
+          // Bind the open extension's original day once. Never move an existing
+          // queued job onto a new obligation during retries or after midnight.
+          const { data: obligationDay, error: obligationError } =
+            await supabase.rpc('resolve_extension_submission_local_day_v1', {
+              p_user_id: row.user_id,
+              p_challenge_id: row.challenge_id,
+              p_fallback_local_day: row.local_day,
+            });
+          if (
+            obligationError ||
+            typeof obligationDay !== 'string' ||
+            !/^\d{4}-\d{2}-\d{2}$/.test(obligationDay)
+          ) {
+            throw new Error('Could not resolve the coach obligation day.');
+          }
+          row.local_day = obligationDay;
+          row.idempotency_key = `coach:${row.user_id}:${obligationDay}:${reminderKind}`;
           const isRescue = reminderKind === 'rescue';
           const copy = renderCoachCopy({
             userId: row.user_id,
@@ -311,7 +331,7 @@ Deno.serve(async req => {
               streak_length: row.streak_length ?? 0,
               hours_remaining: row.hours_remaining ?? 0,
               freeze_remaining: row.freeze_remaining ?? 0,
-              proof_due_label: row.proof_due_label ?? '8:00 PM',
+              proof_due_label: row.proof_due_label ?? '',
               open_promise_count: row.open_promise_count ?? 1,
             },
           });

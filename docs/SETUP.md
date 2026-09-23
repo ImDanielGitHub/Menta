@@ -91,11 +91,20 @@ as partial product testing only.
 A local iOS build from this repository is marketing version **1.9.3**, build
 **154** (`MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in
 `ios/LockedInPro.xcodeproj`). `app.json` and `source-manifest.json` also say
-1.9.3. `app.json` lists `ios.buildNumber` as `1`, which does not match the
-checked-in Xcode build; `npm run ios` uses the `ios/` project, so the app you
-install reports 1.9.3 (154). The deployment target is iOS 16.4, the same
-minimum as the App Store app. The store binary is still a newer hosted build,
-so behaviour can differ. See [SOURCE.md](../SOURCE.md).
+1.9.3 for that base export. `app.json` lists `ios.buildNumber` as `1`, which
+does not match the checked-in Xcode build; `npm run ios` uses the `ios/`
+project, so the app you install reports 1.9.3 (154). The deployment target is
+iOS 16.4, the same minimum as the App Store app.
+
+The app and backend source on this branch are closer to LockedInProd
+`a5e6a1e` (1.9.5) for a few product behaviours: the onboarding hard-paywall
+experiment, state-aware review and deadline notification copy, the OneSignal
+`Linking.openURL` click fix, the signed proof-image cache that avoids the
+native `lru-cache` crash, invite expiry after the creator's account is
+deleted, and the raised primary-button edge. That is partial parity. It does
+not include streak widgets, the iPad workspace release, production cron jobs,
+OTA/update prompts, or the private release pipeline. The store binary can
+still differ. See [SOURCE.md](../SOURCE.md).
 
 ## Prerequisites
 

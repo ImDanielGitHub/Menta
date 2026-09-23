@@ -49,6 +49,11 @@ const parseEnabled = (value: unknown): boolean =>
 const loadOneSignalSdk = async (): Promise<OneSignalSdk> =>
   (await import('react-native-onesignal')).OneSignal;
 
+// RN Linking.openURL reads `this._validateURL`. Extracting the method unbound
+// makes `_validateURL` undefined and crashes notification clicks.
+const openUrlWithLinking = (url: string): Promise<unknown> =>
+  Linking.openURL(url);
+
 export const isValidOneSignalAppId = (value: unknown): value is string =>
   typeof value === 'string' && ONESIGNAL_APP_ID.test(value.trim());
 
@@ -71,10 +76,7 @@ export class OneSignalRetentionNotificationProvider implements RetentionNotifica
   ) => Promise<unknown>;
   private initializationPromise: Promise<OneSignalSdk> | null = null;
   private activePromptContext:
-    | 'first_promise'
-    | 'promise_invite'
-    | 'settings'
-    | 'other' = 'other';
+    'first_promise' | 'promise_invite' | 'settings' | 'other' = 'other';
   private readonly permissionListeners = new Set<(granted: boolean) => void>();
 
   constructor(options: OneSignalProviderOptions) {
@@ -85,7 +87,7 @@ export class OneSignalRetentionNotificationProvider implements RetentionNotifica
       (options.platform ?? Platform.OS) !== 'web' &&
       isValidOneSignalAppId(this.appId);
     this.loadSdk = options.loadSdk ?? loadOneSignalSdk;
-    this.openUrl = options.openUrl ?? Linking.openURL;
+    this.openUrl = options.openUrl ?? openUrlWithLinking;
     this.recordNotificationOpened =
       options.recordNotificationOpened ?? (() => Promise.resolve());
   }

@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-function, prefer-const -- Legacy upload adapters remain outside this security patch. */
 import { supabase, STORAGE_BUCKETS, SUPABASE_URL } from '@/lib/supabase';
-import { LRUCache } from 'lru-cache';
 import { Platform } from 'react-native';
 import { decode } from 'base64-arraybuffer';
 import { useAuthStore } from '@/store/auth-store';
@@ -15,7 +14,11 @@ export interface ImageTransform {
   format?: 'origin'; // 'origin' disables auto-optimization, omit for auto WebP
 }
 
-const cache = new LRUCache<string, string>({ max: 200 }); // ~200 signed URLs per session
+// Keep this native upload dependency free of Node-only module imports. The
+// lru-cache ESM entry imports node:diagnostics_channel when first evaluated,
+// which can terminate a release build before an upload's catch block runs.
+const MAX_SIGNED_URL_CACHE_ENTRIES = 200;
+const cache = new Map<string, { url: string; expiresAt: number }>();
 
 function cacheKey(bucket: string, path: string, transform?: ImageTransform) {
   return `${bucket}/${path}|${transform ? JSON.stringify(transform) : 'orig'}`;
@@ -409,7 +412,13 @@ export const ImageService = {
     // Check cache first
     const key = cacheKey(bucket, objectKey, transform);
     const cached = cache.get(key);
-    if (cached) return cached;
+    if (cached) {
+      cache.delete(key);
+      if (cached.expiresAt > Date.now()) {
+        cache.set(key, cached);
+        return cached.url;
+      }
+    }
 
     const { data, error } = await supabase.storage
       .from(STORAGE_BUCKETS[bucket])
@@ -423,7 +432,18 @@ export const ImageService = {
       throw error || new Error('Failed to sign URL');
     }
 
-    cache.set(key, data.signedUrl, { ttl: ttlSeconds * 1000 });
+    if (ttlSeconds > 0) {
+      cache.delete(key);
+      cache.set(key, {
+        url: data.signedUrl,
+        expiresAt: Date.now() + ttlSeconds * 1000,
+      });
+      while (cache.size > MAX_SIGNED_URL_CACHE_ENTRIES) {
+        const oldestKey = cache.keys().next().value;
+        if (oldestKey === undefined) break;
+        cache.delete(oldestKey);
+      }
+    }
     return data.signedUrl;
   },
 };

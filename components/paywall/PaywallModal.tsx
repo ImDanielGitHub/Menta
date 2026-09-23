@@ -38,7 +38,7 @@ import {
   restorePurchases,
   RevenueCatAPI,
 } from '@/lib/paywall/revenuecat';
-import { XIcon } from '@/components/ui/icons';
+import { ChevronLeftIcon, XIcon } from '@/components/ui/icons';
 import { MentaMascot } from '@/components/ui/MentaMascot';
 import {
   addBreadcrumb as sentryBreadcrumb,
@@ -88,8 +88,10 @@ type PaywallModalProps = {
   onBuyPro?: () => void;
   onBuyCredits?: () => void;
   onWatchAd?: () => Promise<RewardAdResult | boolean | void>;
-  context?: 'challenge' | 'group' | 'member' | 'general';
-  initialView?: 'plans' | 'active';
+  context?: 'challenge' | 'group' | 'member' | 'general' | 'onboarding';
+  /** Set only by the assigned pre-activation onboarding gate. */
+  onboardingOwnerId?: string;
+  initialView?: 'plans' | 'active' | 'pending';
   /** Amount of Momenta still needed for the attempted action */
   shortfall?: number;
   /** Expected reward from the ad, used for clearer UI copy */
@@ -109,6 +111,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
   onBuyCredits: _onBuyCredits,
   onWatchAd,
   context = 'general',
+  onboardingOwnerId,
   initialView = 'plans',
   shortfall,
   adRewardAmount = DEFAULT_AD_REWARD,
@@ -116,7 +119,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
   quotaLimit,
   quotaContext = 'general',
 }) => {
-  const allowed = usePaywallAllowed();
+  const allowed = usePaywallAllowed(onboardingOwnerId);
   const ownerId = useAuthStore(state => state.user?.id);
   const previousOwner = useRef(ownerId);
   const ownerChanged = previousOwner.current !== ownerId;
@@ -282,7 +285,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
     paywallViewedRef.current = true;
     trackProductEvent('Paywall Viewed', {
       placement: getPaywallAnalyticsPlacement(context),
-      variant: 'later',
+      variant: context === 'onboarding' ? 'onboarding' : 'later',
     });
   }, [context, visible]);
 
@@ -663,6 +666,10 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
   useEffect(() => {
     if (visible && initialView === 'active') {
       setPaywallStage('pro-active');
+      setShowFullPaywall(true);
+      setPurchaseFeedback(null);
+    } else if (visible && initialView === 'pending') {
+      setPaywallStage('access-delayed');
       setShowFullPaywall(true);
       setPurchaseFeedback(null);
     } else if (!visible) {
@@ -1398,7 +1405,11 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
       surface="full_screen"
       dismissOnBackdrop={false}
       onClose={onClose}
-      accessibilityLabel={t('commerce.paywall.close')}
+      accessibilityLabel={t(
+        onboardingOwnerId
+          ? 'commerce.proJourney.back'
+          : 'commerce.paywall.close'
+      )}
       overlayStyle={styles.overlay}
       cardStyle={styles.fullScreenCard}
     >
@@ -1422,11 +1433,19 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
                 setShowFullPaywall(false);
                 onClose();
               }}
-              accessibilityLabel={t('commerce.paywall.close')}
+              accessibilityLabel={t(
+                onboardingOwnerId
+                  ? 'commerce.proJourney.back'
+                  : 'commerce.paywall.close'
+              )}
               accessibilityRole="button"
               testID="paywall-close"
             >
-              <XIcon size={20} color={theme.colors.text.primary} />
+              {onboardingOwnerId ? (
+                <ChevronLeftIcon size={20} color={theme.colors.text.primary} />
+              ) : (
+                <XIcon size={20} color={theme.colors.text.primary} />
+              )}
             </Pressable>
             <View style={styles.fullScreenCard}>
               <View

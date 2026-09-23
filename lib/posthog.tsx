@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import PostHog, { PostHogProvider } from 'posthog-react-native';
 
 import { trackAmplitudeEvent } from '@/lib/amplitude';
+import { getPaywallAnalyticsProperties } from '@/lib/analytics/onboarding-paywall-context';
 import {
   resolveExperimentAssignment,
   type ExperimentAssignment,
@@ -188,6 +189,7 @@ export const trackProductEvent = <TEvent extends MentaAnalyticsEvent>(
     posthog.capture(event, {
       event_version: MENTA_ANALYTICS_SCHEMA_VERSION,
       app_platform: appPlatform,
+      ...getPaywallAnalyticsProperties(),
       ...(properties[0] ?? {}),
     });
   } catch {}

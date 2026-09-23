@@ -15,7 +15,7 @@ Object.defineProperty(globalThis, 'crypto', {
 });
 
 describe('OneSignal coach sender', () => {
-  it('builds a single push request targeted by external id', () => {
+  it('builds a single private-content-free push targeted by external id', () => {
     const request = buildOneSignalRequest({
       appId: '11111111-2222-4333-8444-555555555555',
       restApiKey: 'rest-key',
@@ -23,7 +23,11 @@ describe('OneSignal coach sender', () => {
       idempotencyKey: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
       title: 'Proof is due.',
       body: 'Submit Walk before dusk by 8:00 PM.',
-      data: { type: 'streak_reminder' },
+      data: {
+        type: 'streak_reminder',
+        notificationId: 42,
+        action: 'open_today',
+      },
     });
 
     expect(request.url).toBe('https://api.onesignal.com/notifications');
@@ -35,13 +39,19 @@ describe('OneSignal coach sender', () => {
       isAndroid: false,
       isAnyWeb: false,
       include_aliases: { external_id: ['user-1'] },
-      headings: { en: 'Proof is due.' },
-      contents: { en: 'Submit Walk before dusk by 8:00 PM.' },
-      data: { type: 'streak_reminder' },
+      headings: { en: 'Time for your proof' },
+      contents: { en: 'Open Menta to check your current proof window.' },
+      data: {
+        type: 'streak_reminder',
+        notificationId: 42,
+        action: 'open_today',
+      },
+      ttl: 3600,
       idempotency_key: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
     });
     expect(JSON.stringify(request.body)).not.toContain('delayed_option');
-    expect(JSON.stringify(request.body)).not.toContain('include_aliases":{}"');
+    expect(JSON.stringify(request.body)).not.toContain('Walk before dusk');
+    expect(JSON.stringify(request.body)).not.toContain('8:00 PM');
   });
 
   it('derives one stable RFC UUID for every logical notification', async () => {
@@ -109,13 +119,12 @@ describe('OneSignal coach sender', () => {
       kind: 'accepted',
       providerMessageId: 'notif-1',
     });
-    expect(parseOneSignalSendResponse({})).toEqual({
-      kind: 'no-valid-subscription',
-    });
-    expect(parseOneSignalSendResponse({ errors: [] })).toEqual({
-      kind: 'no-valid-subscription',
-    });
-    expect(parseOneSignalSendResponse({ errors: {} })).toEqual({
+    for (const ambiguous of [{}, { errors: [] }, { errors: {} }]) {
+      expect(() => parseOneSignalSendResponse(ambiguous)).toThrow(
+        /did not confirm/
+      );
+    }
+    expect(parseOneSignalSendResponse({ id: '' })).toEqual({
       kind: 'no-valid-subscription',
     });
     expect(
@@ -128,10 +137,7 @@ describe('OneSignal coach sender', () => {
         id: 'notif-partial',
         errors: { invalid_aliases: { external_id: ['missing-user'] } },
       })
-    ).toEqual({
-      kind: 'accepted',
-      providerMessageId: 'notif-partial',
-    });
+    ).toEqual({ kind: 'accepted', providerMessageId: 'notif-partial' });
     expect(() => parseOneSignalSendResponse('not-an-object')).toThrow(
       /not an object/
     );

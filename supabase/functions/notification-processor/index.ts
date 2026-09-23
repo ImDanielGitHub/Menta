@@ -10,6 +10,7 @@ import {
   type RemoteNotificationProvider,
 } from './providers.ts';
 import {
+  buildSafePushCopy,
   buildOneSignalDataPayload,
   buildOneSignalRequest,
   createOneSignalIdempotencyKey,
@@ -18,6 +19,8 @@ import {
 } from './onesignal-sender.ts';
 import {
   evaluateDeliveryGuard,
+  getProofDeadline,
+  remainingPushTtl,
   type DeliveryPreference,
 } from './delivery-guard.ts';
 import { sendWithOneSignalCompatibilityFallback } from './delivery-router.ts';
@@ -55,6 +58,7 @@ interface NotificationRecord {
   priority?: number | null;
   delivery_attempts?: number | null;
   push_platform?: 'ios' | 'android' | null;
+  delivery_context?: CurrentMessageContext;
 }
 
 interface AcceptedExpoNotification {
@@ -385,6 +389,17 @@ async function sendExpoPush(
       record.payload?.type || record.metadata?.type || record.notification_type,
   };
 
+  const now = new Date();
+  const ttl = remainingPushTtl(record.delivery_context?.expiresAt, now);
+  if (ttl === null)
+    return { kind: 'skipped', reason: 'SKIPPED_MESSAGE_EXPIRED' };
+  const copy = buildSafePushCopy({
+    notificationType: record.notification_type,
+    deadline: record.delivery_context?.deadline,
+    pendingReviews: record.delivery_context?.pendingReviews,
+    now,
+  });
+
   const response = await fetch(expoUrl, {
     method: 'POST',
     headers: {
@@ -396,8 +411,9 @@ async function sendExpoPush(
     body: JSON.stringify({
       to: expoPushToken,
       sound: 'default',
-      title: record.title || 'Menta update',
-      body: record.body || 'Open Menta to see the update.',
+      title: copy.title,
+      body: copy.body,
+      ttl,
       data: dataPayload,
       priority: getExpoPriority(record),
       channelId: getAndroidChannelId(record),
@@ -457,6 +473,11 @@ async function sendOneSignalPush(
       record.payload?.type || record.metadata?.type || record.notification_type,
   });
 
+  const now = new Date();
+  const ttlSeconds = remainingPushTtl(record.delivery_context?.expiresAt, now);
+  if (ttlSeconds === null)
+    return { kind: 'skipped', reason: 'SKIPPED_MESSAGE_EXPIRED' };
+
   const request = buildOneSignalRequest({
     appId,
     restApiKey,
@@ -465,6 +486,10 @@ async function sendOneSignalPush(
     title: record.title || 'Menta update',
     body: record.body || 'Open Menta to see the update.',
     data: dataPayload,
+    ttlSeconds,
+    deadline: record.delivery_context?.deadline,
+    pendingReviews: record.delivery_context?.pendingReviews,
+    now,
   });
 
   const response = await fetch(request.url, {
@@ -480,9 +505,7 @@ async function sendOneSignalPush(
 
   const responseData = await response.json();
   if (!response.ok) {
-    throw new Error(
-      `OneSignal HTTP ${response.status}: ${JSON.stringify(responseData)}`
-    );
+    throw new Error(`OneSignal HTTP ${response.status}`);
   }
 
   const accepted = parseOneSignalSendResponse(responseData);
@@ -521,7 +544,7 @@ async function loadDeliveryPreference(
   const { data, error } = await supabase
     .from('notification_preferences')
     .select(
-      'push_enabled, challenge_reminders, group_updates, streak_alerts, timezone, quiet_hours_start, quiet_hours_end, device_permission_status, push_platform'
+      'push_enabled, challenge_reminders, group_updates, streak_alerts, timezone, quiet_hours_start, quiet_hours_end, device_permission_status, push_platform, ignore_coach_until'
     )
     .eq('user_id', userId)
     .maybeSingle();
@@ -730,6 +753,167 @@ async function hasPendingOrApprovedProof(
   return Array.isArray(data) && data.length > 0;
 }
 
+interface CurrentMessageContext {
+  expiresAt?: string;
+  notBefore?: string;
+  deadline?: { expiresAt: string; timezone: string };
+  pendingReviews?: number;
+  skipReason?: string;
+}
+
+/** Read current facts, not stale copy, before each delivery attempt. */
+export async function loadCurrentMessageContext(
+  record: NotificationRecord,
+  now: Date
+): Promise<CurrentMessageContext> {
+  const payload = record.payload ?? {};
+  const type = record.notification_type;
+
+  if (type === 'review_reminder') {
+    if (typeof payload.submissionId === 'string') {
+      const { data, error } = await supabase
+        .from('challenge_submissions')
+        .select('id, status, user_id, challenge_id')
+        .eq('id', payload.submissionId)
+        .maybeSingle();
+      if (error) throw new Error('Could not re-check the pending proof.');
+      if (
+        !data ||
+        data.status !== 'pending' ||
+        data.user_id === record.user_id ||
+        (payload.challengeId && data.challenge_id !== payload.challengeId)
+      ) {
+        return { skipReason: 'SKIPPED_REVIEW_ALREADY_RESOLVED' };
+      }
+      return { pendingReviews: 1 };
+    }
+    if (typeof payload.postId === 'string') {
+      const { data, error } = await supabase
+        .from('event_posts')
+        .select('id, status, user_id, occurrence_id')
+        .eq('id', payload.postId)
+        .maybeSingle();
+      if (error) throw new Error('Could not re-check the pending event post.');
+      if (
+        !data ||
+        data.status !== 'pending_review' ||
+        data.user_id === record.user_id ||
+        (payload.occurrenceId && data.occurrence_id !== payload.occurrenceId)
+      ) {
+        return { skipReason: 'SKIPPED_REVIEW_ALREADY_RESOLVED' };
+      }
+      // Existing transaction-owned producers choose the organiser. Keep that
+      // authority and the installed event action; this is only a stale-job check.
+      return { pendingReviews: 1 };
+    }
+    const { data, error } = await supabase.rpc('get_pending_review_reminders');
+    if (error) throw new Error('Could not refresh the review digest.');
+    const pendingReviews = (data ?? [])
+      .filter(row => row.reviewer_id === record.user_id)
+      .reduce((count, row) => count + Number(row.pending_count ?? 0), 0);
+    return pendingReviews > 0
+      ? { pendingReviews }
+      : { skipReason: 'SKIPPED_REVIEW_ALREADY_RESOLVED' };
+  }
+
+  if (type !== 'streak_reminder' && type !== 'challenge_expiring') return {};
+  if (typeof payload.challengeId !== 'string' || !payload.challengeId) {
+    return { skipReason: 'SKIPPED_MISSING_OBLIGATION_CONTEXT' };
+  }
+  // Promise lifetime governs expiry notices, not an extended daily proof.
+  // Coach validity is checked against its original day and extension below.
+  const { data: challenge, error: challengeError } = await supabase
+    .from('challenges')
+    .select('id, status, start_date, end_date')
+    .eq('id', payload.challengeId)
+    .maybeSingle();
+  if (challengeError) throw new Error('Could not re-check the promise.');
+  if (
+    !challenge ||
+    (challenge.status ?? 'active') !== 'active' ||
+    (challenge.start_date &&
+      Date.parse(challenge.start_date) > now.getTime()) ||
+    (type === 'challenge_expiring' &&
+      challenge.end_date &&
+      Date.parse(challenge.end_date) <= now.getTime())
+  ) {
+    return { skipReason: 'SKIPPED_PROMISE_NOT_ACTIVE' };
+  }
+  const { data: participant, error: participantError } = await supabase
+    .from('challenge_participants')
+    .select('status')
+    .eq('challenge_id', payload.challengeId)
+    .eq('user_id', record.user_id)
+    .maybeSingle();
+  if (participantError) throw new Error('Could not re-check participation.');
+  if (!participant || (participant.status ?? 'active') !== 'active') {
+    return { skipReason: 'SKIPPED_NOT_PARTICIPATING' };
+  }
+  const { data: timezone, error: timezoneError } = await supabase.rpc(
+    'get_effective_streak_timezone',
+    {
+      p_user_id: record.user_id,
+      p_challenge_id: payload.challengeId,
+      p_client_tz: null,
+    }
+  );
+  if (timezoneError || typeof timezone !== 'string') {
+    throw new Error('Could not resolve the proof timezone.');
+  }
+  if (type === 'challenge_expiring') {
+    if (!challenge.end_date)
+      return { skipReason: 'SKIPPED_MISSING_OBLIGATION_CONTEXT' };
+    return {
+      expiresAt: challenge.end_date,
+      deadline: { expiresAt: challenge.end_date, timezone },
+    };
+  }
+  // Never reassign a queued reminder to another obligation day on retry.
+  const localDay = payload.localDay;
+  if (typeof localDay !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(localDay)) {
+    return { skipReason: 'SKIPPED_MISSING_OBLIGATION_CONTEXT' };
+  }
+  const { data: outcome, error: outcomeError } = await supabase
+    .from('streak_day_outcomes')
+    .select('id')
+    .eq('user_id', record.user_id)
+    .eq('challenge_id', payload.challengeId)
+    .eq('local_day', localDay)
+    .limit(1);
+  if (outcomeError)
+    throw new Error('Could not re-check the obligation result.');
+  if (outcome?.length) return { skipReason: 'SKIPPED_OBLIGATION_RESOLVED' };
+
+  const { data: extensions, error: extensionError } = await supabase
+    .from('power_up_usage')
+    .select('proof_due_at, effective_timezone')
+    .eq('user_id', record.user_id)
+    .eq('challenge_id', payload.challengeId)
+    .eq('obligation_local_day', localDay)
+    .not('proof_due_at', 'is', null)
+    .order('proof_due_at', { ascending: false })
+    .limit(1);
+  if (extensionError)
+    throw new Error('Could not re-check the proof extension.');
+  const extension = extensions?.[0];
+  const effectiveTimezone = extension?.effective_timezone || timezone;
+  const expiresAt = getProofDeadline(
+    localDay,
+    effectiveTimezone,
+    extension?.proof_due_at
+  );
+  return {
+    expiresAt,
+    deadline: { expiresAt, timezone: effectiveTimezone },
+    // Reuse the existing rescue job and deduplication key. A changed deadline
+    // moves that job instead of creating an additional reminder sequence.
+    notBefore:
+      payload.reminderKind === 'rescue'
+        ? new Date(Date.parse(expiresAt) - 60 * 60_000).toISOString()
+        : undefined,
+  };
+}
+
 async function processRecord(
   record: NotificationRecord,
   deliveryPolicy: NotificationDeliveryPolicy
@@ -761,10 +945,28 @@ async function processRecord(
       platform: record.push_platform,
       policy: deliveryPolicy,
     });
+    const now = new Date();
+    record.delivery_context = await loadCurrentMessageContext(record, now);
+    if (record.delivery_context.skipReason) {
+      await markSkipped(
+        record.job_id,
+        record.id,
+        providerName,
+        record.delivery_context.skipReason,
+        currentAttempts
+      );
+      return {
+        ok: true,
+        skipped: true,
+        reason: record.delivery_context.skipReason,
+      };
+    }
     const deliveryGuard = evaluateDeliveryGuard({
       notificationType: record.notification_type,
-      now: new Date(),
+      now,
       preference,
+      expiresAt: record.delivery_context.expiresAt,
+      notBefore: record.delivery_context.notBefore,
     });
     if (deliveryGuard.kind === 'skip') {
       await markSkipped(
@@ -777,18 +979,27 @@ async function processRecord(
       return { ok: true, skipped: true, reason: deliveryGuard.reason };
     }
     if (deliveryGuard.kind === 'defer') {
+      const reason =
+        record.notification_type === 'streak_reminder' &&
+        preference?.ignore_coach_until &&
+        Date.parse(preference.ignore_coach_until) > now.getTime()
+          ? 'DEFERRED_COACH_SNOOZE'
+          : record.delivery_context.notBefore &&
+              Date.parse(record.delivery_context.notBefore) > now.getTime()
+            ? 'DEFERRED_DEADLINE_WINDOW'
+            : 'DEFERRED_QUIET_HOURS';
       await markDeferred(
         record.job_id,
         record.id,
         providerName,
         deliveryGuard.until,
-        'DEFERRED_QUIET_HOURS'
+        reason
       );
       return {
         ok: true,
         skipped: true,
         deferred: true,
-        reason: 'DEFERRED_QUIET_HOURS',
+        reason,
       };
     }
 

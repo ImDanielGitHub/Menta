@@ -186,6 +186,13 @@ export const AppButton: React.FC<AppButtonProps> = ({
   } as const;
 
   const palette = colorsByVariant[resolvedVariant];
+  const customStyle = StyleSheet.flatten(style);
+  const isRaised = resolvedVariant === 'primary' || resolvedVariant === 'accent';
+  const depthColor =
+    customStyle?.borderBottomColor ??
+    (theme.colors.accent.primary === mentaColors.action
+      ? '#7750B6'
+      : theme.colors.border.primary);
   const resolvedLeftIcon = leftIcon ?? (iconPosition === 'left' ? icon : null);
   const resolvedRightIcon =
     rightIcon ?? (iconPosition === 'right' ? icon : null);
@@ -228,6 +235,18 @@ export const AppButton: React.FC<AppButtonProps> = ({
           !isDisabled &&
           (motion.reduceMotion ? styles.pressedReduced : styles.pressed),
         style,
+        isRaised && {
+          // Unequal borders create wedges where a pill's curved sides meet
+          // its lower edge. A hard shadow follows the complete rounded box.
+          borderBottomWidth: customStyle?.borderWidth ?? 1,
+          borderBottomColor:
+            customStyle?.borderColor ??
+            customStyle?.backgroundColor ??
+            palette.borderColor,
+          boxShadow: [
+            { offsetX: 0, offsetY: 3, blurRadius: 0, color: depthColor },
+          ],
+        },
       ]}
     >
       <View accessible={false} style={styles.content}>

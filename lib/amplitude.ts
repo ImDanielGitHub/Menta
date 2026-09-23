@@ -1,6 +1,11 @@
 import * as amplitude from '@amplitude/analytics-react-native';
 import { SessionReplayPlugin } from '@amplitude/plugin-session-replay-react-native';
 import { Platform } from 'react-native';
+import {
+  getPaywallAnalyticsProperties,
+  setPaywallAnalyticsOwner,
+  type OnboardingPaywallVariant,
+} from '@/lib/analytics/onboarding-paywall-context';
 
 import {
   MENTA_ANALYTICS_SCHEMA_VERSION,
@@ -130,6 +135,7 @@ export const trackAmplitudeEvent = <TEvent extends MentaAnalyticsEvent>(
     amplitude.track(event, {
       event_version: MENTA_ANALYTICS_SCHEMA_VERSION,
       app_platform: appPlatform,
+      ...getPaywallAnalyticsProperties(),
       ...(properties[0] ?? {}),
     });
   } catch {}
@@ -195,6 +201,10 @@ export const initializeAmplitude = (): void => {
 
 export const setAmplitudeUserId = (userId: string | null): void => {
   if (!apiKey || identifiedUserId === userId) return;
+  void setPaywallAnalyticsOwner(userId).then(variant => {
+    if (variant && identifiedUserId === userId)
+      setAmplitudePaywallAssignment(variant);
+  });
 
   if (userId) {
     try {
@@ -209,5 +219,21 @@ export const setAmplitudeUserId = (userId: string | null): void => {
       amplitude.reset();
       identifiedUserId = null;
     } catch {}
+  }
+};
+
+export const setAmplitudePaywallAssignment = (
+  variant: OnboardingPaywallVariant
+): void => {
+  if (!apiKey || !identifiedUserId) return;
+  try {
+    const result = amplitude.identify(
+      new amplitude.Identify()
+        .set('onboarding_paywall_experiment', 'onboarding_hard_paywall_v1')
+        .setOnce('onboarding_paywall_variant', variant)
+    );
+    void result?.promise?.catch(() => undefined);
+  } catch {
+    /* Experiment tracking must not interrupt activation. */
   }
 };

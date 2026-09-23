@@ -25,6 +25,39 @@ const mockSetPendingReferral = jest.fn();
 const mockClearPendingReferral = jest.fn();
 const mockCancelPendingReferral = jest.fn();
 const mockCreateFirstPromiseWithPayment = jest.fn();
+const mockResolveOnboardingPaywall = jest.fn();
+
+jest.mock('@/lib/paywall/onboarding-paywall', () => ({
+  resolveOnboardingPaywall: (...args: unknown[]) =>
+    mockResolveOnboardingPaywall(...args),
+  recordOnboardingPaywallExposure: jest.fn(),
+}));
+jest.mock('@/components/paywall/PaywallModal', () => {
+  const { View, Pressable, Text } = require('react-native');
+  return {
+    PaywallModal: ({
+      onClose,
+      onBuyPro,
+    }: {
+      onClose: () => void;
+      onBuyPro: () => void;
+    }) => (
+      <View testID="onboarding-pro-checkout">
+        <Pressable onPress={onClose}>
+          <Text>Back to setup</Text>
+        </Pressable>
+        <Pressable
+          onPress={() => {
+            onBuyPro();
+            onClose();
+          }}
+        >
+          <Text>Confirm Pro access</Text>
+        </Pressable>
+      </View>
+    ),
+  };
+});
 const mockQueueCompletion = jest.fn().mockReturnValue(true);
 const mockActivationStatusRpc = jest.fn();
 const mockGetMyLegalAcceptanceStatus = jest.fn();
@@ -349,6 +382,11 @@ describe('Paper onboarding flow', () => {
     mockSaveOnboardingDraft.mockResolvedValue(undefined);
     mockUpdateUserPreferences.mockResolvedValue(undefined);
     mockCreateFirstPromiseWithPayment.mockReset();
+    mockResolveOnboardingPaywall.mockReset().mockResolvedValue({
+      variant: 'control',
+      enrolled: false,
+      requiresPurchase: false,
+    });
     mockQueueCompletion.mockReturnValue(true);
     mockActivationStatusRpc.mockResolvedValue({
       data: { confirmed: false, referral: null },
@@ -2371,5 +2409,69 @@ describe('Paper onboarding flow', () => {
       )
     ).toBeTruthy();
     expect(screen.getByText('Continue with email')).toBeTruthy();
+  });
+
+  it('keeps a treatment draft unactivated when checkout is closed and rechecks access before creating it', async () => {
+    mockAuthUser = { id: 'paywall-member' };
+    // Earlier cases queue one-shot legal results that clearAllMocks does not
+    // drop. This journey needs a current receipt before checkout can open.
+    mockGetMyLegalAcceptanceStatus.mockReset();
+    mockGetMyLegalAcceptanceStatus.mockResolvedValue({
+      userId: 'paywall-member',
+      accepted: true,
+      requiresAcceptance: false,
+    });
+    mockLoadOnboardingDraftForUser.mockResolvedValueOnce({
+      version: 3,
+      promise: 'Walk after lunch',
+      proofType: 'note',
+      durationDays: 14,
+      accountabilityChoice: 'just_me',
+      accountabilityChoiceConfirmed: true,
+      notificationEducationHandled: true,
+      updatedAt: new Date().toISOString(),
+      ownerUserId: 'paywall-member',
+      resumeStep: 'auth_method',
+    });
+    mockResolveOnboardingPaywall.mockResolvedValue({
+      variant: 'hard_paywall',
+      enrolled: true,
+      requiresPurchase: true,
+    });
+    mockCreateFirstPromiseWithPayment.mockResolvedValue({
+      challenge: { id: 'paid-promise', title: 'Walk after lunch' },
+      receipt: {
+        isFirstPromise: true,
+        nextDueAt: null,
+        referral: null,
+        activation: {
+          confirmed: true,
+          firstPromiseId: 'paid-promise',
+          firstPromiseTitle: 'Walk after lunch',
+          welcomeMomentaAmount: 100,
+          welcomeMomentaGranted: true,
+          welcomeMomentaOutcome: 'granted_now',
+          referral: null,
+        },
+      },
+    });
+    const screen = render(<OnboardingScreen />);
+    await screen.findByTestId('onboarding-pro-checkout');
+    expect(mockCreateFirstPromiseWithPayment).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByText('Back to setup'));
+    expect(screen.queryByTestId('onboarding-pro-checkout')).toBeNull();
+    expect(mockCreateFirstPromiseWithPayment).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId('onboarding-auth-create-promise'));
+    await screen.findByTestId('onboarding-pro-checkout');
+    mockResolveOnboardingPaywall.mockResolvedValue({
+      variant: 'control',
+      enrolled: false,
+      requiresPurchase: false,
+    });
+    fireEvent.press(screen.getByText('Confirm Pro access'));
+    await waitFor(() =>
+      expect(mockCreateFirstPromiseWithPayment).toHaveBeenCalledTimes(1)
+    );
+    expect(mockResolveOnboardingPaywall).toHaveBeenCalledWith('paywall-member');
   });
 });

@@ -46,7 +46,9 @@ These are different tests. Only the first one checks this repository.
    production backends. It is not this fork, it does not prove this repo's
    setup, and it only partially covers Next Gen: source, your own backend and
    RevenueCat still matter. That iOS listing is version 1.9.5. A build from
-   this repo is iOS marketing version 1.9.3, build 154. See
+   this repo is still iOS marketing version 1.9.3, build 154. The JavaScript
+   and Supabase sources include a partial sync toward 1.9.5 behaviour, not
+   the whole private product. See
    [App Store, for partial product testing](docs/SETUP.md#app-store-for-partial-product-testing).
 
 Use Node.js **20.19.4**, npm, and the platform's native development tools.

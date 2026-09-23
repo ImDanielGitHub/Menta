@@ -28,7 +28,7 @@ type Props = {
   offers: ProOffer[];
   loading: boolean;
   unavailable: boolean;
-  context: PaywallContext;
+  context: PaywallContext | 'onboarding';
   onPurchase: (plan: ProOffer['plan']) => void;
   onClose: () => void;
   onRetry: () => void;
@@ -123,13 +123,19 @@ export function ProOfferJourney({
             <Text style={styles.title} accessibilityRole="header">
               {t('commerce.proJourney.title')}
             </Text>
-            <Text style={styles.body}>{t('commerce.proJourney.subtitle')}</Text>
+            <Text style={styles.body}>
+              {context === 'onboarding'
+                ? t('onboarding.paywall.required')
+                : t('commerce.proJourney.subtitle')}
+            </Text>
             <View style={styles.benefit}>
               <Text style={styles.heading}>
                 {t('commerce.proJourney.capacity')}
               </Text>
               <Text style={styles.body}>
-                {t('commerce.proJourney.capacityDetail')}
+                {context === 'onboarding'
+                  ? t('onboarding.paywall.capacity')
+                  : t('commerce.proJourney.capacityDetail')}
               </Text>
             </View>
             <View style={styles.benefit}>
@@ -304,7 +310,11 @@ export function ProOfferJourney({
         />
         {page === 'benefits' ? (
           <AppButton
-            title={t('commerce.proJourney.stayFree')}
+            title={
+              context === 'onboarding'
+                ? t('commerce.proJourney.back')
+                : t('commerce.proJourney.stayFree')
+            }
             variant="ghost"
             onPress={onClose}
           />
