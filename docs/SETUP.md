@@ -46,12 +46,14 @@ dependencies and takes a while.
 
 - iOS Simulator: macOS with Xcode, then `npm run ios`.
 - Android emulator: Android Studio/SDK, then `npm run android`.
-- A USB-connected iPhone: `npm run ios -- --device`. Turn on Developer Mode on
-  the phone. Xcode asks for your own Apple signing team. This project ships
-  with bundle ID `org.example.menta` and no team ID. Keep that bundle ID in
-  this public edition. If your own signing profile needs a different
-  identifier, change it only in your fork, as described under
-  [Native app configuration](#native-app-configuration).
+- A USB-connected iPhone: `npm run ios -- --device`. The phone needs iOS 16.4
+  or later, and Developer Mode on. Xcode asks for your own Apple signing team.
+  This project ships with bundle ID `org.example.menta` and no team ID. Keep
+  that bundle ID in this public edition. If your own signing profile needs a
+  different identifier, change it only in your fork, as described under
+  [Native app configuration](#native-app-configuration). The installed binary
+  uses the checked-in Xcode version: marketing version 1.9.3, build 154. That
+  is not the App Store's 1.9.5.
 - A USB-connected Android device: enable USB debugging, then
   `npm run android -- --device`.
 
@@ -72,9 +74,10 @@ should exercise this edition's independent setup.
 
 The live App Store app is
 [Menta: Proof & Progress](https://apps.apple.com/us/app/menta-proof-progress/id6747362646).
-The seller is Daniel Aneke / Aneke Digital Apps. The store binary has
-historically used the bundle ID `com.anekedigitalapps.lockedin`. That is not
-the portable ID in this repository (`org.example.menta`).
+The seller is Daniel Aneke / Aneke Digital Apps. The current US listing is
+iOS version **1.9.5**, released 10 September 2026, and it requires iOS 16.4.
+Its bundle ID is `com.anekedigitalapps.lockedin`. That is not the portable ID
+in this repository (`org.example.menta`).
 
 That app is the hosted production product. It is a practical way to exercise
 real UX, sign-in, groups, proof and purchases against the production backends.
@@ -85,9 +88,14 @@ and does not prove the independent setup in this guide. For Shipaton Next Gen,
 the source, your own backend and RevenueCat still matter. Treat the store app
 as partial product testing only.
 
-This repository's public source is `sourceVersion` 1.9.3
-(`source-manifest.json`). The App Store build is newer (about 1.9.5), so
-behaviour can differ. See [SOURCE.md](../SOURCE.md).
+A local iOS build from this repository is marketing version **1.9.3**, build
+**154** (`MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in
+`ios/LockedInPro.xcodeproj`). `app.json` and `source-manifest.json` also say
+1.9.3. `app.json` lists `ios.buildNumber` as `1`, which does not match the
+checked-in Xcode build; `npm run ios` uses the `ios/` project, so the app you
+install reports 1.9.3 (154). The deployment target is iOS 16.4, the same
+minimum as the App Store app. The store binary is still a newer hosted build,
+so behaviour can differ. See [SOURCE.md](../SOURCE.md).
 
 ## Prerequisites
 

@@ -45,8 +45,8 @@ These are different tests. Only the first one checks this repository.
    It is useful for real UX, auth, groups, proof and purchases against
    production backends. It is not this fork, it does not prove this repo's
    setup, and it only partially covers Next Gen: source, your own backend and
-   RevenueCat still matter. The store build is newer (about 1.9.5; this repo
-   is sourceVersion 1.9.3). See
+   RevenueCat still matter. That iOS listing is version 1.9.5. A build from
+   this repo is iOS marketing version 1.9.3, build 154. See
    [App Store, for partial product testing](docs/SETUP.md#app-store-for-partial-product-testing).
 
 Use Node.js **20.19.4**, npm, and the platform's native development tools.
