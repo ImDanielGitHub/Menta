@@ -158,12 +158,12 @@ const SignedImageComponent = ({
             notifyLoadState('error');
           }
         }
-      } catch {
+      } catch (error) {
         if (!cancelled) {
           setError(true);
           setLoading(false);
           notifyLoadState('error');
-          sentryCapture(new Error('Signed image URL preparation failed'), {
+          sentryCapture(error, {
             context: 'signed_image_url',
             source_kind: bucket && objectKey ? 'storage_object' : 'uri',
           });

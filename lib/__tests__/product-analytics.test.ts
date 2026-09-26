@@ -36,6 +36,7 @@ describe('product analytics contract', () => {
       'Proof Reviewed',
       'Proof Video Playback',
       'Group Joined',
+      'Event Action Outcome',
       'Notification Opened',
       'Notification Permission Updated',
       'Notification In-App Outcome',

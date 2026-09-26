@@ -35,22 +35,7 @@ export const todayStatesDeDE = {
   'today.state.load_failed.detail':
     'Prüfe deine Verbindung und versuch es erneut.',
   'today.state.streak.unavailable': 'Nicht verfügbar',
-  'today.state.streak.missed_title':
-    'Ein Tag wurde verpasst. Fang heute wieder an.',
-  'today.state.streak.weekday_missed_title':
-    '{weekday} wurde verpasst. Fang heute wieder an.',
-  'today.state.streak.previous_detail':
-    'Die letzte Serie endete bei {count}, weil der Nachweis für {weekday} nicht rechtzeitig einging. Dein Verlauf bleibt erhalten.',
-  'today.state.streak.missed_detail':
-    '{weekday} wurde als verpasst gespeichert. Dein Verlauf bleibt erhalten.',
-  'today.state.streak.return_action': 'Mit einem Tag zurückkehren',
-  'today.state.streak.history_action': '{count}-Tage-Verlauf ansehen',
   'today.state.streak.history': 'Verlauf ansehen',
-  'today.state.streak.previous_label': 'Vorherige Serie',
-  'today.state.streak.new_label': 'Neue Serie',
-  'today.state.streak.starts_today': 'Beginnt heute',
-  'today.state.streak.supporting_note':
-    'Ein einziger Tag reicht für den Neustart. Menta löscht die frühere Serie nicht.',
   'today.state.returning.away_days': 'Du hast seit {count} nicht eingecheckt.',
   'today.state.returning.away': 'Du warst eine Weile nicht hier.',
   'today.state.returning.title': 'Fang dort an, wo du bist.',
@@ -63,10 +48,6 @@ export const todayStatesDeDE = {
     'Dein Verlauf bleibt. Du bestimmst den nächsten Schritt.',
   'today.state.returning.supporting_note':
     'Mach ein kleineres Versprechen oder öffne deinen Verlauf und kehre zum letzten zurück.',
-  'today.state.no_promises.title': 'Noch ist nichts fällig.',
-  'today.state.no_promises.detail':
-    'Mach ein Versprechen. Menta zeigt dir dann jeden Tag, was deine Aufmerksamkeit braucht.',
-  'today.state.no_promises.join_group': 'Einer bestehenden Gruppe beitreten',
   'today.state.proof_due.text_detail':
     'Füge die vereinbarte Notiz hinzu. Nur du und die prüfende Person können sie sehen.',
   'today.state.proof_due.text_action': 'Notiz als Nachweis hinzufügen',
@@ -142,4 +123,16 @@ export const todayStatesDeDE = {
     'Komm zurück, wenn ein Versprechen fällig ist oder jemand einen Nachweis sendet.',
   'today.state.all_clear.review_status':
     'Kein Nachweis wartet auf deine Prüfung.',
+  'today.state.streak.day_one_title': 'Heute ist Tag 1.',
+  'today.state.streak.day_one_detail':
+    'Füge den heutigen Nachweis hinzu, um eine neue Serie zu starten.',
+  'today.state.streak.bubble_run_ended':
+    '{weekday} wurde verpasst, also endet die Serie von {count} Tagen. Sie bleibt in deinem Verlauf.',
+  'today.state.streak.bubble_missed':
+    '{weekday} wurde verpasst. Dein Verlauf bleibt erhalten.',
+  'today.state.streak.see_run': 'Die Serie von {count} Tagen ansehen',
+  'today.state.no_promises.title': 'Fang mit einem Versprechen an.',
+  'today.state.no_promises.detail':
+    'Wähl eine kleine Sache, zeig jeden Tag ein kurzes Foto und hol dir jemanden dazu, der es prüft, wenn du magst.',
+  'today.state.no_promises.join_group': 'Ich habe einen Einladungscode',
 } as const satisfies Pick<EnglishCatalogue, TodayStateKey>;

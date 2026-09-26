@@ -1,4 +1,5 @@
 import type { CompleteCatalogue } from '@/lib/localization/en-NZ';
+import { widgetses } from '@/lib/localization/catalogues/shared/widgets-es';
 import { spanishAccountabilityDelta } from '@/lib/localization/catalogues/shared/spanish-accountability-delta';
 import { foundationEsMX } from '@/lib/localization/catalogues/es-MX/foundation';
 import { languageEsMX } from '@/lib/localization/catalogues/es-MX/language';
@@ -20,8 +21,11 @@ import { fullGroupsEsMX } from '@/lib/localization/catalogues/es-MX/full-groups'
 import { fullEventsEsMX } from '@/lib/localization/catalogues/es-MX/full-events';
 import { fullDomainFeedbackEsMX } from '@/lib/localization/catalogues/es-MX/full-domain-feedback';
 import { sourceGateEsMX } from '@/lib/localization/catalogues/es-MX/source-gate';
+import { momentaTopUpEsMX } from '@/lib/localization/catalogues/es-MX/momenta-top-up';
 
 export const esMX = {
+  ...momentaTopUpEsMX,
+  ...widgetses,
   ...foundationEsMX,
   ...languageEsMX,
   ...notificationsEsMX,

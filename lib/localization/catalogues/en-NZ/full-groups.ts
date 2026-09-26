@@ -1434,4 +1434,19 @@ export const fullGroupsEnNZ = {
     '{group} is ready and nothing was shared. Return to the promise to choose what happens next.',
   'groups.create.promise_link.check_again': 'Check promise link',
   'groups.create.promise_link.return_to_promise': 'Return to promise',
+  'groups.share.pass_title': 'Keep me honest?',
+  'groups.share.pass_from': 'From {name}',
+  'groups.share.pitch_title': 'Bring someone who’ll check in on you.',
+  'groups.share.pitch_proof':
+    'They see your proof and tap to confirm it. It takes seconds.',
+  'groups.share.pitch_reward':
+    'When they make their first promise, you each get {amount} Momenta.',
+  'groups.share.pitch_link': 'They can join with just this link.',
+  'groups.share.sent_step_join': 'They open it and join Menta.',
+  'groups.share.sent_step_promise': 'They make their first promise.',
+  'groups.share.sent_step_reward':
+    'They make their first promise, and you each get {amount} Momenta.',
+  'groups.share.you': 'You',
+  'groups.share.checker': 'Your checker',
+  'groups.share.sent_title': 'Sent it? Here’s what happens next.',
 } as const;

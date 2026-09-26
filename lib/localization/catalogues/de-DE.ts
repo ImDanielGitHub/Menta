@@ -1,4 +1,5 @@
 import type { CompleteCatalogue } from '@/lib/localization/en-NZ';
+import { widgetsdeDE } from '@/lib/localization/catalogues/shared/widgets-deDE';
 import { foundationDeDE } from '@/lib/localization/catalogues/de-DE/foundation';
 import { languageDeDE } from '@/lib/localization/catalogues/de-DE/language';
 import { notificationsDeDE } from '@/lib/localization/catalogues/de-DE/notifications';
@@ -19,8 +20,11 @@ import { fullEventsDeDE } from '@/lib/localization/catalogues/de-DE/full-events'
 import { fullCommerceDeDE } from '@/lib/localization/catalogues/de-DE/full-commerce';
 import { fullDomainFeedbackDeDE } from '@/lib/localization/catalogues/de-DE/full-domain-feedback';
 import { sourceGateDeDE } from '@/lib/localization/catalogues/de-DE/source-gate';
+import { momentaTopUpDeDE } from '@/lib/localization/catalogues/de-DE/momenta-top-up';
 
 export const deDE = {
+  ...momentaTopUpDeDE,
+  ...widgetsdeDE,
   ...foundationDeDE,
   ...languageDeDE,
   ...notificationsDeDE,

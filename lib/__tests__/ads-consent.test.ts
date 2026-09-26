@@ -28,11 +28,41 @@ const mockCreateInterstitialAd = jest.fn(() => ({
 }));
 const mockSentryBreadcrumb = jest.fn();
 const mockSentryCapture = jest.fn();
+let mockAdAccountId = 'consent-user';
+
+jest.mock('@/store/auth-store', () => ({
+  useAuthStore: {
+    getState: () => ({ user: { id: mockAdAccountId } }),
+    subscribe: () => () => undefined,
+  },
+}));
+jest.mock('@/lib/paywall/revenuecat', () => ({
+  prepareRevenueCatAdReward: jest.fn(async () => ({
+    appUserID: 'consent-user',
+    customData: 'verification-data',
+    clientTransactionId: 'ad-consent-1',
+  })),
+  pollRevenueCatAdReward: jest.fn(async () => ({
+    failed: false,
+    reward: { type: 'virtual_currency', code: 'MNT', amount: 999 },
+    moreRewards: [],
+  })),
+  trackRevenueCatAdEvent: jest.fn(async () => undefined),
+}));
+jest.mock('@/lib/ads/revenuecat-reward-receipt', () => ({
+  waitForRevenueCatAdRewardReceipt: jest.fn(async () => ({
+    status: 'applied',
+    amount: 10,
+    newBalance: 10,
+    reason: null,
+  })),
+}));
 
 jest.mock('react-native-google-mobile-ads', () => ({
   __esModule: true,
   default: mockMobileAds,
   AdEventType: {
+    OPENED: 'opened',
     CLOSED: 'closed',
     ERROR: 'error',
     LOADED: 'loaded',
@@ -76,7 +106,7 @@ const loadAdsModule = (): AdsModule => require('@/lib/ads') as AdsModule;
 const waitForAdLoad = async () => {
   for (
     let attempt = 0;
-    attempt < 10 && !mockAdLoad.mock.calls.length;
+    attempt < 30 && !mockAdLoad.mock.calls.length;
     attempt++
   ) {
     await Promise.resolve();
@@ -84,7 +114,9 @@ const waitForAdLoad = async () => {
 };
 
 describe('Google UMP rewarded-ad gate', () => {
+  afterEach(() => jest.useRealTimers());
   beforeEach(() => {
+    mockAdAccountId = 'consent-user';
     jest.resetModules();
     jest.clearAllMocks();
     mockAdListeners.clear();
@@ -95,8 +127,15 @@ describe('Google UMP rewarded-ad gate', () => {
     mockShowPrivacyOptionsForm.mockResolvedValue(consentInfo());
     process.env.EXPO_PUBLIC_ADS_ENABLED = 'true';
     process.env.EXPO_PUBLIC_DOGFOOD_DISABLE_ADS = 'false';
-    const { AppState } =
+    process.env.EXPO_PUBLIC_REVENUECAT_AD_REWARDS_VERIFIED = 'true';
+    process.env.EXPO_PUBLIC_ADMOB_REWARDED_IOS = 'test/rewarded-unit';
+    process.env.EXPO_PUBLIC_REVENUECAT_MOMENTA_CURRENCY_CODE = 'MNT';
+    const { AppState, NativeModules } =
       require('react-native') as typeof import('react-native');
+    NativeModules.RNPurchases = {
+      generateRewardVerificationToken: jest.fn(),
+      pollRewardVerification: jest.fn(),
+    };
     Object.defineProperty(AppState, 'currentState', {
       configurable: true,
       get: () => 'active',
@@ -134,7 +173,9 @@ describe('Google UMP rewarded-ad gate', () => {
       );
       const { showRewardedAdDetailed } = loadAdsModule();
 
-      await expect(showRewardedAdDetailed()).resolves.toEqual({
+      await expect(
+        showRewardedAdDetailed({ appUserId: 'consent-user' })
+      ).resolves.toEqual({
         earned: false,
         amount: 0,
         reason: expectedReason,
@@ -163,7 +204,9 @@ describe('Google UMP rewarded-ad gate', () => {
     );
     const { showRewardedAdDetailed } = loadAdsModule();
 
-    await expect(showRewardedAdDetailed()).resolves.toEqual({
+    await expect(
+      showRewardedAdDetailed({ appUserId: 'consent-user' })
+    ).resolves.toEqual({
       earned: false,
       amount: 0,
       reason: 'consent_error',
@@ -207,13 +250,17 @@ describe('Google UMP rewarded-ad gate', () => {
   it('loads and shows a rewarded ad only after the consent gate succeeds', async () => {
     const { showRewardedAdDetailed } = loadAdsModule();
 
-    const outcome = showRewardedAdDetailed();
+    const outcome = showRewardedAdDetailed({ appUserId: 'consent-user' });
     await waitForAdLoad();
 
     expect(mockGatherConsent).toHaveBeenCalledTimes(1);
     expect(mockInitializeMobileAds).toHaveBeenCalledTimes(1);
-    expect(mockCreateRewardedAd).toHaveBeenCalledWith('test-rewarded-unit', {
+    expect(mockCreateRewardedAd).toHaveBeenCalledWith('test/rewarded-unit', {
       requestNonPersonalizedAdsOnly: true,
+      serverSideVerificationOptions: {
+        userId: 'consent-user',
+        customData: 'verification-data',
+      },
     });
     expect(mockAdLoad).toHaveBeenCalledTimes(1);
 
@@ -225,14 +272,17 @@ describe('Google UMP rewarded-ad gate', () => {
     await expect(outcome).resolves.toEqual({
       earned: true,
       amount: 10,
-      type: 'Momenta',
+      type: 'MNT',
+      clientTransactionId: 'ad-consent-1',
+      provider: 'revenuecat',
+      verified: true,
     });
   });
 
   it('keeps expected no-fill outcomes out of the Sentry error queue', async () => {
     const { showRewardedAdDetailed } = loadAdsModule();
 
-    const outcome = showRewardedAdDetailed();
+    const outcome = showRewardedAdDetailed({ appUserId: 'consent-user' });
     await waitForAdLoad();
 
     mockAdListeners.get('error')?.({
@@ -244,12 +294,52 @@ describe('Google UMP rewarded-ad gate', () => {
       earned: false,
       amount: 0,
       reason: 'no_fill',
+      provider: 'revenuecat',
+      verified: false,
     });
-    expect(mockSentryBreadcrumb).toHaveBeenCalledWith(
-      'rewarded_ad_no_fill',
-      expect.objectContaining({ code: 'googlemobileads/no-fill' })
-    );
+    expect(mockSentryBreadcrumb).toHaveBeenCalledWith('rewarded_ad_no_fill', {
+      provider: 'revenuecat',
+      placement: 'momenta_reward',
+    });
     expect(mockSentryCapture).not.toHaveBeenCalled();
+  });
+
+  it('preserves verification callbacks while a rewarded video plays longer than the load timeout', async () => {
+    jest.useFakeTimers();
+    const { showRewardedAdDetailed } = loadAdsModule();
+    const outcome = showRewardedAdDetailed({ appUserId: 'consent-user' });
+    await waitForAdLoad();
+    mockAdListeners.get('rewarded_loaded')?.();
+    mockAdListeners.get('opened')?.();
+    await jest.advanceTimersByTimeAsync(60_000);
+    mockAdListeners.get('earned_reward')?.();
+    mockAdListeners.get('closed')?.();
+    await expect(outcome).resolves.toMatchObject({
+      earned: true,
+      amount: 10,
+      verified: true,
+    });
+  });
+
+  it('returns a pending receipt after dismissal when verification never responds', async () => {
+    jest.useFakeTimers();
+    const { pollRevenueCatAdReward } = require('@/lib/paywall/revenuecat');
+    pollRevenueCatAdReward.mockImplementationOnce(
+      () => new Promise(() => undefined)
+    );
+    const { showRewardedAdDetailed } = loadAdsModule();
+    const outcome = showRewardedAdDetailed({ appUserId: 'consent-user' });
+    await waitForAdLoad();
+    mockAdListeners.get('rewarded_loaded')?.();
+    mockAdListeners.get('opened')?.();
+    await jest.advanceTimersByTimeAsync(60_000);
+    mockAdListeners.get('earned_reward')?.();
+    mockAdListeners.get('closed')?.();
+    await jest.advanceTimersByTimeAsync(45_000);
+    await expect(outcome).resolves.toMatchObject({
+      earned: false,
+      reason: 'reward_pending',
+    });
   });
 
   it('loads a non-personalised interstitial only after the consent gate succeeds', async () => {
@@ -282,5 +372,48 @@ describe('Google UMP rewarded-ad gate', () => {
       reason: 'consent_unavailable',
     });
     expect(mockCreateInterstitialAd).not.toHaveBeenCalled();
+  });
+
+  it('does not report a displayed interstitial as timed out during playback', async () => {
+    jest.useFakeTimers();
+    const { showInterstitialAdDetailed } = loadAdsModule();
+    const outcome = showInterstitialAdDetailed({ appUserId: 'consent-user' });
+    await waitForAdLoad();
+    mockAdListeners.get('loaded')?.();
+    mockAdListeners.get('opened')?.();
+    await jest.advanceTimersByTimeAsync(30_000);
+    mockAdListeners.get('closed')?.();
+    await expect(outcome).resolves.toEqual({ shown: true });
+    expect(mockSentryBreadcrumb).not.toHaveBeenCalledWith(
+      'interstitial_ad_timeout',
+      expect.anything()
+    );
+  });
+
+  it('does not present an old account ad after switching accounts during load', async () => {
+    const { showInterstitialAdDetailed } = loadAdsModule();
+    const outcome = showInterstitialAdDetailed({ appUserId: 'consent-user' });
+    await waitForAdLoad();
+    mockAdAccountId = 'different-user';
+    mockAdListeners.get('loaded')?.();
+    await expect(outcome).resolves.toMatchObject({
+      shown: false,
+      reason: 'account_changed',
+    });
+    expect(mockAdShow).not.toHaveBeenCalled();
+  });
+
+  it('recovers when the native interstitial loses its close callback', async () => {
+    jest.useFakeTimers();
+    const { showInterstitialAdDetailed } = loadAdsModule();
+    const outcome = showInterstitialAdDetailed({ appUserId: 'consent-user' });
+    await waitForAdLoad();
+    mockAdListeners.get('loaded')?.();
+    mockAdListeners.get('opened')?.();
+    await jest.advanceTimersByTimeAsync(5 * 60_000);
+    await expect(outcome).resolves.toMatchObject({
+      shown: false,
+      reason: 'timeout',
+    });
   });
 });

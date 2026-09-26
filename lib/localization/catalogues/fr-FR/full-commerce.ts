@@ -261,25 +261,25 @@ export const fullCommerceFrFR = {
     'Menta n’a pas pu terminer la vérification de cet achat. Réessayez — vous ne dépenserez pas le Momenta deux fois.',
   'commerce.shop.purchaseReceipt': '{name} est maintenant dans Vos éléments.',
   'commerce.shop.purchaseReceiptWithInventory':
-    '{name} est maintenant dans Vos éléments. Vous avez maintenant {quantity} disponible(s).',
+    '{name} est maintenant dans « Vos éléments ». Vous en avez maintenant {quantity}.',
   'commerce.shop.purchaseReceiptWithBalance':
-    '{name} est maintenant dans Vos éléments. Votre solde est {balance} Momenta.',
+    '{name} est maintenant dans « Vos éléments ». Votre solde est de {balance} Momenta.',
   'commerce.shop.purchaseReceiptWithInventoryAndBalance':
-    '{name} est maintenant dans Vos éléments. Vous avez maintenant {quantity} disponible(s). Votre solde est {balance} Momenta.',
+    '{name} est maintenant dans « Vos éléments ». Vous en avez maintenant {quantity}. Votre solde est de {balance} Momenta.',
   'commerce.shop.purchaseLabel': 'Acheter',
   'commerce.shop.styleLabel': 'Style',
   'commerce.shop.currency': 'Momenta',
-  'commerce.shop.appearance.ember': 'Thème Ember',
+  'commerce.shop.appearance.ember': 'Thème Braise',
   'commerce.shop.appearance.glacier': 'Thème Glacier',
-  'commerce.shop.appearance.aurora': 'Thème Aurora',
+  'commerce.shop.appearance.aurora': 'Thème Aurore',
   'commerce.shop.appearance.iris': 'Thème Iris',
   'commerce.shop.appearance.cobalt': 'Thème Cobalt',
   'commerce.shop.appearance.jade': 'Thème Jade',
-  'commerce.shop.appearance.orchid': 'Thème Orchid',
+  'commerce.shop.appearance.orchid': 'Thème Orchidée',
   'commerce.shop.appearance.horizon': 'Thème Horizon',
   'commerce.shop.appearance.graphite': 'Thème Graphite',
-  'commerce.shop.appearance.neon': 'Thème Neon',
-  'commerce.shop.appearance.tidepool': 'Thème Tidepool',
+  'commerce.shop.appearance.neon': 'Thème Néon',
+  'commerce.shop.appearance.tidepool': 'Thème Marée',
   'commerce.shop.appearance.goldFrame': 'Cadre doré',
   'commerce.shop.appearance.violetFrame': 'Cadre violet',
   'commerce.shop.appearance.iceFrame': 'Cadre glacé',
@@ -290,6 +290,48 @@ export const fullCommerceFrFR = {
   'commerce.shop.appearance.fortnightFrame': 'Cadre quinzaine',
   'commerce.shop.appearance.monthFrame': 'Cadre mois',
   'commerce.shop.appearance.seasonFrame': 'Cadre saison',
+  'commerce.shop.appearance.emberDescription':
+    'Boutons et accents ambre chaud.',
+  'commerce.shop.appearance.glacierDescription':
+    'Boutons et accents cyan glacé.',
+  'commerce.shop.appearance.auroraDescription':
+    'Boutons et accents vert menthe d’aurore boréale.',
+  'commerce.shop.appearance.irisDescription':
+    'Boutons et accents indigo froid.',
+  'commerce.shop.appearance.cobaltDescription':
+    'Boutons et accents bleu électrique.',
+  'commerce.shop.appearance.jadeDescription':
+    'Boutons et accents vert émeraude.',
+  'commerce.shop.appearance.orchidDescription':
+    'Boutons et accents magenta froid.',
+  'commerce.shop.appearance.horizonDescription':
+    'Boutons et accents bleu ciel.',
+  'commerce.shop.appearance.graphiteDescription':
+    'Boutons et accents argent froid.',
+  'commerce.shop.appearance.neonDescription':
+    'Boutons et accents cyan et vert citron.',
+  'commerce.shop.appearance.tidepoolDescription':
+    'Boutons et accents bleu canard profond.',
+  'commerce.shop.appearance.goldFrameDescription':
+    'Un anneau doré chaleureux autour de votre photo de profil.',
+  'commerce.shop.appearance.violetFrameDescription':
+    'Un anneau dégradé du doré au violet autour de votre photo de profil.',
+  'commerce.shop.appearance.iceFrameDescription':
+    'Un anneau cyan glacier autour de votre photo de profil.',
+  'commerce.shop.appearance.neonFrameDescription':
+    'Un anneau cyan, vert citron et magenta autour de votre photo de profil.',
+  'commerce.shop.appearance.obsidianFrameDescription':
+    'Un anneau gris ardoise autour de votre photo de profil.',
+  'commerce.shop.appearance.sparkFrameDescription':
+    'Un anneau vert menthe autour de votre photo de profil.',
+  'commerce.shop.appearance.weekFrameDescription':
+    'Un anneau dégradé de la menthe à l’indigo autour de votre photo de profil.',
+  'commerce.shop.appearance.fortnightFrameDescription':
+    'Un anneau indigo plus épais autour de votre photo de profil.',
+  'commerce.shop.appearance.monthFrameDescription':
+    'Un anneau bleu aurore autour de votre photo de profil.',
+  'commerce.shop.appearance.seasonFrameDescription':
+    'Un anneau menthe, indigo et orchidée autour de votre photo de profil.',
   'commerce.shop.automaticProtection': 'Protection automatique',
   'commerce.shop.automaticProtectionDetail':
     'Menta applique ceux‑ci après un jour manqué admissible.',
@@ -297,7 +339,7 @@ export const fullCommerceFrFR = {
   'commerce.shop.readyToUseDetail':
     'Choisissez une promesse active quand vous avez besoin de plus de temps.',
   'commerce.shop.appearance': 'Apparence',
-  'commerce.shop.appearanceDetail': 'Choisissez un style possédé à utiliser.',
+  'commerce.shop.appearanceDetail': 'Choisissez l’un de vos styles.',
   'commerce.shop.styleOwnedDetail':
     'Styles que vous possédez. Utilisez un style à la fois.',
   'commerce.shop.boostOwnedDetail':
@@ -466,7 +508,7 @@ export const fullCommerceFrFR = {
   'commerce.shop.addDescription':
     'Ajoute 12 heures à la date limite d’une promesse active.',
   'commerce.shop.choosePromiseAfter':
-    'Choisissez la promesse active après l’achat ou plus tard depuis Vos éléments.',
+    'Choisissez la promesse active après l’achat, ou plus tard depuis « Vos éléments ».',
   'commerce.shop.buttonsColours':
     'Les boutons, surbrillances et éléments sélectionnés utilisent les couleurs chaudes d’Ember.',
   'commerce.shop.frameProfile':
@@ -477,7 +519,7 @@ export const fullCommerceFrFR = {
     'Atteignez une série de {days} jours. Le cadre apparaît sur votre photo de profil une fois débloqué.',
   'commerce.shop.genericReview': 'Examinez l’élément avant d’acheter.',
   'commerce.shop.underYourItems':
-    '{name} devient disponible sous Vos éléments.',
+    '{name} sera disponible dans « Vos éléments ».',
   'commerce.shop.access': 'Accès',
   'commerce.shop.unlocksAt': 'Débloqué à une série de {days} jours',
   'commerce.shop.afterPurchaseFact': 'Après achat',
@@ -629,7 +671,7 @@ export const fullCommerceFrFR = {
   'commerce.paywall.manageDetail':
     'Modifiez ou annulez votre forfait dans les Réglages Apple. Menta met à jour Pro à votre retour.',
   'commerce.paywall.purchaseTermsReturn':
-    'Apple affichera les conditions finales et vous demandera de confirmer. Retournez à Menta lorsque le paiement se ferme.',
+    'Apple affichera les conditions finales et vous demandera de confirmer. Revenez dans Menta une fois le paiement fermé.',
   'commerce.paywall.continueApple': 'Continuer dans les Réglages Apple',
   'commerce.paywall.startPro': 'Commencer à utiliser Pro',
   'commerce.paywall.choosePlanAction': 'Choisir un forfait',
@@ -804,7 +846,7 @@ export const fullCommerceFrFR = {
   'commerce.economy.quotaActiveTitle':
     'Vous avez atteint la limite de promesses gratuites',
   'commerce.economy.quotaActiveMessage':
-    'Les comptes gratuits peuvent garder 2 promesses actives. Terminez ou quittez‑en une, ou commencez Pro avant d’en créer une autre.',
+    'Les comptes gratuits peuvent garder {limit} promesses actives. Terminez ou quittez‑en une, ou commencez Pro avant d’en créer une autre.',
   'commerce.economy.quotaMonthlyTitle': 'Limite mensuelle de création atteinte',
   'commerce.economy.quotaMonthlyMessage':
     'Le forfait gratuit comprend 4 nouvelles promesses chaque mois. Votre brouillon est toujours ici.',
@@ -824,6 +866,62 @@ export const fullCommerceFrFR = {
     'Votre groupe est enregistré pendant que vous choisissez la prochaine étape.',
   'commerce.paywall.savedSubject.promise':
     'Votre promesse est enregistrée pendant que vous choisissez la prochaine étape.',
+  'commerce.shop.balanceChipAccessibility':
+    'Solde de Momenta : {amount}. Ouvre votre portefeuille.',
+  'commerce.shop.tagNew': 'Nouveau',
+  'commerce.shop.quantity': '×{count}',
+  'commerce.shop.seeAllItems': 'Tout voir',
+  'commerce.shop.cardAccessibility': '{name}. {price}. {status}.',
+  'commerce.shop.ownedTileAccessibility': '{name}. {state}.',
+  'commerce.shop.itemActionAccessibility': '{action} : {name}',
+  'commerce.shop.detailSummaryAccessibility':
+    '{kind}. {name}. {status}. {price}.',
+  'commerce.shop.buying': 'Achat en cours…',
+  'commerce.shop.topUpBubble':
+    'Il vous manque {amount} Momenta pour {name}. Voici comment les gagner.',
+  'commerce.shop.refreshCountIfStale':
+    '{message} Actualisez vos éléments si le nombre disponible n’a pas changé.',
+  'commerce.shop.checkStatusIfStale':
+    '{message} Vérifiez le statut si le solde ou l’inventaire ne se met pas à jour tout de suite.',
+  'commerce.shop.inYourItems':
+    '{name} est dans vos éléments. Votre solde a été mis à jour.',
+  'commerce.celebrate.added': '{name} ajouté.',
+  'commerce.celebrate.gain': '+{count}',
+  'commerce.celebrate.youHave': 'Vous avez maintenant',
+  'commerce.celebrate.styleNotActive':
+    'Il est à vous. Menta n’a pas encore pu l’activer. Touchez Utiliser ce style pour l’appliquer.',
+  'commerce.wallet.earnOptionAccessibility': '{title}. {meta}. {value}.',
+  'commerce.freeze.remaining': '{count} gels restants',
+  'commerce.freeze.remaining.one': '{count} gel restant',
+  'commerce.freeze.remaining.other': '{count} gels restants',
+  'commerce.freeze.getAnother': 'Obtenir un autre gel',
+  'commerce.freeze.getFirst': 'Obtenir un gel de série',
+  'commerce.freeze.protectedTitle':
+    'Votre gel de série a protégé votre série de {count} jours.',
+  'commerce.firstMiss.open': 'Obtenez votre gel de série gratuit',
+  'commerce.firstMiss.accessibility': 'Votre premier jour manqué',
+  'commerce.firstMiss.titleOffer': 'Un jour manqué ? Continuons.',
+  'commerce.firstMiss.titleConfirmed': 'Votre jour manqué est couvert.',
+  'commerce.firstMiss.bodyConfirmedStreak':
+    'Votre gel gratuit a protégé votre série de {count} jours. Ajoutez une preuve aujourd’hui pour la poursuivre.',
+  'commerce.firstMiss.bodyConfirmed':
+    'Votre gel gratuit a couvert le jour manqué. Ajoutez une preuve aujourd’hui pour commencer votre série.',
+  'commerce.firstMiss.noteConfirmed':
+    'Le gel couvre uniquement le jour manqué. Il ne compte pas comme une preuve validée.',
+  'commerce.firstMiss.backToToday': 'Retour à Aujourd’hui',
+  'commerce.firstMiss.errorUnconfirmed':
+    'Le gel n’a pas pu être confirmé. Réessayez.',
+  'commerce.firstMiss.errorUnavailable':
+    'Cette offre du premier jour n’est plus disponible. Vous pouvez quand même ajouter une preuve aujourd’hui.',
+  'commerce.firstMiss.bubble':
+    '{weekday} vous a échappé. Ça arrive à tout le monde.',
+  'commerce.firstMiss.decisionTitle': 'Garder votre série de {count} jours ?',
+  'commerce.firstMiss.decisionBody':
+    'Votre premier jour manqué est offert. Un gel de série gratuit couvre {weekday}, et votre série reste à {count}.',
+  'commerce.firstMiss.decisionBodyNoCount':
+    'Votre premier jour manqué est offert. Un gel de série gratuit couvre {weekday}.',
+  'commerce.firstMiss.keep': 'Garder ma série gratuitement',
+  'commerce.firstMiss.startOver': 'Recommencer au jour 1',
 } as const;
 
 export type FullCommerceFrFRKey = keyof typeof fullCommerceFrFR;

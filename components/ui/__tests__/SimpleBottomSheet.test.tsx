@@ -4,6 +4,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 
 import SimpleBottomSheet from '@/components/ui/SimpleBottomSheet';
 import { ThemeProvider } from '@/constants/ThemeContext';
+import { shouldUseBoundedIPadSheet } from '@/constants/responsive-layout';
 
 jest.mock('@/lib/accessibility', () => ({
   getAccessibleAnimationDuration: (duration: number) => duration,
@@ -25,6 +26,11 @@ jest.mock('@/lib/motion/use-motion-preferences', () => ({
   }),
 }));
 
+jest.mock('@/constants/responsive-layout', () => ({
+  ...jest.requireActual('@/constants/responsive-layout'),
+  shouldUseBoundedIPadSheet: jest.fn(() => false),
+}));
+
 const renderSheet = (props = {}, equippedThemeSku: string | null = null) => {
   const onClose = jest.fn();
   const result = render(
@@ -39,6 +45,10 @@ const renderSheet = (props = {}, equippedThemeSku: string | null = null) => {
 };
 
 describe('SimpleBottomSheet', () => {
+  beforeEach(() => {
+    jest.mocked(shouldUseBoundedIPadSheet).mockReturnValue(false);
+  });
+
   it('marks the sheet as a modal accessibility container', () => {
     const { UNSAFE_getByType } = renderSheet();
 
@@ -89,7 +99,7 @@ describe('SimpleBottomSheet', () => {
     expect(UNSAFE_queryByType(ScrollView)).toBeNull();
   });
 
-  it('preserves the accepted full-width edge presentation by default', () => {
+  it('preserves the accepted full-width edge presentation on phones', () => {
     const { getByTestId, UNSAFE_getAllByType } = renderSheet({
       testID: 'context-choice-sheet',
     });
@@ -102,6 +112,48 @@ describe('SimpleBottomSheet', () => {
     expect(getByTestId('context-choice-sheet')).toHaveStyle({
       alignSelf: 'stretch',
       borderBottomWidth: 0,
+      width: '100%',
+    });
+  });
+
+  it('bounds the same sheet on a regular-width iPad by default', () => {
+    jest.mocked(shouldUseBoundedIPadSheet).mockReturnValue(true);
+
+    const { getByTestId, UNSAFE_getAllByType } = renderSheet({
+      testID: 'ipad-task-sheet',
+    });
+
+    const backdrop = UNSAFE_getAllByType(View).find(view => {
+      const style = StyleSheet.flatten(view.props.style);
+      return (
+        style?.justifyContent === 'center' && style?.alignItems === 'center'
+      );
+    });
+    expect(backdrop).toBeTruthy();
+    expect(getByTestId('ipad-task-sheet')).toHaveStyle({
+      alignSelf: 'center',
+      borderBottomLeftRadius: 16,
+      borderBottomRightRadius: 16,
+      borderBottomWidth: 1,
+      borderTopLeftRadius: 16,
+      borderTopRightRadius: 16,
+      maxWidth: 600,
+      width: '100%',
+    });
+  });
+
+  it('allows an immersive iPad task to retain the edge presentation', () => {
+    jest.mocked(shouldUseBoundedIPadSheet).mockReturnValue(true);
+
+    const { getByTestId } = renderSheet({
+      testID: 'immersive-edge-sheet',
+      presentationRole: 'edge',
+    });
+
+    expect(getByTestId('immersive-edge-sheet')).toHaveStyle({
+      alignSelf: 'stretch',
+      borderBottomWidth: 0,
+      maxWidth: undefined,
       width: '100%',
     });
   });

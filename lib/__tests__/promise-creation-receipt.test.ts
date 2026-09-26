@@ -1,7 +1,6 @@
 import {
   decodeAccountActivationLookup,
   decodePromiseCreationReceipt,
-  formatPromiseDueWindow,
 } from '@/lib/commitments/promise-creation-receipt';
 
 describe('promise creation receipt decoder', () => {
@@ -201,11 +200,5 @@ describe('promise creation receipt decoder', () => {
         },
       })
     ).toBeNull();
-  });
-
-  it('formats a verified timestamp without changing the due fact', () => {
-    expect(
-      formatPromiseDueWindow('2026-08-05T23:00:00+00:00', 'UTC')
-    ).toContain('Wednesday');
   });
 });

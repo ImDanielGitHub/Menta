@@ -22,14 +22,14 @@ describe('economy contract v1', () => {
     expect(getActionCost('create_challenge')).toBe(30);
     expect(getActionCost('create_group')).toBe(50);
     expect(getActionCost('join_group')).toBe(10);
-    expect(getActionCost('join_challenge')).toBe(0);
+    expect(getActionCost('join_challenge')).toBe(10);
     expect(ECONOMY_CONTRACT_V1.pro.waivesActionCosts).toBe(false);
     expect(ECONOMY_CONTRACT_V1.pro.bypassesQuotas).toBe(true);
     expect(DEFAULT_ACTION_COSTS.create_challenge).toBe(30);
   });
 
   it('limits free capacity instead of blocking looking', () => {
-    expect(FREE_TIER_QUOTAS.max_active_promises).toBe(2);
+    expect(FREE_TIER_QUOTAS.max_active_promises).toBe(3);
     expect(FREE_TIER_QUOTAS.max_active_groups).toBe(2);
     expect(FREE_TIER_QUOTAS.max_challenges_per_month).toBe(4);
   });

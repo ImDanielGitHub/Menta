@@ -1,4 +1,5 @@
 import React from 'react';
+import { Share } from 'react-native';
 import {
   fireEvent,
   render,
@@ -20,6 +21,11 @@ const mockBeginPendingSavedGroupLink = jest.fn();
 const mockEmitConfirmedOutcome = jest.fn().mockResolvedValue(true);
 const mockEmitHaptic = jest.fn().mockResolvedValue(true);
 const mockTrackProductOperation = jest.fn();
+const mockTrackInvite = jest.fn();
+const mockPrepareInvite = jest.fn();
+const mockClipboard = jest.fn();
+jest.mock('expo-clipboard', () => ({ setStringAsync: () => mockClipboard() }));
+const mockAuth = { user: { id: 'user-1' } };
 let mockCanInvite = false;
 let mockViewerRole: 'owner' | 'partner' = 'partner';
 let mockParams: { challengeId: string; source?: string } = {
@@ -33,8 +39,14 @@ jest.mock('expo-router', () => ({
 }));
 
 jest.mock('@/store/auth-store', () => ({
-  useAuthStore: (selector: (state: unknown) => unknown) =>
-    selector({ user: { id: 'user-1' } }),
+  useAuthStore: Object.assign(
+    (selector: (state: unknown) => unknown) => selector(mockAuth),
+    { getState: () => mockAuth }
+  ),
+}));
+
+jest.mock('@/lib/meta-ads', () => ({
+  trackMetaAdsInviteFriend: () => mockTrackInvite(),
 }));
 
 jest.mock('@/hooks/usePromiseAccountability', () => ({
@@ -71,9 +83,12 @@ jest.mock('@/hooks/usePromiseAccountability', () => ({
 }));
 
 jest.mock('@/lib/promises/accountability', () => ({
-  accountabilityRoleCopy: () => ({ title: 'Partner', description: '' }),
+  accountabilityOwnerInviteAction: () => 'Prepare invitation',
+  accountabilityOwnerConsequence: () => 'They can join after accepting.',
+  accountabilityRoleCopy: (role: string) => ({ title: role, description: '' }),
   buildPromiseAccountabilityShareMessage: jest.fn(),
-  preparePromiseAccountabilityInvite: jest.fn(),
+  preparePromiseAccountabilityInvite: (...args: unknown[]) =>
+    mockPrepareInvite(...args),
   managePromiseAccountabilityMember: jest.fn(),
   leavePromiseAccountability: (...args: unknown[]) => mockLeave(...args),
   reconcilePromiseAccountabilityLeave: (...args: unknown[]) =>
@@ -219,7 +234,18 @@ jest.mock('@/components/ui', () => {
             )
           : null
       ),
-    AppOptionCard: container,
+    AppOptionCard: ({
+      title,
+      onPress,
+    }: {
+      title: string;
+      onPress: () => void;
+    }) =>
+      React.createElement(
+        Pressable,
+        { onPress },
+        React.createElement(Text, null, title)
+      ),
     AppScreen: container,
     AppTopBar: () => null,
     SkeletonLoader: () => null,
@@ -229,6 +255,17 @@ jest.mock('@/components/ui', () => {
 describe('promise accountability mutation route', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAuth.user = { id: 'user-1' };
+    mockClipboard.mockResolvedValue(true);
+    mockPrepareInvite.mockResolvedValue({
+      challengeId: 'promise-1',
+      challengeTitle: 'Walk after work',
+      groupId: 'group-1',
+      groupKind: 'promise',
+      code: 'WALK7',
+      role: 'partner',
+      shareUrl: 'https://menta.quest/join/WALK7',
+    });
     mockCanInvite = false;
     mockViewerRole = 'partner';
     mockParams = { challengeId: 'promise-1' };
@@ -258,6 +295,64 @@ describe('promise accountability mutation route', () => {
         verifiedBy: 'status-check',
       },
     });
+  });
+
+  it.each([
+    [Share.dismissedAction, false],
+    [Share.sharedAction, true],
+  ])(
+    'attributes the main accountability invite only for a shared handoff (%s)',
+    async (action, attributed) => {
+      mockCanInvite = true;
+      mockParams = { challengeId: 'promise-1', source: 'onboarding' };
+      jest.spyOn(Share, 'share').mockResolvedValue({ action });
+      render(
+        <ThemeProvider>
+          <PromiseAccountabilityRoute />
+        </ThemeProvider>
+      );
+      fireEvent.press(screen.getByText('partner'));
+      fireEvent.press(screen.getByTestId('prepare-promise-invitation'));
+      fireEvent.press(await screen.findByTestId('share-promise-invitation'));
+      await waitFor(() => expect(Share.share).toHaveBeenCalled());
+      expect(mockTrackInvite).toHaveBeenCalledTimes(attributed ? 1 : 0);
+    }
+  );
+
+  it('does not attribute a returned accountability invite to a different account', async () => {
+    mockCanInvite = true;
+    mockParams = { challengeId: 'promise-1', source: 'onboarding' };
+    jest.spyOn(Share, 'share').mockImplementation(async () => {
+      mockAuth.user = { id: 'user-2' };
+      return { action: Share.sharedAction };
+    });
+    render(
+      <ThemeProvider>
+        <PromiseAccountabilityRoute />
+      </ThemeProvider>
+    );
+    fireEvent.press(screen.getByText('partner'));
+    fireEvent.press(screen.getByTestId('prepare-promise-invitation'));
+    fireEvent.press(await screen.findByTestId('share-promise-invitation'));
+    await waitFor(() => expect(Share.share).toHaveBeenCalled());
+    expect(mockTrackInvite).not.toHaveBeenCalled();
+  });
+
+  it('keeps a declined clipboard write out of the invite conversion funnel', async () => {
+    mockCanInvite = true;
+    mockParams = { challengeId: 'promise-1', source: 'onboarding' };
+    mockClipboard.mockResolvedValue(false);
+    render(
+      <ThemeProvider>
+        <PromiseAccountabilityRoute />
+      </ThemeProvider>
+    );
+    fireEvent.press(screen.getByText('partner'));
+    fireEvent.press(screen.getByTestId('prepare-promise-invitation'));
+    fireEvent.press(await screen.findByText('Copy link'));
+    await waitFor(() => expect(mockClipboard).toHaveBeenCalled());
+    expect(screen.queryByText('Invitation copied')).toBeNull();
+    expect(mockTrackInvite).not.toHaveBeenCalled();
   });
 
   it('holds response loss for a silent status check and never repeats leave', async () => {

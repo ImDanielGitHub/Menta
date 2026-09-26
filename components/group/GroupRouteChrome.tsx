@@ -149,7 +149,15 @@ export const GroupRouteChrome = ({
       </ScrollView>
       {footer ? (
         <View style={[styles.footer, { paddingHorizontal: routeInset }]}>
-          {footer}
+          {isIPad ? (
+            <View
+              style={[styles.footerFrame, { maxWidth: contentFrameMaxWidth }]}
+            >
+              {footer}
+            </View>
+          ) : (
+            footer
+          )}
         </View>
       ) : null}
     </SafeAreaView>
@@ -223,6 +231,11 @@ const styles = StyleSheet.create({
     gap: mentaSpacing[2],
     paddingBottom: mentaSpacing[6],
     paddingTop: mentaSpacing[3],
+  },
+  footerFrame: {
+    alignSelf: 'center',
+    gap: mentaSpacing[2],
+    width: '100%',
   },
   legacySectionLabel: {
     ...mentaTypography.labelBold,

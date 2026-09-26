@@ -154,6 +154,14 @@ jest.mock('@/hooks/useGroupPendingReviews', () => ({
   useGroupPendingReviews: () => ({ data: 0 }),
 }));
 
+jest.mock('@/hooks/usePromiseAccountability', () => ({
+  usePromiseAccountability: () => ({
+    data: { members: [{ id: 'user-1', role: 'owner' }] },
+    isLoading: false,
+    error: null,
+  }),
+}));
+
 jest.mock('@/hooks/useGroupAccountabilityBoard', () => ({
   useGroupAccountabilityBoard: () => ({
     error: null,
@@ -470,6 +478,7 @@ describe('Groups production-route geometry and accessibility', () => {
       pathname: '/promise-accountability',
       params: {
         challengeId: 'promise-1',
+        originGroupId: 'group-1',
         source: 'group_board',
       },
     });

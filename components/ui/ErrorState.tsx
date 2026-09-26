@@ -12,6 +12,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { useTheme } from '@/constants/ThemeContext';
+import { mentaTypography } from '@/constants/MentaDesignSystem';
 import { AppButton } from './AppButton';
 import { MentaMascot } from './MentaMascot';
 import {
@@ -60,7 +61,7 @@ const BaseErrorState: React.FC<BaseErrorStateProps> = ({
 }) => {
   const theme = useTheme();
   const { t } = useTranslation();
-  const { colors, spacing, typography } = theme;
+  const { colors, spacing } = theme;
   const toneColor =
     tone === 'warning'
       ? colors.status.warning
@@ -83,18 +84,17 @@ const BaseErrorState: React.FC<BaseErrorStateProps> = ({
       marginBottom: spacing[4],
     },
     title: {
-      ...typography.h3,
+      ...(compact ? mentaTypography.bodySemibold : mentaTypography.title),
       color: colors.text.primary,
       textAlign: 'center',
       marginBottom: spacing[2],
     },
     message: {
-      ...typography.body,
+      ...mentaTypography.body,
       color: colors.text.secondary,
       textAlign: 'center',
       marginBottom: spacing[6],
       alignSelf: 'stretch',
-      lineHeight: 22,
     },
     buttonContainer: {
       flexDirection: compact ? 'row' : 'column',

@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { FreezeSlots } from '@/components/shop/FreezeSlots';
 import { AppButton } from '@/components/ui/AppButton';
 import { MentaMascot } from '@/components/ui/MentaMascot';
 import {
@@ -25,6 +26,8 @@ interface AtRiskBannerProps {
   promiseLabel?: string | null;
   onSubmitProof: () => void;
   onOpenFreezes: () => void;
+  /** Offered instead of opening items when no freeze is held. */
+  onGetFreeze?: (() => void) | null;
   onRemindLater?: (() => void | Promise<void>) | null;
 }
 
@@ -40,6 +43,7 @@ export const AtRiskBanner: React.FC<AtRiskBannerProps> = ({
   promiseLabel,
   onSubmitProof,
   onOpenFreezes,
+  onGetFreeze = null,
   onRemindLater = null,
 }) => {
   const { t } = useTranslation();
@@ -87,13 +91,25 @@ export const AtRiskBanner: React.FC<AtRiskBannerProps> = ({
         fullWidth
       />
 
+      {freezeCount > 0 ? (
+        <View style={styles.freezeRow}>
+          <FreezeSlots
+            count={freezeCount}
+            size={30}
+            testID="at-risk-freeze-slots"
+          />
+        </View>
+      ) : null}
+
       <AppButton
         title={
           freezeCount > 0
             ? t('todayProof.streak.view_freezes')
-            : t('todayProof.streak.open_inventory')
+            : onGetFreeze
+              ? t('commerce.freeze.getFirst')
+              : t('todayProof.streak.open_inventory')
         }
-        onPress={onOpenFreezes}
+        onPress={freezeCount > 0 || !onGetFreeze ? onOpenFreezes : onGetFreeze}
         variant="outline"
         size="large"
         fullWidth
@@ -147,6 +163,10 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     marginRight: -mentaSpacing[2],
     marginTop: -mentaSpacing[2],
+  },
+  freezeRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
   },
   queuedNotice: {
     borderRadius: mentaRadii.medium,

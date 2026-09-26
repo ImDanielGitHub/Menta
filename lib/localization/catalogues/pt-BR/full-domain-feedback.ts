@@ -153,7 +153,7 @@ export const fullDomainFeedbackPtBR = {
   'domain.monitoring.rate_limited':
     'Você está fazendo isso muito rapidamente. Aguarde um momento e tente novamente.',
   'domain.monitoring.usage_limit':
-    'Você atingiu seu limite de uso. Atualize para o Pro para mais promessas e grupos, além de Momenta mensal.',
+    'Você atingiu seu limite de uso. Assine o Pro para ter mais promessas e grupos, além de Momenta mensais.',
   'domain.monitoring.generic': 'Algo deu errado. Por favor, tente novamente',
 
   'domain.network.no_connection':
@@ -389,7 +389,7 @@ export const fullDomainFeedbackPtBR = {
   'domain.report.nothing_sent': 'Nada foi enviado ao suporte.',
   'domain.report.sending': 'Enviando relatório',
   'domain.report.waiting_confirmation':
-    'Menta está esperando o servidor confirmar este relatório exato.',
+    'A Menta está esperando o servidor confirmar este relatório.',
   'domain.report.not_sent': 'Relatório não enviado',
   'domain.report.remains_on_phone':
     'Seu relatório permanece neste telefone. Nada foi entregue para suporte.',
@@ -403,12 +403,11 @@ export const fullDomainFeedbackPtBR = {
   'domain.commitment.move_daily': 'Mova-se diariamente',
   'domain.commitment.move_daily_description':
     'Mova-se um pouco todos os dias. Uma caminhada, treino, alongamento ou esporte contam.',
-  'domain.commitment.move_daily_promise':
-    'Vou movimentar meu corpo uma vez por dia.',
+  'domain.commitment.move_daily_promise': 'Vou me movimentar uma vez por dia.',
   'domain.commitment.move_daily_verification':
     'Envie uma foto nítida após terminar. Mostre a caminhada, o treino, o percurso, o tapete, a academia ou o resultado.',
   'domain.commitment.move_daily_submission':
-    'Diga o que você fez hoje e há quanto tempo se mudou.',
+    'Diga o que você fez hoje e por quanto tempo se movimentou.',
   'domain.commitment.daily_movement_group': 'Grupo de movimentação diária',
   'domain.commitment.fitness': 'exercícios',
   'domain.commitment.focused_study': 'Estudo focado',
@@ -420,7 +419,7 @@ export const fullDomainFeedbackPtBR = {
     'Escreva o que você estudou, quanto tempo você se concentrou e uma coisa que você entende melhor agora.',
   'domain.commitment.focused_study_submission':
     'Adicione o tópico, o tempo gasto e algo que você entende melhor agora.',
-  'domain.commitment.learning': 'aprendendo',
+  'domain.commitment.learning': 'aprendizado',
   'domain.commitment.morning_walk': 'Caminhada matinal',
   'domain.commitment.morning_walk_description':
     'Faça uma pequena caminhada no início do dia.',
@@ -431,17 +430,17 @@ export const fullDomainFeedbackPtBR = {
   'domain.commitment.morning_walk_submission':
     'Diga por onde você andou e algo que notou.',
   'domain.commitment.morning_walk_group': 'Grupo de caminhada matinal',
-  'domain.commitment.sleep_reset': 'Reinicialização do sono',
+  'domain.commitment.sleep_reset': 'Dormir melhor',
   'domain.commitment.sleep_reset_description':
     'Comece a relaxar antes de dormir todas as noites.',
   'domain.commitment.sleep_reset_promise':
     'Vou começar a relaxar antes de dormir.',
   'domain.commitment.sleep_reset_verification':
-    'Escreva a ação de encerramento que você concluiu e a hora em que começou.',
+    'Escreva o que você fez para relaxar e a que horas começou.',
   'domain.commitment.sleep_reset_submission':
     'Adicione a etapa da rotina que você concluiu e o que tornou esta noite mais fácil ou mais difícil.',
-  'domain.commitment.sleep_reset_group': 'Grupo de redefinição do sono',
-  'domain.commitment.no_sugar': 'Janela sem açúcar',
+  'domain.commitment.sleep_reset_group': 'Grupo Dormir melhor',
+  'domain.commitment.no_sugar': 'Dias sem açúcar',
   'domain.commitment.no_sugar_description':
     'Mantenha uma regra alimentar clara por sete dias: sem adição de açúcar.',
   'domain.commitment.no_sugar_hub': 'Sem açúcar',
@@ -449,13 +448,13 @@ export const fullDomainFeedbackPtBR = {
   'domain.commitment.no_sugar_verification':
     'Escreva se você cumpriu a regra e anote algum momento que dificultou.',
   'domain.commitment.no_sugar_submission':
-    'Adicione o momento mais difícil e o que você escolheu.',
-  'domain.commitment.no_sugar_group': 'Sem grupo de açúcar',
+    'Adicione o momento mais difícil e o que você escolheu no lugar.',
+  'domain.commitment.no_sugar_group': 'Grupo Sem açúcar',
   'domain.commitment.creative_minutes': 'Minutos criativos',
   'domain.commitment.creative_minutes_description':
-    'Gaste 20 minutos fazendo ou melhorando algo todos os dias.',
+    'Passe 20 minutos por dia criando ou melhorando alguma coisa.',
   'domain.commitment.creative_minutes_promise':
-    'Vou gastar 20 minutos fazendo alguma coisa.',
+    'Vou passar 20 minutos criando alguma coisa.',
   'domain.commitment.creative_minutes_verification':
     'Envie uma foto ou captura de tela do trabalho que você fez ou alterou hoje, como rascunho, esboço, linha do tempo ou notas.',
   'domain.commitment.creative_minutes_submission':
@@ -465,11 +464,11 @@ export const fullDomainFeedbackPtBR = {
   'domain.commitment.creative_minutes_group': 'Grupo de minutos criativos',
   'domain.intensity.flexible': 'Flexível',
   'domain.intensity.standard': 'Padrão',
-  'domain.intensity.fixed': 'Corrigido',
+  'domain.intensity.fixed': 'Fixo',
   'domain.intensity.shop_note':
-    'Uma extensão de prazo de 12 horas ou congelamento contínuo é comprado na loja, não escolhido aqui.',
+    'Uma extensão de prazo de 12 horas ou um congelamento de sequência é comprado na loja, não escolhido aqui.',
   'domain.intensity.flexible_note':
-    'É mais fácil continuar em uma semana agitada.',
+    'Mais fácil de cumprir numa semana corrida.',
   'domain.intensity.standard_note': 'Uma promessa diária normal.',
   'domain.intensity.fixed_note': 'O mais exigente dos três.',
 
@@ -485,7 +484,7 @@ export const fullDomainFeedbackPtBR = {
   'domain.notifications.new_milestone': 'Novo marco',
   'domain.notifications.group_milestone_named': '{groupName}: {milestone}',
   'domain.notifications.group_milestone_reached': 'Marco do grupo alcançado',
-  'domain.notifications.proof_due': 'Comprovante devido',
+  'domain.notifications.proof_due': 'Comprovação pendente',
   'domain.notifications.proof_for':
     'Enviar comprovante para “{challengeTitle}”.',
   'domain.notifications.group_milestone': 'Marco do grupo alcançado',
@@ -493,9 +492,9 @@ export const fullDomainFeedbackPtBR = {
   'domain.notifications.group_activity_named':
     '{memberName} tem uma atualização em {groupName}',
   'domain.notifications.proof_due_for':
-    'A comprovação é devida para “{challengeTitle}”',
+    'Comprovação pendente para “{challengeTitle}”',
   'domain.notifications.proof_due_promise':
-    'A comprovação é devida para sua promessa',
+    'Comprovação pendente para sua promessa',
   'domain.notifications.open_update': 'Abra o Menta para ver a atualização.',
   'domain.notifications.updated': 'Atualização do Menta',
   'domain.notifications.streak_updated': 'Streak atualizado',
@@ -523,5 +522,5 @@ export const fullDomainFeedbackPtBR = {
   'domain.notifications.group_submissions': 'Envios de grupos',
   'domain.notifications.members': 'Membros',
   'domain.notifications.review': 'revisão',
-  'domain.notifications.reviews': 'comentários',
+  'domain.notifications.reviews': 'análises',
 } as const;

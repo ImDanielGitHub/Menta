@@ -4,7 +4,6 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import {
   ShopCollectionSkeleton,
   ShopFilterChips,
-  ShopListRow,
   ShopSectionHeader,
   ShopStatePanel,
 } from '@/components/shop/ShopPrimitives';
@@ -110,57 +109,6 @@ describe('ShopStatePanel', () => {
 
     fireEvent.press(screen.getByText('Try again'));
     expect(onRetry).toHaveBeenCalledTimes(1);
-  });
-});
-
-describe('ShopListRow', () => {
-  it('does not repeat a category label inside an already grouped shelf', () => {
-    render(
-      <ThemeProvider>
-        <ShopListRow
-          item={{
-            id: 'ember-theme',
-            name: 'Ember Theme',
-            category: 'cosmetic',
-          }}
-          showCategoryLabel={false}
-          stateLabel="Available"
-          onPress={jest.fn()}
-        />
-      </ThemeProvider>
-    );
-
-    expect(screen.getByText('Ember Theme')).toBeTruthy();
-    expect(screen.getByText('Available')).toBeTruthy();
-    expect(screen.queryByText('Style')).toBeNull();
-  });
-
-  it('keeps the inline action separate from opening item details', () => {
-    const onAction = jest.fn();
-    const onPress = jest.fn();
-
-    render(
-      <ThemeProvider>
-        <ShopListRow
-          item={{
-            id: 'streak-freeze',
-            name: 'Streak Freeze',
-            category: 'power_up',
-          }}
-          actionLabel="Use"
-          onAction={onAction}
-          onPress={onPress}
-        />
-      </ThemeProvider>
-    );
-
-    fireEvent.press(screen.getByLabelText('Use Streak Freeze'));
-    expect(onAction).toHaveBeenCalledTimes(1);
-    expect(onPress).not.toHaveBeenCalled();
-
-    fireEvent.press(screen.getByLabelText('Open Streak Freeze'));
-    expect(onPress).toHaveBeenCalledTimes(1);
-    expect(onAction).toHaveBeenCalledTimes(1);
   });
 });
 

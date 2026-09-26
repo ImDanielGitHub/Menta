@@ -8,6 +8,8 @@ import { clearAccountScopedState } from '@/lib/account-session-lifecycle';
 import { notificationService } from '@/lib/services/notification-service';
 import { OAuthService } from '@/lib/oauth';
 import { useEmailConfirmationStore } from '@/store/email-confirmation-store';
+import * as onboardingDraft from '@/lib/onboarding-draft';
+import { logError } from '@/lib/sentry';
 
 const mockTrackProductEvent = jest.fn();
 const mockTrackProductOperation = jest.fn();
@@ -171,7 +173,10 @@ describe('AuthStore', () => {
       is_pro: false,
       is_approved: true,
     };
-    mockGetMyProfile.mockResolvedValue(profile);
+    mockGetMyProfile.mockImplementation(async () => ({
+      ...profile,
+      id: useAuthStore.getState().user?.id ?? profile.id,
+    }));
     mockUpdateMyProfile.mockResolvedValue(profile);
     useAuthStore.setState({
       user: null,
@@ -180,6 +185,8 @@ describe('AuthStore', () => {
       isLoading: false,
       isInitialized: false,
       hasCompletedOnboarding: false,
+      onboardingConfirmedUserId: null,
+      sessionRecoveryRequired: false,
       authListenerActive: false,
     });
     useEmailConfirmationStore.setState({
@@ -442,6 +449,129 @@ describe('AuthStore', () => {
       expect(result.current.hasCompletedOnboarding).toBe(false);
 
       consoleError.mockRestore();
+    });
+  });
+
+  describe('returning account launch', () => {
+    const restoredSession = (userId: string) =>
+      ({
+        access_token: `${userId}-token`,
+        user: {
+          id: userId,
+          email: `${userId}@example.com`,
+          user_metadata: {},
+        },
+      }) as any;
+
+    const holdProfile = () => {
+      let release: () => void = () => undefined;
+      mockGetMyProfile.mockImplementation(
+        () =>
+          new Promise(resolve => {
+            release = () =>
+              resolve({
+                id: useAuthStore.getState().user?.id ?? 'user-1',
+                email: 'test@example.com',
+                username: 'testuser',
+                display_name: 'Test User',
+                avatar_url: null,
+                momenta_balance: 100,
+                has_completed_onboarding: true,
+                created_at: '2026-08-04T00:00:00.000Z',
+                updated_at: '2026-08-04T00:00:00.000Z',
+                is_pro: false,
+                is_approved: true,
+              } as any);
+          })
+      );
+      return () => release();
+    };
+
+    it('opens the app for the account that already confirmed onboarding while its profile refreshes', async () => {
+      useAuthStore.setState({
+        hasCompletedOnboarding: true,
+        onboardingConfirmedUserId: 'user-1',
+      });
+      mockSupabase.auth.getSession.mockResolvedValue({
+        data: { session: restoredSession('user-1') },
+        error: null,
+      });
+      const releaseProfile = holdProfile();
+
+      const init = useAuthStore.getState().initializeAuth();
+      await waitFor(() => {
+        expect(useAuthStore.getState().isAuthenticated).toBe(true);
+      });
+
+      expect(useAuthStore.getState().isLoading).toBe(false);
+      expect(useAuthStore.getState().hasCompletedOnboarding).toBe(true);
+
+      releaseProfile();
+      await act(async () => {
+        await init;
+      });
+      expect(useAuthStore.getState().user?.username).toBe('testuser');
+      expect(useAuthStore.getState().onboardingConfirmedUserId).toBe('user-1');
+    });
+
+    it('keeps a different account behind its own profile check', async () => {
+      useAuthStore.setState({
+        hasCompletedOnboarding: true,
+        onboardingConfirmedUserId: 'user-1',
+      });
+      mockSupabase.auth.getSession.mockResolvedValue({
+        data: { session: restoredSession('user-2') },
+        error: null,
+      });
+      const releaseProfile = holdProfile();
+
+      const init = useAuthStore.getState().initializeAuth();
+      await waitFor(() => {
+        expect(useAuthStore.getState().isAuthenticated).toBe(true);
+      });
+
+      expect(useAuthStore.getState().isLoading).toBe(true);
+      expect(useAuthStore.getState().hasCompletedOnboarding).toBe(false);
+
+      releaseProfile();
+      await act(async () => {
+        await init;
+      });
+      expect(useAuthStore.getState().isLoading).toBe(false);
+      expect(useAuthStore.getState().onboardingConfirmedUserId).toBe('user-2');
+    });
+
+    it('still ends the session when the restored account no longer has a profile', async () => {
+      useAuthStore.setState({
+        hasCompletedOnboarding: true,
+        onboardingConfirmedUserId: 'user-1',
+      });
+      mockSupabase.auth.getSession.mockResolvedValue({
+        data: { session: restoredSession('user-1') },
+        error: null,
+      });
+      mockSupabase.auth.signOut.mockResolvedValue({ error: null } as any);
+      mockGetMyProfile.mockResolvedValue(null);
+
+      await act(async () => {
+        await useAuthStore.getState().initializeAuth();
+      });
+
+      expect(useAuthStore.getState().isAuthenticated).toBe(false);
+      expect(useAuthStore.getState().hasCompletedOnboarding).toBe(false);
+    });
+
+    it('forgets the confirmed account on sign-out', () => {
+      useAuthStore.setState({
+        user: { id: 'user-1' } as User,
+        isAuthenticated: true,
+        hasCompletedOnboarding: true,
+        onboardingConfirmedUserId: 'user-1',
+      });
+
+      useAuthStore.getState().clearAuthData();
+
+      expect(useAuthStore.getState().onboardingConfirmedUserId).toBeNull();
     });
   });
 
@@ -1000,6 +1130,162 @@ describe('AuthStore', () => {
   });
 
   describe('setUserAndSession', () => {
+    it('does not let a stalled parallel hydration undo a confirmed account', async () => {
+      jest.useFakeTimers();
+      mockGetMyProfile.mockImplementationOnce(() => new Promise(() => {}));
+      const user = { id: 'user-1', user_metadata: {} };
+      const session = { access_token: 'fake-session' };
+      try {
+        let stalled!: Promise<void>;
+        await act(async () => {
+          stalled = useAuthStore
+            .getState()
+            .setUserAndSession(user as any, session as any);
+        });
+        await act(async () => {
+          await useAuthStore
+            .getState()
+            .setUserAndSession(user as any, session as any);
+        });
+        expect(useAuthStore.getState().hasCompletedOnboarding).toBe(true);
+        await act(async () => {
+          await jest.advanceTimersByTimeAsync(8_000);
+          await stalled;
+        });
+        expect(useAuthStore.getState()).toMatchObject({
+          isAuthenticated: true,
+          isLoading: false,
+          hasCompletedOnboarding: true,
+          sessionRecoveryRequired: false,
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('recovers a stalled profile without treating an existing account as incomplete, then permits session retry', async () => {
+      jest.useFakeTimers();
+      const user = {
+        id: 'user-1',
+        email: 'test@example.com',
+        user_metadata: {},
+      };
+      const session = { access_token: 'fake-session', user };
+      const confirmedProfile = await mockGetMyProfile();
+      let resolveStalledProfile!: (value: typeof confirmedProfile) => void;
+      mockGetMyProfile.mockImplementationOnce(
+        () =>
+          new Promise(resolve => {
+            resolveStalledProfile = resolve;
+          })
+      );
+      try {
+        let hydration!: Promise<void>;
+        await act(async () => {
+          hydration = useAuthStore
+            .getState()
+            .setUserAndSession(user as any, session as any);
+        });
+        expect(useAuthStore.getState().isLoading).toBe(true);
+        await act(async () => {
+          await jest.advanceTimersByTimeAsync(8_000);
+          await hydration;
+        });
+        expect(useAuthStore.getState()).toMatchObject({
+          isLoading: false,
+          isInitialized: true,
+          isAuthenticated: false,
+          sessionRecoveryRequired: true,
+          user: null,
+        });
+        expect(mockSupabase.auth.signOut).not.toHaveBeenCalled();
+        expect(logError).toHaveBeenCalledWith(
+          expect.objectContaining({
+            message: 'Account profile could not be confirmed',
+          }),
+          { context: 'auth_profile_hydration', reason: 'timeout' }
+        );
+
+        mockSupabase.auth.refreshSession.mockResolvedValueOnce({
+          data: { session },
+          error: null,
+        } as any);
+        await act(async () => {
+          await useAuthStore.getState().refreshSession();
+        });
+        expect(useAuthStore.getState()).toMatchObject({
+          isLoading: false,
+          isAuthenticated: true,
+          sessionRecoveryRequired: false,
+          hasCompletedOnboarding: true,
+        });
+        await act(async () => {
+          resolveStalledProfile({
+            ...confirmedProfile!,
+            has_completed_onboarding: false,
+          });
+        });
+        expect(useAuthStore.getState().hasCompletedOnboarding).toBe(true);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('does not hold a confirmed existing account behind stalled local draft storage', async () => {
+      jest.useFakeTimers();
+      const draftRead = jest
+        .spyOn(onboardingDraft, 'loadOnboardingDraftForUser')
+        .mockImplementationOnce(() => new Promise(() => {}));
+      try {
+        let hydration!: Promise<void>;
+        await act(async () => {
+          hydration = useAuthStore
+            .getState()
+            .setUserAndSession(
+              { id: 'user-1', user_metadata: {} } as any,
+              { access_token: 'fake-session' } as any
+            );
+        });
+        await act(async () => {
+          await jest.advanceTimersByTimeAsync(2_000);
+          await hydration;
+        });
+        expect(useAuthStore.getState()).toMatchObject({
+          isLoading: false,
+          isAuthenticated: true,
+          hasCompletedOnboarding: true,
+          sessionRecoveryRequired: false,
+        });
+        expect(logError).toHaveBeenCalledWith(expect.any(Error), {
+          context: 'auth_draft_hydration',
+          reason: 'timeout',
+        });
+      } finally {
+        draftRead.mockRestore();
+        jest.useRealTimers();
+      }
+    });
+
+    it('does not accept another account profile as onboarding authority', async () => {
+      const otherProfile = await mockGetMyProfile();
+      mockGetMyProfile.mockResolvedValueOnce({
+        ...otherProfile!,
+        id: 'other-account',
+      });
+      await act(async () => {
+        await useAuthStore
+          .getState()
+          .setUserAndSession(
+            { id: 'user-1', user_metadata: {} } as any,
+            { access_token: 'fake-session' } as any
+          );
+      });
+      expect(useAuthStore.getState()).toMatchObject({
+        isLoading: false,
+        isAuthenticated: false,
+        sessionRecoveryRequired: true,
+      });
+    });
     it('sets user and session data', async () => {
       const mockUser = {
         id: 'user-1',
@@ -1317,6 +1603,7 @@ describe('AuthStore', () => {
     it('holds route loading until the new account onboarding flag resolves', async () => {
       let resolveProfile:
         | ((value: {
+            id: string;
             username: string;
             avatar_url: null;
             momenta_balance: number;
@@ -1355,6 +1642,7 @@ describe('AuthStore', () => {
       expect(result.current.isLoading).toBe(true);
 
       resolveProfile?.({
+        id: 'user-2',
         username: 'second',
         avatar_url: null,
         momenta_balance: 0,

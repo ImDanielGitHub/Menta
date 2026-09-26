@@ -131,7 +131,14 @@ jest.mock('@/lib/paywall/revenuecat', () => ({
   },
 }));
 
-jest.mock('@/components/paywall/PaywallModal', () => () => null);
+jest.mock('@/components/paywall/PaywallModal', () => {
+  const mockModule = (
+    () => () =>
+      null
+  )();
+  const mockExport = mockModule?.__esModule ? mockModule.default : mockModule;
+  return { __esModule: true, default: mockExport, PaywallModal: mockExport };
+});
 jest.mock('@/components/ui/MentaMascot', () => ({ MentaMascot: () => null }));
 jest.mock('@/components/groups/GroupCreationStates', () => ({
   FirstGroupCreatedReceipt: (props: unknown) =>
@@ -288,8 +295,7 @@ describe('CreateGroupScreen loading accessibility', () => {
 
   it('announces group creation as one progress region', async () => {
     let resolveCreate:
-      | ((group: { id: string; name: string }) => void)
-      | undefined;
+      ((group: { id: string; name: string }) => void) | undefined;
     mockCreateGroupWithPayment.mockImplementationOnce(
       () =>
         new Promise(resolve => {

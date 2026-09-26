@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Platform,
   StyleSheet,
@@ -19,15 +20,19 @@ export const IPAD_PORTRAIT_WORKSPACE_MIN_WIDTH =
 
 export const shouldUseIPadPortraitWorkspace = (
   width: number,
-  isIPad: boolean
+  isIPad: boolean,
+  safeAreaHorizontal = 0
 ): boolean =>
-  resolveAdaptiveLayout({ width, isIPad, lane: 'working' }).workspaceEligible;
+  resolveAdaptiveLayout({ width, isIPad, safeAreaHorizontal, lane: 'working' })
+    .workspaceEligible;
 
 export const useIPadPortraitWorkspace = (): boolean => {
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   return shouldUseIPadPortraitWorkspace(
     width,
-    Platform.OS === 'ios' && Platform.isPad
+    Platform.OS === 'ios' && Platform.isPad,
+    insets.left + insets.right
   );
 };
 

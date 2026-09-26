@@ -9,6 +9,17 @@ export interface FirstMissOffer {
   expiresAt: string;
 }
 
+/** Lets the recovery screen show localised copy for each failure. */
+export class FirstMissRecoveryError extends Error {
+  constructor(
+    readonly reason: 'unconfirmed' | 'unavailable',
+    message: string
+  ) {
+    super(message);
+    this.name = 'FirstMissRecoveryError';
+  }
+}
+
 export async function readFirstMissRecovery(
   signal: AbortSignal
 ): Promise<FirstMissOffer | null> {
@@ -52,7 +63,11 @@ export async function claimFirstMissRecovery(
       .rpc('claim_first_miss_recovery_v1', { p_outcome_id: offer.outcomeId })
       .abortSignal(controller.signal)
   ).finally(() => clearTimeout(timeout));
-  if (error) throw new Error('The freeze could not be confirmed. Try again.');
+  if (error)
+    throw new FirstMissRecoveryError(
+      'unconfirmed',
+      'The freeze could not be confirmed. Try again.'
+    );
   if (
     !data ||
     typeof data !== 'object' ||
@@ -62,7 +77,8 @@ export async function claimFirstMissRecovery(
     data.challenge_id !== offer.challengeId ||
     typeof data.streak !== 'number'
   ) {
-    throw new Error(
+    throw new FirstMissRecoveryError(
+      'unavailable',
       'This first-day offer is no longer available. You can still add proof today.'
     );
   }

@@ -9,37 +9,31 @@ export type CreateIntensityCopy = {
   maxExtensions: number;
 };
 
-export const CREATE_INTENSITY_SHOP_NOTE = translate(
-  'en-NZ',
-  'domain.intensity.shop_note'
-);
+export const getCreateIntensityShopNote = (locale: string): string =>
+  translate(locale, 'domain.intensity.shop_note');
 
-const INTENSITY_COPY: Record<ChallengeDifficulty, CreateIntensityCopy> = {
-  easy: {
+export const listCreateIntensityOptions = (
+  locale: string
+): CreateIntensityCopy[] => [
+  {
     id: 'easy',
-    label: translate('en-NZ', 'domain.intensity.flexible'),
-    note: translate('en-NZ', 'domain.intensity.flexible_note'),
+    label: translate(locale, 'domain.intensity.flexible'),
+    note: translate(locale, 'domain.intensity.flexible_note'),
     points: 100,
     maxExtensions: 3,
   },
-  medium: {
+  {
     id: 'medium',
-    label: translate('en-NZ', 'domain.intensity.standard'),
-    note: translate('en-NZ', 'domain.intensity.standard_note'),
+    label: translate(locale, 'domain.intensity.standard'),
+    note: translate(locale, 'domain.intensity.standard_note'),
     points: 200,
     maxExtensions: 2,
   },
-  hard: {
+  {
     id: 'hard',
-    label: translate('en-NZ', 'domain.intensity.fixed'),
-    note: translate('en-NZ', 'domain.intensity.fixed_note'),
+    label: translate(locale, 'domain.intensity.fixed'),
+    note: translate(locale, 'domain.intensity.fixed_note'),
     points: 500,
     maxExtensions: 0,
   },
-};
-
-export const listCreateIntensityOptions = (): CreateIntensityCopy[] => [
-  INTENSITY_COPY.easy,
-  INTENSITY_COPY.medium,
-  INTENSITY_COPY.hard,
 ];

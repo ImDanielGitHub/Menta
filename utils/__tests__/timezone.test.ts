@@ -1,12 +1,16 @@
-import { 
+import {
+  convertToLocalTime,
+  getDaysRemainingInLocalTime,
+  getHoursRemainingInDay,
   getLocalTimezone,
   getDaysRemainingGlobal,
   getCurrentGlobalDay,
   isTodayGlobal,
+  isTodayInLocalTime,
   getHoursRemainingInGlobalDay,
   formatInLocalTime,
   getNextGlobalMidnight,
-  getStreakTimeRemaining
+  getStreakTimeRemaining,
 } from '../timezone';
 
 // Mock Date for consistent testing
@@ -16,6 +20,10 @@ describe('Timezone Utility Functions', () => {
   beforeAll(() => {
     // Mock Date.now() to return our fixed date
     jest.useFakeTimers();
+    jest.setSystemTime(MOCK_DATE);
+  });
+
+  beforeEach(() => {
     jest.setSystemTime(MOCK_DATE);
   });
 
@@ -80,37 +88,80 @@ describe('Timezone Utility Functions', () => {
 
     test('formatInLocalTime formats dates correctly', () => {
       const testDate = new Date('2024-01-15T14:30:00.000Z');
-      const formatted = formatInLocalTime(testDate, { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
+      const formatted = formatInLocalTime(testDate, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
       });
       expect(typeof formatted).toBe('string');
       expect(formatted).toContain('2024');
       expect(formatted).toContain('Jan');
+    });
+
+    test('converts an instant to explicit local wall-clock fields with Intl', () => {
+      const local = convertToLocalTime(
+        '2024-01-15T14:30:00.000Z',
+        'Pacific/Auckland'
+      );
+
+      expect(local.getFullYear()).toBe(2024);
+      expect(local.getMonth()).toBe(0);
+      expect(local.getDate()).toBe(16);
+      expect(local.getHours()).toBe(3);
+      expect(local.getMinutes()).toBe(30);
+    });
+
+    test('compares local calendar days across a DST-shortened day', () => {
+      jest.setSystemTime(new Date('2024-09-28T12:00:00.000Z'));
+
+      expect(
+        getDaysRemainingInLocalTime(
+          '2024-09-29T11:00:00.000Z',
+          'Pacific/Auckland'
+        )
+      ).toBe(1);
+    });
+
+    test('identifies a shared Auckland day across different UTC dates', () => {
+      expect(
+        isTodayInLocalTime('2024-01-16T00:00:00.000Z', 'Pacific/Auckland')
+      ).toBe(true);
+      expect(isTodayGlobal('2024-01-16T00:00:00.000Z')).toBe(false);
+    });
+
+    test('uses the 23-hour Auckland day when daylight saving starts', () => {
+      jest.setSystemTime(new Date('2024-09-28T12:00:00.000Z'));
+
+      expect(getHoursRemainingInDay('Pacific/Auckland')).toBeCloseTo(23, 5);
+    });
+
+    test('uses the 25-hour Auckland day when daylight saving ends', () => {
+      jest.setSystemTime(new Date('2024-04-06T11:00:00.000Z'));
+
+      expect(getHoursRemainingInDay('Pacific/Auckland')).toBeCloseTo(25, 5);
     });
   });
 
   describe('Edge Cases', () => {
     test('handles invalid dates gracefully', () => {
       const invalidDate = new Date('invalid');
-      
+
       expect(getDaysRemainingGlobal(invalidDate)).toBe(0);
       expect(isTodayGlobal(invalidDate)).toBe(false);
     });
 
     test('handles string date inputs', () => {
       const dateString = '2024-01-16T12:00:00.000Z';
-      
+
       expect(getDaysRemainingGlobal(dateString)).toBe(1);
       expect(isTodayGlobal(dateString)).toBe(false);
     });
 
     test('formatInLocalTime handles string dates', () => {
       const dateString = '2024-01-15T14:30:00.000Z';
-      const formatted = formatInLocalTime(dateString, { 
-        year: 'numeric', 
-        month: 'short' 
+      const formatted = formatInLocalTime(dateString, {
+        year: 'numeric',
+        month: 'short',
       });
       expect(typeof formatted).toBe('string');
     });
@@ -121,7 +172,7 @@ describe('Timezone Utility Functions', () => {
       // These should return the same values regardless of local timezone
       const globalDay = getCurrentGlobalDay();
       const hoursRemaining = getHoursRemainingInGlobalDay();
-      
+
       // Mock changing system timezone (conceptually)
       // The results should be the same because they use UTC
       expect(getCurrentGlobalDay()).toBe(globalDay);
@@ -132,9 +183,9 @@ describe('Timezone Utility Functions', () => {
       // Two users in different timezones should see the same days remaining
       const challengeEnd = new Date('2024-01-20T00:00:00.000Z');
       const daysRemaining = getDaysRemainingGlobal(challengeEnd);
-      
+
       // This should be 5 days regardless of user timezone
       expect(daysRemaining).toBe(5);
     });
   });
-}); 
+});

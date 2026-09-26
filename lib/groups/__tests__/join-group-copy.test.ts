@@ -8,9 +8,9 @@ import {
 describe('join group cost copy', () => {
   it('names a first membership as free instead of a 10 Momenta charge', () => {
     expect(describeJoinGroupCostNotice(0)).toContain(
-      'first group membership is free'
+      'first join is free, whether it’s a promise or a group'
     );
-    expect(describeJoinGroupPreviewSpend(0)).toBe('This membership is free.');
+    expect(describeJoinGroupPreviewSpend(0)).toBe('This join is free.');
     expect(formatJoinGroupSpend(0)).toBe('0 Momenta');
   });
 

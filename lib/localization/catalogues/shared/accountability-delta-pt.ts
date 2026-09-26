@@ -134,14 +134,14 @@ export const accountabilityDeltaPt = {
   'fullAuth.source.email_confirmation.resend_action': 'Reenviar confirmação',
   'commerce.wallet.rewardCheckingTitle': 'Verificando a sua recompensa',
   'commerce.wallet.rewardCheckingDetail':
-    'Mantenha esta tela aberta até a verificação terminar.',
+    'Mantenha este ecrã aberto até a verificação terminar.',
   'commerce.wallet.rewardMissingTitle': 'A recompensa ainda não chegou',
   'commerce.wallet.rewardMissingDetail':
     'Atualize o seu saldo antes de assistir a outro patrocinador.',
   'commerce.wallet.refreshBalanceAction': 'Atualizar saldo',
   'commerce.wallet.rewardDailyLimitTitle': 'Isso é tudo por hoje',
   'commerce.wallet.rewardDailyLimitDetail':
-    'Você já recebeu as recompensas de patrocinadores de hoje.',
+    'Já recebeu as recompensas de patrocinadores de hoje.',
   'commerce.wallet.rewardCheckingAccessibility':
     'Verificando o estado da recompensa',
   'commerce.wallet.refreshingBalance': 'Atualizando o saldo…',
@@ -257,7 +257,7 @@ export const accountabilityDeltaPt = {
   'groups.source.accountability.role.partner.invitee_title':
     'Fazer em conjunto',
   'groups.source.accountability.role.partner.invitee_description':
-    'Ambos cumprem a promessa, adicionam a sua própria prova e partilham o progresso.',
+    'Ambos cumprem a promessa, adicionam o próprio comprovativo e partilham o progresso.',
   'groups.source.accountability.role.partner.invitee_action':
     'Aderir e fazer em conjunto',
   'groups.source.accountability.role.reviewer.title':
@@ -329,11 +329,11 @@ export const accountabilityDeltaPt = {
   'groups.source.accountability.people.load_error_detail':
     'Nada mudou. Tente novamente.',
   'groups.source.accountability.people.loading':
-    'Verificando esta promessa antes de convidar alguém…',
+    'A verificar esta promessa antes de convidar alguém…',
   'groups.source.accountability.people.shared_heading':
     'Pessoas nesta promessa.',
   'groups.source.accountability.people.private_heading':
-    'Quem deve participar com você?',
+    'Quem deve participar consigo?',
   'groups.source.accountability.people.shared_detail':
     'Cada pessoa tem um papel claro. Você pode convidar outra pessoa sem criar mais um grupo.',
   'groups.source.accountability.people.private_detail':
@@ -406,7 +406,7 @@ export const accountabilityDeltaPt = {
     'Analisar detalhes da participação',
   'groups.source.accountability.event.title': 'Convite para evento',
   'groups.source.accountability.event.checking':
-    'Verificando convite para evento',
+    'A verificar o convite para o evento',
   'groups.source.accountability.event.time_to_be_confirmed':
     'Horário a confirmar',
   'groups.source.accountability.event.visibility.invite_only':
@@ -510,13 +510,13 @@ export const accountabilityDeltaPt = {
   'todayProof.source.accountability.supporter_following':
     'Acompanhando esta promessa',
   'todayProof.source.accountability.supporter_note':
-    'Veja o progresso compartilhado e incentive as pessoas que estão cumprindo a promessa.',
+    'Veja o progresso partilhado e incentive as pessoas que estão a cumprir a promessa.',
   'todayProof.source.accountability.role_supporter': 'Pessoa apoiadora',
   'todayProof.source.accountability.open_proof': 'Abrir comprovação',
   'todayProof.source.accountability.see_shared_proof':
     'Ver comprovação compartilhada',
   'todayProof.source.accountability.member_fallback': 'Pessoa da Menta',
-  'todayProof.source.accountability.add_my_video': 'Adicionar meu vídeo',
+  'todayProof.source.accountability.add_my_video': 'Adicionar o meu vídeo',
   'todayProof.source.accountability.add_my_photo': 'Adicionar minha foto',
   'todayProof.source.accountability.shared_with_promise_people':
     'Compartilhado com as pessoas desta promessa',
@@ -677,7 +677,7 @@ export const accountabilityDeltaPtPT = {
   'groups.source.accountability.member.remove_detail':
     'A pessoa perderá o acesso às pessoas e aos comprovativos partilhados desta promessa. A atividade existente continuará no histórico.',
   'groups.source.accountability.picker.detail':
-    'Primeiro escolha a promessa. Depois, decida se a pessoa a fará consigo, analisará comprovativos ou dará apoio.',
+    'Primeiro escolha a promessa. Depois decida se a pessoa a faz consigo, analisa comprovativos ou dá apoio.',
   'groups.source.accountability.picker.load_error_detail':
     'A Menta não conseguiu carregar as suas promessas. Tente novamente.',
   'groups.source.accountability.picker.already_shared':
@@ -708,7 +708,7 @@ export const accountabilityDeltaPtPT = {
   'groups.source.accountability.share.failed_title':
     'A partilha não foi aberta',
   'groups.source.accountability.copy.success_detail':
-    'Cole na conversa em que pretende convidar a pessoa.',
+    'Cole na conversa em que quer convidar a pessoa.',
   'groups.source.accountability.join_promise.invited_by':
     '{inviter} convidou-o.',
   'groups.source.accountability.join_promise.intro':
@@ -716,7 +716,7 @@ export const accountabilityDeltaPtPT = {
   'groups.source.accountability.join_promise.proof_visibility':
     'Visibilidade dos comprovativos',
   'groups.source.accountability.event.visibility.unlisted':
-    'Partilhado por ligação privada',
+    'Partilhado por link privada',
   'groups.source.accountability.event.availability.places':
     '{count} lugares disponíveis',
   'groups.source.accountability.event.availability.places.one':
@@ -740,7 +740,7 @@ export const accountabilityDeltaPtPT = {
   'groups.source.accountability.error.saved_group_owns':
     '{group} já contém esta promessa. Convide pessoas pelo grupo guardado para poderem ver todo o espaço partilhado.',
   'groups.source.accountability.error.link_unavailable':
-    'A Menta não conseguiu preparar uma ligação de convite. A sua promessa continua segura.',
+    'A Menta não conseguiu preparar um link de convite. A sua promessa continua segura.',
   'groups.source.accountability.error.leave_unconfirmed':
     'A Menta não conseguiu confirmar que saiu.',
   'todayProof.source.accountability.proof_together':

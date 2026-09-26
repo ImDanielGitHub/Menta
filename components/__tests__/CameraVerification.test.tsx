@@ -46,6 +46,14 @@ const mockPersistProofMediaLocally = jest.fn();
 const mockGetDurableProofMedia = jest.fn();
 const mockVideoPlay = jest.fn();
 const mockVideoPause = jest.fn();
+const mockVideoPlayer = {
+  loop: true,
+  staysActiveInBackground: true,
+  status: 'readyToPlay',
+  play: mockVideoPlay,
+  pause: mockVideoPause,
+  addListener: jest.fn(() => ({ remove: jest.fn() })),
+};
 const mockCaptureError = captureError as jest.Mock;
 const mockCaptureMessage = captureMessage as jest.Mock;
 let mockCameraPermission: PermissionState = null;
@@ -114,11 +122,14 @@ jest.mock('expo-video', () => {
     VideoView: (props: Record<string, unknown>) => (
       <View {...props} testID="proof-video-preview" />
     ),
-    useVideoPlayer: () => ({
-      loop: false,
-      play: mockVideoPlay,
-      pause: mockVideoPause,
-    }),
+    useVideoPlayer: (
+      _source: unknown,
+      setup: (player: typeof mockVideoPlayer) => void
+    ) =>
+      React.useMemo(() => {
+        setup(mockVideoPlayer);
+        return mockVideoPlayer;
+      }, []),
   };
 });
 
@@ -183,6 +194,8 @@ const renderCameraVerification = (
 
 describe('CameraVerification permission primer', () => {
   beforeEach(async () => {
+    mockVideoPlayer.loop = true;
+    mockVideoPlayer.staysActiveInBackground = true;
     jest.clearAllMocks();
     await AsyncStorage.clear();
     mockUseIsFocused.mockReturnValue(true);
@@ -371,7 +384,8 @@ describe('CameraVerification permission primer', () => {
     });
 
     expect(await screen.findByTestId('proof-video-preview')).toBeTruthy();
-    expect(mockVideoPause).toHaveBeenCalledTimes(1);
+    expect(mockVideoPlayer.loop).toBe(false);
+    expect(mockVideoPlayer.staysActiveInBackground).toBe(false);
     expect(mockVideoPlay).not.toHaveBeenCalled();
   });
 

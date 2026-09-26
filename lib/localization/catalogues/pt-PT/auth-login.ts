@@ -4,7 +4,7 @@ type AuthLoginKey = Extract<keyof EnglishCatalogue, `auth.login.${string}`>;
 
 export const authLoginPtPT = {
   'auth.login.error.keep_promise':
-    'A Menta não conseguiu guardar sua promessa neste telemóvel. Tente novamente antes de continuar.',
+    'A Menta não conseguiu guardar a sua promessa neste telemóvel. Tente novamente antes de continuar.',
   'auth.login.error.cancel_recovery':
     'A entrada foi cancelada, mas a Menta não conseguiu guardar o ponto de recuperação. A sua promessa continua neste ecrã. Tente novamente.',
   'auth.login.error.provider':

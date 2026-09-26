@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { InteractionManager } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -7,6 +7,7 @@ import { paywallManager } from '@/lib/paywall/manager';
 import { requestEligibleSystemStoreReview } from '@/lib/store-review';
 import { recoverActivationReview } from '@/lib/commitments/recover-activation-review';
 import { trackProductEvent } from '@/lib/posthog';
+import { captureMessage } from '@/lib/sentry';
 import { useAuthStore } from '@/store/auth-store';
 import { FeedbackCheckIn } from './FeedbackCheckIn';
 import {
@@ -18,10 +19,29 @@ import {
 import { useOnboardingCompletionStore } from '@/lib/navigation/onboarding-completion';
 
 const REVIEW_SETTLE_DELAY_MS = 2_000;
+const feedbackKey = (ownerId: string) =>
+  `@menta/feedback-check-in:v1:${ownerId}`;
+const invitationAllowsCheckIn = (ownerId: string) => {
+  const gate = getOnboardingInvitationReviewGate(ownerId);
+  // Missing historical metadata is not an active invitation. The activation
+  // receipt remains required before showing feedback; never fabricate an invite
+  // completion or navigation receipt for these established accounts.
+  return gate === 'complete' || gate === 'legacy';
+};
+const reportFeedbackFailure = (stage: 'today' | 'feedback') => {
+  trackProductEvent('Feedback Journey', {
+    action: 'failed',
+    source: 'activation_check_in',
+    stage,
+  });
+  captureMessage('feedback_check_in_failed', 'warning', {
+    tags: { flow: 'activation_check_in', stage },
+  });
+};
 
 /**
- * Give StoreKit one contextual opportunity after Today has settled. Menta does
- * not show a rating pre-question and never calls the system request from a tap.
+ * Show the account's check-in after activation and completed invitation handoff.
+ * Established accounts retain the independent accepted-proof review opportunity.
  */
 export const StoreReviewRequestHost = ({ ready }: { ready: boolean }) => {
   const router = useRouter();
@@ -30,6 +50,14 @@ export const StoreReviewRequestHost = ({ ready }: { ready: boolean }) => {
     state => state.isAuthenticated && state.hasCompletedOnboarding
   );
   const [feedbackOwner, setFeedbackOwner] = useState<string | null>(null);
+  const consumedOwners = useRef(new Set<string>());
+  const focused = useRef(false);
+  const pendingAnswer = useRef<{
+    ownerId: string;
+    answer: 'positive' | 'improve';
+  } | null>(null);
+  const readyRef = useRef(ready);
+  readyRef.current = ready;
   // Subscribe to semantic lifecycle changes, excluding navigation analytics
   // acknowledgement so that recording arrival cannot cancel its own prompt.
   useOnboardingInvitationLifecycleStore(state => {
@@ -68,6 +96,7 @@ export const StoreReviewRequestHost = ({ ready }: { ready: boolean }) => {
 
   useFocusEffect(
     useCallback(() => {
+      focused.current = true;
       if (
         !ready ||
         paywallVisible ||
@@ -75,8 +104,15 @@ export const StoreReviewRequestHost = ({ ready }: { ready: boolean }) => {
         !invitationHydrated ||
         !handoffHydrated
       )
-        return undefined;
-      if (invitationGate === 'loading') return undefined;
+        return () => {
+          focused.current = false;
+          pendingAnswer.current = null;
+        };
+      if (invitationGate === 'loading')
+        return () => {
+          focused.current = false;
+          pendingAnswer.current = null;
+        };
 
       let cancelled = false;
       let timer: ReturnType<typeof setTimeout> | null = null;
@@ -102,19 +138,10 @@ export const StoreReviewRequestHost = ({ ready }: { ready: boolean }) => {
               });
               return;
             }
-            if (gate === 'legacy') {
-              // Historical activation alone cannot prove an invite was finished.
-              // Established users retain the independent three-accepted-proof path.
-              await requestEligibleSystemStoreReview(
-                Date.now(),
-                undefined,
-                () =>
-                  canPresent() &&
-                  getOnboardingInvitationReviewGate(ownerId) === 'legacy'
-              );
-              return;
-            }
-            if (await acknowledgeOnboardingInvitationNavigation(ownerId)) {
+            if (
+              gate === 'complete' &&
+              (await acknowledgeOnboardingInvitationNavigation(ownerId))
+            ) {
               if (canPresent())
                 trackProductEvent('Accountability Invite Journey', {
                   source: 'onboarding',
@@ -122,21 +149,17 @@ export const StoreReviewRequestHost = ({ ready }: { ready: boolean }) => {
                   stage: 'navigation_completed',
                 });
             }
-            const key = `@menta/feedback-check-in:v1:${ownerId}`;
             const activationAt = await recoverActivationReview(ownerId);
-            const previousOpportunity = await AsyncStorage.getItem(key);
-            if (
-              !canPresent() ||
-              getOnboardingInvitationReviewGate(ownerId) !== 'complete'
-            )
-              return;
-            // A later visit keeps this independent of the native sheet and the
-            // invite handoff. Never stack two prompts on the activation visit.
+            const previousOpportunity = await AsyncStorage.getItem(
+              feedbackKey(ownerId)
+            );
+            if (!canPresent() || !invitationAllowsCheckIn(ownerId)) return;
+            // A saved timestamp is an unconsumed opportunity from older clients.
+            // No extra Today visit or one-minute wait is required after inviting.
             if (
               activationAt &&
-              previousOpportunity &&
               previousOpportunity !== 'done' &&
-              Date.now() - Date.parse(previousOpportunity) >= 60_000
+              !consumedOwners.current.has(ownerId)
             ) {
               setFeedbackOwner(ownerId);
               trackProductEvent('Feedback Journey', {
@@ -145,24 +168,26 @@ export const StoreReviewRequestHost = ({ ready }: { ready: boolean }) => {
               });
               return;
             }
-            if (activationAt && !previousOpportunity) {
-              await AsyncStorage.setItem(key, new Date().toISOString());
-            }
-            if (!cancelled && useAuthStore.getState().user?.id === ownerId) {
+            // The separate accepted-proof path remains available after the
+            // check-in was consumed; an activation marker alone does not fire
+            // a second native request behind a negative answer or dismissal.
+            if (canPresent()) {
               await requestEligibleSystemStoreReview(
                 Date.now(),
-                ownerId,
-                () =>
-                  canPresent() &&
-                  getOnboardingInvitationReviewGate(ownerId) === 'complete'
+                undefined,
+                () => canPresent() && invitationAllowsCheckIn(ownerId)
               );
             }
-          })().catch(() => undefined);
+          })().catch(() => {
+            if (!cancelled) reportFeedbackFailure('today');
+          });
         }, REVIEW_SETTLE_DELAY_MS);
       });
 
       return () => {
         cancelled = true;
+        focused.current = false;
+        pendingAnswer.current = null;
         setFeedbackOwner(null);
         task.cancel();
         if (timer !== null) clearTimeout(timer);
@@ -178,22 +203,65 @@ export const StoreReviewRequestHost = ({ ready }: { ready: boolean }) => {
     ])
   );
 
-  const finishFeedback = () => {
-    if (feedbackOwner) {
-      void AsyncStorage.setItem(
-        `@menta/feedback-check-in:v1:${feedbackOwner}`,
-        'done'
-      ).catch(() => undefined);
-    }
+  const canContinue = useCallback((id: string) => {
+    const auth = useAuthStore.getState();
+    return (
+      focused.current &&
+      readyRef.current &&
+      !paywallManager.isVisible &&
+      auth.user?.id === id &&
+      auth.isAuthenticated &&
+      auth.hasCompletedOnboarding &&
+      invitationAllowsCheckIn(id)
+    );
+  }, []);
+
+  const finishFeedback = (): string | null => {
+    if (
+      !feedbackOwner ||
+      !canContinue(feedbackOwner) ||
+      consumedOwners.current.has(feedbackOwner)
+    )
+      return null;
+    const id = feedbackOwner;
+    consumedOwners.current.add(id);
+    void AsyncStorage.setItem(feedbackKey(id), 'done').catch(() =>
+      reportFeedbackFailure('feedback')
+    );
     setFeedbackOwner(null);
+    return id;
   };
   const close = () => {
-    finishFeedback();
+    if (!finishFeedback()) return;
     trackProductEvent('Feedback Journey', {
       action: 'dismissed',
       source: 'activation_check_in',
     });
   };
+
+  const continueAfterDismiss = useCallback(() => {
+    const pending = pendingAnswer.current;
+    pendingAnswer.current = null;
+    if (!pending || !canContinue(pending.ownerId)) return;
+    if (pending.answer === 'positive') {
+      void requestEligibleSystemStoreReview(Date.now(), pending.ownerId, () =>
+        canContinue(pending.ownerId)
+      )
+        .then(result => {
+          if (result.outcome === 'failed') reportFeedbackFailure('feedback');
+        })
+        .catch(() => reportFeedbackFailure('feedback'));
+      return;
+    }
+    router.push({
+      pathname: '/report-issue',
+      params: {
+        mode: 'feedback',
+        source: 'activation_feedback',
+        newReport: '1',
+      },
+    });
+  }, [canContinue, router]);
 
   return (
     <FeedbackCheckIn
@@ -201,24 +269,19 @@ export const StoreReviewRequestHost = ({ ready }: { ready: boolean }) => {
         ownerId &&
         feedbackOwner === ownerId &&
         ready &&
+        completedAccount &&
         !paywallVisible &&
-        getOnboardingInvitationReviewGate(ownerId) === 'complete'
+        invitationAllowsCheckIn(ownerId)
       )}
       onClose={close}
+      onDismiss={continueAfterDismiss}
       onAnswer={answer => {
-        finishFeedback();
+        const id = finishFeedback();
+        if (!id) return;
+        pendingAnswer.current = { ownerId: id, answer };
         trackProductEvent('Feedback Journey', {
           action: answer,
           source: 'activation_check_in',
-        });
-        router.push({
-          pathname: '/report-issue',
-          params: {
-            mode: 'feedback',
-            source: 'activation_feedback',
-            newReport: '1',
-            ...(answer === 'positive' ? { title: 'What is working well' } : {}),
-          },
         });
       }}
     />

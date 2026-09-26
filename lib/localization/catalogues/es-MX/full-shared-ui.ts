@@ -7,7 +7,7 @@ export const fullSharedUiEsMX = {
   'shared.navigation.settings': 'Ajustes',
   'shared.redirect.invite.navTitle': 'Invitar',
   'shared.redirect.join.navTitle': 'Unirse',
-  'shared.accessibility.primaryNavigation': 'Navegación primaria',
+  'shared.accessibility.primaryNavigation': 'Navegación principal',
   'shared.accessibility.tabSelected': '{label} está seleccionado.',
   'shared.accessibility.tabOpens': 'Abre {label}.',
   'shared.accessibility.choiceSummary': '{title}. {description}',
@@ -33,21 +33,21 @@ export const fullSharedUiEsMX = {
   'shared.accessibility.updateRequired': 'Se requiere actualización de Menta',
   'shared.accessibility.updateAvailable': 'Actualización de Menta disponible',
   'shared.accessibility.referralQr':
-    'Código QR de invitación de referencia. Escanee para abrir el enlace de invitación.',
+    'Código QR de invitación. Escanéalo para abrir el enlace de invitación.',
   'shared.accessibility.duplicateInviteQr':
     'Mostrar invitación QR en pantalla completa. Invitar a {code}',
-  'shared.action.tryAgain': 'Intentar otra vez',
+  'shared.action.tryAgain': 'Volver a intentarlo',
   'shared.action.reportIssue': 'Informar problema',
-  'shared.action.backToday': 'Volver a hoy',
+  'shared.action.backToday': 'Volver a Hoy',
   'shared.action.contactSupport': 'Contactar con soporte',
-  'shared.action.getHelp': 'obtener ayuda',
+  'shared.action.getHelp': 'Obtener ayuda',
   'shared.action.close': 'Cerrar',
   'shared.action.cancel': 'Cancelar',
   'shared.action.confirm': 'Confirmar',
   'shared.action.done': 'Hecho',
   'shared.action.next': 'Próximo',
   'shared.action.working': 'Laboral...',
-  'shared.action.checkAgain': 'comprobar de nuevo',
+  'shared.action.checkAgain': 'Volver a comprobar',
   'shared.action.keepCurrentScreen': 'Mantener pantalla actual',
   'shared.action.retryConnection': 'Reintentar conexión',
   'shared.action.workOffline': 'Trabajar sin conexión',
@@ -60,14 +60,14 @@ export const fullSharedUiEsMX = {
   'shared.action.createAccount': 'Crear una cuenta',
   'shared.action.retrySubmission': 'Reintentar envío',
   'shared.action.fixDetails': 'Arreglar detalles',
-  'shared.action.goToToday': 'Ir a hoy',
+  'shared.action.goToToday': 'Ir a Hoy',
   'shared.action.goBack': 'Volver',
   'shared.error.network.title': 'Menta no puede conectarse en este momento.',
   'shared.error.network.message':
     'Tu trabajo está seguro. Vuelve a intentarlo o trabaje sin conexión cuando este flujo lo permita.',
   'shared.error.camera.title': 'Permiso de cámara en pausa',
   'shared.error.camera.message':
-    'La captura de prueba necesita acceso a la cámara. Pruebe la cámara nuevamente, abra la configuración o use otra ruta de prueba cuando esta ruta la ofrezca.',
+    'Para capturar la prueba se necesita acceso a la cámara. Vuelve a probar la cámara, abre la configuración o usa otra forma de prueba si esta pantalla la ofrece.',
   'shared.error.upload.title': 'La prueba no se subió',
   'shared.error.upload.message':
     'Tu prueba todavía está adjunta. Vuelve a intentar la carga o guárdela para más adelante cuando este flujo admita la recuperación sin conexión.',
@@ -80,7 +80,7 @@ export const fullSharedUiEsMX = {
   'shared.error.validation.title': 'Comprueba los detalles',
   'shared.error.generic.title': 'Esta parte necesita un reintento.',
   'shared.error.generic.message':
-    'Menta no pudo terminar esa acción. Los datos de tu cuenta están seguros; Vuelve a intentarlo, vuelve a Hoy o contacta con el soporte técnico si continúa sucediendo.',
+    'Menta no pudo terminar esa acción. Los datos de tu cuenta están a salvo; vuelve a intentarlo, regresa a Hoy o contacta a soporte si sigue pasando.',
   'shared.error.networkHandler.timeout.title': 'Menta está tardando demasiado',
   'shared.error.networkHandler.network.title':
     'Menta no puede conectarse en este momento.',
@@ -89,7 +89,7 @@ export const fullSharedUiEsMX = {
   'shared.error.networkHandler.server.title':
     'Menta no pudo terminar esa petición.',
   'shared.error.networkHandler.server.withStatus':
-    'El servidor devolvió {status}. Vuelve a intentarlo en un momento; Tu lugar en Menta sigue aquí.',
+    'El servidor devolvió {status}. Vuelve a intentarlo en un momento; lo que tenías abierto en Menta sigue aquí.',
   'shared.error.networkHandler.server.withoutStatus':
     'Menta tuvo un problema con el servidor. Vuelve a intentarlo en un momento; tu lugar sigue aquí.',
   'shared.error.networkHandler.unknown.title':
@@ -97,7 +97,7 @@ export const fullSharedUiEsMX = {
   'shared.error.networkHandler.unknown.message':
     'Menta mantuvo tu lugar. Vuelve a intentarlo cuando esté listo.',
   'shared.error.networkHandler.networkMessages':
-    'Menta no puede conectarse en este momento. Tu trabajo está seguro; Vuelve a intentarlo cuando vuelve a estar en línea.',
+    'Menta no puede conectarse en este momento. Tu trabajo está a salvo; vuelve a intentarlo cuando tengas conexión.',
   'shared.error.networkHandler.timeoutMessage':
     'Menta está tardando demasiado. Vuelve a intentarlo antes de cambiar de pantalla.',
   'shared.error.networkHandler.serverMessage':
@@ -115,13 +115,13 @@ export const fullSharedUiEsMX = {
   'shared.error.debug': 'Depuración: {message}',
   'shared.boundary.critical.title': 'Menta se detuvo inesperadamente.',
   'shared.boundary.critical.message':
-    'Tu cuenta y tu trabajo guardado todavía están aquí. Intentar otra vez. Si vuelve a suceder, envíe un informe.',
+    'Tu cuenta y tu trabajo guardado siguen aquí. Vuelve a intentarlo. Si vuelve a pasar, envía un reporte.',
   'shared.boundary.screen.title': 'Esta pantalla dejó de cargarse.',
   'shared.boundary.screen.message':
-    'Pruebe la pantalla nuevamente o vuelve a Hoy.',
+    'Vuelve a cargar la pantalla o regresa a Hoy.',
   'shared.boundary.component.title': 'Esta sección no se pudo cargar.',
   'shared.boundary.component.message':
-    'Intentar otra vez. Si continúa sucediendo enviar un informe con los detalles técnicos adjuntos.',
+    'Vuelve a intentarlo. Si sigue pasando, envía un reporte con los detalles técnicos adjuntos.',
   'shared.boundary.errorDetail': 'Detalle del error',
   'shared.boundary.errorId': 'ID de error: {id}',
   'shared.boundary.crashDescription':
@@ -143,7 +143,7 @@ export const fullSharedUiEsMX = {
     'La solicitud de eliminación no se completó. Tu cuenta todavía está iniciada y no se confirmó ninguna eliminación.',
   'shared.confirm.failed.notice':
     'Puedes volver a intentarlo o ponerte en contacto con el servicio de asistencia técnica si esto continúa sucediendo.',
-  'shared.confirm.typeToConfirm': 'Escriba "{name}" para confirmar.',
+  'shared.confirm.typeToConfirm': 'Escribe “{name}” para confirmar.',
   'shared.confirm.typeToConfirmAccessibility': 'Escribe {name} para confirmar',
   'shared.confirm.deleting': 'Eliminando...',
   'shared.confirm.tapAgain': 'Toca de nuevo',
@@ -151,9 +151,9 @@ export const fullSharedUiEsMX = {
   'shared.confirm.action': '{title}',
   'shared.confirm.actionWithCost': '{title} {cost}',
   'shared.confirm.balance': 'Saldo: {balance} {currency}',
-  'shared.confirm.notEnough.title': 'No hay suficiente momento',
+  'shared.confirm.notEnough.title': 'No tienes suficientes Momenta',
   'shared.confirm.notEnough.message':
-    'Esta acción necesita más Momento. Abra la pantalla de propiedad para elegir una ruta de obtención o recarga.',
+    'Esta acción necesita más Momenta. Abre la pantalla correspondiente para elegir cómo ganar o recargar.',
   'shared.oauth.continueGoogle': 'Continuar con Google',
   'shared.oauth.continueApple': 'Continuar con Apple',
   'shared.oauth.offline':
@@ -171,7 +171,7 @@ export const fullSharedUiEsMX = {
   'shared.update.ready.accessibility': 'Actualización de Menta lista',
   'shared.update.ready.title': 'Actualización de Menta lista',
   'shared.update.ready.description':
-    'Reinicie Menta para utilizar las últimas correcciones y mejoras.',
+    'Reinicia Menta para usar las últimas correcciones y mejoras.',
   'shared.update.ready.restart': 'Reiniciar Menta',
   'shared.update.ready.later': 'Más tarde',
   'shared.update.required.title': 'Actualiza Menta para continuar',
@@ -196,12 +196,12 @@ export const fullSharedUiEsMX = {
   'shared.image.alt': 'Imagen',
   'shared.image.tapToLoad': 'Toca para cargar',
   'shared.image.loadFailed': 'Error al cargar la imagen',
-  'shared.boosts.title': 'Impulsa',
+  'shared.boosts.title': 'Potenciadores',
   'shared.boosts.empty': 'Aún no hay refuerzos disponibles',
-  'shared.streak.day': 'racha de dias',
-  'shared.streak.accessibility': '{streak} racha de días',
+  'shared.streak.day': 'Días de racha',
+  'shared.streak.accessibility': '{streak} días de racha',
   'shared.streak.compact': '{streak}d',
-  'shared.timer.done': 'hecho por hoy',
+  'shared.timer.done': 'Hecho por hoy',
   'shared.timer.unavailable': '—',
   'shared.timer.hoursLeft': '{hours}h {minutes}m faltan',
   'shared.timer.minutesLeft': 'Quedan {minutes}m',
@@ -212,8 +212,8 @@ export const fullSharedUiEsMX = {
   'shared.timeline.remaining': '{days} días restantes',
   'shared.timeline.aligned': '✓ Alineado',
   'shared.timeline.misaligned': '⚠ Desalineado',
-  'shared.timeline.incomplete': '? Incompleto',
-  'shared.share.inviteBadge': 'menta',
+  'shared.timeline.incomplete': '? Incompleta',
+  'shared.share.inviteBadge': 'Menta',
   'shared.share.members': '{count} miembros',
   'shared.share.progress': '{completed}/{target}',
   'shared.share.referralProgress': 'Progreso de referencia',
@@ -227,13 +227,13 @@ export const fullSharedUiEsMX = {
   'shared.share.proofReceipt': 'Recibo de prueba',
   'shared.share.groupStreak':
     '{members} miembros · {days} racha de grupos de días',
-  'shared.share.groupLabel': 'grupo menta',
+  'shared.share.groupLabel': 'Grupo de Menta',
   'shared.notFound.title': 'Esta página no está disponible',
   'shared.notFound.description':
     'El enlace puede estar desactualizado o ya no existir. Nada en tu cuenta cambió.',
   'shared.systemSettings.title': 'Ajustes del celular',
   'shared.systemSettings.description':
-    'Cambie los permisos de notificación, cámara, fotografía o medición de anuncios en la configuración de tu celular. Menta no puede cambiarlos ni confirmarlos desde esta pantalla.',
+    'Cambia los permisos de notificaciones, cámara, fotos o medición de anuncios en la configuración del celular. Menta no puede cambiarlos ni confirmarlos desde esta pantalla.',
   'shared.systemSettings.open': 'Abrir configuración del celular',
   'shared.systemSettings.back': 'Volver al soporte',
   'shared.systemSettings.return.title': 'Regresa cuando hayas terminado',
@@ -242,7 +242,7 @@ export const fullSharedUiEsMX = {
   'shared.systemSettings.failed.title':
     'No se pudo abrir la configuración del celular',
   'shared.systemSettings.failed.description':
-    'Nada cambió en Menta. Abra la configuración de tu celular manualmente y luego vuelve a la aplicación.',
+    'No cambió nada en Menta. Abre la configuración del celular manualmente y vuelve a la app.',
   'shared.adTracking.title': 'Medición de anuncios',
   'shared.adTracking.optional': 'Opcional',
   'shared.adTracking.education.title': '¿Medir si los metaanuncios ayudaron?',
@@ -254,18 +254,18 @@ export const fullSharedUiEsMX = {
   'shared.adTracking.notNow': 'Ahora no',
   'shared.adTracking.granted.title': 'La medición de anuncios está activada',
   'shared.adTracking.granted.body':
-    'Menta puede medir si los metaanuncios ayudaron a alguien a registrarse, crear un grupo, crear una promesa o invitar a un amigo. Cambie esto más tarde en la configuración de tu celular.',
+    'Menta puede medir si los anuncios de Meta ayudaron a alguien a registrarse, crear un grupo, crear una promesa o invitar a alguien. Puedes cambiarlo más tarde en la configuración del celular.',
   'shared.adTracking.denied.title': 'La medición de anuncios está desactivada',
   'shared.adTracking.denied.body':
-    'Menta todavía funciona. Si cambia de opinión, abra la configuración de tu celular y permita el seguimiento de Menta.',
+    'Menta sigue funcionando. Si cambias de opinión, abre la configuración del celular y permite el seguimiento para Menta.',
   'shared.adTracking.unavailable.title':
     'La medición de anuncios no está disponible',
   'shared.adTracking.unavailable.body':
-    'Menta todavía funciona. Puedes intentar esto nuevamente más tarde desde Ajustes.',
+    'Menta sigue funcionando. Puedes volver a intentarlo más tarde desde Configuración.',
   'shared.adTracking.promptFailed.title':
     'El mensaje del celular no se pudo abrir.',
   'shared.adTracking.promptFailed.description':
-    'Puedes continuar sin medir anuncios y volver a intentarlo más tarde desde Ajustes.',
+    'Puedes continuar sin la medición de anuncios y volver a intentarlo más tarde desde Configuración.',
   'shared.redirect.invite.titleMissing':
     'El enlace de referencia necesita un código',
   'shared.redirect.invite.titleExisting':
@@ -274,7 +274,7 @@ export const fullSharedUiEsMX = {
   'shared.redirect.invite.subtitleMissing':
     'Este enlace de referencia no incluía el código que Menta necesita.',
   'shared.redirect.invite.subtitleExisting':
-    'Esta cuenta ya está configurada, por lo que Menta no cambiará tu referencia.',
+    'Esta cuenta ya está configurada, así que Menta no cambiará su invitación.',
   'shared.redirect.invite.subtitleOpening':
     'Guardaremos la referencia y lo llevaremos de regreso a Menta.',
   'shared.redirect.invite.missingTitle': 'Falta el código de referencia',
@@ -316,16 +316,16 @@ export const fullSharedUiEsMX = {
   'shared.redirect.join.oneMoment': 'Un momento',
   'shared.redirect.join.checking':
     'Menta está comprobando el código de invitación.',
-  'shared.redirect.join.codeLabel': 'código de invitación',
+  'shared.redirect.join.codeLabel': 'Código de invitación',
   'shared.redirect.join.enterCode': 'Introduce el código del grupo',
   'shared.redirect.join.continueWithout': 'Continuar sin invitación',
   'shared.rootError.title': 'Algo salió mal en Menta.',
   'shared.rootError.description':
-    'Intentar otra vez. Si vuelve a suceder, abra el formulario de informe con la referencia de soporte a continuación.',
+    'Vuelve a intentarlo. Si vuelve a pasar, abre el formulario de reporte con la referencia de soporte de abajo.',
   'shared.rootError.supportReference': 'Referencia de soporte',
   'shared.rootError.generatingReference': 'Generando una referencia técnica.',
   'shared.rootError.reportIncluded':
-    'El formulario de informe incluye esta referencia. Revise el informe antes de enviarlo.',
+    'El formulario de reporte incluye esta referencia. Revisa el reporte antes de enviarlo.',
   'shared.rootError.noStateChangedDescription':
     'Al volver a intentarlo, no se marca ninguna prueba o compra pendiente como completa.',
   'shared.rootError.noStateChanged': 'Ningún estado cambió',
@@ -344,11 +344,10 @@ export const fullSharedUiEsMX = {
     'No hay pruebas pendientes en este momento',
   'shared.rootLayout.noProofDue.message':
     'Hoy se mostrará la próxima promesa cuando se necesiten pruebas.',
-  'shared.rootLayout.initialising': 'Inicializando Menta...',
   'shared.web.eyebrow': 'Se requiere aplicación para iPhone',
-  'shared.web.title': 'Abra este enlace en Menta en iPhone',
+  'shared.web.title': 'Abre este enlace en Menta en un iPhone',
   'shared.web.explanation':
-    'Menta no puede completar esta acción en un navegador web. Abra el enlace original en un iPhone con Menta instalado.',
+    'Menta no puede completar esta acción en un navegador. Abre el enlace original en un iPhone que tenga Menta instalada.',
   'shared.web.nothingChanged': 'Nada cambió',
   'shared.web.waiting': 'Tu invitación o borrador aún está esperando.',
   'shared.web.continue': 'Continuar en iPhone',
@@ -361,7 +360,7 @@ export const fullSharedUiEsMX = {
   'shared.camera.handoffDescription':
     'Estamos trasladando este antiguo enlace de cámara al flujo de prueba actual con la promesa, el tipo de prueba y la fuente intactos.',
   'shared.camera.incompleteLinkDescription':
-    'A este antiguo enlace de cámara le falta el tipo de promesa o prueba. Vuelve a Hoy y abra la prueba de la promesa actual.',
+    'A este enlace antiguo de la cámara le falta la promesa o el tipo de prueba. Vuelve a Hoy y abre la prueba desde la promesa actual.',
   'shared.camera.handoffCardTitle': 'Transferencia de captura de prueba',
   'shared.camera.recoveryPath': 'Camino de recuperación',
   'shared.camera.noUpload': 'Sin carga',
@@ -375,11 +374,11 @@ export const fullSharedUiEsMX = {
     'El permiso y la reserva de la biblioteca permanecen en `/verification`.',
   'shared.camera.notSavedUntilAccepted':
     'La prueba no se guarda hasta que se acepta o se pone en cola.',
-  'shared.camera.backToToday': 'Volver a hoy',
+  'shared.camera.backToToday': 'Volver a Hoy',
   'shared.camera.openCapture': 'Captura de prueba abierta',
   'shared.camera.goBack': 'Volver',
   'shared.camera.photoProof': 'Prueba fotográfica',
-  'shared.camera.textProof': 'prueba de texto',
+  'shared.camera.textProof': 'Prueba de texto',
   'shared.camera.photoNoun': 'foto',
   'shared.camera.videoNoun': 'video',
   'shared.camera.videoProof': 'Prueba de video',
@@ -402,7 +401,7 @@ export const fullSharedUiEsMX = {
   'shared.camera.sendOneTap': 'Enviar prueba con un toque',
   'shared.camera.useCameraForProof': 'Usa la cámara como prueba',
   'shared.camera.cameraPrimerDescription':
-    'Menta abre la cámara solo después de que tú permite el acceso. Puedes elegir un {proofType} guardado en tu lugar.',
+    'Menta solo abre la cámara cuando permites el acceso. También puedes elegir {proofType} guardado.',
   'shared.camera.reviewCameraAccess': 'Revisar el acceso a la cámara',
   'shared.camera.useTextProofInstead': 'Usa prueba de texto en tu lugar',
   'shared.camera.cameraAccess': 'Cámara',
@@ -413,7 +412,7 @@ export const fullSharedUiEsMX = {
     'Permitir el acceso a la cámara y al micrófono',
   'shared.camera.allowCameraAccess': 'Permitir acceso a la cámara',
   'shared.camera.enablePermissionsInSettings':
-    'Habilite {permissions} en Ajustes o elige pruebas de tu biblioteca.',
+    'Activa {permissions} en Configuración o elige la prueba de tu galería.',
   'shared.camera.permissionBody':
     'El acceso {permissions} le permite a Menta capturar {proofType} pruebas de esta promesa. También puedes elegir un {proofType} guardado de tu biblioteca.',
   'shared.camera.openingSettings': 'Abriendo configuración...',
@@ -421,19 +420,19 @@ export const fullSharedUiEsMX = {
   'shared.camera.allowPermissions': 'Permitir {permissions}',
   'shared.camera.cameraAccessOff': 'El acceso a la cámara está desactivado',
   'shared.camera.cameraAccessOffDescription':
-    'Usa Ajustes para permitir el acceso a la cámara o, en tu lugar, elige pruebas de tu biblioteca.',
+    'Permite el acceso a la cámara en Configuración o elige la prueba de tu galería.',
   'shared.camera.microphoneAccessOff':
     'El acceso al micrófono está desactivado',
   'shared.camera.microphoneAccessOffDescription':
-    'Permita el acceso al micrófono para pruebas en video o envíe pruebas con fotografías.',
+    'Permite el acceso al micrófono para la prueba en video o envía una prueba con foto.',
   'shared.camera.permissionCheckFailed': 'Error en la verificación de permisos',
   'shared.camera.permissionCheckFailedDescription':
-    'Menta no pudo abrir la solicitud de permiso. Pruebe Ajustes o elige de tu biblioteca.',
+    'Menta no pudo abrir la solicitud de permiso. Prueba en Configuración o elige de tu galería.',
   'shared.camera.chooseFromLibrary': 'Elige de la biblioteca',
   'shared.camera.cancelProof': 'Cancelar prueba',
   'shared.camera.cameraNeedsReset': 'La cámara necesita un reinicio',
   'shared.camera.retryProofCamera': 'Reintentar cámara de prueba',
-  'shared.camera.leaveCapture': 'dejar captura',
+  'shared.camera.leaveCapture': 'Salir de la captura',
   'shared.camera.capturePaused': 'La captura de prueba está en pausa',
   'shared.camera.capturePausedDescription':
     'Vuelve a traer a Menta al primer plano para reanudar la cámara.',
@@ -442,7 +441,7 @@ export const fullSharedUiEsMX = {
   'shared.camera.switchCameraHint':
     'Cambia entre las cámaras frontal y trasera.',
   'shared.camera.stopRecordingVideo': 'Dejar de grabar video de prueba',
-  'shared.camera.startRecordingVideo': 'Comience a grabar un video de prueba',
+  'shared.camera.startRecordingVideo': 'Empezar a grabar el video de prueba',
   'shared.camera.capturePhoto': 'Foto a prueba de captura',
   'shared.camera.recordVideoHint':
     'Graba un video corto que muestra la acción completada.',
@@ -455,16 +454,15 @@ export const fullSharedUiEsMX = {
   'shared.camera.missing': 'desaparecido',
   'shared.camera.scannerClose': 'Cerrar el escáner de invitaciones',
   'shared.camera.scannerChecking': 'Comprobando el acceso a la cámara',
-  'shared.camera.checkingTakesMoment':
-    'Por lo general, esto lleva sólo un momento.',
+  'shared.camera.checkingTakesMoment': 'Normalmente solo tarda un momento.',
   'shared.camera.scannerPreparing':
     'Menta está preparando el escáner de invitaciones.',
   'shared.camera.scannerCloseShort': 'Cerrar escáner',
   'shared.camera.scannerAccessOff': 'El acceso a la cámara está desactivado',
   'shared.camera.scannerBlockedDescription':
-    'El acceso a la cámara está desactivado para Menta. Habilítelo en Ajustes para escanear códigos QR de invitación, o cierre este escáner e introduce el código manualmente.',
+    'El acceso a la cámara está desactivado para Menta. Actívalo en Configuración para escanear códigos QR de invitación o cierra el escáner e ingresa el código a mano.',
   'shared.camera.scannerPermissionDescription':
-    'Permita el acceso a la cámara para que Menta pueda leer el código QR y abrir el grupo o promesa correcto.',
+    'Permite el acceso a la cámara para que Menta pueda leer el código QR y abrir el grupo o la promesa correctos.',
   'shared.camera.scanInvite': 'Escanear una invitación',
   'shared.camera.scannerOpenSettings': 'Abrir configuración',
   'shared.camera.scannerAllowCamera': 'Permitir cámara',
@@ -477,7 +475,7 @@ export const fullSharedUiEsMX = {
   'shared.camera.scannerPaused':
     'El escáner está en pausa. Vuelve a esta pantalla para continuar.',
   'shared.camera.settingsDidNotOpen':
-    'La configuración no se abrió. Abra la configuración del dispositivo manualmente y permita el acceso a la cámara para Menta.',
+    'No se abrió la configuración. Abre la configuración del dispositivo manualmente y permite el acceso a la cámara para Menta.',
   'shared.camera.permissionDidNotOpen':
     'El permiso de la cámara no se abrió. Puedes volver a intentarlo o ingresar el código de invitación manualmente.',
   'shared.camera.scannerTimeout':
@@ -496,10 +494,10 @@ export const fullSharedUiEsMX = {
   'shared.camera.proofPrepareFailed':
     'Menta no pudo preparar esa prueba. Elige otra captura y vuelve a intentarlo.',
   'shared.camera.videoFinishFailed':
-    'Menta no pudo terminar ese video. Pruebe con un clip corto más.',
+    'Menta no pudo terminar ese video. Prueba con otro clip corto.',
   'shared.camera.videoFileMissing': 'Menta no recibió un archivo de video.',
   'shared.camera.videoSaveFailed':
-    'Menta no pudo guardar ese video. Pruebe con un clip corto más.',
+    'Menta no pudo guardar ese video. Prueba con otro clip corto.',
   'shared.camera.photoFileMissing':
     'Menta no recibió un archivo de fotografía.',
   'shared.camera.photoCaptureFailed':
@@ -510,11 +508,11 @@ export const fullSharedUiEsMX = {
     'La cámara de prueba no se abrió limpiamente. Vuelve a intentarlo aquí o elige una prueba de tu biblioteca.',
   'shared.camera.openSettings': 'Abrir configuración',
   'shared.legal.terms': 'Condiciones de uso',
-  'shared.legal.termsDescription': 'Lea los términos actuales.',
+  'shared.legal.termsDescription': 'Lee los términos actuales.',
   'shared.legal.communityStandards': 'Estándares comunitarios',
   'shared.legal.communityStandardsDescription':
     'Reglas para promesas, pruebas y grupos.',
-  'shared.legal.privacy': 'política de privacidad',
+  'shared.legal.privacy': 'Política de privacidad',
   'shared.legal.privacyDescription': 'Cómo Menta maneja tu información.',
   'shared.legal.opensInBrowser': 'Se abre en tu navegador',
   'shared.legal.readDocument': 'Leer documento',
@@ -524,4 +522,10 @@ export const fullSharedUiEsMX = {
     'Selector de hora no disponible en esta plataforma.',
   'shared.accessibility.toastCount': '{count}x',
   'shared.update.authorityUnknown': 'autoridad_desconocida',
+  'shared.rootLayout.initialising': 'Preparando tu día…',
+  'shared.launch.tip.small':
+    'Las promesas pequeñas son las más fáciles de cumplir.',
+  'shared.launch.tip.friend':
+    'Quien comparte una meta con alguien tiene más probabilidades de lograrla.',
+  'shared.launch.tip.miss': '¿Te perdiste un día? El siguiente también cuenta.',
 } as const satisfies Pick<EnglishCatalogue, FullSharedUiKey>;

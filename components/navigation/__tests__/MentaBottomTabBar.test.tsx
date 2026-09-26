@@ -15,6 +15,7 @@ jest.mock('@/lib/motion/haptics', () => ({
 const routes = [
   { key: 'index-key', name: 'index', params: undefined },
   { key: 'groups-key', name: 'groups', params: undefined },
+  { key: 'shop-tab-key', name: 'shop-tab', params: undefined },
   { key: 'create-key', name: 'create', params: undefined },
   { key: 'profile-key', name: 'profile', params: undefined },
   { key: 'settings-key', name: 'settings-tab', params: undefined },
@@ -88,10 +89,10 @@ describe('MentaBottomTabBar', () => {
     expect(screen.getByText('Today')).toBeTruthy();
     expect(screen.getByText('Together')).toBeTruthy();
     expect(screen.getByText('You')).toBeTruthy();
-    expect(screen.getByText('Settings')).toBeTruthy();
-    expect(screen.getByTestId('tab-settings')).toBeTruthy();
+    expect(screen.getByText('Shop')).toBeTruthy();
+    expect(screen.getByTestId('tab-shop')).toBeTruthy();
+    expect(screen.queryByText('Settings')).toBeNull();
     expect(screen.queryByText('Create')).toBeNull();
-    expect(screen.queryByText('Shop')).toBeNull();
     expect(screen.getByTestId('tab-today').props.accessibilityState).toEqual({
       selected: true,
     });
@@ -104,9 +105,8 @@ describe('MentaBottomTabBar', () => {
     expect(screen.getByText('Today')).toHaveProp('numberOfLines', 1);
     expect(screen.getByText('Today')).toHaveProp('maxFontSizeMultiplier', 1.5);
     expect(screen.getByTestId('tab-today-surface')).toHaveStyle({
-      backgroundColor: mentaColors.actionSoft,
       maxWidth: 96,
-      minHeight: 64,
+      minHeight: 56,
       width: '100%',
     });
     expect(screen.getByTestId('tab-groups-surface')).not.toHaveStyle({
@@ -153,9 +153,6 @@ describe('MentaBottomTabBar', () => {
     expect(screen.getByTestId('menta-bottom-tab-bar')).toHaveStyle({
       backgroundColor: '#17120F',
       borderTopColor: mentaColors.border,
-    });
-    expect(screen.getByTestId('tab-today-surface')).toHaveStyle({
-      backgroundColor: 'rgba(231, 168, 109, 0.14)',
     });
     expect(screen.getByText('Today')).toHaveStyle({ color: '#E7A86D' });
   });

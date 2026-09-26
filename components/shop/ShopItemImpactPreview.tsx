@@ -110,7 +110,9 @@ function buildPreviewModel({
   if (appearance?.equipCategory === 'theme') {
     return {
       context: t('commerce.shop.appearancePreview'),
-      title: t('commerce.shop.appearanceWarm', { name: appearance.label }),
+      title: t('commerce.shop.appearanceWarm', {
+        name: t(appearance.labelKey),
+      }),
       body:
         unlockDays && !owned
           ? t('commerce.shop.reachStreakAuto', { days: unlockDays })
@@ -130,7 +132,7 @@ function buildPreviewModel({
   if (appearance?.equipCategory === 'avatar_frame') {
     return {
       context: t('commerce.shop.profilePreview'),
-      title: t('commerce.shop.frameTitle', { name: appearance.label }),
+      title: t('commerce.shop.frameTitle', { name: t(appearance.labelKey) }),
       body:
         unlockDays && !owned
           ? t('commerce.shop.frameLockedBody', { days: unlockDays })

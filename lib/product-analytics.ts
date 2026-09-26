@@ -1,5 +1,6 @@
 import type { ProofReceiptStatus } from '@/lib/proof-drafts';
 import type { ProofMediaType } from '@/lib/proof-types';
+import type { EventAction } from '@/types/event';
 
 export const MENTA_ANALYTICS_SCHEMA_VERSION = 3 as const;
 
@@ -23,6 +24,7 @@ export const MENTA_ANALYTICS_EVENT_NAMES = [
   'Proof Reviewed',
   'Proof Video Playback',
   'Group Joined',
+  'Event Action Outcome',
   'Notification Opened',
   'Notification Permission Updated',
   'Notification In-App Outcome',
@@ -45,20 +47,10 @@ export type MentaAnalyticsEvent = (typeof MENTA_ANALYTICS_EVENT_NAMES)[number];
 export type PromiseDurationBucket = '7_days' | '14_days' | '30_days' | 'other';
 
 export type StreakLengthBucket =
-  | '0'
-  | '1_2'
-  | '3_6'
-  | '7_13'
-  | '14_29'
-  | '30_plus';
+  '0' | '1_2' | '3_6' | '7_13' | '14_29' | '30_plus';
 
 export type PaywallAnalyticsPlacement =
-  | 'onboarding'
-  | 'later'
-  | 'challenge'
-  | 'group'
-  | 'member'
-  | 'general';
+  'onboarding' | 'later' | 'challenge' | 'group' | 'member' | 'general';
 
 export type PaywallAnalyticsVariant = 'onboarding' | 'later' | 'unset';
 
@@ -115,11 +107,7 @@ export type ProductOperationName =
   | 'delete_account';
 
 export type ProductOperationPhase =
-  | 'intent'
-  | 'eligibility'
-  | 'authority'
-  | 'reconciliation'
-  | 'recovery';
+  'intent' | 'eligibility' | 'authority' | 'reconciliation' | 'recovery';
 
 export type ProductOperationOutcome =
   | 'started'
@@ -197,19 +185,17 @@ export type AnalyticsEventProperties = {
   };
   'Onboarding Completed': {
     activation_path:
-      | 'first_promise'
-      | 'promise_invite'
-      | 'group_invite'
-      | 'event_invite';
+      'first_promise' | 'promise_invite' | 'group_invite' | 'event_invite';
     referral_used: boolean;
   };
   'Onboarding Journey': {
     journey:
-      | 'first_promise'
-      | 'notification_permission'
-      | 'accountability_invite';
+      'first_promise' | 'notification_permission' | 'accountability_invite';
     stage:
       | 'welcome'
+      | 'meet'
+      | 'obstacle'
+      | 'evidence'
       | 'promise'
       | 'proof'
       | 'accountability'
@@ -258,6 +244,10 @@ export type AnalyticsEventProperties = {
       | 'unknown';
     selection:
       | 'not_applicable'
+      | 'obstacle_fades'
+      | 'obstacle_unnoticed'
+      | 'obstacle_forget'
+      | 'obstacle_too_big'
       | 'example'
       | 'note'
       | 'photo'
@@ -388,11 +378,7 @@ export type AnalyticsEventProperties = {
   };
   'Proof Submitted': {
     day_status:
-      | 'pending_review'
-      | 'already_applied'
-      | 'done'
-      | 'freeze_used'
-      | 'missed';
+      'pending_review' | 'already_applied' | 'done' | 'freeze_used' | 'missed';
     is_correction: boolean;
     proof_type: ProofMediaType;
     receipt_status: 'accepted' | 'pending_review' | 'correction_requested';
@@ -447,6 +433,17 @@ export type AnalyticsEventProperties = {
   'Group Joined': {
     join_method: 'invite';
   };
+  'Event Action Outcome': {
+    action: EventAction;
+    outcome: 'completed' | 'failed' | 'unknown_result';
+    reason:
+      | 'none'
+      | 'server_rejected'
+      | 'server_unknown'
+      | 'transport'
+      | 'invalid_receipt';
+    idempotent: boolean;
+  };
   'Notification Opened': {
     channel: 'expo_push' | 'onesignal_push' | 'onesignal_in_app';
   };
@@ -494,7 +491,7 @@ export type AnalyticsEventProperties = {
       | 'store_open_failed'
       | 'still_old_version'
       | 'successful_upgrade';
-    release: '1_9_2';
+    release: '1_9_2' | 'native';
   };
   'Store Review Request': {
     capability: 'system' | 'testflight' | 'unavailable';
@@ -543,12 +540,7 @@ export type AnalyticsEventProperties = {
       | 'failed';
     source: 'activation_check_in' | 'feedback_form';
     reason?:
-      | 'broken'
-      | 'confusing'
-      | 'slow'
-      | 'missing'
-      | 'working_well'
-      | 'other';
+      'broken' | 'confusing' | 'slow' | 'missing' | 'working_well' | 'other';
     has_screenshot?: boolean;
   };
   'First Miss Recovery': {
@@ -569,6 +561,7 @@ export type AnalyticsEventProperties = {
       | 'none'
       | 'ads_disabled'
       | 'background'
+      | 'account_changed'
       | 'module_missing'
       | 'invalid_config'
       | 'no_fill'
@@ -596,8 +589,15 @@ export type AnalyticsEventProperties = {
     experiment_surface: 'onboarding' | 'paywall' | 'today';
   };
   'Paywall Journey': {
-    stage: 'entry_tapped' | 'benefits' | 'plans' | 'offer' | 'purchase_tapped';
-    source?: 'shop';
+    stage:
+      | 'entry_tapped'
+      | 'entry_blocked'
+      | 'benefits'
+      | 'plans'
+      | 'offer'
+      | 'purchase_tapped';
+    reason?: 'onboarding_gate' | 'account_changed';
+    source?: 'shop' | 'profile';
     context: 'challenge' | 'group' | 'member' | 'general' | 'onboarding';
     plan: 'weekly' | 'annual' | 'none';
   };

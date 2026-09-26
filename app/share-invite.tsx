@@ -6,7 +6,12 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppInlineNotice } from '@/components/ui/AppFeedback';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { ReferralInviteQRCode } from '@/components/referral/ReferralInviteQRCode';
-import { MentaMascot } from '@/components/ui/MentaMascot';
+import {
+  InviteChecklist,
+  InvitePassCard,
+  InviteSentPair,
+  inviteHeadingStyle,
+} from '@/components/referral/InviteStory';
 import { SimpleBottomSheet } from '@/components/ui/SimpleBottomSheet';
 import { backOrReplace } from '@/lib/navigation/safe-back';
 import {
@@ -30,7 +35,6 @@ import {
 import {
   mentaColors,
   mentaLayout,
-  mentaRadii,
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
@@ -43,12 +47,7 @@ import { useTranslation } from '@/lib/localization';
 import { addBreadcrumb } from '@/lib/sentry';
 
 type InviteState =
-  | 'ready'
-  | 'preparing'
-  | 'handoff'
-  | 'returned'
-  | 'copied'
-  | 'unavailable';
+  'ready' | 'preparing' | 'handoff' | 'returned' | 'copied' | 'unavailable';
 
 type ReferralProgrammeState =
   | { kind: 'checking' }
@@ -341,7 +340,7 @@ export default function ShareInviteScreen() {
     const handoffRequestId = ++handoffRequestRef.current;
     setState('handoff');
     try {
-      await Share.share({
+      const result = await Share.share({
         title: t('groups.share.invite_someone_title'),
         message: t('groups.share.message', { link: activeLink }),
         url: activeLink,
@@ -354,17 +353,23 @@ export default function ShareInviteScreen() {
       ) {
         return;
       }
-      trackMetaAdsInviteFriend();
+      if (result.action === Share.sharedAction) trackMetaAdsInviteFriend();
       trackProductOperation({
         area: 'invite',
         authority: 'native',
         operation: 'prepare_invite',
-        outcome: 'confirmed',
+        outcome:
+          result.action === Share.sharedAction ? 'confirmed' : 'cancelled',
         phase: 'authority',
         source: 'settings',
       });
       setState('returned');
     } catch {
+      if (
+        handoffRequestId !== handoffRequestRef.current ||
+        accountIdRef.current !== accountId
+      )
+        return;
       trackProductOperation({
         area: 'invite',
         authority: 'native',
@@ -457,6 +462,8 @@ export default function ShareInviteScreen() {
   );
 
   const busy = state === 'preparing' || state === 'handoff';
+  const senderName = user?.username?.trim() || t('brand.name');
+  const senderInitial = senderName.charAt(0).toUpperCase();
   const confirmedReward = userReferrals.find(
     referral =>
       referral.status === 'completed' && referral.rewardGranted === true
@@ -503,25 +510,66 @@ export default function ShareInviteScreen() {
             title={t('fullAuth.tabs_profile.invite_friends')}
             onBack={backToYou}
           />
-          <View style={styles.referralIllustration}>
-            <MentaMascot
-              state="referral-invitation"
-              size="hero"
-              style={{ width: 194, height: 194 }}
-            />
-          </View>
-          <View style={styles.headerCopy}>
-            <Text accessibilityRole="header" style={styles.title}>
-              {state === 'ready' && availableReward !== null
-                ? t('groups.share.both_earn', { amount: availableReward })
-                : titleByState[state]}
-            </Text>
-            <Text style={styles.body}>
-              {state === 'ready' && availableReward !== null
-                ? t('commerce.wallet.inviteEarn', { amount: availableReward })
-                : bodyByState[state]}
-            </Text>
-          </View>
+          {state === 'returned' ? (
+            // Paper 19 / I02: after the share sheet, show what happens next.
+            <>
+              <InviteSentPair initial={senderInitial} />
+              <Text accessibilityRole="header" style={inviteHeadingStyle}>
+                {t('groups.share.sent_title')}
+              </Text>
+              <InviteChecklist
+                items={[
+                  { text: t('groups.share.sent_step_join'), pending: true },
+                  {
+                    text:
+                      availableReward !== null
+                        ? t('groups.share.sent_step_reward', {
+                            amount: availableReward.toLocaleString(),
+                          })
+                        : t('groups.share.sent_step_promise'),
+                    pending: true,
+                  },
+                ]}
+              />
+              <View style={styles.headerCopy} testID="invite-status">
+                <Text style={styles.statusTitle}>{titleByState[state]}</Text>
+                <Text style={styles.body}>{bodyByState[state]}</Text>
+              </View>
+            </>
+          ) : (
+            // Paper 19 / I01: the invite as a pass, then why it matters.
+            <>
+              <InvitePassCard
+                fromLine={t('groups.share.pass_from', { name: senderName })}
+                initial={senderInitial}
+                title={t('groups.share.pass_title')}
+              />
+              <Text accessibilityRole="header" style={inviteHeadingStyle}>
+                {t('groups.share.pitch_title')}
+              </Text>
+              <InviteChecklist
+                items={[
+                  { text: t('groups.share.pitch_proof') },
+                  ...(availableReward !== null
+                    ? [
+                        {
+                          text: t('groups.share.pitch_reward', {
+                            amount: availableReward.toLocaleString(),
+                          }),
+                        },
+                      ]
+                    : []),
+                  { text: t('groups.share.pitch_link') },
+                ]}
+              />
+              {state !== 'ready' ? (
+                <View style={styles.headerCopy} testID="invite-status">
+                  <Text style={styles.statusTitle}>{titleByState[state]}</Text>
+                  <Text style={styles.body}>{bodyByState[state]}</Text>
+                </View>
+              ) : null}
+            </>
+          )}
         </View>
         {!busy && state !== 'unavailable' ? (
           <>
@@ -905,11 +953,6 @@ const styles = StyleSheet.create({
     gap: mentaSpacing[6],
     paddingBottom: mentaSpacing[8],
   },
-  referralIllustration: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.paper,
-    borderRadius: mentaRadii.large,
-  },
   programmeDisclosure: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -922,7 +965,7 @@ const styles = StyleSheet.create({
     color: mentaColors.text.primary,
   },
   header: {
-    gap: mentaSpacing[5],
+    gap: mentaSpacing[6],
   },
   headerCopy: { gap: mentaSpacing[2] },
   programme: {
@@ -944,8 +987,8 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     marginTop: mentaSpacing[3],
   },
-  title: {
-    ...mentaTypography.journeyTitle,
+  statusTitle: {
+    ...mentaTypography.bodySemibold,
     color: mentaColors.text.primary,
   },
   body: {

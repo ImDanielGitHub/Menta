@@ -35,6 +35,7 @@ import { useProtectedRouteStore } from '@/store/protected-route-store';
 import { useEmailConfirmationStore } from '@/store/email-confirmation-store';
 import {
   canResumeOwnedOnboardingCompletion,
+  shouldResumeOnboardingInvitation,
   chooseOnboardingCompletionDestination,
   useOnboardingCompletionStore,
 } from '@/lib/navigation/onboarding-completion';
@@ -42,7 +43,7 @@ import { FullScreenLoading } from '@/components/ui/FullScreenLoading';
 import { ThemeProvider, useTheme } from '@/constants/ThemeContext';
 import { DensityProvider } from '@/constants/DensityContext';
 import { WebNotSupported } from '@/components/WebNotSupported';
-import PaywallHost from '@/components/paywall/PaywallHost';
+import { PaywallHost } from '@/components/paywall/PaywallHost';
 import { LegacyAppUpdateGate } from '@/components/update/LegacyAppUpdateGate';
 import {
   bootstrapSentry,
@@ -62,11 +63,11 @@ import { appStateManager } from '@/lib/app-state-manager';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { queryClient, asyncStoragePersister } from '@/lib/queryClient';
+import { HomeWidgetSync } from '@/components/widgets/HomeWidgetSync';
 import ErrorBoundary from './error-boundary';
 import { initializeAds } from '@/lib/ads';
 import { showToast, ToastProvider } from '@/components/ui/Toast';
 // ServiceBanner removed
-import { useOtaUpdates } from '@/hooks/useOtaUpdates';
 import {
   isValidReferralCode,
   normalizeInviteCode,
@@ -126,7 +127,6 @@ import {
   setProductAnalyticsUserId,
   trackProductEvent,
 } from '@/lib/posthog';
-import { AppUpdateGateHost } from '@/components/update/AppUpdateGateHost';
 import { OtaUpdateReadyHost } from '@/components/update/OtaUpdateReadyHost';
 import { useTranslation } from '@/lib/localization/use-translation';
 
@@ -204,6 +204,7 @@ function NativeRootLayoutContent() {
     hasCompletedOnboarding,
     isInitialized,
     isLoading,
+    sessionRecoveryRequired,
     initializeAuth,
     user,
   } = useAuthStore();
@@ -233,6 +234,11 @@ function NativeRootLayoutContent() {
   const theme = useTheme();
   const segments = useSegments();
   const pathname = usePathname();
+  useEffect(() => {
+    // Navigation guards may return early. Diagnostics must still follow the
+    // rendered route, including loading, authentication and recovery screens.
+    setRouteContext(pathname);
+  }, [pathname]);
   const globalSearchParams = useGlobalSearchParams();
   const currentSegment = segments[0] as string | undefined;
   const startupRoute = useMemo(
@@ -359,7 +365,6 @@ function NativeRootLayoutContent() {
 
   const { enabled: adsEnabled } = useOperationalFlag('ads_enabled');
   // Background OTA update checks with unobtrusive banner prompt
-  useOtaUpdates({ checkIntervalMs: 60_000 });
 
   useEffect(() => {
     const updateHydrationState = () => {
@@ -1055,7 +1060,8 @@ function NativeRootLayoutContent() {
                   }
                 : {
                     name:
-                      currentNavigationAccountId && hasCompletedOnboarding
+                      sessionRecoveryRequired ||
+                      (currentNavigationAccountId && hasCompletedOnboarding)
                         ? 'login'
                         : 'onboarding',
                     key: freshKey,
@@ -1105,13 +1111,34 @@ function NativeRootLayoutContent() {
       }
       const isCompletionExit =
         (inAuthFlow && !inPasswordRecoveryFlow) ||
-        (inOnboardingFlow && !inIntroReplay);
+        (inOnboardingFlow && !inIntroReplay) ||
+        // Recover an invitation that an older client sent to Today/Settings
+        // before the invite destination acknowledged the account-owned receipt.
+        shouldResumeOnboardingInvitation({
+          completion: pendingOnboardingCompletion,
+          currentSegment,
+          currentUserId: user?.id ?? null,
+          hasCompletedOnboarding,
+          isAuthenticated,
+          isInitialized,
+        });
 
       if (!isCompletionExit) {
         completionNavigationRef.current = null;
       }
 
       if (!isAuthenticated) {
+        if (sessionRecoveryRequired) {
+          setRuntimeContext({ appState: 'session_recovery_required' });
+          if (
+            !inAuthFlow &&
+            currentSegment !== 'support' &&
+            currentSegment !== 'report-issue'
+          ) {
+            router.replace('/login');
+          }
+          return;
+        }
         // User is not authenticated
         setRuntimeContext({
           appState: 'navigating_to_auth',
@@ -1255,6 +1282,11 @@ function NativeRootLayoutContent() {
             completion: pendingCompletion,
           });
           const dispatchCompletion = () => {
+            addBreadcrumb('onboarding_completion_destination_selected', {
+              destination: destination.kind,
+              return_route_source: pendingRoute?.source ?? 'none',
+              has_completion: Boolean(pendingCompletion),
+            });
             if (pendingCompletion) {
               trackProductEvent('Accountability Invite Journey', {
                 context: 'present',
@@ -1289,6 +1321,10 @@ function NativeRootLayoutContent() {
           if (destination.kind === 'promise_accountability') {
             const completion = pendingCompletion;
             if (completion) {
+              // This route was only a setup fallback; it must not win again
+              // after the invitation has been acknowledged.
+              if (pendingRoute)
+                protectedRouteStore.consumePendingRouteForUser(user.id);
               logEvent('info', 'onboarding_completion_handoff', {
                 destination: destination.kind,
                 accountability_choice: completion.accountabilityChoice,
@@ -1322,12 +1358,6 @@ function NativeRootLayoutContent() {
           dispatchCompletion();
         }
       }
-
-      // After computing routing decisions, set Sentry route context
-      try {
-        const path = segments.join('/') || '(root)';
-        setRouteContext(path);
-      } catch {}
     } catch (error) {
       // A failed dispatch must not permanently claim an unmounted destination.
       completionNavigationRef.current = null;
@@ -1349,6 +1379,7 @@ function NativeRootLayoutContent() {
     }
   }, [
     isAuthenticated,
+    sessionRecoveryRequired,
     accountBoundaryEpoch,
     accountBoundaryPending,
     accountResetAcknowledged,
@@ -1561,7 +1592,7 @@ function NativeRootLayoutContent() {
           <FullScreenLoading message={t('shared.rootLayout.initialising')} />
         </View>
       ) : null}
-      <AppUpdateGateHost
+      <LegacyAppUpdateGate
         enabled={
           !startupBlocked &&
           isAuthenticated &&
@@ -1629,7 +1660,7 @@ export default sentryWrap(function RootLayout() {
                 <DensityProvider>
                   <ToastProvider>
                     <RootLayoutContent />
-                    <LegacyAppUpdateGate />
+                    <HomeWidgetSync />
                     {/** Global Paywall Host to present paywall anywhere */}
                     <PaywallHost />
                   </ToastProvider>

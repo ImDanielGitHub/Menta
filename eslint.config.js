@@ -1,11 +1,9 @@
-const { FlatCompat } = require('@eslint/eslintrc');
-const path = require('path');
+const expoConfig = require('eslint-config-expo/flat');
+const prettierConfig = require('eslint-config-prettier/flat');
+const typescriptEslint = require('@typescript-eslint/eslint-plugin');
+const { defineConfig } = require('eslint/config');
 
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-// Expo SDK 56 upgrades eslint-plugin-react-hooks from v5 to v7. Its
+// Expo SDK 57 uses eslint-plugin-react-hooks v7. Its
 // "recommended" preset now enables React Compiler diagnostics in addition to
 // the two hook correctness rules this project already enforced. Keep those
 // diagnostics opt-in until Menta deliberately adopts and validates the React
@@ -27,12 +25,10 @@ const reactCompilerCompatibilityRules = {
   'react-hooks/gating': 'off',
 };
 
-module.exports = [
-  ...compat.extends(
-    'expo',
-    'plugin:@typescript-eslint/recommended',
-    'prettier'
-  ),
+module.exports = defineConfig([
+  ...expoConfig,
+  ...typescriptEslint.configs['flat/recommended'],
+  prettierConfig,
   {
     rules: reactCompilerCompatibilityRules,
   },
@@ -51,7 +47,6 @@ module.exports = [
       '**/__tests__/**',
       'supabase/functions/**',
       'eslint.config.js',
-      '.eslintrc.js',
     ],
   },
   {
@@ -61,7 +56,6 @@ module.exports = [
       '**/__tests__/**/*.ts',
       '**/__tests__/**/*.tsx',
       'supabase/functions/**/*.ts',
-      '.eslintrc.js',
     ],
     languageOptions: {
       parserOptions: {
@@ -118,4 +112,4 @@ module.exports = [
     },
     ignores: ['*.config.js', '*.config.ts'],
   },
-];
+]);

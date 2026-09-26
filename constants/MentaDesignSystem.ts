@@ -39,6 +39,54 @@ export const mentaColors = {
   info: '#8FCBFF',
 } as const;
 
+/**
+ * The filled primary action sits on a short hard ledge, as in the Paper
+ * onboarding buttons. The ledge is part of the resting look; press feedback
+ * is a small scale and a light haptic on top of it, never a deeper 3D slab.
+ */
+export const mentaDepth = {
+  action: 3,
+} as const;
+
+/**
+ * Ledge colours for the default palette. Equipped themes derive their own
+ * ledge from the fill through `resolveDepthColor`.
+ */
+export const mentaDepthColors = {
+  action: '#7750B6',
+  paper: '#C9C6BB',
+} as const;
+
+const parseHexChannel = (hex: string, offset: number): number =>
+  parseInt(hex.slice(offset, offset + 2), 16);
+
+/**
+ * Darkens an opaque hex fill into the ledge colour that sits beneath it.
+ * Non-hex colours fall back to the border colour rather than guessing.
+ */
+export const resolveDepthColor = (
+  fill: string | undefined,
+  fallback: string = mentaColors.border
+): string => {
+  if (!fill) return fallback;
+  if (fill.toUpperCase() === mentaColors.action) return mentaDepthColors.action;
+  if (fill.toUpperCase() === mentaColors.paper) return mentaDepthColors.paper;
+  const match = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(fill.trim());
+  if (!match) return fallback;
+  const hex =
+    match[1].length === 3
+      ? match[1]
+          .split('')
+          .map(channel => channel + channel)
+          .join('')
+      : match[1];
+  const shade = (offset: number) =>
+    Math.round(parseHexChannel(hex, offset) * 0.64)
+      .toString(16)
+      .padStart(2, '0');
+  return `#${shade(0)}${shade(2)}${shade(4)}`.toUpperCase();
+};
+
 export const mentaSpacing = {
   1: 4,
   2: 8,
@@ -233,4 +281,19 @@ export const mentaTypography = {
     lineHeight: 46,
     letterSpacing: -0.8,
   },
+} as const;
+
+/**
+ * Heading hierarchy by job rather than by size. Peer destinations share one
+ * role so Today, Groups, Shop and You never drift into different scales.
+ */
+export const mentaHeadingRoles = {
+  /** Top-level tab destinations: Today, Groups, Shop, You. */
+  destination: mentaTypography.heading,
+  /** One question or decision per step inside a flow. */
+  step: mentaTypography.journeyTitle,
+  /** Stack screen titles, sheet titles and in-screen section headings. */
+  section: mentaTypography.title,
+  /** A genuine result or milestone: approved proof, purchase, streak. */
+  result: mentaTypography.display,
 } as const;

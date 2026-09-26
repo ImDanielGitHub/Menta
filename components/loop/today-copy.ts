@@ -39,12 +39,15 @@ export type TodayPresentation = {
     tone?: TodayAccent;
   }[];
   supportingNote?: string | null;
+  /** Mascot speech bubble: why this state happened, in Menta's voice. */
+  prompt?: string | null;
   countdown?: {
     localDay: string;
     timeZone: string;
     preferredReminderTime: string;
     promiseLabel: string | null;
     dueAtIso: string | null;
+    streak?: number | null;
   } | null;
   accountabilityReceipt?: {
     title: string;
@@ -120,6 +123,16 @@ const formatOutcomeDay = (
 
 const dayCount = (value: number, t: TodayTranslate): string =>
   t('today.progress.streak_days', { count: value });
+
+const proofActionLabel = (
+  verificationType: string | null | undefined,
+  t: TodayTranslate
+): string =>
+  verificationType === 'text'
+    ? t('today.state.proof_due.text_action')
+    : verificationType === 'video'
+      ? t('today.state.proof_due.video_action')
+      : t('today.state.proof_due.photo_action');
 
 const findObligation = (
   obligations: readonly ServerObligationFact[],
@@ -261,46 +274,30 @@ export const resolveTodayPresentation = (
       });
 
     case 'streak-broken': {
+      // Paper 19 / T04: say what happened once (in the bubble), then name the
+      // only thing that matters now. The earlier run is history, not a choice.
       const previous = primary?.previousStreak;
-      const previousCopy =
-        typeof previous === 'number'
-          ? dayCount(previous, t)
-          : t('today.state.streak.unavailable');
       const weekday = formatOutcomeDay(primary?.outcomeLocalDay, locale, t);
-      const missedDay = t('today.state.outcome.missed_day');
+      const hasPreviousRun = typeof previous === 'number' && previous > 0;
       return present({
         layout: 'accountability',
-        accent: 'danger',
-        title:
-          weekday === missedDay
-            ? t('today.state.streak.missed_title')
-            : t('today.state.streak.weekday_missed_title', { weekday }),
-        detail:
-          typeof previous === 'number'
-            ? t('today.state.streak.previous_detail', {
-                count: previousCopy,
-                weekday,
-              })
-            : t('today.state.streak.missed_detail', { weekday }),
-        primaryLabel: t('today.state.streak.return_action'),
-        secondaryLabel:
-          typeof previous === 'number'
-            ? t('today.state.streak.history_action', { count: previous })
-            : t('today.state.streak.history'),
-        mascot: 'calm-warning',
-        animateMascot: true,
-        facts: [
-          {
-            label: t('today.state.streak.previous_label'),
-            value: previousCopy,
-          },
-          {
-            label: t('today.state.streak.new_label'),
-            value: t('today.state.streak.starts_today'),
-            tone: 'action',
-          },
-        ],
-        supportingNote: t('today.state.streak.supporting_note'),
+        accent: 'action',
+        title: t('today.state.streak.day_one_title'),
+        detail: t('today.state.streak.day_one_detail'),
+        prompt: hasPreviousRun
+          ? t('today.state.streak.bubble_run_ended', {
+              weekday,
+              count: previous,
+            })
+          : t('today.state.streak.bubble_missed', { weekday }),
+        primaryLabel: proofActionLabel(primary?.verificationType, t),
+        secondaryLabel: hasPreviousRun
+          ? t('today.state.streak.see_run', { count: previous })
+          : t('today.state.streak.history'),
+        mascot: 'fresh-start',
+        animateMascot: false,
+        facts: [],
+        supportingNote: null,
       });
     }
 
@@ -334,7 +331,7 @@ export const resolveTodayPresentation = (
         detail: t('today.state.no_promises.detail'),
         primaryLabel: t('today.state.action.make_promise'),
         secondaryLabel: t('today.state.no_promises.join_group'),
-        mascot: 'promise-guide',
+        mascot: 'first-promise',
         animateMascot: false,
       });
 
@@ -369,7 +366,7 @@ export const resolveTodayPresentation = (
               : t('term.photo');
         const dueLabel = formatProofDueLabel(preferredReminderTime);
         return present({
-          layout: 'accountability',
+          layout: 'hero',
           accent: 'warning',
           title: primary.title ?? t('today.state.proof_due.risk_title'),
           detail:
@@ -397,10 +394,12 @@ export const resolveTodayPresentation = (
             preferredReminderTime,
             promiseLabel: primary.title ?? null,
             dueAtIso: primary.dueAtIso ?? null,
+            streak: typeof streak === 'number' ? streak : null,
           },
         });
       }
 
+      // Paper 19 / T01: every due day leads with the honest time left.
       return present({
         layout: 'hero',
         accent: 'action',
@@ -413,6 +412,18 @@ export const resolveTodayPresentation = (
             ? 'promise-guide'
             : 'today-proof-due',
         animateMascot: false,
+        countdown: {
+          localDay: ctx.selection.localDay,
+          timeZone: primary?.timezone || ctx.selection.timezone,
+          preferredReminderTime:
+            ctx.preferredReminderTime?.trim() || DEFAULT_PROOF_DUE_TIME,
+          promiseLabel: primary?.title ?? null,
+          dueAtIso: primary?.dueAtIso ?? null,
+          streak:
+            typeof primary?.streakCount === 'number'
+              ? primary.streakCount
+              : null,
+        },
       });
     }
 

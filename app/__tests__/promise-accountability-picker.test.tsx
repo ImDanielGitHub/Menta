@@ -144,9 +144,13 @@ describe('PromisePicker', () => {
       screen.getByTestId('promise-accountability-picker-body')
     ).toHaveStyle({
       flexGrow: 1,
-      justifyContent: 'center',
+      paddingTop: 16,
       paddingBottom: 32,
     });
+    // Content starts under the header rather than floating mid-screen.
+    expect(
+      screen.getByTestId('promise-accountability-picker-body')
+    ).not.toHaveStyle({ justifyContent: 'center' });
 
     resolvePromises?.({
       data: [activePromise('promise-1', 'Read the Bible daily')],

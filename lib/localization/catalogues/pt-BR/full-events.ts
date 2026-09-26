@@ -22,7 +22,7 @@ export const fullEventsPtBR = {
   'events.detail.review_agreement': 'Revisar acordo',
   'events.detail.view_joined_receipt': 'Ver comprovante de participação',
   'events.detail.join_helper':
-    'Participar salva sua vaga. O check-in abre 30 minutos antes do evento. Adicione uma foto após fazer check-in.',
+    'Participar salva sua vaga. O check-in abre 30 minutos antes do evento. Adicione uma foto depois de fazer check-in.',
   'events.detail.joined_receipt':
     'Sua vaga está salva. O check-in abre 30 minutos antes do evento e permanece aberto até o término. Adicione uma foto após fazer check-in.',
   'events.detail.open_organiser_pass': 'Abrir passe do organizador',
@@ -52,7 +52,7 @@ export const fullEventsPtBR = {
   'events.detail.join_hint':
     'Confirma sua vaga depois que você aceita os termos do evento.',
   'events.detail.return_to_event': 'Voltar ao evento',
-  'events.detail.going': 'Você está indo.',
+  'events.detail.going': 'Você vai.',
   'events.detail.place_confirmed':
     'Sua vaga está confirmada a partir de {time}.',
   'events.detail.place_confirmed_no_time': 'Sua vaga está confirmada.',
@@ -296,7 +296,7 @@ export const fullEventsPtBR = {
   'events.create.back_setup': 'Voltar à configuração do evento',
   'events.create.published_title': 'Seu evento foi publicado.',
   'events.create.published_body':
-    'O código do organizador para {event} está neste telefone. Os participantes o escaneiam para registrar presença. Não aprova suas fotos.',
+    'O código do organizador de {event} está neste telefone. Os participantes escaneiam para registrar presença. Não aprova as fotos deles.',
   'events.create.link_label': 'Link do evento',
   'events.create.code_label': 'Código de check-in',
   'events.create.start_details': 'Comece com os detalhes do evento',
@@ -459,7 +459,7 @@ export const fullEventsPtBR = {
   'events.review.queue_subtitle':
     'Revise cada foto dos participantes antes que apareça no álbum compartilhado.',
   'events.review.window_notice':
-    'Fotos permanecem privadas até que você as aprove. Uma foto rejeitada permanece visível somente ao seu participante.',
+    'As fotos ficam privadas até você aprovar. Uma foto rejeitada só fica visível para o participante que a enviou.',
   'events.review.item_accessibility': 'Revisar {attendee}: {status}',
   'events.review.approve': 'Aprovar foto',
   'events.review.reject': 'Rejeitar foto',

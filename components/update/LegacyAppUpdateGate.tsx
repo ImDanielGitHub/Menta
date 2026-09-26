@@ -7,38 +7,37 @@ import React, {
 } from 'react';
 import * as Application from 'expo-application';
 import { usePathname, useRouter } from 'expo-router';
-import {
-  Linking,
-  Platform,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Linking, Platform } from 'react-native';
 
-import { AppButton } from '@/components/ui/AppButton';
-import { ModalCard } from '@/components/ui/modal/ModalCard';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+import { AppUpdateGateSurface } from '@/components/update/AppUpdateGateSurface';
 import {
   shouldPresentLegacyUpdate,
   type LegacyUpdateDecision,
   type LegacyUpdatePlatform,
 } from '@/lib/legacy-app-update-policy';
 import { loadLegacyUpdatePolicy } from '@/lib/legacy-app-update-policy-client';
-import { useTranslation } from '@/lib/localization/use-translation';
+import {
+  dismissOptionalUpdate,
+  getStoreAttemptUpgradeOutcome,
+  hasDismissedOptionalUpdate,
+  recordStoreOpenAttempt,
+} from '@/lib/app-update-state';
 import { appStateManager } from '@/lib/app-state-manager';
+import { trackProductEvent } from '@/lib/posthog';
+import type { AnalyticsEventProperties } from '@/lib/product-analytics';
+import { captureError } from '@/lib/sentry';
 
-export const LegacyAppUpdateGate = () => {
+type UpdateJourney = AnalyticsEventProperties['App Update Journey'];
+
+// Keep the legacy policy key for installed-client compatibility. This is the
+// single native-update surface; Supabase authority does not depend on analytics.
+export const LegacyAppUpdateGate = ({
+  enabled = true,
+}: {
+  enabled?: boolean;
+}) => {
   const pathname = usePathname();
   const router = useRouter();
-  const { t } = useTranslation();
-  const { width } = useWindowDimensions();
   const currentVersion =
     Application.nativeApplicationVersion?.trim() || 'unknown';
   const platform: LegacyUpdatePlatform | null =
@@ -50,226 +49,169 @@ export const LegacyAppUpdateGate = () => {
   const [decision, setDecision] = useState<LegacyUpdateDecision>({
     status: 'authority_unknown',
   });
-  const [optionalDismissed, setOptionalDismissed] = useState(false);
+  const [optionalDismissed, setOptionalDismissed] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [storeOpenFailed, setStoreOpenFailed] = useState(false);
+  const [policyChecked, setPolicyChecked] = useState(false);
   const mountedRef = useRef(true);
+  const trackedRef = useRef(new Set<string>());
 
-  const refreshPolicy = useCallback(async () => {
-    if (!platform) return;
-    const nextDecision = await loadLegacyUpdatePolicy({
-      currentVersion,
-      platform,
-    });
-    if (mountedRef.current) setDecision(nextDecision);
-  }, [currentVersion, platform]);
-
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
       mountedRef.current = false;
+    };
+  }, []);
+
+  const track = useCallback(
+    (
+      outcome: UpdateJourney['outcome'],
+      mode: UpdateJourney['mode'],
+      targetVersion = currentVersion
+    ) => {
+      const key = `${outcome}:${mode}:${targetVersion}`;
+      if (trackedRef.current.has(key)) return;
+      trackedRef.current.add(key);
+      trackProductEvent('App Update Journey', {
+        mode,
+        outcome,
+        release: 'native',
+      });
     },
-    []
+    [currentVersion]
   );
 
-  useEffect(() => {
-    void refreshPolicy();
-  }, [refreshPolicy]);
+  const refreshPolicy = useCallback(
+    async (forceRefresh = false) => {
+      if (!enabled || !platform) return;
+      const nextDecision = await loadLegacyUpdatePolicy({
+        currentVersion,
+        platform,
+        forceRefresh,
+      });
+      if (mountedRef.current) {
+        if (
+          nextDecision.status === 'offer' &&
+          nextDecision.mode === 'optional'
+        ) {
+          setOptionalDismissed(true);
+        }
+        setDecision(nextDecision);
+        setPolicyChecked(true);
+      }
+    },
+    [currentVersion, enabled, platform]
+  );
+
+  const checkUpgrade = useCallback(async () => {
+    try {
+      const outcome = await getStoreAttemptUpgradeOutcome(currentVersion);
+      if (mountedRef.current && outcome !== 'none') track(outcome, 'none');
+    } catch (error) {
+      captureError(error, {
+        context: 'app_update_upgrade_receipt_read_failed',
+      });
+    }
+  }, [currentVersion, track]);
 
   useEffect(() => {
-    const unsubscribe = appStateManager.addListener(nextState => {
-      if (nextState === 'active') void refreshPolicy();
+    if (!enabled) return;
+    void refreshPolicy(true);
+    void checkUpgrade();
+    return appStateManager.addListener(nextState => {
+      if (nextState !== 'active') return;
+      void refreshPolicy(true);
+      void checkUpgrade();
     });
-    return unsubscribe;
-  }, [refreshPolicy]);
+  }, [checkUpgrade, enabled, refreshPolicy]);
+
+  useEffect(() => {
+    if (decision.status !== 'offer' || decision.mode !== 'optional') {
+      setOptionalDismissed(false);
+      return;
+    }
+    let active = true;
+    setOptionalDismissed(true);
+    void hasDismissedOptionalUpdate(decision.minimumVersion)
+      .then(dismissed => {
+        if (active) setOptionalDismissed(dismissed);
+      })
+      .catch(error => {
+        captureError(error, { context: 'app_update_dismissal_read_failed' });
+        if (active) setOptionalDismissed(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [decision]);
 
   const visible = useMemo(() => {
-    if (decision.status !== 'offer') return false;
+    if (!enabled || decision.status !== 'offer') return false;
     if (decision.mode === 'optional' && optionalDismissed) return false;
     return shouldPresentLegacyUpdate(pathname, decision.mode);
-  }, [decision, optionalDismissed, pathname]);
+  }, [decision, enabled, optionalDismissed, pathname]);
+
+  useEffect(() => {
+    if (!enabled || !policyChecked) return;
+    if (
+      decision.status === 'authority_unknown' ||
+      decision.status === 'kill_switch'
+    ) {
+      track(decision.status, 'none');
+    } else if (decision.status === 'offer') {
+      track('exposure', decision.mode, decision.minimumVersion);
+      if (visible) track('shown', decision.mode, decision.minimumVersion);
+    }
+  }, [decision, enabled, policyChecked, track, visible]);
+
+  const dismiss = useCallback(() => {
+    if (decision.status !== 'offer' || decision.mode !== 'optional') return;
+    setOptionalDismissed(true);
+    track('dismissed', decision.mode, decision.minimumVersion);
+    void dismissOptionalUpdate(decision.minimumVersion).catch(error => {
+      captureError(error, { context: 'app_update_dismissal_write_failed' });
+    });
+  }, [decision, track]);
 
   const openStore = useCallback(() => {
     if (busy || decision.status !== 'offer') return;
     setBusy(true);
-    void Linking.openURL(decision.storeUrl).finally(() => setBusy(false));
-  }, [busy, decision]);
+    setStoreOpenFailed(false);
+    track('update_tapped', decision.mode, decision.minimumVersion);
+    void Linking.openURL(decision.storeUrl)
+      .then(async () => {
+        track('store_opened', decision.mode, decision.minimumVersion);
+        try {
+          await recordStoreOpenAttempt(decision.minimumVersion);
+        } catch (error) {
+          captureError(error, {
+            context: 'app_update_upgrade_receipt_write_failed',
+          });
+        }
+      })
+      .catch(error => {
+        captureError(error, { context: 'app_update_store_open_failed' });
+        track('store_open_failed', decision.mode, decision.minimumVersion);
+        if (mountedRef.current) setStoreOpenFailed(true);
+      })
+      .finally(() => {
+        if (mountedRef.current) setBusy(false);
+      });
+  }, [busy, decision, track]);
 
   if (decision.status !== 'offer') return null;
 
-  const required = decision.mode === 'required';
-  const wide = width >= 760;
-
   return (
-    <ModalCard
-      accessibilityLabel={
-        required
-          ? t('sourceGate.legacyUpdate.accessibilityRequired')
-          : t('sourceGate.legacyUpdate.accessibilityAvailable')
-      }
-      dismissOnBackdrop={!required}
-      onClose={required ? () => undefined : () => setOptionalDismissed(true)}
-      surface={required ? 'full_screen' : 'sheet'}
-      testID={`legacy-app-update-${decision.mode}`}
+    <AppUpdateGateSurface
+      busy={busy}
+      currentVersion={currentVersion}
+      minimumVersion={decision.minimumVersion}
+      mode={decision.mode}
+      onDismiss={dismiss}
+      onGetHelp={() => router.push('/support')}
+      onUpdate={openStore}
+      storeOpenFailed={storeOpenFailed}
       visible={visible}
-    >
-      <SafeAreaView style={required ? styles.safeArea : styles.sheetSafeArea}>
-        <View
-          style={[
-            styles.workspace,
-            required && styles.workspaceFull,
-            required && wide && styles.workspaceWide,
-          ]}
-        >
-          <View style={styles.copyPane}>
-            <View style={styles.mark}>
-              <Text style={styles.markText}>{t('brand.name').slice(0, 1)}</Text>
-            </View>
-            <View style={styles.heading}>
-              <Text accessibilityRole="header" style={styles.title}>
-                {required
-                  ? t('sourceGate.legacyUpdate.titleRequired')
-                  : t('sourceGate.legacyUpdate.titleAvailable')}
-              </Text>
-              <Text style={styles.body}>
-                {required
-                  ? t('sourceGate.legacyUpdate.bodyRequired')
-                  : t('sourceGate.legacyUpdate.bodyAvailable')}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.actionPane}>
-            <View style={styles.versionCard}>
-              <View style={styles.versionRow}>
-                <Text style={styles.versionLabel}>
-                  {t('sourceGate.legacyUpdate.currentVersion')}
-                </Text>
-                <Text style={styles.versionValue}>{currentVersion}</Text>
-              </View>
-              <View style={styles.versionRow}>
-                <Text style={styles.versionLabel}>
-                  {t('sourceGate.legacyUpdate.latestVersion')}
-                </Text>
-                <Text style={styles.versionValue}>
-                  {decision.minimumVersion}
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.actions}>
-              <AppButton
-                accessibilityHint={t('sourceGate.legacyUpdate.storeHint')}
-                fullWidth
-                loading={busy}
-                onPress={openStore}
-                size="large"
-                testID="legacy-app-update-open-store"
-                title={t('sourceGate.legacyUpdate.updateAction')}
-              />
-              {required ? (
-                <AppButton
-                  fullWidth
-                  onPress={() => router.push('/support')}
-                  size="large"
-                  testID="legacy-app-update-help"
-                  title={t('sourceGate.legacyUpdate.helpAction')}
-                  variant="secondary"
-                />
-              ) : (
-                <AppButton
-                  fullWidth
-                  onPress={() => setOptionalDismissed(true)}
-                  size="large"
-                  testID="legacy-app-update-not-now"
-                  title={t('sourceGate.legacyUpdate.notNowAction')}
-                  variant="ghost"
-                />
-              )}
-            </View>
-          </View>
-        </View>
-      </SafeAreaView>
-    </ModalCard>
+    />
   );
 };
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  sheetSafeArea: {
-    flexGrow: 0,
-  },
-  workspace: {
-    alignSelf: 'center',
-    gap: mentaSpacing[8],
-    justifyContent: 'center',
-    maxWidth: 680,
-    padding: mentaSpacing[6],
-    width: '100%',
-  },
-  workspaceFull: {
-    flex: 1,
-  },
-  workspaceWide: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[12],
-    maxWidth: 1040,
-  },
-  copyPane: {
-    flex: 1,
-    gap: mentaSpacing[5],
-  },
-  actionPane: {
-    flex: 1,
-    gap: mentaSpacing[5],
-  },
-  mark: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.action,
-    borderRadius: mentaRadii.medium,
-    height: 56,
-    justifyContent: 'center',
-    width: 56,
-  },
-  markText: {
-    color: mentaColors.text.onPaper,
-    ...mentaTypography.title,
-  },
-  heading: {
-    gap: mentaSpacing[3],
-  },
-  title: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.display,
-  },
-  body: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.body,
-  },
-  versionCard: {
-    backgroundColor: mentaColors.raised,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.medium,
-    borderWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[3],
-    padding: mentaSpacing[5],
-  },
-  versionRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[4],
-    justifyContent: 'space-between',
-  },
-  versionLabel: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.caption,
-  },
-  versionValue: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.bodySemibold,
-  },
-  actions: {
-    gap: mentaSpacing[3],
-  },
-});

@@ -21,7 +21,7 @@ export const foundationFrCA = {
   'term.review': 'révision',
   'term.group': 'groupe',
   'term.streak': 'série',
-  'term.today': 'aujourd’hui',
+  'term.today': 'Aujourd’hui',
   'screenshot.01': 'Tenez les promesses que vous vous faites.',
   'screenshot.02': 'Choisissez ce qui compte comme preuve.',
   'screenshot.03': 'Faites le suivi quand vous avez terminé.',

@@ -1,13 +1,27 @@
 import React from 'react';
 import {
   fireEvent,
-  render,
+  render as renderNative,
   screen,
   waitFor,
 } from '@testing-library/react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import ShopItemDetailsScreen from '@/app/shop/[id]';
 import { showRewardedAdDetailed } from '@/lib/ads';
+
+const Wrapper = ({ children }: { children: React.ReactNode }) => (
+  <SafeAreaProvider
+    initialMetrics={{
+      frame: { x: 0, y: 0, width: 390, height: 844 },
+      insets: { top: 0, right: 0, bottom: 0, left: 0 },
+    }}
+  >
+    {children}
+  </SafeAreaProvider>
+);
+const render = (ui: React.ReactElement) =>
+  renderNative(ui, { wrapper: Wrapper });
 
 const mockShowRewardedAdDetailed = showRewardedAdDetailed as jest.Mock;
 const mockClaimAdReward = jest.fn();
@@ -16,6 +30,7 @@ let mockSafeMode = false;
 let mockHistoricallyPurchased = false;
 let mockEquipped = false;
 let mockInventoryRows: { item_sku: string; quantity: number }[] = [];
+let mockSearchParams: { id: string; action?: string } = { id: 'item-1' };
 
 const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn() };
 const mockMomentaState = {
@@ -52,7 +67,7 @@ const mockMomentaState = {
 
 jest.mock('expo-router', () => ({
   Stack: { Screen: () => null },
-  useLocalSearchParams: () => ({ id: 'item-1' }),
+  useLocalSearchParams: () => mockSearchParams,
   useRouter: () => mockRouter,
 }));
 
@@ -80,6 +95,7 @@ jest.mock('@/lib/hooks/useAdReward', () => ({
 }));
 
 jest.mock('@/lib/ads', () => ({
+  areVerifiedAdRewardsEnabled: jest.fn(() => true),
   showRewardedAdDetailed: jest.fn(),
 }));
 
@@ -120,37 +136,45 @@ jest.mock('@/components/ui/SkeletonLoader', () => {
 });
 
 jest.mock('@/components/ui/SimpleBottomSheet', () => {
-  const ReactModule = require('react') as typeof import('react');
-  const { View } = require('react-native') as typeof import('react-native');
+  const mockModule = (() => {
+    const ReactModule = require('react') as typeof import('react');
+    const { View } = require('react-native') as typeof import('react-native');
+    return {
+      __esModule: true,
+      default: ({
+        children,
+        scrollableBody,
+        footer,
+        testID,
+        visible,
+      }: {
+        children: React.ReactNode;
+        scrollableBody?: React.ReactNode;
+        footer?: React.ReactNode;
+        testID?: string;
+        visible: boolean;
+      }) =>
+        visible
+          ? ReactModule.createElement(
+              View,
+              null,
+              scrollableBody ?? children,
+              footer
+                ? ReactModule.createElement(
+                    View,
+                    { testID: testID ? `${testID}-footer` : undefined },
+                    footer
+                  )
+                : null
+            )
+          : null,
+    };
+  })();
+  const mockExport = mockModule?.__esModule ? mockModule.default : mockModule;
   return {
     __esModule: true,
-    default: ({
-      children,
-      scrollableBody,
-      footer,
-      testID,
-      visible,
-    }: {
-      children: React.ReactNode;
-      scrollableBody?: React.ReactNode;
-      footer?: React.ReactNode;
-      testID?: string;
-      visible: boolean;
-    }) =>
-      visible
-        ? ReactModule.createElement(
-            View,
-            null,
-            scrollableBody ?? children,
-            footer
-              ? ReactModule.createElement(
-                  View,
-                  { testID: testID ? `${testID}-footer` : undefined },
-                  footer
-                )
-              : null
-          )
-        : null,
+    default: mockExport,
+    SimpleBottomSheet: mockExport,
   };
 });
 
@@ -178,48 +202,52 @@ jest.mock('@/components/momenta/MomentaActionNoticeSheet', () => {
 });
 
 jest.mock('@/components/paywall/PaywallModal', () => {
-  const ReactModule = require('react') as typeof import('react');
-  const { Pressable, Text, View } =
-    require('react-native') as typeof import('react-native');
-  const MockPaywall = ({
-    onWatchAd,
-    visible,
-  }: {
-    onWatchAd?: () => Promise<{
-      earned: boolean;
-      amount: number;
-      reason?: string;
-    }>;
-    visible: boolean;
-  }) => {
-    const [outcome, setOutcome] = ReactModule.useState('not-started');
-    if (!visible) return null;
-    return (
-      <View>
-        <Text>
-          {onWatchAd ? 'Shop sponsor available' : 'Shop sponsor hidden'}
-        </Text>
-        {onWatchAd ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => {
-              void onWatchAd().then(result =>
-                setOutcome(
-                  result.earned
-                    ? `shop-earned:${result.amount}`
-                    : `shop-failed:${result.reason || 'no_reward'}`
-                )
-              );
-            }}
-          >
-            <Text>Play shop sponsor</Text>
-          </Pressable>
-        ) : null}
-        <Text>{outcome}</Text>
-      </View>
-    );
-  };
-  return { __esModule: true, default: MockPaywall };
+  const mockModule = (() => {
+    const ReactModule = require('react') as typeof import('react');
+    const { Pressable, Text, View } =
+      require('react-native') as typeof import('react-native');
+    const MockPaywall = ({
+      onWatchAd,
+      visible,
+    }: {
+      onWatchAd?: () => Promise<{
+        earned: boolean;
+        amount: number;
+        reason?: string;
+      }>;
+      visible: boolean;
+    }) => {
+      const [outcome, setOutcome] = ReactModule.useState('not-started');
+      if (!visible) return null;
+      return (
+        <View>
+          <Text>
+            {onWatchAd ? 'Shop sponsor available' : 'Shop sponsor hidden'}
+          </Text>
+          {onWatchAd ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                void onWatchAd().then(result =>
+                  setOutcome(
+                    result.earned
+                      ? `shop-earned:${result.amount}`
+                      : `shop-failed:${result.reason || 'no_reward'}`
+                  )
+                );
+              }}
+            >
+              <Text>Play shop sponsor</Text>
+            </Pressable>
+          ) : null}
+          <Text>{outcome}</Text>
+        </View>
+      );
+    };
+    return { __esModule: true, default: MockPaywall };
+  })();
+  const mockExport = mockModule?.__esModule ? mockModule.default : mockModule;
+  return { __esModule: true, default: mockExport, PaywallModal: mockExport };
 });
 
 describe('shop item purchase and sponsor reward', () => {
@@ -230,6 +258,7 @@ describe('shop item purchase and sponsor reward', () => {
     mockHistoricallyPurchased = false;
     mockEquipped = false;
     mockInventoryRows = [];
+    mockSearchParams = { id: 'item-1' };
     mockMomentaState.balance = 0;
     mockMomentaState.equipItem.mockImplementation(async () => {
       mockEquipped = true;
@@ -354,7 +383,7 @@ describe('shop item purchase and sponsor reward', () => {
         'profile_theme_ember'
       )
     );
-    expect(await screen.findByText('Ember Theme is in use')).toBeTruthy();
+    expect(await screen.findByText('Ember Theme is in use.')).toBeTruthy();
     expect(
       screen.getByText('You bought Ember Theme, and Menta is now using it.')
     ).toBeTruthy();
@@ -423,6 +452,31 @@ describe('shop item purchase and sponsor reward', () => {
       'item-1'
     );
     expect(screen.queryByText('Get Momenta')).toBeNull();
+  });
+
+  it('explains a held Streak Freeze when opened from How it works', async () => {
+    mockSearchParams = { id: 'item-1', action: 'use' };
+    mockInventoryRows = [{ item_sku: 'streak_freeze', quantity: 2 }];
+    mockMomentaState.shopItems = [
+      {
+        id: 'item-1',
+        sku: 'streak_freeze',
+        name: 'Streak Freeze',
+        description: 'Protects a streak.',
+        category: 'power_up',
+        cost: 50,
+      },
+    ];
+
+    render(<ShopItemDetailsScreen />);
+
+    expect(await screen.findByText('Your freeze is ready')).toBeTruthy();
+    expect(
+      screen.getByText(
+        'Menta uses one automatically after an eligible missed day. You do not need to turn it on.'
+      )
+    ).toBeTruthy();
+    expect(screen.queryByText('Streak Freeze is not available')).toBeNull();
   });
 
   async function openSponsorPaywall() {

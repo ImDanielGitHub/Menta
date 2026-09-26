@@ -18,7 +18,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   PromiseInviteContextLine,
   PromiseInviteRoleHero,
+  roleArtwork,
 } from '@/components/onboarding/PromiseInviteRoleHero';
+import { MentaNarrator } from '@/components/onboarding/MentaNarrator';
 import { ConfirmDestructiveSheet } from '@/components/ui/ConfirmDestructiveSheet';
 import {
   AppButton,
@@ -45,7 +47,6 @@ import {
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
-import { useTheme } from '@/constants/ThemeContext';
 import {
   promiseAccountabilityQueryKey,
   usePromiseAccountability,
@@ -80,6 +81,7 @@ import {
 import { useAuthStore } from '@/store/auth-store';
 import { supabase } from '@/lib/supabase';
 import * as SentryDiagnostics from '@/lib/sentry';
+import { trackMetaAdsInviteFriend } from '@/lib/meta-ads';
 import { trackProductEvent, trackProductOperation } from '@/lib/posthog';
 import { createClientEventId } from '@/lib/client-event-id';
 import { emitPromiseMutationResultHaptic } from '@/lib/motion/promise-mutation-haptics';
@@ -109,11 +111,7 @@ import {
 } from '@/lib/promises/mutation-result';
 
 type AccountabilityJourneySource =
-  | 'onboarding'
-  | 'groups'
-  | 'today'
-  | 'promise'
-  | 'unknown';
+  'onboarding' | 'groups' | 'today' | 'promise' | 'unknown';
 
 const accountabilityJourneySource = (
   value: string | null
@@ -506,9 +504,11 @@ export function PromisePicker({
         testID="promise-accountability-picker-body"
       >
         <View style={styles.headingBlock}>
-          <Text accessibilityRole="header" style={styles.heading}>
-            {t('groups.source.accountability.picker.heading')}
-          </Text>
+          <MentaNarrator
+            message={t('groups.source.accountability.picker.heading')}
+            state="referral-invitation"
+            testID="accountability-picker-narrator"
+          />
           <Text style={styles.lead}>
             {t('groups.source.accountability.picker.detail')}
           </Text>
@@ -601,12 +601,26 @@ export function PromisePicker({
             })}
           </View>
         ) : (
-          <AppInlineNotice
-            title={t('groups.source.accountability.picker.empty_title')}
-            description={t('groups.source.accountability.picker.empty_detail')}
-            tone="info"
+          <View
+            style={styles.pickerEmpty}
             testID="promise-accountability-empty"
-          />
+          >
+            <Text style={styles.pickerEmptyTitle}>
+              {t('groups.source.accountability.picker.empty_title')}
+            </Text>
+            <Text style={styles.lead}>
+              {t('groups.source.accountability.picker.empty_detail')}
+            </Text>
+            <AppButton
+              fullWidth
+              size="large"
+              title={t('today.state.action.make_promise')}
+              onPress={() =>
+                router.replace('/create-challenge?mode=solo' as never)
+              }
+              testID="promise-accountability-empty-create"
+            />
+          </View>
         )}
       </View>
     </AppScreen>
@@ -708,7 +722,6 @@ export default function PromiseAccountabilityRoute() {
   const router = useRouter();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const { colors } = useTheme();
   const currentUser = useAuthStore(state => state.user);
   const params = useLocalSearchParams<{
     challengeId?: string | string[];
@@ -1399,7 +1412,7 @@ export default function PromiseAccountabilityRoute() {
   );
 
   const handleShare = React.useCallback(async () => {
-    if (!prepared || sharingRef.current) return;
+    if (!prepared || sharingRef.current || !currentUser?.id) return;
     const ownerUserId = currentUser?.id;
     trackProductEvent('Accountability Invite Journey', {
       context: 'present',
@@ -1431,16 +1444,17 @@ export default function PromiseAccountabilityRoute() {
         }),
       });
       const shared = result.action === Share.sharedAction;
-      trackProductEvent('Accountability Invite Journey', {
-        context: 'present',
-        source: journeySource,
-        stage: shared ? 'shared' : 'dismissed',
-      });
       if (
         !routeMountedRef.current ||
         useAuthStore.getState().user?.id !== ownerUserId
       )
         return;
+      trackProductEvent('Accountability Invite Journey', {
+        context: 'present',
+        source: journeySource,
+        stage: shared ? 'shared' : 'dismissed',
+      });
+      if (shared) trackMetaAdsInviteFriend();
       trackInviteOnboardingJourney(
         'invite_ready',
         'returned',
@@ -1464,6 +1478,11 @@ export default function PromiseAccountabilityRoute() {
         }
       );
     } catch (error) {
+      if (
+        !routeMountedRef.current ||
+        useAuthStore.getState().user?.id !== ownerUserId
+      )
+        return;
       trackInviteOnboardingJourney(
         'invite_ready',
         'completed',
@@ -1510,7 +1529,8 @@ export default function PromiseAccountabilityRoute() {
   ]);
 
   const handleCopy = React.useCallback(async () => {
-    if (!prepared || copyingRef.current) return;
+    if (!prepared || copyingRef.current || !currentUser?.id) return;
+    const ownerUserId = currentUser?.id;
     trackInviteOnboardingJourney(
       'invite_ready',
       'requested',
@@ -1523,7 +1543,7 @@ export default function PromiseAccountabilityRoute() {
       role: prepared.role,
     });
     try {
-      await Clipboard.setStringAsync(
+      const copied = await Clipboard.setStringAsync(
         buildPromiseAccountabilityShareMessage({
           challengeTitle: prepared.challengeTitle,
           code: prepared.code,
@@ -1532,6 +1552,13 @@ export default function PromiseAccountabilityRoute() {
           localise: t,
         })
       );
+      if (
+        !routeMountedRef.current ||
+        useAuthStore.getState().user?.id !== ownerUserId
+      )
+        return;
+      if (!copied) throw new Error('Clipboard did not confirm the invite copy');
+      trackMetaAdsInviteFriend();
       trackInviteOnboardingJourney(
         'invite_ready',
         'completed',
@@ -1551,6 +1578,11 @@ export default function PromiseAccountabilityRoute() {
         }
       );
     } catch (error) {
+      if (
+        !routeMountedRef.current ||
+        useAuthStore.getState().user?.id !== ownerUserId
+      )
+        return;
       trackInviteOnboardingJourney(
         'invite_ready',
         'completed',
@@ -1587,7 +1619,13 @@ export default function PromiseAccountabilityRoute() {
     } finally {
       copyingRef.current = false;
     }
-  }, [journeySource, prepared, t, trackInviteOnboardingJourney]);
+  }, [
+    currentUser?.id,
+    journeySource,
+    prepared,
+    t,
+    trackInviteOnboardingJourney,
+  ]);
 
   const updateMemberRole = React.useCallback(
     async (
@@ -1823,9 +1861,13 @@ export default function PromiseAccountabilityRoute() {
             ) : prepared ? (
               <View style={styles.flowStack}>
                 <View style={styles.headingBlock}>
-                  <Text accessibilityRole="header" style={styles.heading}>
-                    {t('groups.source.accountability.invite.ready_heading')}
-                  </Text>
+                  <MentaNarrator
+                    message={t(
+                      'groups.source.accountability.invite.ready_heading'
+                    )}
+                    state="referral-invitation"
+                    testID="accountability-ready-narrator"
+                  />
                   <Text style={styles.lead}>
                     {t('groups.source.accountability.invite.private_detail')}
                   </Text>
@@ -1900,14 +1942,11 @@ export default function PromiseAccountabilityRoute() {
               </View>
             ) : journeySource === 'onboarding' ? (
               <View style={styles.flowStack}>
-                <View style={styles.headingBlock}>
-                  <Text accessibilityRole="header" style={styles.heading}>
-                    {t('groups.source.accountability.role.question')}
-                  </Text>
-                  <Text style={styles.lead}>
-                    {t('groups.source.accountability.people.private_detail')}
-                  </Text>
-                </View>
+                <MentaNarrator
+                  message={t('groups.source.accountability.role.question')}
+                  state="promise-guide"
+                  testID="accountability-role-narrator"
+                />
                 <PromiseInviteContextLine
                   label={t('fullAuth.shared.promise')}
                   promise={summary.promise.title}
@@ -1933,13 +1972,19 @@ export default function PromiseAccountabilityRoute() {
                           );
                           void emitHaptic({ type: 'selection' });
                         }}
-                        icon={
-                          option === 'partner' ? (
-                            <UsersIcon size={20} color={mentaColors.action} />
-                          ) : (
-                            <ShieldIcon size={20} color={mentaColors.action} />
-                          )
+                        badge={
+                          option === 'reviewer'
+                            ? t('onboarding.accountability.recommended')
+                            : undefined
                         }
+                        icon={
+                          <Image
+                            resizeMode="contain"
+                            source={roleArtwork[option]}
+                            style={styles.roleArt}
+                          />
+                        }
+                        iconFrame="art"
                         testID={`accountability-role-${option}`}
                       />
                     );
@@ -1976,13 +2021,19 @@ export default function PromiseAccountabilityRoute() {
             ) : (
               <View style={styles.flowStack}>
                 <View style={styles.headingBlock}>
-                  <Text accessibilityRole="header" style={styles.heading}>
-                    {summary.isShared
-                      ? t('groups.source.accountability.people.shared_heading')
-                      : t(
-                          'groups.source.accountability.people.private_heading'
-                        )}
-                  </Text>
+                  <MentaNarrator
+                    message={
+                      summary.isShared
+                        ? t(
+                            'groups.source.accountability.people.shared_heading'
+                          )
+                        : t(
+                            'groups.source.accountability.people.private_heading'
+                          )
+                    }
+                    state={summary.isShared ? 'group-nudge' : 'promise-guide'}
+                    testID="accountability-people-narrator"
+                  />
                   <Text style={styles.lead}>
                     {summary.isShared
                       ? t('groups.source.accountability.people.shared_detail')
@@ -2063,19 +2114,19 @@ export default function PromiseAccountabilityRoute() {
                               });
                               void emitHaptic({ type: 'selection' });
                             }}
-                            icon={
-                              option === 'partner' ? (
-                                <UsersIcon
-                                  size={20}
-                                  color={colors.accent.primary}
-                                />
-                              ) : (
-                                <ShieldIcon
-                                  size={20}
-                                  color={colors.accent.primary}
-                                />
-                              )
+                            badge={
+                              option === 'reviewer'
+                                ? t('onboarding.accountability.recommended')
+                                : undefined
                             }
+                            icon={
+                              <Image
+                                resizeMode="contain"
+                                source={roleArtwork[option]}
+                                style={styles.roleArt}
+                              />
+                            }
+                            iconFrame="art"
                             testID={`accountability-role-${option}`}
                           />
                         );
@@ -2576,6 +2627,14 @@ export default function PromiseAccountabilityRoute() {
                     description={copy.description}
                     selected={selectedMember.role === option}
                     disabled={managingMember}
+                    icon={
+                      <Image
+                        resizeMode="contain"
+                        source={roleArtwork[option]}
+                        style={styles.roleArt}
+                      />
+                    }
+                    iconFrame="art"
                     onPress={() =>
                       void updateMemberRole(selectedMember, option)
                     }
@@ -2681,8 +2740,13 @@ const styles = StyleSheet.create({
   pickerBody: {
     flexGrow: 1,
     gap: mentaSpacing[6],
-    justifyContent: 'center',
+    paddingTop: mentaSpacing[4],
     paddingBottom: mentaSpacing[8],
+  },
+  pickerEmpty: { gap: mentaSpacing[3], paddingTop: mentaSpacing[2] },
+  pickerEmptyTitle: {
+    ...mentaTypography.title,
+    color: mentaColors.text.primary,
   },
   flowStack: { gap: mentaSpacing[6] },
   onboardingInviteProgress: {
@@ -2898,6 +2962,7 @@ const styles = StyleSheet.create({
     color: mentaColors.text.primary,
   },
   roleOptions: { gap: mentaSpacing[3] },
+  roleArt: { width: 64, height: 68 },
   privateNote: {
     alignItems: 'center',
     flexDirection: 'row',

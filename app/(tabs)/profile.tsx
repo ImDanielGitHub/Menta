@@ -4,6 +4,7 @@ import { useTranslation } from '@/lib/localization';
 
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
+  Platform,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -15,10 +16,10 @@ import {
   ShoppingBagIcon,
   SettingsIcon,
   TargetIcon,
-  UserPlusIcon,
 } from '@/components/ui/icons';
 
 import { useAuthStore } from '@/store/auth-store';
+import { HomeWidgetEntry } from '@/components/widgets/HomeWidgetEntry';
 import { useChallengeStore } from '@/store/challenge-store';
 import { useGroupStore, type Group } from '@/store/group-store';
 import { useInviteStore } from '@/store/invite-store';
@@ -27,7 +28,11 @@ import {
   readProfileFollowThroughDays,
   type ProfileFollowThroughDay,
 } from '@/lib/profile/follow-through';
-import { ProfileFollowThroughChart } from '@/components/profile/ProfileFollowThroughChart';
+import { ProfileInviteCard } from '@/components/profile/ProfileInviteCard';
+import { ProfileMonthGrid } from '@/components/profile/ProfileMonthGrid';
+import { ProfileStatTrio } from '@/components/profile/ProfileStatTrio';
+import { readProfileMonth, type ProfileMonth } from '@/lib/profile/month';
+import { ProfileProSection } from '@/components/profile/ProfileProSection';
 import { AppInlineNotice } from '@/components/ui/AppFeedback';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppScreen } from '@/components/ui/AppShell';
@@ -38,18 +43,17 @@ import { MentaMascot } from '@/components/ui/MentaMascot';
 import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import { RevenueCatAPI } from '@/lib/paywall/revenuecat';
 import { resolvePendingInviteOpenAction } from '@/lib/navigation/pending-invite-open';
-import {
-  SettingsDirectRow,
-  SettingsSectionLabel,
-} from '@/components/settings/SettingsDirectRow';
+import { SettingsDirectRow } from '@/components/settings/SettingsDirectRow';
 import {
   mentaRadii,
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
+import { IPAD_MAX_CONTENT_WIDTH } from '@/constants/responsive-layout';
 import { useTheme } from '@/constants/ThemeContext';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
-import { addBreadcrumb } from '@/lib/sentry';
+import { addBreadcrumb, captureError } from '@/lib/sentry';
+import { withTimeout } from '@/utils/api';
 
 type GroupWithTracking = Group & {
   group_streak_tracking?: {
@@ -77,6 +81,11 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) =>
       paddingBottom: mentaSpacing[6],
       paddingTop: mentaSpacing[6],
     },
+    iPadTaskLane: {
+      alignSelf: 'center',
+      maxWidth: IPAD_MAX_CONTENT_WIDTH,
+      width: '100%',
+    },
     pageHeader: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -88,6 +97,12 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) =>
       flex: 1,
       color: colors.text.primary,
       ...mentaTypography.heading,
+    },
+    rows: {
+      marginTop: mentaSpacing[8],
+    },
+    monthSkeleton: {
+      marginTop: mentaSpacing[8],
     },
     identityRow: {
       alignItems: 'center',
@@ -255,13 +270,21 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) =>
 export default function ProfileScreen() {
   const { locale, t } = useTranslation();
   const phoneLayout = usePhoneLayout();
+  const isIPad = Platform.OS === 'ios' && Platform.isPad;
   const router = useRouter();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const { clearAuthData, isAuthenticated, user, logout } = useAuthStore();
-  const { userChallenges, fetchUserChallenges } = useChallengeStore();
-  const { groups, fetchUserGroups } = useGroupStore();
+  const clearAuthData = useAuthStore(state => state.clearAuthData);
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated);
+  const user = useAuthStore(state => state.user);
+  const logout = useAuthStore(state => state.logout);
+  const userChallenges = useChallengeStore(state => state.userChallenges);
+  const fetchUserChallenges = useChallengeStore(
+    state => state.fetchUserChallenges
+  );
+  const groups = useGroupStore(state => state.groups);
+  const fetchUserGroups = useGroupStore(state => state.fetchUserGroups);
   const pendingInvite = useInviteStore(state => state.pending);
   const pendingInviteTypeLabel = pendingInvite
     ? pendingInvite.type === 'group'
@@ -271,7 +294,7 @@ export default function ProfileScreen() {
 
   const [momentaBalance, setMomentaBalance] = useState(0);
   const [serverProfile, setServerProfile] = useState<MyProfile | null>(null);
-  const [isInitialLoading, setIsInitialLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [proStatus, setProStatus] = useState<ProStatus>('checking');
   const [identityStatus, setIdentityStatus] =
@@ -285,9 +308,11 @@ export default function ProfileScreen() {
   const [followThroughDays, setFollowThroughDays] = useState<
     ProfileFollowThroughDay[]
   >([]);
+  const [month, setMonth] = useState<ProfileMonth | null>(null);
   const [profileNotice, setProfileNotice] = useState<ProfileNotice>(null);
-  const [showProgress, setShowProgress] = useState(false);
   const profileRequestRef = useRef(0);
+  const proRequestRef = useRef(0);
+  const proAccountRef = useRef<string | null>(null);
   const invalidProfileRecoveryForUserRef = useRef<string | null>(null);
   const loadedProfileUserIdRef = useRef<string | null>(null);
   const currentUserIdRef = useRef<string | null>(user?.id ?? null);
@@ -357,19 +382,69 @@ export default function ProfileScreen() {
         requestId === profileRequestRef.current &&
         currentUserIdRef.current === accountId;
       const showSpinner = options?.refreshing ?? false;
+      if (loadedProfileUserIdRef.current !== accountId) {
+        setIsInitialLoading(true);
+        setIdentityStatus('checking');
+        setGroupStatus('checking');
+        setPromiseStatus('checking');
+        setRhythmStatus('checking');
+        setFollowThroughDays([]);
+        setProfileNotice(null);
+      }
       if (showSpinner) {
         setRefreshing(true);
       }
 
       try {
-        const [groupsResult, challengesResult, profileResult, rhythmResult] =
-          await Promise.allSettled([
-            fetchUserGroups(accountId),
+        const [
+          groupsResult,
+          challengesResult,
+          profileResult,
+          rhythmResult,
+          monthResult,
+        ] = await Promise.allSettled([
+          withTimeout(fetchUserGroups(accountId), 8_000, 'Profile groups'),
+          withTimeout(
             fetchUserChallenges(accountId),
-            getMyProfile(),
+            8_000,
+            'Profile promises'
+          ),
+          withTimeout(getMyProfile(), 8_000, 'Profile identity').then(
+            profile => {
+              if (isCurrentAccountRequest() && profile?.id === accountId) {
+                // Identity does not wait for the slower progress projection.
+                setServerProfile(profile);
+                setMomentaBalance(profile.momenta_balance ?? 0);
+                setIdentityStatus('ready');
+                loadedProfileUserIdRef.current = accountId;
+                setIsInitialLoading(false);
+              }
+              return profile;
+            }
+          ),
+          withTimeout(
             readProfileFollowThroughDays({ locale }),
-          ]);
+            8_000,
+            'Profile progress'
+          ),
+          withTimeout(readProfileMonth({ locale }), 8_000, 'Profile month'),
+        ]);
         if (!isCurrentAccountRequest()) return;
+
+        for (const [section, result] of [
+          ['groups', groupsResult],
+          ['promises', challengesResult],
+          ['identity', profileResult],
+          ['progress', rhythmResult],
+          ['month', monthResult],
+        ] as const) {
+          if (result.status === 'rejected') {
+            captureError(result.reason, {
+              context: 'profile_refresh',
+              section,
+            });
+          }
+        }
 
         setGroupStatus(groupsResult.status === 'fulfilled' ? 'ready' : 'stale');
         setPromiseStatus(
@@ -380,6 +455,9 @@ export default function ProfileScreen() {
         );
         if (rhythmResult.status === 'fulfilled') {
           setFollowThroughDays(rhythmResult.value);
+        }
+        if (monthResult.status === 'fulfilled') {
+          setMonth(monthResult.value);
         }
 
         if (profileResult.status === 'rejected') {
@@ -424,16 +502,32 @@ export default function ProfileScreen() {
 
   // Check Pro subscription status - also refreshes when screen regains focus (e.g., after purchase)
   const checkProStatus = useCallback(async () => {
-    setProStatus(current => (current === 'active' ? current : 'checking'));
+    const accountId = user?.id;
+    if (!accountId || accountId !== currentUserIdRef.current) return;
+    const requestId = ++proRequestRef.current;
+    const isCurrent = () =>
+      requestId === proRequestRef.current &&
+      currentUserIdRef.current === accountId;
+    const sameAccount = proAccountRef.current === accountId;
+    proAccountRef.current = accountId;
+    setProStatus(current =>
+      sameAccount && current === 'active' ? current : 'checking'
+    );
     try {
-      const hasProAccess = await RevenueCatAPI.isPro();
-      setProStatus(hasProAccess ? 'active' : 'free');
-    } catch {
+      const hasProAccess = await withTimeout(
+        RevenueCatAPI.isPro(),
+        8_000,
+        'Profile Pro'
+      );
+      if (isCurrent()) setProStatus(hasProAccess ? 'active' : 'free');
+    } catch (error) {
+      if (!isCurrent()) return;
+      captureError(error, { context: 'profile_pro_status' });
       setProStatus(current =>
         current === 'active' ? 'active' : 'unavailable'
       );
     }
-  }, []);
+  }, [user?.id]);
 
   // Re-read the server-owned profile and Pro state whenever this tab regains
   // focus. Wallet/shop mutations happen on nested routes, so mount-only
@@ -446,9 +540,7 @@ export default function ProfileScreen() {
   );
 
   const handleRefresh = useCallback(async () => {
-    await hydrateProfile({ refreshing: true });
-    // Also refresh pro status on pull-to-refresh
-    await checkProStatus();
+    await Promise.all([hydrateProfile({ refreshing: true }), checkProStatus()]);
   }, [hydrateProfile, checkProStatus]);
 
   const handleOpenSavedInvite = useCallback(() => {
@@ -507,7 +599,10 @@ export default function ProfileScreen() {
         hasTabBar
         scrollable
         testID="profile-session-recovery"
-        contentContainerStyle={styles.recovery}
+        contentContainerStyle={[
+          styles.recovery,
+          isIPad ? styles.iPadTaskLane : null,
+        ]}
         style={styles.screen}
       >
         <AppInlineNotice
@@ -530,11 +625,12 @@ export default function ProfileScreen() {
   }
 
   if (isInitialLoading) {
-    return <ProfileSkeleton />;
+    return <ProfileSkeleton isIPad={isIPad} />;
   }
 
   const visibleProfile = serverProfile?.id === user.id ? serverProfile : null;
-  const isPro = proStatus === 'active';
+  const visibleProStatus =
+    proAccountRef.current === user.id ? proStatus : 'checking';
   const visibleMomentaBalance = visibleProfile ? momentaBalance : 0;
   const displayName =
     visibleProfile?.display_name?.trim() ||
@@ -542,9 +638,21 @@ export default function ProfileScreen() {
     user.username;
   const username = visibleProfile?.username?.trim() || user.username;
   const avatarUrl = visibleProfile?.avatar_url ?? user.avatarUrl;
+  const memberSince = visibleProfile?.created_at
+    ? new Date(visibleProfile.created_at).toLocaleDateString(locale, {
+        month: 'long',
+        year:
+          new Date(visibleProfile.created_at).getFullYear() ===
+          new Date().getFullYear()
+            ? undefined
+            : 'numeric',
+      })
+    : null;
   const shouldShowFirstUse =
     promiseStatus === 'ready' &&
     groupStatus === 'ready' &&
+    rhythmStatus === 'ready' &&
+    !hasRecordedProgress &&
     userChallenges.length === 0 &&
     groups.length === 0 &&
     !pendingInvite &&
@@ -559,6 +667,7 @@ export default function ProfileScreen() {
         testID="profile-first-use"
         contentContainerStyle={[
           styles.firstUseContent,
+          isIPad ? styles.iPadTaskLane : null,
           {
             paddingTop: phoneLayout.isShortHeight
               ? mentaSpacing[3]
@@ -627,6 +736,11 @@ export default function ProfileScreen() {
             onPress={openProfileEditor}
           />
         </View>
+        <ProfileProSection
+          status={visibleProStatus}
+          onCheckAccess={() => void checkProStatus()}
+          onProConfirmed={() => void checkProStatus()}
+        />
       </AppScreen>
     );
   }
@@ -647,6 +761,7 @@ export default function ProfileScreen() {
         }
         contentContainerStyle={[
           styles.content,
+          isIPad ? styles.iPadTaskLane : null,
           {
             paddingTop: phoneLayout.isShortHeight
               ? mentaSpacing[3]
@@ -685,6 +800,7 @@ export default function ProfileScreen() {
                 styles.avatarButton,
                 pressed && styles.editButtonPressed,
               ]}
+              testID="profile-avatar"
             >
               <Avatar
                 size={72}
@@ -704,7 +820,9 @@ export default function ProfileScreen() {
                 style={styles.identityMeta}
                 numberOfLines={phoneLayout.fontScale >= 1.3 ? undefined : 1}
               >
-                @{username} · {isPro ? 'Menta Pro' : 'Member'}
+                {memberSince
+                  ? t('fullAuth.tabs_profile.since', { month: memberSince })
+                  : `@${username}`}
               </Text>
             </View>
 
@@ -724,6 +842,10 @@ export default function ProfileScreen() {
           </View>
         </ErrorBoundary>
 
+        <ErrorBoundary level="component">
+          <ProfileInviteCard onInvite={openInviteFriends} />
+        </ErrorBoundary>
+
         {identityStatus === 'stale' ? (
           <AppInlineNotice
             title={t(
@@ -740,44 +862,22 @@ export default function ProfileScreen() {
         ) : null}
 
         <ErrorBoundary level="component">
-          {hasRecordedProgress ? (
-            <View>
-              <AppButton
-                title={t('fullAuth.tabs_profile.your_rhythm')}
-                onPress={() => setShowProgress(value => !value)}
-                fullWidth
-                variant="outline"
-              />
-              {showProgress ? (
-                <ProfileFollowThroughChart
-                  activePromiseCount={activePromiseCount}
-                  currentStreak={currentStreak}
-                  days={followThroughDays}
-                  groupCount={groups.length}
-                  onOpenHistory={() => router.push('/solo-challenges')}
-                />
-              ) : null}
-            </View>
+          <ProfileStatTrio
+            bestStreak={streak.longest}
+            currentStreak={currentStreak}
+            daysKept={month ? month.daysKept : null}
+            hasActivePromise={activePromiseCount > 0 || groups.length > 0}
+          />
+          {month ? (
+            <ProfileMonthGrid month={month} />
           ) : rhythmStatus === 'checking' ? (
             <SkeletonLoader
               accessibilityLabel={t(
                 'fullAuth.tabs_profile.loading_your_profile'
               )}
               borderRadius={mentaRadii.large}
-              height={292}
-            />
-          ) : rhythmStatus === 'stale' ? (
-            <AppInlineNotice
-              actionLabel={t('fullAuth.shared.refresh_progress')}
-              description={t(
-                'fullAuth.tabs_profile.the_last_saved_promise_and_group_counts_are_stil'
-              )}
-              onAction={() => void hydrateProfile()}
-              testID="profile-rhythm-unavailable"
-              title={t(
-                'fullAuth.tabs_profile.your_progress_may_be_out_of_date'
-              )}
-              tone="warning"
+              height={260}
+              style={styles.monthSkeleton}
             />
           ) : null}
         </ErrorBoundary>
@@ -835,44 +935,41 @@ export default function ProfileScreen() {
         ) : null}
 
         <ErrorBoundary level="component">
-          <View>
-            <SettingsSectionLabel>
-              {t('fullAuth.tabs_profile.progress_and_rewards')}
-            </SettingsSectionLabel>
+          <View style={styles.rows}>
             <SettingsDirectRow
               icon={<TargetIcon size={18} color={colors.text.secondary} />}
               onPress={() => router.push('/solo-challenges')}
-              subtitle={t('fullAuth.tabs_profile.active_and_past_promises')}
               title={t('fullAuth.tabs_profile.personal_promises')}
+              value={
+                activePromiseCount > 0
+                  ? t('fullAuth.tabs_profile.active_count', {
+                      count: activePromiseCount,
+                    })
+                  : undefined
+              }
             />
+            <HomeWidgetEntry />
             <SettingsDirectRow
               icon={<ShoppingBagIcon size={18} color={colors.text.secondary} />}
               onPress={() => router.push('/momenta')}
-              subtitle={t('fullAuth.tabs_profile.wallet_shop_and_items')}
+              showDivider={false}
               title={t('fullAuth.tabs_profile.momenta')}
               value={String(visibleMomentaBalance)}
             />
-            <SettingsDirectRow
-              accessibilityHint={t(
-                'fullAuth.tabs_profile.opens_your_invite_link_and_the_current_reward_te'
-              )}
-              icon={<UserPlusIcon size={18} color={colors.text.secondary} />}
-              onPress={openInviteFriends}
-              showDivider={false}
-              subtitle={t(
-                'fullAuth.tabs_profile.current_reward_terms_and_your_link'
-              )}
-              testID="profile-invite-someone"
-              title={t('fullAuth.tabs_profile.invite_friends')}
-            />
           </View>
         </ErrorBoundary>
+
+        <ProfileProSection
+          status={visibleProStatus}
+          onCheckAccess={() => void checkProStatus()}
+          onProConfirmed={() => void checkProStatus()}
+        />
       </AppScreen>
     </>
   );
 }
 
-const ProfileSkeleton = () => {
+const ProfileSkeleton = ({ isIPad }: { isIPad: boolean }) => {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -883,7 +980,10 @@ const ProfileSkeleton = () => {
       scrollable
       testID="profile-loading"
       style={styles.screen}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[
+        styles.content,
+        isIPad ? styles.iPadTaskLane : null,
+      ]}
     >
       <View
         accessible

@@ -355,7 +355,6 @@ export const fullSharedUiDeDE = {
   'shared.rootLayout.noProofDue.title': 'Jetzt ist kein Nachweis fällig',
   'shared.rootLayout.noProofDue.message':
     'Unter Heute wird das nächste Versprechen angezeigt, sobald ein Nachweis benötigt wird.',
-  'shared.rootLayout.initialising': 'Menta wird gestartet …',
   'shared.web.eyebrow': 'iPhone-App erforderlich',
   'shared.web.title': 'Öffne diesen Link auf dem iPhone in Menta',
   'shared.web.explanation':
@@ -537,6 +536,11 @@ export const fullSharedUiDeDE = {
     'Die Zeitauswahl ist auf dieser Plattform nicht verfügbar.',
   'shared.accessibility.toastCount': '{count}×',
   'shared.update.authorityUnknown': 'Zuständigkeit unbekannt',
+  'shared.rootLayout.initialising': 'Heute wird vorbereitet …',
+  'shared.launch.tip.small': 'Kleine Versprechen hält man am leichtesten.',
+  'shared.launch.tip.friend':
+    'Wer ein Ziel mit Freunden teilt, erreicht es eher.',
+  'shared.launch.tip.miss': 'Einen Tag verpasst? Der nächste zählt trotzdem.',
 } as const;
 
 export type FullSharedUiKey = keyof typeof fullSharedUiDeDE;

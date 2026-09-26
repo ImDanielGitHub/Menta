@@ -4,6 +4,20 @@ const mockShowInterstitialAdDetailed = jest.fn();
 const mockGetMyProAuthority = jest.fn();
 const mockRpc = jest.fn();
 const mockSentryCapture = jest.fn();
+let mockUserId: string | null = 'proof-owner';
+const mockAuthListeners = new Set<
+  (state: { user: { id: string } | null }) => void
+>();
+
+jest.mock('@/store/auth-store', () => ({
+  useAuthStore: {
+    getState: () => ({ user: mockUserId ? { id: mockUserId } : null }),
+    subscribe: (listener: (state: { user: { id: string } | null }) => void) => {
+      mockAuthListeners.add(listener);
+      return () => mockAuthListeners.delete(listener);
+    },
+  },
+}));
 
 jest.mock('@/lib/ads', () => ({
   showInterstitialAdDetailed: (...args: unknown[]) =>
@@ -38,6 +52,8 @@ import {
 describe('proof ad break authority', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUserId = 'proof-owner';
+    mockAuthListeners.clear();
     Object.defineProperty(AppState, 'currentState', {
       configurable: true,
       get: () => 'active',
@@ -116,7 +132,67 @@ describe('proof ad break authority', () => {
       p_submission_id: 'submission-2',
     });
     expect(mockShowInterstitialAdDetailed).toHaveBeenCalledTimes(1);
+    expect(mockShowInterstitialAdDetailed).toHaveBeenCalledWith({
+      appUserId: 'proof-owner',
+      placement: 'proof_receipt_cadence',
+    });
   });
+
+  it('does not claim using eligibility from an account that changed while loading', async () => {
+    mockGetMyProAuthority.mockImplementationOnce(async () => {
+      mockUserId = 'another-account';
+      mockAuthListeners.forEach(listener =>
+        listener({ user: { id: mockUserId! } })
+      );
+      // Even switching back cannot revive an operation from the old session.
+      mockUserId = 'proof-owner';
+      mockAuthListeners.forEach(listener =>
+        listener({ user: { id: mockUserId! } })
+      );
+      return { is_pro: false, reconciliation_pending: false };
+    });
+
+    await expect(attemptProofAdBreak('submission-2')).resolves.toMatchObject({
+      reason: 'account_changed',
+      claimed: false,
+      shown: false,
+    });
+    expect(mockRpc).not.toHaveBeenCalled();
+    expect(mockShowInterstitialAdDetailed).not.toHaveBeenCalled();
+    expect(mockAuthListeners.size).toBe(0);
+  });
+
+  it.each(['account_changed', 'background'])(
+    'preserves a consumed claim without displaying after %s during the claim',
+    async reason => {
+      mockRpc.mockImplementationOnce(async () => {
+        if (reason === 'account_changed') {
+          mockUserId = 'another-account';
+          mockAuthListeners.forEach(listener =>
+            listener({ user: { id: mockUserId! } })
+          );
+        } else {
+          Object.defineProperty(AppState, 'currentState', {
+            configurable: true,
+            get: () => 'background',
+          });
+        }
+        return {
+          data: { success: true, code: 'CLAIMED', ordinal: 2 },
+          error: null,
+        };
+      });
+
+      await expect(attemptProofAdBreak('submission-2')).resolves.toMatchObject({
+        reason,
+        attempted: false,
+        claimed: true,
+        shown: false,
+      });
+      expect(mockShowInterstitialAdDetailed).not.toHaveBeenCalled();
+      expect(mockAuthListeners.size).toBe(0);
+    }
+  );
 
   it('does not show an ordinal that the server already consumed', async () => {
     mockRpc.mockResolvedValue({

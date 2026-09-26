@@ -4,6 +4,11 @@ const ATT_USAGE_DESCRIPTION =
 const pluginName = plugin => (Array.isArray(plugin) ? plugin[0] : plugin);
 
 module.exports = ({ config }) => {
+  if (process.env.EXPO_PUBLIC_POSTHOG_KEY?.trim().startsWith('phx_')) {
+    throw new Error(
+      'EXPO_PUBLIC_POSTHOG_KEY must be a public project token, never a personal API token.'
+    );
+  }
   const facebookAppId = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID?.trim() ?? '';
   const facebookClientToken =
     process.env.EXPO_PUBLIC_FACEBOOK_CLIENT_TOKEN?.trim() ?? '';

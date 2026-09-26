@@ -6,7 +6,6 @@ import React, {
   useState,
 } from 'react';
 import {
-  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -25,25 +24,21 @@ import {
   useMomentaPrimaryTab,
   useMomentaSectionNavigation,
 } from '@/components/momenta/MomentaSectionNav';
-import { AppButton } from '@/components/ui/AppButton';
 import { AppScreen } from '@/components/ui/AppShell';
-import {
-  AlertTriangleIcon,
-  ArrowLeftIcon,
-  RefreshCcwIcon,
-} from '@/components/ui/icons';
+import { AppInlineNotice } from '@/components/ui/AppFeedback';
+import { ArrowLeftIcon } from '@/components/ui/icons';
 import {
   getShopCategoryId,
   getShopItemSku,
   ShopCollectionSkeleton,
   ShopFilterChips,
-  ShopListRow,
-  ShopMetricStrip,
   ShopSectionHeader,
   ShopStatePanel,
   type ShopCategoryId,
   type ShopFilter,
 } from '@/components/shop/ShopPrimitives';
+import { ShopItemCard } from '@/components/shop/ShopItemCard';
+import { ShopPressable } from '@/components/shop/ShopPressable';
 import { useTheme } from '@/constants/ThemeContext';
 import {
   mentaRadii,
@@ -61,11 +56,11 @@ import {
 } from '@/lib/commerce/inventory-read-state';
 import {
   getEquipCategoryForCatalogItem,
+  getShopItemDisplayCopy,
   isSupportedCatalogItem,
 } from '@/lib/shop/catalogSupport';
 import { claimStreakShopUnlocks } from '@/lib/shop/streak-unlocks';
 import {
-  getPowerUpDisplayCopy,
   isShopPowerUp,
   powerUpIsAutoConsumed,
   powerUpRequiresChallengeId,
@@ -312,7 +307,7 @@ export default function InventoryScreen() {
       const sku = getShopItemSku(source);
       const category = getShopCategoryId(source.category);
       const isPower = isShopPowerUp(source.category);
-      const powerUpCopy = getPowerUpDisplayCopy(sku, t);
+      const displayCopy = getShopItemDisplayCopy(source, t);
       const normalizedQuantity = isPower ? quantity : 1;
 
       if (normalizedQuantity <= 0 && isPower) return;
@@ -326,8 +321,8 @@ export default function InventoryScreen() {
       merged.set(sku, {
         id: source.id,
         sku,
-        name: powerUpCopy?.label || source.name,
-        description: powerUpCopy?.description || source.description,
+        name: displayCopy.name,
+        description: displayCopy.description,
         category,
         quantity: nextQuantity,
         isPowerUp: isPower,
@@ -442,19 +437,6 @@ export default function InventoryScreen() {
     ].filter(section => section.items.length > 0);
   }, [categoryLabels, items, selectedCategory, visibleItems, t]);
 
-  const boostCount = useMemo(
-    () =>
-      items
-        .filter(item => item.isPowerUp)
-        .reduce((total, item) => total + item.quantity, 0),
-    [items]
-  );
-
-  const styleCount = useMemo(
-    () => items.filter(item => !item.isPowerUp).length,
-    [items]
-  );
-
   const handleUse = useCallback(
     (item: InventoryItem) => {
       router.push(`/shop/${item.id}?action=use`);
@@ -468,7 +450,7 @@ export default function InventoryScreen() {
       try {
         await equipItem(item.source.id, item.equipCategory, item.sku);
         await refreshAfterCompletedAction({
-          title: `${item.name} is in use`,
+          title: t('commerce.shop.styleInUse', { name: item.name }),
           message: t('commerce.shop.usingStyle'),
           staleMessage: t('commerce.shop.refreshIfMissing', {
             message: t('commerce.shop.styleInUse', { name: item.name }),
@@ -494,7 +476,7 @@ export default function InventoryScreen() {
       try {
         await unequipItem(item.equipCategory);
         await refreshAfterCompletedAction({
-          title: `${item.name} removed`,
+          title: t('commerce.shop.styleRemoved', { name: item.name }),
           message: t('commerce.shop.styleNoLongerUsed'),
           staleMessage: t('commerce.shop.refreshIfMissing', {
             message: t('commerce.shop.styleRemoved', { name: item.name }),
@@ -604,31 +586,52 @@ export default function InventoryScreen() {
                     : t('commerce.shop.owned');
 
                 return (
-                  <ShopListRow
+                  <ShopItemCard
                     key={`${item.sku}-${item.id}`}
-                    item={{
-                      ...item.source,
-                      name: item.name,
-                      description: item.description || '',
+                    sku={item.sku}
+                    name={item.name}
+                    description={item.description}
+                    meta={stateLabel}
+                    quantity={item.isPowerUp ? item.quantity : null}
+                    quantityLabel={t('commerce.shop.quantity', {
+                      count: item.quantity,
+                    })}
+                    selected={item.isEquipped}
+                    action={{
+                      label: actionLabel,
+                      accessibilityLabel: t(
+                        'commerce.shop.itemActionAccessibility',
+                        {
+                          action: actionLabel,
+                          name: item.name,
+                        }
+                      ),
+                      variant:
+                        item.isEquipped || item.isAutoConsumed
+                          ? 'outline'
+                          : 'accent',
+                      disabled: workingId === item.id,
+                      loading: workingId === item.id,
+                      onPress: () => {
+                        if (item.isPowerUp) {
+                          handleUse(item);
+                          return;
+                        }
+                        if (item.isEquipped) {
+                          void handleUnequip(item);
+                          return;
+                        }
+                        void handleEquip(item);
+                      },
                     }}
-                    eyebrow={categoryLabels[item.category]}
-                    stateLabel={stateLabel}
-                    actionLabel={actionLabel}
-                    actionVariant={item.isEquipped ? 'outline' : 'accent'}
-                    actionDisabled={workingId === item.id}
-                    actionLoading={workingId === item.id}
                     onPress={() => router.push(`/shop/${item.id}`)}
-                    onAction={() => {
-                      if (item.isPowerUp) {
-                        handleUse(item);
-                        return;
+                    accessibilityLabel={t(
+                      'commerce.shop.ownedTileAccessibility',
+                      {
+                        name: item.name,
+                        state: stateLabel,
                       }
-                      if (item.isEquipped) {
-                        void handleUnequip(item);
-                        return;
-                      }
-                      void handleEquip(item);
-                    }}
+                    )}
                     testID={`inventory-item-${item.id}`}
                   />
                 );
@@ -645,18 +648,16 @@ export default function InventoryScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       {!inPrimaryTab ? (
         <View style={styles.topBar}>
-          <Pressable
-            accessibilityRole="button"
+          <ShopPressable
             accessibilityLabel={t('commerce.accessibility.goBack')}
+            haptic={false}
             hitSlop={10}
             onPress={() => backOrReplace(router, '/(tabs)/profile')}
-            style={({ pressed }) => [
-              styles.iconButton,
-              pressed && styles.pressed,
-            ]}
+            pressedStyle={styles.pressed}
+            style={styles.iconButton}
           >
             <ArrowLeftIcon size={21} color={theme.colors.text.primary} />
-          </Pressable>
+          </ShopPressable>
         </View>
       ) : null}
 
@@ -683,24 +684,14 @@ export default function InventoryScreen() {
         </View>
 
         {refreshError && hasConfirmedSnapshot ? (
-          <View style={styles.inlineWarning} testID="inventory-refresh-warning">
-            <AlertTriangleIcon size={18} color={theme.colors.status.warning} />
-            <View style={styles.warningCopy}>
-              <Text style={styles.warningTitle}>
-                {t('commerce.shop.itemsOutOfDate')}
-              </Text>
-              <Text style={styles.warningText}>{refreshError}</Text>
-            </View>
-            <AppButton
-              title={t('commerce.action.tryAgain')}
-              variant="ghost"
-              size="small"
-              icon={
-                <RefreshCcwIcon size={14} color={theme.colors.text.primary} />
-              }
-              onPress={() => void load(false)}
-            />
-          </View>
+          <AppInlineNotice
+            title={t('commerce.shop.itemsOutOfDate')}
+            description={refreshError}
+            tone="warning"
+            actionLabel={t('commerce.action.tryAgain')}
+            onAction={() => void load(false)}
+            testID="inventory-refresh-warning"
+          />
         ) : null}
 
         {inventoryState === 'loading' ||
@@ -709,17 +700,6 @@ export default function InventoryScreen() {
           renderInventory()
         ) : (
           <>
-            <ShopMetricStrip
-              metrics={[
-                {
-                  label: t('commerce.shop.items'),
-                  value: String(items.length),
-                },
-                { label: t('commerce.shop.boosts'), value: String(boostCount) },
-                { label: t('commerce.shop.styles'), value: String(styleCount) },
-              ]}
-            />
-
             <ShopFilterChips
               filters={filters}
               selectedId={selectedCategory}
@@ -784,39 +764,14 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
     emptyStateGroup: {
       gap: mentaSpacing[3],
     },
-    inlineWarning: {
-      minHeight: 72,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 10,
-      borderRadius: mentaRadii.small,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.status.warning,
-      backgroundColor: theme.colors.background.surface,
-      padding: 14,
-    },
-    warningCopy: {
-      flex: 1,
-      minWidth: 0,
-    },
-    warningTitle: {
-      color: theme.colors.text.primary,
-      ...mentaTypography.bodySmallMedium,
-    },
-    warningText: {
-      color: theme.colors.text.secondary,
-      ...mentaTypography.caption,
-      marginTop: 2,
-    },
     sectionHint: {
       color: theme.colors.text.tertiary,
       ...mentaTypography.bodySmall,
     },
     list: {
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: theme.colors.border.secondary,
+      gap: mentaSpacing[2],
     },
     pressed: {
-      opacity: 0.72,
+      backgroundColor: theme.colors.background.secondary,
     },
   });

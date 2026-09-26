@@ -7,7 +7,9 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { useTheme } from '@/constants/ThemeContext';
+import { useTheme, type ThemeContextType } from '@/constants/ThemeContext';
+import { CheckIcon } from '@/components/ui/icons';
+import { emitHaptic } from '@/lib/motion/haptics';
 import { useMotionPreferences } from '@/lib/motion/use-motion-preferences';
 import {
   mentaColors,
@@ -18,6 +20,26 @@ import {
 } from '@/constants/MentaDesignSystem';
 import { AppCard } from './AppCard';
 import { useTranslation } from '@/lib/localization/use-translation';
+
+/**
+ * The onboarding choice language, shared by every selectable surface:
+ * a raised dark row with a hairline edge at rest, and a violet-tinted fill
+ * with a firmer violet edge once chosen. Equipped themes supply their own
+ * tint and edge through the theme's accent and focus roles.
+ */
+const resolveChoicePalette = (colors: ThemeContextType['colors']) => ({
+  restFill: colors.interactive.secondary,
+  restBorder: colors.border.primary,
+  selectedFill: colors.accent.background,
+  selectedBorder:
+    colors.border.focus === mentaColors.action
+      ? mentaColors.actionBorder
+      : colors.border.focus,
+  mark: colors.accent.primary,
+  onMark: colors.onPrimary,
+});
+
+const SELECTED_BORDER_WIDTH = 2;
 
 export const AppChoiceChip: React.FC<{
   label: string;
@@ -36,24 +58,26 @@ export const AppChoiceChip: React.FC<{
 }) => {
   const theme = useTheme();
   const motion = useMotionPreferences();
+  const palette = resolveChoicePalette(theme.colors);
   return (
     <Pressable
       accessibilityLabel={label}
       accessibilityRole="button"
       accessibilityState={{ disabled, selected }}
       disabled={disabled}
-      onPress={onPress}
+      onPress={() => {
+        if (!onPress) return;
+        if (!selected) void emitHaptic({ type: 'selection' });
+        onPress();
+      }}
       testID={testID}
       style={({ pressed }) => [
         styles.chip,
         {
-          backgroundColor: selected
-            ? theme.colors.interactive.primary
-            : 'transparent',
-          borderColor: selected
-            ? theme.colors.interactive.primary
-            : theme.colors.border.secondary,
+          backgroundColor: selected ? palette.selectedFill : palette.restFill,
+          borderColor: selected ? palette.selectedBorder : palette.restBorder,
         },
+        selected && styles.chipSelected,
         disabled && styles.disabled,
         pressed &&
           !disabled &&
@@ -67,7 +91,7 @@ export const AppChoiceChip: React.FC<{
           styles.chipLabel,
           {
             color: selected
-              ? theme.colors.text.inverse
+              ? theme.colors.text.primary
               : theme.colors.text.secondary,
           },
         ]}
@@ -122,6 +146,18 @@ export const AppOptionCard: React.FC<{
   selected?: boolean;
   onPress?: () => void;
   icon?: React.ReactNode;
+  /**
+   * A short violet pill on the card's top edge, such as "Recommended".
+   * Use it for one genuinely suggested option, never on every row.
+   */
+  badge?: string;
+  /** `art` gives illustrated icons (mascot roles) a larger, untinted slot. */
+  iconFrame?: 'tile' | 'art';
+  /**
+   * A short value on the right, such as "+10". It replaces the check mark,
+   * so selection is carried by the card's edge and fill alone.
+   */
+  trailing?: string;
   style?: StyleProp<ViewStyle>;
   children?: React.ReactNode;
   disabled?: boolean;
@@ -132,6 +168,9 @@ export const AppOptionCard: React.FC<{
   selected = false,
   onPress,
   icon,
+  iconFrame = 'tile',
+  badge,
+  trailing,
   style,
   children,
   disabled = false,
@@ -139,35 +178,54 @@ export const AppOptionCard: React.FC<{
 }) => {
   const theme = useTheme();
   const { t } = useTranslation();
-  return (
+  const palette = resolveChoicePalette(theme.colors);
+  const handlePress = onPress
+    ? () => {
+        if (!selected) void emitHaptic({ type: 'selection' });
+        onPress();
+      }
+    : undefined;
+  const card = (
     <AppCard
       accessibilityLabel={t('shared.accessibility.choiceSummary', {
-        title,
-        description,
+        title: badge ? `${title}, ${badge}` : title,
+        description: trailing ? `${description}, ${trailing}` : description,
       })}
       accessibilityRole="radio"
       accessibilityState={{ checked: selected, disabled, selected }}
       disabled={disabled}
-      onPress={onPress}
+      onPress={handlePress}
       pressableStyle={styles.optionCardPressable}
       testID={testID}
       variant="content"
       style={[
         styles.optionCard,
         {
-          borderColor: selected
-            ? theme.colors.interactive.primary
-            : theme.colors.border.secondary,
-          backgroundColor: selected
-            ? theme.colors.interactive.secondary
-            : 'transparent',
+          borderColor: selected ? palette.selectedBorder : palette.restBorder,
+          backgroundColor: selected ? palette.selectedFill : palette.restFill,
         },
+        selected && styles.optionCardSelected,
         disabled && styles.disabled,
         style,
       ]}
     >
       <View style={styles.optionHeader}>
-        {icon ? <View style={styles.optionIcon}>{icon}</View> : null}
+        {icon ? (
+          <View
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            style={
+              iconFrame === 'art'
+                ? styles.optionArt
+                : [
+                    styles.optionIcon,
+                    { backgroundColor: theme.colors.accent.background },
+                  ]
+            }
+          >
+            {icon}
+          </View>
+        ) : null}
         <View style={styles.optionCopy}>
           <Text
             style={[
@@ -186,26 +244,63 @@ export const AppOptionCard: React.FC<{
             {description}
           </Text>
         </View>
-        <View
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-          style={[
-            styles.selectionIndicator,
-            {
-              borderColor: selected
-                ? theme.colors.interactive.primary
-                : theme.colors.border.secondary,
-              backgroundColor: selected
-                ? theme.colors.interactive.primary
-                : 'transparent',
-            },
-          ]}
-        >
-          {selected ? <View style={styles.selectionDot} /> : null}
-        </View>
+        {trailing ? (
+          <Text
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            numberOfLines={1}
+            style={[
+              styles.optionTrailing,
+              {
+                color: selected
+                  ? theme.colors.accent.primary
+                  : theme.colors.text.primary,
+              },
+            ]}
+          >
+            {trailing}
+          </Text>
+        ) : (
+          <View
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            style={styles.selectionLane}
+          >
+            {selected ? (
+              <View
+                style={[
+                  styles.selectionMark,
+                  { backgroundColor: palette.mark },
+                ]}
+              >
+                <CheckIcon color={palette.onMark} size={15} />
+              </View>
+            ) : null}
+          </View>
+        )}
       </View>
       {children ? <View style={styles.optionBody}>{children}</View> : null}
     </AppCard>
+  );
+
+  if (!badge) return card;
+
+  return (
+    <View style={styles.optionFrame}>
+      {card}
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        style={[styles.optionBadge, { backgroundColor: palette.mark }]}
+      >
+        <Text
+          numberOfLines={1}
+          style={[styles.optionBadgeLabel, { color: palette.onMark }]}
+        >
+          {badge}
+        </Text>
+      </View>
+    </View>
   );
 };
 
@@ -245,12 +340,16 @@ export const AppSegmentedControl = <T extends string>({
             accessibilityRole="button"
             accessibilityState={{ selected }}
             accessibilityLabel={option.accessibilityLabel ?? option.label}
-            onPress={() => onChange(option.value)}
+            onPress={() => {
+              if (selected) return;
+              void emitHaptic({ type: 'selection' });
+              onChange(option.value);
+            }}
             testID={option.testID}
             style={({ pressed }) => [
               styles.segmentedOption,
               selected && {
-                backgroundColor: theme.colors.interactive.primary,
+                backgroundColor: theme.colors.accent.primary,
               },
               pressed &&
                 (motion.reduceMotion ? styles.pressedReduced : styles.pressed),
@@ -262,7 +361,7 @@ export const AppSegmentedControl = <T extends string>({
                 styles.segmentedLabel,
                 {
                   color: selected
-                    ? theme.colors.text.inverse
+                    ? theme.colors.onPrimary
                     : theme.colors.text.secondary,
                 },
               ]}
@@ -353,12 +452,18 @@ export const AppMemberStack: React.FC<{
 const styles = StyleSheet.create({
   chip: {
     minHeight: mentaLayout.minimumTouchTarget,
-    borderRadius: mentaRadii.round,
+    borderRadius: mentaRadii.medium,
     borderWidth: 1,
     paddingHorizontal: mentaSpacing[4],
     paddingVertical: mentaSpacing[2],
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  chipSelected: {
+    // Keep the outer size fixed as the edge thickens so a row never reflows.
+    borderWidth: SELECTED_BORDER_WIDTH,
+    paddingHorizontal: mentaSpacing[4] - (SELECTED_BORDER_WIDTH - 1),
+    paddingVertical: mentaSpacing[2] - (SELECTED_BORDER_WIDTH - 1),
   },
   chipLabel: {
     ...mentaTypography.bodySmallMedium,
@@ -387,9 +492,22 @@ const styles = StyleSheet.create({
   tagLabel: {
     ...mentaTypography.captionMedium,
   },
+  optionFrame: {
+    position: 'relative',
+  },
   optionCard: {
     minHeight: 92,
     justifyContent: 'center',
+    borderRadius: mentaRadii.medium,
+    borderWidth: 1,
+    paddingHorizontal: mentaSpacing[4],
+    paddingVertical: mentaSpacing[4],
+  },
+  optionCardSelected: {
+    // Keep the outer size fixed as the edge thickens so a list never jumps.
+    borderWidth: SELECTED_BORDER_WIDTH,
+    paddingHorizontal: mentaSpacing[4] - (SELECTED_BORDER_WIDTH - 1),
+    paddingVertical: mentaSpacing[4] - (SELECTED_BORDER_WIDTH - 1),
   },
   optionCardPressable: {
     minHeight: 92,
@@ -399,11 +517,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: mentaSpacing[3],
   },
-  optionIcon: {
-    width: 30,
-    minHeight: 30,
+  optionArt: {
+    width: 64,
+    height: 68,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
+    marginVertical: -mentaSpacing[2],
+  },
+  optionIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: mentaRadii.small,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
   optionCopy: {
     flex: 1,
@@ -416,20 +544,38 @@ const styles = StyleSheet.create({
     ...mentaTypography.bodySmall,
     marginTop: mentaSpacing[1],
   },
-  selectionIndicator: {
+  selectionLane: {
     width: 24,
     height: 24,
-    borderRadius: 12,
-    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
-  selectionDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: mentaColors.canvas,
+  optionTrailing: {
+    ...mentaTypography.control,
+    fontFamily: mentaTypography.labelBold.fontFamily,
+    flexShrink: 0,
+  },
+  selectionMark: {
+    width: 24,
+    height: 24,
+    borderRadius: mentaRadii.medium,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  optionBadge: {
+    pointerEvents: 'none',
+    position: 'absolute',
+    top: -mentaSpacing[2] - 1,
+    right: mentaSpacing[4],
+    minHeight: 18,
+    borderRadius: mentaRadii.round,
+    paddingHorizontal: mentaSpacing[2],
+    justifyContent: 'center',
+  },
+  optionBadgeLabel: {
+    ...mentaTypography.micro,
+    fontFamily: mentaTypography.labelBold.fontFamily,
   },
   optionBody: {
     marginTop: mentaSpacing[3],

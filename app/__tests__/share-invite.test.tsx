@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -212,6 +213,9 @@ describe('ShareInviteScreen', () => {
 
   it('reads the active account link, then treats share-sheet return as neutral', async () => {
     renderInvite();
+    await act(async () => {
+      await Promise.resolve();
+    });
     expect(screen.queryByText('Share invite')).toBeNull();
     fireEvent.press(screen.getByTestId('invite-share-row'));
 
@@ -231,11 +235,26 @@ describe('ShareInviteScreen', () => {
       )
     ).toBeTruthy();
     expect(screen.queryByText('Invite sent')).toBeNull();
-    expect(mockTrackMetaAdsInviteFriend).toHaveBeenCalledTimes(1);
+    expect(mockTrackMetaAdsInviteFriend).not.toHaveBeenCalled();
+  });
+
+  it('records an invite conversion only after a successful share handoff', async () => {
+    jest
+      .spyOn(Share, 'share')
+      .mockResolvedValue({ action: Share.sharedAction });
+    renderInvite();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    fireEvent.press(screen.getByTestId('invite-share-row'));
+    await waitFor(() =>
+      expect(mockTrackMetaAdsInviteFriend).toHaveBeenCalledTimes(1)
+    );
   });
 
   it('prepares the active referral link for an in-person QR code', async () => {
     renderInvite();
+    fireEvent.press(await screen.findByText('Show QR code'));
 
     expect(
       await screen.findByLabelText('https://menta.quest/invite?ref=ACTIVE')
@@ -246,7 +265,13 @@ describe('ShareInviteScreen', () => {
 
   it('shows the server-confirmed double-sided reward and annual reset', async () => {
     renderInvite();
+    fireEvent.press(await screen.findByText('Referral programme'));
 
+    expect(
+      screen.getByText(
+        'When they make their first promise, you each get 50 Momenta.'
+      )
+    ).toBeTruthy();
     expect(
       await screen.findByText('You can both earn 50 Momenta')
     ).toBeTruthy();
@@ -413,7 +438,7 @@ describe('ShareInviteScreen', () => {
     expect(
       screen.getByTestId('invite-system-handoff-reserved-slot')
     ).toBeTruthy();
-    resolveShare?.({ action: 'dismissedAction' });
+    resolveShare?.({ action: Share.sharedAction });
   });
 
   it('ignores a late native share return from a former account', async () => {
@@ -447,6 +472,7 @@ describe('ShareInviteScreen', () => {
       expect(screen.getByTestId('invite-share-row')).toBeTruthy()
     );
     expect(screen.queryByText('Ready to share again')).toBeNull();
+    expect(mockTrackMetaAdsInviteFriend).not.toHaveBeenCalled();
   });
 
   it('ignores a late clipboard result from a former account', async () => {

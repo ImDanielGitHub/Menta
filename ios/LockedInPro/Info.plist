@@ -48,6 +48,10 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>ExpoWidgetsAppGroupIdentifier</key>
+	<string>group.org.example.menta.widgets</string>
+	<key>ExpoWidgets_EnablePushNotifications</key>
+	<false/>
 	<key>FacebookAdvertiserIDCollectionEnabled</key>
 	<false/>
 	<key>FacebookAutoInitEnabled</key>
@@ -55,7 +59,7 @@
 	<key>FacebookAutoLogAppEventsEnabled</key>
 	<false/>
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-9828599649408178~4557904404</string>
+	<string>ca-app-pub-3940256099942544~1458002511</string>
 	<key>GADDelayAppMeasurementInit</key>
 	<true/>
 	<key>ITSAppUsesNonExemptEncryption</key>
@@ -75,6 +79,10 @@
 	<string>Menta uses your camera only when you choose to take a photo or video for proof, or scan a group or event check-in code.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Menta uses your microphone only when you choose to record a video for proof.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
+	<key>NSSupportsLiveActivitiesFrequentUpdates</key>
+	<false/>
 	<key>NSUserActivityTypes</key>
 	<array>
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER).expo.index_route</string>

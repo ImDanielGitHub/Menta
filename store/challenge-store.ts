@@ -353,6 +353,8 @@ export interface ChallengeCreationResult {
 }
 
 export type PaidChallengeInput = Omit<Challenge, 'id' | 'createdAt'> & {
+  /** ISO weekdays (1 = Monday) that need proof. Omit for every day. */
+  checkInWeekdays?: number[] | null;
   cost: number;
 };
 
@@ -425,6 +427,11 @@ const createPaidChallengeRpcArgs = (challenge: PaidChallengeInput) => ({
   p_allow_self_review: challenge.allowSelfReview ?? false,
   p_group_id: challenge.groupId || null,
   p_cost: challenge.cost,
+  // Sent only for a weekday schedule, so every-day promises keep working
+  // against servers that predate the parameter.
+  ...(challenge.checkInWeekdays?.length
+    ? { p_check_in_weekdays: challenge.checkInWeekdays }
+    : {}),
 });
 
 const buildCreatedChallenge = ({

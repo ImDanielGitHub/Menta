@@ -8,6 +8,41 @@ import {
 } from '@/lib/today-snapshot-cache';
 
 describe('today snapshot cache', () => {
+  it('allows a live refresh when local storage cannot be read', async () => {
+    jest
+      .spyOn(AsyncStorage, 'getItem')
+      .mockRejectedValueOnce(new Error('storage unavailable'));
+    await expect(
+      readTodaySnapshotCache('user-1', '2026-09-13')
+    ).resolves.toBeNull();
+  });
+
+  it('rejects cached deadlines from a different timezone or a future clock', async () => {
+    const now = Date.parse('2026-09-13T00:00:00Z');
+    await writeTodaySnapshotCache({
+      userId: 'user-1',
+      localDay: '2026-09-13',
+      timezone: 'Pacific/Auckland',
+      savedAtIso: new Date(now).toISOString(),
+      snapshot: { submissions: [] },
+    });
+    await expect(
+      readTodaySnapshotCache(
+        'user-1',
+        '2026-09-13',
+        now + 1000,
+        'America/New_York'
+      )
+    ).resolves.toBeNull();
+    await expect(
+      readTodaySnapshotCache(
+        'user-1',
+        '2026-09-13',
+        now - 1000,
+        'Pacific/Auckland'
+      )
+    ).resolves.toBeNull();
+  });
   beforeEach(async () => {
     await AsyncStorage.clear();
     await clearTodaySnapshotCache();

@@ -203,6 +203,7 @@ jest.mock('expo-apple-authentication', () => ({
 
 // Mock Expo Crypto
 jest.mock('expo-crypto', () => ({
+  randomUUID: jest.fn(() => require('node:crypto').randomUUID()),
   digestStringAsync: jest.fn().mockResolvedValue('mock-digest'),
   CryptoDigestAlgorithm: {
     SHA256: 'SHA256',

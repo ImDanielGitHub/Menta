@@ -32,13 +32,13 @@ export const sourceGateFrCA = {
   'sourceGate.momenta.signInAgainToEarn':
     'Reconnectez-vous pour gagner des Momenta.',
   'sourceGate.momenta.dailyLimit':
-    'Vous avez obtenu les récompenses commanditées d’aujourd’hui. Réessayez demain.',
+    'Vous avez obtenu les récompenses sponsorisées d’aujourd’hui. Réessayez demain.',
   'sourceGate.momenta.cooldown':
-    'Attendez deux minutes avant de regarder un autre contenu commandité.',
+    'Attendez deux minutes avant de regarder un autre contenu sponsorisé.',
   'sourceGate.momenta.rewardUnknown':
     'Menta n’a pas pu ajouter cette récompense. Actualisez votre portefeuille avant de réessayer.',
   'sourceGate.momenta.rewardReceiptUnknown':
-    'Menta n’a pas pu vérifier le reçu de récompense. Actualisez votre portefeuille avant de regarder un autre contenu commandité.',
+    'Menta n’a pas pu vérifier le reçu de récompense. Actualisez votre portefeuille avant de regarder un autre contenu sponsorisé.',
   'sourceGate.momenta.rewardAccountChanged':
     'Le compte a changé avant la confirmation de la récompense.',
   'sourceGate.momenta.loginRequired': 'Connexion requise',
@@ -46,9 +46,9 @@ export const sourceGateFrCA = {
   'sourceGate.momenta.transactionFailed': 'La transaction a échoué',
   'sourceGate.momenta.transactionFailedDetail': 'Réessayez dans un instant.',
   'sourceGate.referral.statusUnavailable':
-    'L’état de la recommandation est indisponible.',
+    'L’état du parrainage est indisponible.',
   'sourceGate.referral.receiptUnavailable':
-    'Le reçu de recommandation est indisponible.',
+    'Le reçu de parrainage est indisponible.',
   'sourceGate.legacyUpdate.accessibilityRequired':
     'Mise à jour de Menta requise',
   'sourceGate.legacyUpdate.accessibilityAvailable':
@@ -57,11 +57,11 @@ export const sourceGateFrCA = {
   'sourceGate.legacyUpdate.titleAvailable':
     'Une nouvelle mise à jour de Menta est disponible',
   'sourceGate.legacyUpdate.bodyRequired':
-    'Installez la version la plus récente pour synchroniser vos promesses, preuves et notifications.',
+    'Installez la dernière version pour synchroniser vos promesses, preuves et notifications.',
   'sourceGate.legacyUpdate.bodyAvailable':
     'Mettez Menta à jour pour profiter des dernières améliorations de fiabilité et sur iPad.',
   'sourceGate.legacyUpdate.currentVersion': 'Sur cet appareil',
-  'sourceGate.legacyUpdate.latestVersion': 'Version la plus récente',
+  'sourceGate.legacyUpdate.latestVersion': 'Dernière version',
   'sourceGate.legacyUpdate.storeHint': 'Ouvre Menta dans l’App Store',
   'sourceGate.legacyUpdate.updateAction': 'Mettre Menta à jour',
   'sourceGate.legacyUpdate.helpAction': 'Obtenir de l’aide',

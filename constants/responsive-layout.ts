@@ -7,6 +7,7 @@ export const IPAD_TWO_COLUMN_CONTENT_MIN = 880;
 export const IPAD_NAVIGATION_RAIL_WIDTH = 216;
 export const IPAD_BOUNDED_SHEET_MIN_WIDTH = 600;
 export const IPAD_BOUNDED_SHEET_MAX_WIDTH = 600;
+export const IPAD_BOTTOM_TAB_CONTENT_MAX_WIDTH = 720;
 
 // Compatibility exports for older callers. New layout code must use resolved
 // gutters and type roles instead of multiplying iPad values.
@@ -19,10 +20,7 @@ export type AdaptiveScreenLane = 'focused' | 'working' | 'immersive' | 'full';
 export type AdaptiveWindowClass = 'phone' | 'compact' | 'medium' | 'wide';
 export type AdaptiveNavigationMode = 'bottom';
 export type AdaptivePresentationRole =
-  | 'edge'
-  | 'bounded'
-  | 'popover'
-  | 'full_screen';
+  'edge' | 'bounded' | 'popover' | 'full_screen';
 export type AdaptivePresentationGeometry = AdaptivePresentationRole;
 
 export type AdaptiveLayout = {
@@ -179,6 +177,23 @@ export const shouldUseBoundedIPadSheet = (
     lane: 'focused',
     presentationRole: 'bounded',
   }).presentationGeometry === 'bounded';
+
+/**
+ * Keeps the accepted phone tab geometry byte-for-byte at compact widths while
+ * preventing regular-width iPad tabs from drifting to unrelated screen edges.
+ */
+export const resolveIPadBottomTabContentWidth = (
+  width: number,
+  isIPad: boolean
+): number | undefined => {
+  if (!isIPad || width <= IPAD_COMPACT_WINDOW_MAX) return undefined;
+
+  const safeWidth = Number.isFinite(width) ? Math.max(0, width) : 0;
+  return Math.min(
+    IPAD_BOTTOM_TAB_CONTENT_MAX_WIDTH,
+    Math.max(0, safeWidth - mentaSpacing[10] * 2)
+  );
+};
 
 export const resolveAdaptiveScreenMaxWidth = ({
   lane,

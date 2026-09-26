@@ -7,7 +7,6 @@ import React, {
 } from 'react';
 import {
   Platform,
-  Pressable,
   RefreshControl,
   StyleSheet,
   useWindowDimensions,
@@ -16,6 +15,7 @@ import {
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import { TodayStateCard } from '@/components/loop/TodayStateCard';
+import { TodayWidgetInvitation } from '@/components/widgets/HomeWidgetEntry';
 import { ProofConnectionMosaic } from '@/components/proof/ProofConnectionMosaic';
 import {
   ProofEvidenceViewer,
@@ -38,16 +38,19 @@ import { PromisePeopleShortcut } from '@/components/home/PromisePeopleShortcut';
 import { AppScreen } from '@/components/ui/AppShell';
 import { TAB_BAR_PEEK_CLEARANCE } from '@/components/ui/ScreenWrapper';
 import { AppButton } from '@/components/ui/AppButton';
-import { AppScaledText as Text } from '@/components/ui/AppScaledText';
-import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
-import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import {
-  ChevronRightIcon,
-  EyeIcon,
-  PlusIcon,
-  RefreshCwIcon,
-  UsersIcon,
-} from '@/components/ui/icons';
+  AppScaledText as Text,
+  AppTextScaleProvider,
+} from '@/components/ui/AppScaledText';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { PlusIcon, RefreshCwIcon } from '@/components/ui/icons';
+import {
+  TodayAlsoList,
+  TodayAlsoListSkeleton,
+  type TodayAlsoItem,
+} from '@/components/today/TodayAlsoList';
+import type { TodayPromiseReceiptData } from '@/components/today/TodayPromiseReceipt';
+import { TodayStatusSection } from '@/components/today/TodayStatusSection';
 import { useUser } from '@/store/selectors';
 import { openCreateHub } from '@/lib/navigation/create-entry';
 import {
@@ -55,6 +58,7 @@ import {
   decodeGroupRiskSnapshot,
   selectDailyLoopState,
   type DailyLoopServerFacts,
+  type DailyLoopState,
   type ObligationProofStatus,
   type ServerGroupRiskFact,
   type ServerReviewFact,
@@ -94,8 +98,6 @@ import {
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
-import { useTheme } from '@/constants/ThemeContext';
-import { useLargeTypeLineLimit } from '@/lib/accessibility';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { useTranslation } from '@/lib/localization';
 import { shouldUseIPadTwoColumnLayout } from '@/constants/responsive-layout';
@@ -111,6 +113,16 @@ import {
 } from '@/lib/today-recent-media';
 
 type UnknownRecord = Record<string, unknown>;
+
+/** Hero states that are about one of the person's own promises today. */
+const RECEIPT_STATES: ReadonlySet<DailyLoopState> = new Set<DailyLoopState>([
+  'proof-due',
+  'proof-saved-local',
+  'proof-uploading',
+  'proof-pending-review',
+  'correction-requested',
+  'accepted-today',
+]);
 
 type TodayRuntimeSubmission = {
   id: string;
@@ -536,48 +548,7 @@ const fetchTodaySnapshot = async (args: {
   };
 };
 
-function TodayLedgerSkeleton({ loadingLabel }: { loadingLabel: string }) {
-  return (
-    <View
-      accessible
-      accessibilityLabel={loadingLabel}
-      accessibilityRole="progressbar"
-      style={styles.ledger}
-      testID="today-ledger-loading"
-    >
-      <View style={styles.ledgerHeader}>
-        <SkeletonLoader announce={false} height={16} width={92} />
-      </View>
-      <View style={styles.ledgerRows}>
-        {[0, 1, 2, 3].map(index => (
-          <View key={index} style={styles.ledgerRow}>
-            <SkeletonLoader
-              announce={false}
-              borderRadius={mentaRadii.round}
-              height={38}
-              width={38}
-            />
-            <View style={styles.rowCopy}>
-              <SkeletonLoader
-                announce={false}
-                height={16}
-                width={index % 2 === 0 ? '62%' : '54%'}
-              />
-              <SkeletonLoader
-                announce={false}
-                height={12}
-                width={index % 2 === 0 ? '78%' : '70%'}
-              />
-            </View>
-          </View>
-        ))}
-      </View>
-    </View>
-  );
-}
-
 export default function HomeScreen() {
-  const { colors } = useTheme();
   const { locale, t } = useTranslation();
   const phoneLayout = usePhoneLayout();
   const { height, width } = useWindowDimensions();
@@ -589,8 +560,6 @@ export default function HomeScreen() {
   const user = useUser();
   const [firstMissRecoveryVisible, setFirstMissRecoveryVisible] =
     useState(false);
-  const ledgerTitleLines = useLargeTypeLineLimit(1);
-  const ledgerDetailLines = useLargeTypeLineLimit(1);
   const { isOnline } = useNetworkState();
   const userId =
     typeof user?.id === 'string' && user.id.trim() ? user.id : null;
@@ -616,6 +585,7 @@ export default function HomeScreen() {
   const mountedRef = useRef(true);
   const activeUserIdRef = useRef<string | null>(userId);
   const refreshCoordinatorRef = useRef(createTodayRefreshCoordinator());
+  const refreshVersionRef = useRef(0);
   const initializedUserRef = useRef<string | null | undefined>(undefined);
   const lastLayoutEventRef = useRef<string | null>(null);
 
@@ -633,6 +603,7 @@ export default function HomeScreen() {
     if (!requestedUserId) return;
 
     await refreshCoordinatorRef.current.run(requestedUserId, async () => {
+      const refreshVersion = ++refreshVersionRef.current;
       const nowIso = new Date().toISOString();
       const timezone = getDeviceTimezone();
 
@@ -661,10 +632,23 @@ export default function HomeScreen() {
         }
 
         const day = buildLoopDayContext(nowIso, timezone);
-        const cached = await readTodaySnapshotCache<TodaySnapshot>(
-          requestedUserId,
-          day.localDay
-        );
+        const cached = await withTodayReadTimeout({
+          label: 'Today snapshot cache',
+          timeoutMs: TODAY_LOCAL_READ_TIMEOUT_MS,
+          read: () =>
+            readTodaySnapshotCache<TodaySnapshot>(
+              requestedUserId,
+              day.localDay,
+              Date.now(),
+              timezone
+            ),
+        }).catch(cacheError => {
+          console.warn(
+            '[Today] Could not restore cached snapshot:',
+            cacheError
+          );
+          return null;
+        });
         if (
           cached &&
           mountedRef.current &&
@@ -715,14 +699,7 @@ export default function HomeScreen() {
           locale,
           t,
         });
-        const reminderPrefs = await notificationService
-          .getUserPreferences(requestedUserId)
-          .catch(() => null);
-
         if (mountedRef.current && activeUserIdRef.current === requestedUserId) {
-          setPreferredReminderTime(
-            reminderPrefs?.preferred_reminder_time ?? null
-          );
           setSubmissions(snapshot.submissions);
           setRecentMedia(snapshot.recentMedia);
           setUnavailableSections(snapshot.unavailableSections);
@@ -751,7 +728,34 @@ export default function HomeScreen() {
             timezone: day.timezone,
             savedAtIso: nowIso,
             snapshot: { ...snapshot, recentMedia: [] },
+          }).catch(cacheError => {
+            console.warn('[Today] Could not cache snapshot:', cacheError);
           });
+
+          // Reminder copy is optional: never hold current obligations or the
+          // refresh spinner behind a second network request.
+          void withTodayReadTimeout({
+            label: 'Today reminder preferences',
+            timeoutMs: TODAY_ENRICHMENT_READ_TIMEOUT_MS,
+            read: () => notificationService.getUserPreferences(requestedUserId),
+          })
+            .then(reminderPrefs => {
+              if (
+                mountedRef.current &&
+                activeUserIdRef.current === requestedUserId &&
+                refreshVersionRef.current === refreshVersion
+              ) {
+                setPreferredReminderTime(
+                  reminderPrefs?.preferred_reminder_time ?? null
+                );
+              }
+            })
+            .catch(preferencesError => {
+              console.warn(
+                '[Today] Could not load reminder preferences:',
+                preferencesError
+              );
+            });
         }
       } catch (error) {
         console.warn('[Today] Could not refresh the daily snapshot:', error);
@@ -775,6 +779,7 @@ export default function HomeScreen() {
     setRecentMedia([]);
     setSelectedProof(null);
     setUnavailableSections([]);
+    setPreferredReminderTime(null);
     setServerFacts(
       buildInitialServerFacts({
         nowIso: new Date().toISOString(),
@@ -931,21 +936,40 @@ export default function HomeScreen() {
     });
   }, [openPromise, router, selectedSubmission, serverFacts.obligations]);
 
+  const openHistoryFor = useCallback(
+    (challengeId: string, surface: 'secondary' | 'supporting') => {
+      trackProductEvent('Today Action Selected', {
+        action: 'open_history',
+        surface,
+      });
+
+      router.push({
+        pathname: '/challenges/[id]',
+        params: { id: challengeId, view: 'history' },
+      });
+    },
+    [router]
+  );
+
   const openPromiseHistory = useCallback(() => {
     const challengeId =
       selectedSubmission?.challengeId ?? selection.primaryChallengeId;
     if (!challengeId) return;
+    openHistoryFor(challengeId, 'secondary');
+  }, [
+    openHistoryFor,
+    selectedSubmission?.challengeId,
+    selection.primaryChallengeId,
+  ]);
 
-    trackProductEvent('Today Action Selected', {
-      action: 'open_history',
-      surface: 'secondary',
-    });
+  const openStreakHistory = useCallback(
+    (challengeId: string) => openHistoryFor(challengeId, 'supporting'),
+    [openHistoryFor]
+  );
 
-    router.push({
-      pathname: '/challenges/[id]',
-      params: { id: challengeId, view: 'history' },
-    });
-  }, [router, selectedSubmission?.challengeId, selection.primaryChallengeId]);
+  const openWallet = useCallback(() => {
+    router.push('/momenta');
+  }, [router]);
 
   const resumeSavedProof = useCallback(async () => {
     const clientEventId = selection.primaryClientEventId;
@@ -1228,7 +1252,7 @@ export default function HomeScreen() {
   const supportingReviewDetail =
     supportingReviews.length === 1
       ? (supportingReviews[0].groupName ?? supportingReviews[0].challengeTitle)
-      : 'Open the review queue';
+      : t('today.home.review_queue');
   const supportingCount =
     supportingSubmissions.length +
     supportingReviews.length +
@@ -1237,6 +1261,211 @@ export default function HomeScreen() {
     serverFacts.hasServerSnapshot &&
     selection.state !== 'no-promises' &&
     supportingCount > 0;
+  const openSupportingSubmission = useCallback(
+    (
+      submission: TodayRuntimeSubmission,
+      proofStatus: ObligationProofStatus
+    ) => {
+      trackProductEvent('Today Action Selected', {
+        action:
+          proofStatus === 'none' || proofStatus === 'rejected'
+            ? 'add_proof'
+            : 'open_promise',
+        surface: 'supporting',
+      });
+      if (proofStatus === 'none' || proofStatus === 'rejected') {
+        router.push({
+          pathname: '/verification',
+          params: {
+            challengeId: submission.challengeId,
+            ...(submission.groupId ? { groupId: submission.groupId } : {}),
+            verificationType: submission.verificationType,
+            ...(submission.isSolo ? { source: 'solo' } : {}),
+          },
+        });
+        return;
+      }
+
+      if (submission.groupId) {
+        router.push(`/groups/${submission.groupId}`);
+        return;
+      }
+
+      router.push(`/challenges/${submission.challengeId}`);
+    },
+    [router]
+  );
+  const supportingItems = useMemo<TodayAlsoItem[]>(() => {
+    const items: TodayAlsoItem[] = [];
+    if (supportingReviews.length > 0) {
+      items.push({
+        key: 'reviews',
+        kind: 'review',
+        title: supportingReviewTitle,
+        detail: supportingReviewDetail,
+        accessibilityLabel: t('todayProof.today.ledger_accessibility', {
+          title: supportingReviewTitle,
+          detail: supportingReviewDetail,
+        }),
+        onPress: openSupportingReviews,
+      });
+    }
+    if (supportingRisk && supportingRiskTitle && supportingRiskDetail) {
+      items.push({
+        key: `risk-${supportingRisk.groupId}`,
+        kind: 'group-risk',
+        title: supportingRiskTitle,
+        detail: supportingRiskDetail,
+        accessibilityLabel: t('todayProof.today.ledger_accessibility', {
+          title: supportingRiskTitle,
+          detail: supportingRiskDetail,
+        }),
+        onPress: () => router.push(`/groups/${supportingRisk.groupId}`),
+      });
+    }
+    for (const submission of supportingSubmissions) {
+      const proofStatus =
+        obligationStatusByKey.get(submission.obligationKey) ?? 'none';
+      const dayLabel = submission.totalDays
+        ? t('today.progress.day_of', {
+            day: submission.dayNumber,
+            total: submission.totalDays,
+          })
+        : t('today.progress.day', { day: submission.dayNumber });
+      const statusLabel =
+        proofStatus === 'approved'
+          ? t('todayProof.promise.done_today')
+          : getSubmissionStatusLabel(proofStatus, t);
+      items.push({
+        key: submission.id,
+        kind:
+          proofStatus === 'approved'
+            ? 'proof-approved'
+            : proofStatus === 'pending'
+              ? 'proof-pending'
+              : proofStatus === 'rejected'
+                ? 'proof-correction'
+                : 'proof-due',
+        verificationType: submission.verificationType,
+        title: submission.challengeTitle,
+        detail: t('today.home.also.detail', {
+          where: submission.groupName ?? t('today.home.personal'),
+          day: dayLabel,
+        }),
+        statusLabel,
+        accessibilityLabel: t('todayProof.today.submission_accessibility', {
+          promise: submission.challengeTitle,
+          status: getSubmissionStatusLabel(proofStatus, t),
+        }),
+        onPress: () => openSupportingSubmission(submission, proofStatus),
+      });
+    }
+    return items;
+  }, [
+    obligationStatusByKey,
+    openSupportingReviews,
+    openSupportingSubmission,
+    router,
+    supportingReviewDetail,
+    supportingReviewTitle,
+    supportingReviews.length,
+    supportingRisk,
+    supportingRiskDetail,
+    supportingRiskTitle,
+    supportingSubmissions,
+    t,
+  ]);
+  const primaryObligation = useMemo(
+    () =>
+      selectedSubmission
+        ? (serverFacts.obligations.find(
+            item => item.obligationKey === selectedSubmission.obligationKey
+          ) ?? null)
+        : null,
+    [selectedSubmission, serverFacts.obligations]
+  );
+  const promiseReceipt = useMemo<TodayPromiseReceiptData | null>(() => {
+    if (!selectedSubmission || !RECEIPT_STATES.has(selection.state)) {
+      return null;
+    }
+    const proofLabel =
+      selectedSubmission.verificationType === 'video'
+        ? t('today.home.receipt.video')
+        : selectedSubmission.verificationType === 'text'
+          ? t('today.home.receipt.note')
+          : t('today.home.receipt.photo');
+    const progressLabel = selectedSubmission.totalDays
+      ? t('today.progress.day_of', {
+          day: selectedSubmission.dayNumber,
+          total: selectedSubmission.totalDays,
+        })
+      : t('today.progress.day', { day: selectedSubmission.dayNumber });
+    const statusLabel =
+      selection.state === 'proof-saved-local'
+        ? t('today.home.receipt.status_saved')
+        : selection.state === 'proof-uploading'
+          ? t('today.home.receipt.status_sending')
+          : selection.state === 'proof-pending-review'
+            ? t('today.proof.status.waiting_review')
+            : selection.state === 'correction-requested'
+              ? t('today.proof.status.correction_requested')
+              : selection.state === 'accepted-today'
+                ? t('today.proof.status.approved')
+                : t('today.proof.status.due');
+    const streak = primaryObligation?.streakCount ?? null;
+    const facts: TodayPromiseReceiptData['facts'] = [
+      {
+        label: t('today.home.receipt.today'),
+        value: statusLabel,
+        tone: selection.state === 'accepted-today' ? 'default' : 'action',
+      },
+      { label: t('today.home.receipt.proof'), value: proofLabel },
+      { label: t('today.home.receipt.progress'), value: progressLabel },
+      ...(streak !== null
+        ? [
+            {
+              label: t('today.home.receipt.streak'),
+              value: t('today.progress.streak_days', { count: streak }),
+            },
+          ]
+        : []),
+      ...(selectedSubmission.groupName
+        ? [
+            {
+              label: t('today.home.receipt.group'),
+              value: selectedSubmission.groupName,
+            },
+          ]
+        : []),
+    ];
+    // The proof-due hero already names the promise in its heading.
+    const headingNamesPromise =
+      !presentation.countdown &&
+      presentation.title === selectedSubmission.challengeTitle;
+    return {
+      title: headingNamesPromise ? null : selectedSubmission.challengeTitle,
+      meta: null,
+      facts,
+      approved: selection.state === 'accepted-today',
+    };
+  }, [
+    presentation.countdown,
+    presentation.title,
+    primaryObligation?.streakCount,
+    selectedSubmission,
+    selection.state,
+    t,
+  ]);
+  const mascotPrompt =
+    selection.state === 'no-promises'
+      ? t('today.home.bubble.no_promises')
+      : selection.state === 'returning'
+        ? t('today.home.bubble.returning')
+        : null;
+  const weekRefreshToken =
+    serverFacts.fetchStatus === 'ready' || serverFacts.fetchStatus === 'failed'
+      ? `${serverFacts.fetchStatus}:${serverFacts.fetchedAtIso ?? 'none'}`
+      : null;
   const personalSubmissions = useMemo(
     () => submissions.filter(submission => submission.isSolo),
     [submissions]
@@ -1348,6 +1577,21 @@ export default function HomeScreen() {
         </View>
       </View>
 
+      <ErrorBoundary level="component">
+        <AppTextScaleProvider scale={phoneLayout.textScale}>
+          <TodayStatusSection
+            localDay={serverFacts.localDay}
+            obligations={serverFacts.obligations}
+            onOpenPromiseHistory={openStreakHistory}
+            onOpenWallet={openWallet}
+            ready={serverFacts.hasServerSnapshot}
+            refreshToken={weekRefreshToken}
+            showWeek={serverFacts.obligations.length > 0}
+            userId={userId}
+          />
+        </AppTextScaleProvider>
+      </ErrorBoundary>
+
       <FirstMissRecovery
         key={userId ?? 'signed-out'}
         ready={storeReviewRequestReady}
@@ -1367,28 +1611,28 @@ export default function HomeScreen() {
       >
         <View style={styles.dashboardPrimary}>
           <ErrorBoundary level="component">
-            <TodayStateCard
-              presentation={presentation}
-              textScale={phoneLayout.textScale}
-              progress={
-                selectedSubmission
-                  ? {
-                      streakCount: selectedSubmission.streakCount,
-                      dayNumber: selectedSubmission.dayNumber,
-                      totalDays: selectedSubmission.totalDays,
-                    }
-                  : null
-              }
-              onPrimaryPress={handlePrimaryPress}
-              onSecondaryPress={
-                presentation.secondaryLabel ? handleSecondaryPress : null
-              }
-              onRemindLater={
-                presentation.countdown ? () => snoozeCoachMessages() : null
-              }
-              primaryDisabled={primaryDisabled}
-            />
+            {/* Paper 19 / T03: the first-miss decision replaces the card. */}
+            {firstMissRecoveryVisible ? null : (
+              <TodayStateCard
+                presentation={presentation}
+                textScale={phoneLayout.textScale}
+                promiseReceipt={promiseReceipt}
+                mascotPrompt={mascotPrompt}
+                onPrimaryPress={handlePrimaryPress}
+                onSecondaryPress={
+                  presentation.secondaryLabel ? handleSecondaryPress : null
+                }
+                onRemindLater={
+                  presentation.countdown ? () => snoozeCoachMessages() : null
+                }
+                primaryDisabled={primaryDisabled}
+              />
+            )}
           </ErrorBoundary>
+
+          <TodayWidgetInvitation
+            eligible={selection.state === 'accepted-today'}
+          />
 
           {recentMedia.length > 0 ? (
             <ErrorBoundary level="component">
@@ -1487,199 +1731,16 @@ export default function HomeScreen() {
 
             <ErrorBoundary level="component">
               {presentation.state === 'loading' ? (
-                <TodayLedgerSkeleton
+                <TodayAlsoListSkeleton
                   loadingLabel={t('todayProof.today.loading_accessibility')}
                 />
               ) : showSupportingLedger ? (
-                <View style={styles.ledger}>
-                  <View style={styles.ledgerHeader}>
-                    <Text
-                      style={styles.ledgerTitle}
-                      textScale={phoneLayout.textScale}
-                    >
-                      {t('todayProof.today.more')}
-                    </Text>
-                  </View>
-
-                  {supportingReviews.length > 0 ? (
-                    <Pressable
-                      accessibilityLabel={t(
-                        'todayProof.today.ledger_accessibility',
-                        {
-                          title: supportingReviewTitle,
-                          detail: supportingReviewDetail,
-                        }
-                      )}
-                      accessibilityRole="button"
-                      onPress={openSupportingReviews}
-                      style={({ pressed }) => [
-                        styles.reviewPrompt,
-                        pressed
-                          ? { backgroundColor: colors.accent.background }
-                          : null,
-                      ]}
-                    >
-                      <EyeIcon color={colors.accent.primary} size={18} />
-                      <View style={styles.rowCopy}>
-                        <Text
-                          numberOfLines={ledgerTitleLines}
-                          style={styles.reviewPromptTitle}
-                          textScale={phoneLayout.textScale}
-                        >
-                          {supportingReviewTitle}
-                        </Text>
-                        <Text
-                          numberOfLines={ledgerDetailLines}
-                          style={styles.reviewPromptDetail}
-                          textScale={phoneLayout.textScale}
-                        >
-                          {supportingReviewDetail}
-                        </Text>
-                      </View>
-                      <ChevronRightIcon
-                        color={mentaColors.text.secondary}
-                        size={18}
-                      />
-                    </Pressable>
-                  ) : null}
-
-                  {supportingRisk ? (
-                    <Pressable
-                      accessibilityLabel={t(
-                        'todayProof.today.ledger_accessibility',
-                        {
-                          title: supportingRiskTitle ?? '',
-                          detail: supportingRiskDetail ?? '',
-                        }
-                      )}
-                      accessibilityRole="button"
-                      onPress={() =>
-                        router.push(`/groups/${supportingRisk.groupId}`)
-                      }
-                      style={({ pressed }) => [
-                        styles.riskPrompt,
-                        pressed ? styles.rowPressed : null,
-                      ]}
-                    >
-                      <UsersIcon color={mentaColors.warning} size={18} />
-                      <View style={styles.rowCopy}>
-                        <Text
-                          numberOfLines={ledgerTitleLines}
-                          style={styles.riskPromptTitle}
-                          textScale={phoneLayout.textScale}
-                        >
-                          {supportingRiskTitle}
-                        </Text>
-                        <Text
-                          numberOfLines={ledgerDetailLines}
-                          style={styles.riskPromptText}
-                          textScale={phoneLayout.textScale}
-                        >
-                          {supportingRiskDetail}
-                        </Text>
-                      </View>
-                      <ChevronRightIcon
-                        color={mentaColors.text.secondary}
-                        size={18}
-                      />
-                    </Pressable>
-                  ) : null}
-
-                  {supportingSubmissions.length > 0 ? (
-                    <View style={styles.ledgerRows}>
-                      {supportingSubmissions.map(submission => {
-                        const proofStatus =
-                          obligationStatusByKey.get(submission.obligationKey) ??
-                          'none';
-                        const dayLabel = submission.totalDays
-                          ? `Day ${submission.dayNumber} of ${submission.totalDays}`
-                          : `Day ${submission.dayNumber}`;
-
-                        return (
-                          <Pressable
-                            accessibilityLabel={t(
-                              'todayProof.today.submission_accessibility',
-                              {
-                                promise: submission.challengeTitle,
-                                status: getSubmissionStatusLabel(
-                                  proofStatus,
-                                  t
-                                ),
-                              }
-                            )}
-                            accessibilityRole="button"
-                            key={submission.id}
-                            onPress={() => {
-                              if (
-                                proofStatus === 'none' ||
-                                proofStatus === 'rejected'
-                              ) {
-                                router.push({
-                                  pathname: '/verification',
-                                  params: {
-                                    challengeId: submission.challengeId,
-                                    ...(submission.groupId
-                                      ? { groupId: submission.groupId }
-                                      : {}),
-                                    verificationType:
-                                      submission.verificationType,
-                                    ...(submission.isSolo
-                                      ? { source: 'solo' }
-                                      : {}),
-                                  },
-                                });
-                                return;
-                              }
-
-                              if (submission.groupId) {
-                                router.push(`/groups/${submission.groupId}`);
-                                return;
-                              }
-
-                              router.push(
-                                `/challenges/${submission.challengeId}`
-                              );
-                            }}
-                            style={({ pressed }) => [
-                              styles.ledgerRow,
-                              pressed ? styles.paperRowPressed : null,
-                            ]}
-                          >
-                            <View style={styles.rowCopy}>
-                              <Text
-                                numberOfLines={ledgerTitleLines}
-                                style={styles.rowTitle}
-                                textScale={phoneLayout.textScale}
-                              >
-                                {submission.challengeTitle}
-                              </Text>
-                              <Text
-                                numberOfLines={ledgerDetailLines}
-                                style={styles.rowDetail}
-                                textScale={phoneLayout.textScale}
-                              >
-                                {submission.groupName ?? 'Personal'} ·{' '}
-                                {dayLabel}
-                              </Text>
-                              <Text
-                                style={styles.rowStatus}
-                                textScale={phoneLayout.textScale}
-                              >
-                                {proofStatus === 'approved'
-                                  ? t('todayProof.promise.done_today')
-                                  : getSubmissionStatusLabel(proofStatus, t)}
-                              </Text>
-                            </View>
-                            <ChevronRightIcon
-                              color={mentaColors.text.mutedOnPaper}
-                              size={18}
-                            />
-                          </Pressable>
-                        );
-                      })}
-                    </View>
-                  ) : null}
-                </View>
+                <AppTextScaleProvider scale={phoneLayout.textScale}>
+                  <TodayAlsoList
+                    heading={t('todayProof.today.more')}
+                    items={supportingItems}
+                  />
+                </AppTextScaleProvider>
               ) : null}
             </ErrorBoundary>
           </View>
@@ -1770,101 +1831,5 @@ const styles = StyleSheet.create({
     ...mentaTypography.caption,
     color: mentaColors.text.primary,
     flex: 1,
-  },
-  welcomeBonusSlot: {
-    alignSelf: 'stretch',
-    marginTop: -mentaSpacing[2],
-    width: '100%',
-  },
-  ledger: {
-    alignSelf: 'stretch',
-    marginTop: mentaSpacing[1],
-    width: '100%',
-  },
-  ledgerHeader: {
-    paddingBottom: mentaSpacing[3],
-  },
-  ledgerTitle: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  ledgerRows: {
-    gap: mentaSpacing[3],
-  },
-  ledgerRow: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.paper,
-    borderRadius: mentaRadii.large,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 76,
-    paddingHorizontal: mentaSpacing[5],
-    paddingVertical: mentaSpacing[5],
-  },
-  rowPressed: {
-    backgroundColor: mentaColors.actionSoft,
-  },
-  paperRowPressed: {
-    backgroundColor: mentaColors.paperPressed,
-  },
-  rowCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  rowTitle: {
-    ...mentaTypography.title,
-    color: mentaColors.text.onPaper,
-  },
-  rowDetail: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.mutedOnPaper,
-    marginTop: mentaSpacing[2],
-  },
-  rowStatus: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.text.onPaper,
-    marginTop: mentaSpacing[3],
-    flexShrink: 1,
-    minWidth: 0,
-  },
-  reviewPrompt: {
-    alignItems: 'center',
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 82,
-    paddingHorizontal: 0,
-    paddingVertical: mentaSpacing[3],
-  },
-  reviewPromptTitle: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.text.primary,
-    minWidth: 0,
-  },
-  reviewPromptDetail: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-    marginTop: 2,
-  },
-  riskPrompt: {
-    alignItems: 'center',
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 76,
-    paddingHorizontal: 0,
-    paddingVertical: mentaSpacing[3],
-  },
-  riskPromptTitle: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.text.primary,
-    minWidth: 0,
-  },
-  riskPromptText: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-    marginTop: 2,
   },
 });

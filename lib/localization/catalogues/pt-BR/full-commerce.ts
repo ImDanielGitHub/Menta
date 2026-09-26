@@ -280,6 +280,48 @@ export const fullCommercePtBR = {
   'commerce.shop.appearance.fortnightFrame': 'Moldura quinzenal',
   'commerce.shop.appearance.monthFrame': 'Moldura mensal',
   'commerce.shop.appearance.seasonFrame': 'Moldura sazonal',
+  'commerce.shop.appearance.emberDescription':
+    'Botões e destaques em âmbar quente.',
+  'commerce.shop.appearance.glacierDescription':
+    'Botões e destaques em ciano gelado.',
+  'commerce.shop.appearance.auroraDescription':
+    'Botões e destaques em verde-menta de aurora boreal.',
+  'commerce.shop.appearance.irisDescription':
+    'Botões e destaques em índigo frio.',
+  'commerce.shop.appearance.cobaltDescription':
+    'Botões e destaques em azul elétrico.',
+  'commerce.shop.appearance.jadeDescription':
+    'Botões e destaques em verde-esmeralda.',
+  'commerce.shop.appearance.orchidDescription':
+    'Botões e destaques em magenta frio.',
+  'commerce.shop.appearance.horizonDescription':
+    'Botões e destaques em azul-céu.',
+  'commerce.shop.appearance.graphiteDescription':
+    'Botões e destaques em prata fria.',
+  'commerce.shop.appearance.neonDescription':
+    'Botões e destaques em ciano e verde-limão.',
+  'commerce.shop.appearance.tidepoolDescription':
+    'Botões e destaques em azul-petróleo profundo.',
+  'commerce.shop.appearance.goldFrameDescription':
+    'Um anel dourado quente ao redor da sua foto de perfil.',
+  'commerce.shop.appearance.violetFrameDescription':
+    'Um anel do dourado ao violeta ao redor da sua foto de perfil.',
+  'commerce.shop.appearance.iceFrameDescription':
+    'Um anel ciano glacial ao redor da sua foto de perfil.',
+  'commerce.shop.appearance.neonFrameDescription':
+    'Um anel ciano, verde-limão e magenta ao redor da sua foto de perfil.',
+  'commerce.shop.appearance.obsidianFrameDescription':
+    'Um anel cinza-ardósia ao redor da sua foto de perfil.',
+  'commerce.shop.appearance.sparkFrameDescription':
+    'Um anel verde-menta ao redor da sua foto de perfil.',
+  'commerce.shop.appearance.weekFrameDescription':
+    'Um anel do menta ao índigo ao redor da sua foto de perfil.',
+  'commerce.shop.appearance.fortnightFrameDescription':
+    'Um anel índigo mais grosso ao redor da sua foto de perfil.',
+  'commerce.shop.appearance.monthFrameDescription':
+    'Um anel azul-aurora ao redor da sua foto de perfil.',
+  'commerce.shop.appearance.seasonFrameDescription':
+    'Um anel menta, índigo e orquídea ao redor da sua foto de perfil.',
   'commerce.shop.automaticProtection': 'Proteção automática',
   'commerce.shop.automaticProtectionDetail':
     'Menta aplica esses após um dia perdido elegível.',
@@ -396,7 +438,7 @@ export const fullCommercePtBR = {
   'commerce.shop.purchaseComplete': 'Concluído',
   'commerce.shop.styleActivated': '{name} está em uso',
   'commerce.shop.boughtAndUsing':
-    'Você comprou {name}, e o Menta agora está usando.',
+    'Você comprou {name} e a Menta já está usando.',
   'commerce.shop.tapUseStyle':
     '{message} Toque em Usar este estilo para aplicar.',
   'commerce.shop.refreshIfMissing':
@@ -559,7 +601,7 @@ export const fullCommercePtBR = {
     'Você não foi cobrado. Pode escolher um plano quando estiver pronto.',
   'commerce.paywall.purchaseFailed': 'A compra não foi concluída',
   'commerce.paywall.purchaseFailedDetail':
-    'O Pro não foi ativado. Verifique sua conexão e tente novamente.',
+    'O Pro não foi ativado. Verifique o acesso Pro antes de tentar novamente.',
   'commerce.paywall.restoreFailed': 'Não foi possível restaurar compras',
   'commerce.paywall.restoreFailedDetail':
     'Verifique sua conexão e tente novamente. Nenhum valor foi cobrado.',
@@ -783,10 +825,66 @@ export const fullCommercePtBR = {
   'commerce.economy.quotaActiveTitle':
     'Você atingiu o limite de promessas gratuitas',
   'commerce.economy.quotaActiveMessage':
-    'Contas grátis podem manter 2 promessas ativas. Termine ou deixe uma, ou comece Pro antes de criar outra.',
+    'Contas grátis podem manter {limit} promessas ativas. Termine ou deixe uma, ou comece Pro antes de criar outra.',
   'commerce.economy.quotaMonthlyTitle': 'Limite mensal de criação atingido',
   'commerce.economy.quotaMonthlyMessage':
     'O plano grátis inclui 4 novas promessas por mês. Seu rascunho ainda está aqui.',
+  'commerce.shop.balanceChipAccessibility':
+    'Saldo de Momenta: {amount}. Abre sua carteira.',
+  'commerce.shop.tagNew': 'Novo',
+  'commerce.shop.quantity': '×{count}',
+  'commerce.shop.seeAllItems': 'Ver tudo',
+  'commerce.shop.cardAccessibility': '{name}. {price}. {status}.',
+  'commerce.shop.ownedTileAccessibility': '{name}. {state}.',
+  'commerce.shop.itemActionAccessibility': '{action}: {name}',
+  'commerce.shop.detailSummaryAccessibility':
+    '{kind}. {name}. {status}. {price}.',
+  'commerce.shop.buying': 'Comprando…',
+  'commerce.shop.topUpBubble':
+    'Faltam {amount} Momenta para {name}. Veja como ganhá-los.',
+  'commerce.shop.refreshCountIfStale':
+    '{message} Atualize seus itens se a quantidade disponível não tiver mudado.',
+  'commerce.shop.checkStatusIfStale':
+    '{message} Verifique o status se o saldo ou o inventário não atualizarem logo.',
+  'commerce.shop.inYourItems':
+    '{name} está nos seus itens. Seu saldo foi atualizado.',
+  'commerce.celebrate.added': '{name} adicionado.',
+  'commerce.celebrate.gain': '+{count}',
+  'commerce.celebrate.youHave': 'Agora você tem',
+  'commerce.celebrate.styleNotActive':
+    'Já é seu. O Menta ainda não conseguiu ativá-lo. Toque em Usar este estilo para aplicá-lo.',
+  'commerce.wallet.earnOptionAccessibility': '{title}. {meta}. {value}.',
+  'commerce.freeze.remaining': 'Restam {count} congelamentos',
+  'commerce.freeze.remaining.one': 'Resta {count} congelamento',
+  'commerce.freeze.remaining.other': 'Restam {count} congelamentos',
+  'commerce.freeze.getAnother': 'Obter outro congelamento',
+  'commerce.freeze.getFirst': 'Obter um congelamento de sequência',
+  'commerce.freeze.protectedTitle':
+    'Seu congelamento de sequência protegeu sua sequência de {count} dias.',
+  'commerce.firstMiss.open': 'Pegue seu congelamento de sequência grátis',
+  'commerce.firstMiss.accessibility': 'Seu primeiro dia perdido',
+  'commerce.firstMiss.titleOffer': 'Perdeu um dia? Vamos continuar.',
+  'commerce.firstMiss.titleConfirmed': 'Seu dia perdido está coberto.',
+  'commerce.firstMiss.bodyConfirmedStreak':
+    'Seu congelamento grátis protegeu sua sequência de {count} dias. Adicione uma prova hoje para continuar.',
+  'commerce.firstMiss.bodyConfirmed':
+    'Seu congelamento grátis cobriu o dia perdido. Adicione uma prova hoje para começar sua sequência.',
+  'commerce.firstMiss.noteConfirmed':
+    'O congelamento cobre apenas o dia perdido. Ele não conta como prova concluída.',
+  'commerce.firstMiss.backToToday': 'Voltar para Hoje',
+  'commerce.firstMiss.errorUnconfirmed':
+    'Não foi possível confirmar o congelamento. Tente novamente.',
+  'commerce.firstMiss.errorUnavailable':
+    'Esta oferta do primeiro dia não está mais disponível. Você ainda pode adicionar uma prova hoje.',
+  'commerce.firstMiss.bubble':
+    '{weekday} passou batido. Acontece com todo mundo.',
+  'commerce.firstMiss.decisionTitle': 'Manter sua sequência de {count} dias?',
+  'commerce.firstMiss.decisionBody':
+    'Seu primeiro dia perdido é por nossa conta. Uma proteção de sequência grátis cobre {weekday}, e sua sequência continua em {count}.',
+  'commerce.firstMiss.decisionBodyNoCount':
+    'Seu primeiro dia perdido é por nossa conta. Uma proteção de sequência grátis cobre {weekday}.',
+  'commerce.firstMiss.keep': 'Manter minha sequência grátis',
+  'commerce.firstMiss.startOver': 'Recomeçar do dia 1',
 } as const;
 
 export type FullCommercePtBRKey = keyof typeof fullCommercePtBR;

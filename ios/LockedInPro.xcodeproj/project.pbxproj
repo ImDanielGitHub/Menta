@@ -19,6 +19,11 @@
 		844F957347424BDCB38610A1 /* OneSignalNotificationServiceExtension.appex in Copy Files */ = {isa = PBXBuildFile; fileRef = 6B9215BF1F3C483B8978DD92 /* OneSignalNotificationServiceExtension.appex */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
+		810B405EBFEB44ED8EE75677 /* index.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C3438CF4CC4A3F81EA197E /* index.swift */; };
+		0D40B028A22B40C1980DAB25 /* MentaStreak.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0631D1392CAA418097C4934B /* MentaStreak.swift */; };
+		6F30D13EDA934A3493C2D727 /* ExpoWidgetsTarget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 225DE61772C946DC9BDBF63B /* ExpoWidgetsTarget.appex */; };
+		55A45277219E4A8B9BA5D222 /* ExpoWidgetsTarget.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = 1B9BD8231AB147BCA0DDC6D4 /* ExpoWidgetsTarget.entitlements */; };
+		22DA98A740C04F4CBC1F2A5D /* Newsreader_600SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 998753425DFD416883FE5B9C /* Newsreader_600SemiBold.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,6 +41,13 @@
 			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
 			remoteInfo = LockedInPro;
 		};
+		785A13C93CA34AC6A947269E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 37D68CB5925A4BB5B4577B10;
+			remoteInfo = ExpoWidgetsTarget;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -49,6 +61,17 @@
 			);
 			name = "Copy Files";
 			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9A41A5031F0C4E938F258993 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6F30D13EDA934A3493C2D727 /* ExpoWidgetsTarget.appex in Embed Foundation Extensions */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			name = "Embed Foundation Extensions";
+			dstPath = "";
+			dstSubfolderSpec = 13;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
@@ -77,6 +100,12 @@
 		F11748442D0722820044C1D9 /* LockedInPro-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.c.h; name = "LockedInPro-Bridging-Header.h"; path = "LockedInPro/LockedInPro-Bridging-Header.h"; sourceTree = "<group>"; };
 		F477B53B7796A8FED2A0B34B /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-LockedInPro/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		F8D7ED253C222A1C624C4235 /* LockedInProUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LockedInProUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		225DE61772C946DC9BDBF63B /* ExpoWidgetsTarget.appex */ = {isa = PBXFileReference; name = "ExpoWidgetsTarget.appex"; path = "ExpoWidgetsTarget.appex"; sourceTree = BUILT_PRODUCTS_DIR; fileEncoding = undefined; lastKnownFileType = undefined; explicitFileType = wrapper.app-extension; includeInIndex = 0; };
+		00C3438CF4CC4A3F81EA197E /* index.swift */ = {isa = PBXFileReference; name = "index.swift"; path = "index.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
+		0631D1392CAA418097C4934B /* MentaStreak.swift */ = {isa = PBXFileReference; name = "MentaStreak.swift"; path = "MentaStreak.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
+		1B9BD8231AB147BCA0DDC6D4 /* ExpoWidgetsTarget.entitlements */ = {isa = PBXFileReference; name = "ExpoWidgetsTarget.entitlements"; path = "ExpoWidgetsTarget.entitlements"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		998753425DFD416883FE5B9C /* Newsreader_600SemiBold.ttf */ = {isa = PBXFileReference; name = "Newsreader_600SemiBold.ttf"; path = "ExpoWidgetsTarget/Newsreader_600SemiBold.ttf"; sourceTree = "<group>"; lastKnownFileType = file; includeInIndex = 0; };
+		25849964F2604F8B86D8A9FF /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -100,6 +129,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				5A392BD11D2256E599AB1E90 /* libPods-OneSignalNotificationServiceExtension.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		435D9E6DC2C248D28492B402 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -179,6 +215,8 @@
 				35EDE08ABDA38CB7CA8552FE /* ExpoModulesProviders */,
 				2D8D44E95818AA39673291A4 /* LockedInProUITests */,
 				A288FFB9781A4795952FAD4F /* OneSignalNotificationServiceExtension */,
+				FF4C781F6AC74EDEB001BAFF /* ExpoWidgetsTarget */,
+				A9AFC85F46494811944FEE0D /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -191,6 +229,7 @@
 				13B07F961A680F5B00A75B9A /* LockedInPro.app */,
 				F8D7ED253C222A1C624C4235 /* LockedInProUITests.xctest */,
 				6B9215BF1F3C483B8978DD92 /* OneSignalNotificationServiceExtension.appex */,
+				225DE61772C946DC9BDBF63B /* ExpoWidgetsTarget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -223,6 +262,26 @@
 			name = LockedInPro;
 			sourceTree = "<group>";
 		};
+		FF4C781F6AC74EDEB001BAFF /* ExpoWidgetsTarget */ = {
+			isa = PBXGroup;
+			children = (
+				1B9BD8231AB147BCA0DDC6D4 /* ExpoWidgetsTarget.entitlements */,
+				25849964F2604F8B86D8A9FF /* Info.plist */,
+				00C3438CF4CC4A3F81EA197E /* index.swift */,
+				0631D1392CAA418097C4934B /* MentaStreak.swift */,
+			);
+			name = ExpoWidgetsTarget;
+			path = ExpoWidgetsTarget;
+			sourceTree = "<group>";
+		};
+		A9AFC85F46494811944FEE0D /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				998753425DFD416883FE5B9C /* Newsreader_600SemiBold.ttf */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -235,6 +294,7 @@
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
+				9A41A5031F0C4E938F258993 /* Embed Foundation Extensions */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
 				0BCE8C93CBAD49AC9373A9C6 /* [Expo Dev Launcher] Strip Local Network Keys for Release */,
@@ -247,6 +307,7 @@
 			);
 			dependencies = (
 				1C9122ABB9DF4A82B0AD428E /* PBXTargetDependency */,
+				865B4D1DDCCA47988A66913B /* PBXTargetDependency */,
 			);
 			name = LockedInPro;
 			productName = Menta;
@@ -289,6 +350,23 @@
 			productReference = 6B9215BF1F3C483B8978DD92 /* OneSignalNotificationServiceExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		37D68CB5925A4BB5B4577B10 /* ExpoWidgetsTarget */ = {
+			isa = PBXNativeTarget;
+			name = ExpoWidgetsTarget;
+			productName = ExpoWidgetsTarget;
+			productReference = 225DE61772C946DC9BDBF63B;
+			productType = "com.apple.product-type.app-extension";
+			buildConfigurationList = B94066E4FE4643D4A877F506;
+			buildPhases = (
+				D4999529494B4DCF8139A189 /* Sources */,
+				435D9E6DC2C248D28492B402 /* Frameworks */,
+				6C02D4E9D65846A49146CAE5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -302,6 +380,9 @@
 					};
 					A0673E62287248FEA5A32F92 = {
 						DevelopmentTeam = 7PDP8J2L53;
+					};
+					37D68CB5925A4BB5B4577B10 = {
+						LastSwiftMigration = 1250;
 					};
 				};
 			};
@@ -321,6 +402,7 @@
 				13B07F861A680F5B00A75B9A /* LockedInPro */,
 				94D3B552EB8498E14E3FEEAC /* LockedInProUITests */,
 				A0673E62287248FEA5A32F92 /* OneSignalNotificationServiceExtension */,
+				37D68CB5925A4BB5B4577B10 /* ExpoWidgetsTarget */,
 			);
 		};
 /* End PBXProject section */
@@ -351,6 +433,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		6C02D4E9D65846A49146CAE5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				22DA98A740C04F4CBC1F2A5D /* Newsreader_600SemiBold.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
@@ -373,7 +463,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [[ -f \"$PODS_ROOT/../.xcode.env\" ]]; then\n  source \"$PODS_ROOT/../.xcode.env\"\nfi\nif [[ -f \"$PODS_ROOT/../.xcode.env.local\" ]]; then\n  source \"$PODS_ROOT/../.xcode.env.local\"\nfi\n\n# The project root by default is one level up from the ios directory\nexport PROJECT_ROOT=\"$PROJECT_DIR\"/..\n\nif [[ \"$CONFIGURATION\" = *Debug* ]]; then\n  export SKIP_BUNDLING=1\nfi\nif [[ -z \"$ENTRY_FILE\" ]]; then\n  # Set the entry JS file using the bundler's entry resolution.\n  export ENTRY_FILE=\"$(\"$NODE_BINARY\" -e \"require('expo/scripts/resolveAppEntry')\" \"$PROJECT_ROOT\" ios absolute | tail -n 1)\"\nfi\n\nif [[ -z \"$CLI_PATH\" ]]; then\n  # Use Expo CLI\n  export CLI_PATH=\"$(\"$NODE_BINARY\" --print \"require.resolve('@expo/cli', { paths: [require.resolve('expo/package.json')] })\")\"\nfi\nif [[ -z \"$BUNDLE_COMMAND\" ]]; then\n  # Default Expo CLI command for bundling\n  export BUNDLE_COMMAND=\"export:embed\"\nfi\n\n# Source .xcode.env.updates if it exists to allow\n# SKIP_BUNDLING to be unset if needed\nif [[ -f \"$PODS_ROOT/../.xcode.env.updates\" ]]; then\n  source \"$PODS_ROOT/../.xcode.env.updates\"\nfi\n# Source local changes to allow overrides\n# if needed\nif [[ -f \"$PODS_ROOT/../.xcode.env.local\" ]]; then\n  source \"$PODS_ROOT/../.xcode.env.local\"\nfi\n\n/bin/sh `\"$NODE_BINARY\" --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode.sh'\"` `\"$NODE_BINARY\" --print \"require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/react-native-xcode.sh'\"`\n\n";
+			shellScript = "if [[ -f \"$PODS_ROOT/../.xcode.env\" ]]; then\n  source \"$PODS_ROOT/../.xcode.env\"\nfi\nif [[ -f \"$PODS_ROOT/../.xcode.env.local\" ]]; then\n  source \"$PODS_ROOT/../.xcode.env.local\"\nfi\n\n# The project root by default is one level up from the ios directory\nexport PROJECT_ROOT=\"$PROJECT_DIR\"/..\n\nif [[ \"$CONFIGURATION\" = *Debug* ]]; then\n  export SKIP_BUNDLING=1\nfi\nif [[ -z \"$ENTRY_FILE\" ]]; then\n  # Set the entry JS file using the bundler's entry resolution.\n  export ENTRY_FILE=\"$(\"$NODE_BINARY\" -e \"require('expo/scripts/resolveAppEntry')\" \"$PROJECT_ROOT\" ios absolute | tail -n 1)\"\nfi\n\nif [[ -z \"$CLI_PATH\" ]]; then\n  # Use Expo CLI\n  export CLI_PATH=\"$(\"$NODE_BINARY\" --print \"require.resolve('@expo/cli', { paths: [require.resolve('expo/package.json')] })\")\"\nfi\nif [[ -z \"$BUNDLE_COMMAND\" ]]; then\n  # Default Expo CLI command for bundling\n  export BUNDLE_COMMAND=\"export:embed\"\nfi\n\n# Source .xcode.env.updates if it exists to allow\n# SKIP_BUNDLING to be unset if needed\nif [[ -f \"$PODS_ROOT/../.xcode.env.updates\" ]]; then\n  source \"$PODS_ROOT/../.xcode.env.updates\"\nfi\n# Source local changes to allow overrides\n# if needed\nif [[ -f \"$PODS_ROOT/../.xcode.env.local\" ]]; then\n  source \"$PODS_ROOT/../.xcode.env.local\"\nfi\n\n/bin/sh \"`\"$NODE_BINARY\" --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode.sh'\"`\" \"`\"$NODE_BINARY\" --print \"require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/react-native-xcode.sh'\"`\"\n\n";
 		};
 		08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -490,7 +580,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/bin/sh `${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
+			shellScript = "/bin/sh \"`${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`\"";
 		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -669,6 +759,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D4999529494B4DCF8139A189 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				810B405EBFEB44ED8EE75677 /* index.swift in Sources */,
+				0D40B028A22B40C1980DAB25 /* MentaStreak.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -682,6 +781,11 @@
 			name = LockedInPro;
 			target = 13B07F861A680F5B00A75B9A /* LockedInPro */;
 			targetProxy = 7EDBEFE4F420AAB8BD9A6549 /* PBXContainerItemProxy */;
+		};
+		865B4D1DDCCA47988A66913B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 37D68CB5925A4BB5B4577B10 /* ExpoWidgetsTarget */;
+			targetProxy = 785A13C93CA34AC6A947269E /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -707,7 +811,7 @@
 					"@executable_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.4;
-				MARKETING_VERSION = 1.9.3;
+				MARKETING_VERSION = 1.9.6;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -741,7 +845,7 @@
 					"@executable_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.4;
-				MARKETING_VERSION = 1.9.3;
+				MARKETING_VERSION = 1.9.6;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -777,7 +881,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.9.3;
+				MARKETING_VERSION = 1.9.6;
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = org.example.menta.OneSignalNotificationServiceExtension;
 				PRODUCT_NAME = OneSignalNotificationServiceExtension;
@@ -975,7 +1079,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.9.3;
+				MARKETING_VERSION = 1.9.6;
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = org.example.menta.OneSignalNotificationServiceExtension;
 				PRODUCT_NAME = OneSignalNotificationServiceExtension;
@@ -984,6 +1088,48 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
+		};
+		62E849E19BB54E94BF665F81 /* Debug */ = {
+			name = Debug;
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				INFOPLIST_FILE = ExpoWidgetsTarget/Info.plist;
+				CURRENT_PROJECT_VERSION = "154";
+				IPHONEOS_DEPLOYMENT_TARGET = "16.4";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.example.menta.streakwidgets";
+				GENERATE_INFOPLIST_FILE = "YES";
+				INFOPLIST_KEY_CFBundleDisplayName = ExpoWidgetsTarget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				MARKETING_VERSION = "1.9.6";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				CODE_SIGN_ENTITLEMENTS = "ExpoWidgetsTarget/ExpoWidgetsTarget.entitlements";
+				APPLICATION_EXTENSION_API_ONLY = "YES";
+				DEVELOPMENT_TEAM = "";
+			};
+		};
+		6BF4C80EC28245EB9AB4E5E9 /* Release */ = {
+			name = Release;
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				INFOPLIST_FILE = ExpoWidgetsTarget/Info.plist;
+				CURRENT_PROJECT_VERSION = "154";
+				IPHONEOS_DEPLOYMENT_TARGET = "16.4";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.example.menta.streakwidgets";
+				GENERATE_INFOPLIST_FILE = "YES";
+				INFOPLIST_KEY_CFBundleDisplayName = ExpoWidgetsTarget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				MARKETING_VERSION = "1.9.6";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				CODE_SIGN_ENTITLEMENTS = "ExpoWidgetsTarget/ExpoWidgetsTarget.entitlements";
+				APPLICATION_EXTENSION_API_ONLY = "YES";
+				DEVELOPMENT_TEAM = "";
+			};
 		};
 /* End XCBuildConfiguration section */
 
@@ -1020,6 +1166,15 @@
 			buildConfigurations = (
 				7FB51BA1BC564FB6930BEE6F /* Debug */,
 				E2221C5C136A46A98EC9DBB0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B94066E4FE4643D4A877F506 /* Build configuration list for PBXNativeTarget "ExpoWidgetsTarget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				62E849E19BB54E94BF665F81 /* Debug */,
+				6BF4C80EC28245EB9AB4E5E9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

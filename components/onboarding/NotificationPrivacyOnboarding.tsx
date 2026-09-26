@@ -1194,6 +1194,7 @@ const styles = StyleSheet.create({
   preAuthLane: {
     alignSelf: 'center',
     flexGrow: 1,
+    maxWidth: 780,
     paddingBottom: mentaSpacing[6],
     paddingTop: mentaSpacing[2],
     width: '100%',

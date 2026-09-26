@@ -11,7 +11,7 @@ export const todayStatesFrFR = {
   'today.state.protected.title': 'Série protégée',
   'today.state.protected.count_continues': ' La série reste à {count}.',
   'today.state.protected.freeze_detail':
-    'Une protection de série a couvert le jour manqué du {weekday}. Ce jour reste dans votre historique.{countCopy}',
+    'Un gel de série a couvert le jour manqué du {weekday}. Ce jour reste dans votre historique.{countCopy}',
   'today.state.protected.detail':
     '{weekday} a été protégé. Ce jour reste dans votre historique.{countCopy}',
   'today.state.loading.title': 'Chargement d’Aujourd’hui.',
@@ -33,26 +33,11 @@ export const todayStatesFrFR = {
     'Le dernier état confirmé reste affiché. Aucun résultat de preuve ou de validation n’a changé ici.',
   'today.state.load_failed.detail': 'Vérifiez votre connexion, puis réessayez.',
   'today.state.streak.unavailable': 'Indisponible',
-  'today.state.streak.missed_title':
-    'Un jour a été manqué. Reprenez aujourd’hui.',
-  'today.state.streak.weekday_missed_title':
-    'Vous avez manqué {weekday}. Reprenez aujourd’hui.',
-  'today.state.streak.previous_detail':
-    'La dernière série s’est arrêtée à {count}, car la preuve du {weekday} n’a pas été reçue à temps. Votre historique reste disponible.',
-  'today.state.streak.missed_detail':
-    '{weekday} a été enregistré comme manqué. Votre historique reste disponible.',
-  'today.state.streak.return_action': 'Revenir pour une journée',
-  'today.state.streak.history_action': 'Voir l’historique de {count} jours',
   'today.state.streak.history': 'Voir l’historique',
-  'today.state.streak.previous_label': 'Série précédente',
-  'today.state.streak.new_label': 'Nouvelle série',
-  'today.state.streak.starts_today': 'Commence aujourd’hui',
-  'today.state.streak.supporting_note':
-    'Une seule journée suffit pour reprendre. Menta ne supprimera pas la série précédente.',
   'today.state.returning.away_days':
     'Vous n’avez pas fait de suivi depuis {count}.',
   'today.state.returning.away': 'Vous n’êtes pas venu depuis un moment.',
-  'today.state.returning.title': 'Reprenez là où vous en êtes.',
+  'today.state.returning.title': 'Prêt à recommencer ?',
   'today.state.returning.detail':
     '{awayCopy} Commencez une nouvelle promesse ou reprenez-en une que vous étiez en train de tenir.',
   'today.state.returning.action': 'Commencer une nouvelle promesse',
@@ -62,10 +47,6 @@ export const todayStatesFrFR = {
     'Votre historique reste. La prochaine action vous appartient.',
   'today.state.returning.supporting_note':
     'Choisissez une promesse plus simple ou ouvrez votre historique pour reprendre la dernière.',
-  'today.state.no_promises.title': 'Rien n’est encore à faire.',
-  'today.state.no_promises.detail':
-    'Faites une promesse. Menta vous indiquera chaque jour ce qui demande votre attention.',
-  'today.state.no_promises.join_group': 'Rejoindre un groupe existant',
   'today.state.proof_due.text_detail':
     'Ajoutez la note convenue. Seuls vous et la personne qui la vérifie pouvez la voir.',
   'today.state.proof_due.text_action': 'Ajouter une note comme preuve',
@@ -106,7 +87,7 @@ export const todayStatesFrFR = {
   'today.state.pending.action': 'Voir la preuve',
   'today.state.correction.title': 'Votre preuve demande une modification.',
   'today.state.correction.detail':
-    'Ajoutez une preuve plus claire pour terminer la journée. L’original reste enregistré.',
+    'Ajoutez une preuve plus claire pour terminer aujourd’hui. L’original reste enregistré.',
   'today.state.correction.action': 'Modifier la preuve',
   'today.state.correction.feedback': 'Voir la demande',
   'today.state.review.named_title': '{name} a envoyé une preuve.',
@@ -141,4 +122,16 @@ export const todayStatesFrFR = {
     'Revenez lorsqu’une promesse sera à faire ou qu’une personne enverra une preuve.',
   'today.state.all_clear.review_status':
     'Aucune preuve n’attend votre validation.',
+  'today.state.streak.day_one_title': 'Aujourd’hui, c’est le jour 1.',
+  'today.state.streak.day_one_detail':
+    'Ajoutez la preuve d’aujourd’hui pour lancer une nouvelle série.',
+  'today.state.streak.bubble_run_ended':
+    '{weekday} a été manqué, donc la série de {count} jours s’arrête. Elle reste dans votre historique.',
+  'today.state.streak.bubble_missed':
+    '{weekday} a été manqué. Votre historique est conservé.',
+  'today.state.streak.see_run': 'Voir la série de {count} jours',
+  'today.state.no_promises.title': 'Commencez par une promesse.',
+  'today.state.no_promises.detail':
+    'Choisissez une petite chose, montrez une photo rapide chaque jour et, si vous voulez, invitez quelqu’un à la vérifier.',
+  'today.state.no_promises.join_group': 'J’ai un code d’invitation',
 } as const satisfies Pick<EnglishCatalogue, TodayStateKey>;

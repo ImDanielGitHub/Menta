@@ -8,6 +8,7 @@ import {
   type SupabaseUser,
 } from '@/lib/supabase';
 import { useAuthStore } from '@/store/auth-store';
+import { trackConfirmedEmailSignup } from '@/lib/auth/email-confirmation-analytics';
 import {
   isEmailConfirmationForSession,
   useEmailConfirmationStore,
@@ -128,6 +129,7 @@ export default function EmailConfirmationCallbackScreen() {
         }
 
         if (pending) {
+          trackConfirmedEmailSignup(sessionUser.id, pending.requestedAt);
           await useEmailConfirmationStore
             .getState()
             .clearForEmail(pending.email);

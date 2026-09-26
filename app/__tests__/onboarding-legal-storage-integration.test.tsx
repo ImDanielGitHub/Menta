@@ -1,6 +1,6 @@
 import React from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { fireEvent, render } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import OnboardingScreen from '@/app/onboarding';
 import {
@@ -192,19 +192,31 @@ describe('onboarding legal storage round-trip', () => {
       userId: mockUserId,
       accepted: true,
       requiresAcceptance: false,
+      current: currentLegalDocuments,
+      receipt: { acceptedAt: new Date().toISOString() },
     });
 
     const screen = renderOnboarding();
     expect(await screen.findByText('Save your promise')).toBeTruthy();
-    fireEvent.press(screen.getByTestId('onboarding-auth-legal-confirmation'));
-    fireEvent.press(screen.getByTestId('onboarding-auth-legal-continue'));
+    expect(
+      screen.queryByTestId('onboarding-auth-legal-confirmation')
+    ).toBeNull();
     expect(screen.getByTestId('onboarding-auth-referral-expand')).toBeTruthy();
     await expect(
       loadOnboardingDraftForUser({
         userId: mockUserId,
         hasCompletedOnboarding: false,
       })
-    ).resolves.toMatchObject({ resumeStep: null, durationDays: 30 });
+    ).resolves.toMatchObject({
+      resumeStep: null,
+      durationDays: 30,
+      legalConsentAt: expect.any(String),
+      legalConsentVersions: {
+        terms: currentLegalDocuments.terms.version,
+        privacy: currentLegalDocuments.privacy.version,
+        communityStandards: currentLegalDocuments.community_standards.version,
+      },
+    });
     expect(mockUpdateUserPreferences).toHaveBeenCalledWith(
       mockUserId,
       expect.objectContaining({ marketing_email_opt_in: true })
@@ -216,7 +228,9 @@ describe('onboarding legal storage round-trip', () => {
     await persistLegalHandoff(mockUserId);
 
     const screen = renderOnboarding();
-    expect(await screen.findByText('Save your promise')).toBeTruthy();
+    expect(
+      await screen.findByTestId('onboarding-auth-legal-surface')
+    ).toBeTruthy();
     expect(screen.getByText('Legal review was not completed.')).toBeTruthy();
     await expect(
       loadOnboardingDraftForUser({
@@ -243,6 +257,8 @@ describe('onboarding legal storage round-trip', () => {
       userId: mockUserId,
       accepted: true,
       requiresAcceptance: false,
+      current: currentLegalDocuments,
+      receipt: { acceptedAt: new Date().toISOString() },
     });
 
     const screen = renderOnboarding();

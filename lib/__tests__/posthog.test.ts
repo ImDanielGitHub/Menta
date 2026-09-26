@@ -61,6 +61,17 @@ describe('PostHog transport', () => {
     expect(canStartPostHog('public-test-key')).toBe(true);
   });
 
+  it('rejects a personal API token before starting the client or exporting an app', () => {
+    process.env.EXPO_PUBLIC_POSTHOG_KEY = 'phx_invalid-personal-test-token';
+    const { getPostHogClient } = require('@/lib/posthog');
+    expect(getPostHogClient()).toBeNull();
+    expect(MockPostHog).not.toHaveBeenCalled();
+    const configureApp = require('../../app.config.js');
+    expect(() => configureApp({ config: {} })).toThrow(
+      'must be a public project token'
+    );
+  });
+
   it('initialises once with lifecycle autocapture and replay off', () => {
     jest.isolateModules(() => {
       const {
@@ -88,7 +99,7 @@ describe('PostHog transport', () => {
     expect(mockPostHogCapture).toHaveBeenCalledWith(
       'App Opened',
       expect.objectContaining({
-        event_version: 2,
+        event_version: 3,
       })
     );
     expect(mockAmplitudeTrack).not.toHaveBeenCalled();
@@ -127,7 +138,7 @@ describe('PostHog transport', () => {
         'Group Joined',
         expect.objectContaining({
           join_method: 'invite',
-          event_version: 2,
+          event_version: 3,
         })
       );
     } finally {
@@ -145,7 +156,7 @@ describe('PostHog transport', () => {
       'Group Joined',
       expect.objectContaining({
         join_method: 'invite',
-        event_version: 2,
+        event_version: 3,
         app_platform: expect.any(String),
       })
     );
@@ -153,7 +164,7 @@ describe('PostHog transport', () => {
       'Group Joined',
       expect.objectContaining({
         join_method: 'invite',
-        event_version: 2,
+        event_version: 3,
         app_platform: expect.any(String),
       })
     );
@@ -194,7 +205,7 @@ describe('PostHog transport', () => {
       'Group Joined',
       expect.objectContaining({
         join_method: 'invite',
-        event_version: 2,
+        event_version: 3,
       })
     );
   });
@@ -422,7 +433,7 @@ describe('PostHog transport', () => {
 
     expect(mockPostHogCapture).toHaveBeenCalledTimes(2);
     expect(mockPostHogCapture).toHaveBeenCalledWith('Experiment Exposed', {
-      event_version: 2,
+      event_version: 3,
       app_platform: 'ios',
       experiment_key: 'test_layout',
       experiment_variant: 'treatment',

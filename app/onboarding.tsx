@@ -5,9 +5,11 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { describeFirstProofDay } from '@/components/challenge/create/PromiseFlow';
 import {
   Animated,
   Easing,
+  Image,
   Keyboard,
   type KeyboardEvent,
   type LayoutChangeEvent,
@@ -35,9 +37,12 @@ import {
   CameraIcon,
   CheckIcon,
   ChevronRightIcon,
+  ClockIcon,
+  EyeOffIcon,
+  FlameIcon,
   LockIcon,
   MailIcon,
-  UsersIcon,
+  MountainIcon,
   VideoIcon,
 } from '@/components/ui/icons';
 import { GoogleGlyph } from '@/components/ui/google-glyph';
@@ -62,6 +67,8 @@ import {
 } from '@/components/onboarding/PaperAuthSurface';
 import { NotificationPrivacyOnboarding } from '@/components/onboarding/NotificationPrivacyOnboarding';
 import { OnboardingCelebrationBurst } from '@/components/onboarding/OnboardingCelebrationBurst';
+import { MentaNarrator } from '@/components/onboarding/MentaNarrator';
+import { OnboardingStepTransition } from '@/components/onboarding/OnboardingStepTransition';
 import {
   clearOnboardingDraft,
   hasFreshOnboardingLegalConsent,
@@ -75,7 +82,6 @@ import {
 import { getValidatedOnboardingReceiptContinuation } from '@/lib/navigation/onboarding-completion';
 import {
   decodeAccountActivationLookup,
-  formatPromiseDueWindow,
   type PromiseCreationReceipt,
   type ReferralActivationReceipt,
 } from '@/lib/commitments/promise-creation-receipt';
@@ -96,6 +102,7 @@ import {
   getMyLegalAcceptanceStatus,
   isLegalAcceptanceRequiredError,
   type CurrentLegalDocuments,
+  type LegalAcceptanceStatus,
 } from '@/lib/legal-acceptance';
 import { LegalDocumentLinks } from '@/components/legal/LegalDocumentLinks';
 import {
@@ -160,6 +167,9 @@ const fonts = {
 
 type Step =
   | 'welcome'
+  | 'meet'
+  | 'obstacle'
+  | 'evidence'
   | 'draft'
   | 'proof'
   | 'preview'
@@ -169,6 +179,30 @@ type Step =
   | 'save_gate'
   | 'auth_method'
   | 'receipt';
+
+const reviewerRoleArt = require('@/assets/images/mascot/roles/reviewer.png');
+
+type OnboardingObstacle = 'fades' | 'unnoticed' | 'forget' | 'too_big';
+
+const onboardingObstacles: {
+  value: OnboardingObstacle;
+  Icon: typeof ClockIcon;
+}[] = [
+  { value: 'fades', Icon: FlameIcon },
+  { value: 'unnoticed', Icon: EyeOffIcon },
+  { value: 'forget', Icon: ClockIcon },
+  { value: 'too_big', Icon: MountainIcon },
+];
+
+const obstacleLabel = (
+  value: OnboardingObstacle,
+  t: ReturnType<typeof useTranslation>['t']
+): string => {
+  if (value === 'fades') return t('onboarding.obstacle.fades');
+  if (value === 'unnoticed') return t('onboarding.obstacle.unnoticed');
+  if (value === 'forget') return t('onboarding.obstacle.forget');
+  return t('onboarding.obstacle.too_big');
+};
 
 type OnboardingJourneyProperties =
   AnalyticsEventProperties['Onboarding Journey'];
@@ -587,7 +621,7 @@ const Mascot = ({
 };
 
 export default function OnboardingScreen() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const promiseExamples = [
     t('fullAuth.source.example.walk'),
     t('fullAuth.source.example.application'),
@@ -599,12 +633,19 @@ export default function OnboardingScreen() {
   const params = useLocalSearchParams<{ resume?: string | string[] }>();
   const phoneLayout = usePhoneLayout();
   const safeAreaInsets = useSafeAreaInsets();
+  const [layoutWidth, setLayoutWidth] = useState<number | null>(null);
+  const isIPad = Platform.OS === 'ios' && Platform.isPad === true;
+  const onScreenLayout = useCallback((event: LayoutChangeEvent) => {
+    const width = event.nativeEvent.layout.width;
+    if (width > 0) setLayoutWidth(width);
+  }, []);
   const motion = useMotionPreferences();
   const inputRef = useRef<AppTextFieldRef>(null);
   const proofScrollRef = useRef<ScrollView>(null);
   const authScrollRef = useRef<ScrollView>(null);
   const proofDisclosureProgress = useRef(new Animated.Value(0)).current;
   const authDisclosureProgress = useRef(new Animated.Value(0)).current;
+  const evidenceProgress = useRef(new Animated.Value(0)).current;
   const {
     completeOnboarding,
     hasCompletedOnboarding,
@@ -725,6 +766,8 @@ export default function OnboardingScreen() {
   const activeCompletionRequestRef = useRef<number | null>(null);
   const hydrationRequestRef = useRef(0);
   const onboardingNavigationEpochRef = useRef(0);
+  const stepDirectionRef = useRef<'forward' | 'back'>('forward');
+  const [obstacle, setObstacle] = useState<OnboardingObstacle | null>(null);
   const restoredEntryRef = useRef(false);
   const draftEditFocusRequestedRef = useRef(false);
   const previousUserIdRef = useRef<string | null>(user?.id ?? null);
@@ -797,9 +840,19 @@ export default function OnboardingScreen() {
       ? keyboardHeight + mentaSpacing[4]
       : actionDockBottomPadding + mentaSpacing[6];
   const usesWideIPadWorkspace = shouldUseIPadPortraitWorkspace(
-    phoneLayout.width,
-    Platform.OS === 'ios' && Platform.isPad === true
+    Math.min(phoneLayout.width, layoutWidth ?? phoneLayout.width),
+    isIPad
   );
+  // Window metrics and native layout can arrive in separate rotation frames.
+  // Use the smaller measured width until both agree, then add a third column
+  // only when the controls still have at least 440 points of usable space.
+  const showsIPadProofRail =
+    usesWideIPadWorkspace &&
+    Math.min(phoneLayout.width, layoutWidth ?? phoneLayout.width) >= 1120;
+  const isIPadLandscape =
+    usesWideIPadWorkspace && phoneLayout.width > phoneLayout.height;
+  const usesFocusedIPadFrame =
+    step !== 'welcome' && step !== 'draft' && step !== 'proof';
 
   useEffect(() => {
     if (!hydrated) return;
@@ -915,7 +968,7 @@ export default function OnboardingScreen() {
     };
   }, []);
 
-  const hasCurrentLegalReceipt = useCallback(
+  const getConfirmedLegalReceipt = useCallback(
     async (
       expectedUserId: string,
       legalDraft: {
@@ -930,12 +983,12 @@ export default function OnboardingScreen() {
         marketingOptIn: boolean;
       },
       canApplyResult: () => boolean = () => true
-    ): Promise<boolean> => {
+    ): Promise<LegalAcceptanceStatus | null> => {
       const status = await getMyLegalAcceptanceStatus(expectedUserId);
       if (useAuthStore.getState().user?.id !== expectedUserId) {
         throw accountChangedError(t('fullAuth.source.error.account_changed'));
       }
-      if (!canApplyResult()) return false;
+      if (!canApplyResult()) return null;
       if (!status.requiresAcceptance) {
         trackOnboardingJourney({
           action: 'completed',
@@ -943,7 +996,7 @@ export default function OnboardingScreen() {
           selection: 'legal_bundle',
           stage: 'legal',
         });
-        return true;
+        return status;
       }
 
       const currentVersions = legalVersionsForDocuments(status.current);
@@ -970,7 +1023,7 @@ export default function OnboardingScreen() {
           selection: 'legal_bundle',
           stage: 'legal',
         });
-        return false;
+        return null;
       }
 
       const accepted = await acceptCurrentLegalDocuments(
@@ -985,7 +1038,7 @@ export default function OnboardingScreen() {
         selection: 'legal_bundle',
         stage: 'legal',
       });
-      return confirmed;
+      return confirmed ? accepted : null;
     },
     [t, trackOnboardingJourney]
   );
@@ -1155,21 +1208,28 @@ export default function OnboardingScreen() {
               setStep('auth_method');
               return;
             }
-            if (
-              !(await hasCurrentLegalReceipt(
-                expectedUserId,
-                draft,
-                canApplyHydratedNavigation
-              ))
-            )
-              return;
+            const legalReceipt = await getConfirmedLegalReceipt(
+              expectedUserId,
+              draft,
+              canApplyHydratedNavigation
+            );
+            if (!legalReceipt) return;
+            const confirmedDraft = {
+              ...draft,
+              legalConsentAt: legalReceipt.receipt?.acceptedAt ?? null,
+              legalConsentVersions: legalVersionsForDocuments(
+                legalReceipt.current
+              ),
+            };
+            setLegalConsentAt(confirmedDraft.legalConsentAt);
+            setLegalConsentVersions(confirmedDraft.legalConsentVersions);
             setLegalConfirmed(true);
             setLegalReady(true);
             await preserveLegacyMarketingEmailConsent(
               expectedUserId,
               draft.marketingOptIn
             );
-            await saveOnboardingDraft(draft, expectedUserId, null);
+            await saveOnboardingDraft(confirmedDraft, expectedUserId, null);
             if (!canApplyHydratedNavigation()) return;
             setStep('auth_method');
           } else if (
@@ -1182,25 +1242,32 @@ export default function OnboardingScreen() {
             // after the mandatory agreement is selected. Claim the account-
             // scoped receipt, then continue after the gift instead of replaying
             // the preview and gift screens.
-            if (
-              !(await hasCurrentLegalReceipt(
-                expectedUserId,
-                draft,
-                canApplyHydratedNavigation
-              ))
-            )
-              return;
+            const legalReceipt = await getConfirmedLegalReceipt(
+              expectedUserId,
+              draft,
+              canApplyHydratedNavigation
+            );
+            if (!legalReceipt) return;
+            const confirmedDraft = {
+              ...draft,
+              legalConsentAt: legalReceipt.receipt?.acceptedAt ?? null,
+              legalConsentVersions: legalVersionsForDocuments(
+                legalReceipt.current
+              ),
+            };
+            setLegalConsentAt(confirmedDraft.legalConsentAt);
+            setLegalConsentVersions(confirmedDraft.legalConsentVersions);
+            setLegalConfirmed(true);
+            setLegalReady(true);
             await preserveLegacyMarketingEmailConsent(
               expectedUserId,
               draft.marketingOptIn
             );
             if (!canApplyHydratedNavigation()) return;
-            await saveOnboardingDraft(draft, expectedUserId, null);
+            await saveOnboardingDraft(confirmedDraft, expectedUserId, null);
             // OAuth can recreate the Expo root before the provider promise
-            // settles. The claimed draft already contains the exact documents
-            // selected before sign-in, and hasCurrentLegalReceipt has now
-            // recorded those versions for this account. Continue from that
-            // receipt instead of painting the same terms screen again.
+            // settles. Preserve the server-confirmed document versions and
+            // continue from that receipt instead of repeating legal review.
             setResumeAuthenticatedDraft(true);
             setStep('activating');
           } else if (!isReplay && draft.resumeStep === 'auth_cancelled') {
@@ -1242,7 +1309,7 @@ export default function OnboardingScreen() {
     };
   }, [
     hasCompletedOnboarding,
-    hasCurrentLegalReceipt,
+    getConfirmedLegalReceipt,
     isReplay,
     preserveLegacyMarketingEmailConsent,
     routeResume,
@@ -1433,7 +1500,21 @@ export default function OnboardingScreen() {
     ]
   );
 
-  const move = (next: Step) => {
+  useEffect(() => {
+    if (step !== 'evidence') return undefined;
+    evidenceProgress.setValue(0);
+    const grow = Animated.timing(evidenceProgress, {
+      delay: motion.reduceMotion ? 0 : 280,
+      duration: motion.duration(400),
+      toValue: 1,
+      useNativeDriver: true,
+    });
+    grow.start();
+    return () => grow.stop();
+  }, [evidenceProgress, motion, step]);
+
+  const move = (next: Step, direction: 'forward' | 'back' = 'forward') => {
+    stepDirectionRef.current = direction;
     onboardingNavigationEpochRef.current += 1;
     setValidation(null);
     setStep(next);
@@ -1544,7 +1625,10 @@ export default function OnboardingScreen() {
     });
     const previous: Record<Step, Step | null> = {
       welcome: null,
-      draft: 'welcome',
+      meet: 'welcome',
+      obstacle: 'meet',
+      evidence: 'obstacle',
+      draft: 'evidence',
       proof: 'draft',
       preview: 'duration',
       duration: 'proof',
@@ -1559,9 +1643,9 @@ export default function OnboardingScreen() {
     if (destination === 'proof') setProofDisclosure(Boolean(proofType));
     if (destination === 'draft') {
       draftEditFocusRequestedRef.current = false;
-      move(destination);
+      move(destination, 'back');
       persistEditableDraft();
-    } else if (destination) move(destination);
+    } else if (destination) move(destination, 'back');
     else if (isReplay) router.replace('/login');
   };
 
@@ -1827,14 +1911,6 @@ export default function OnboardingScreen() {
         const decision = await resolveOnboardingPaywall(attempt.userId);
         assertActivationAttemptCurrent(attempt);
         if (decision.requiresPurchase) {
-          // Legal acceptance already succeeded above. Keep that receipt visible
-          // so closing checkout returns to Create promise, not the terms step.
-          const confirmedVersions =
-            legalConsentVersions ??
-            (legalDocuments
-              ? legalVersionsForDocuments(legalDocuments)
-              : null);
-          const confirmedAt = legalConsentAt ?? new Date().toISOString();
           // Keep an owned resumable draft; closing checkout never activates it.
           await saveOnboardingDraft(
             {
@@ -1843,8 +1919,8 @@ export default function OnboardingScreen() {
               durationDays: duration,
               accountabilityChoice,
               accountabilityChoiceConfirmed: accountabilityConfirmed,
-              legalConsentAt: confirmedAt,
-              legalConsentVersions: confirmedVersions,
+              legalConsentAt,
+              legalConsentVersions,
               referralCode,
               marketingOptIn,
             },
@@ -1852,10 +1928,6 @@ export default function OnboardingScreen() {
             'auth_method'
           );
           assertActivationAttemptCurrent(attempt);
-          setLegalConsentAt(confirmedAt);
-          setLegalConsentVersions(confirmedVersions);
-          setLegalConfirmed(true);
-          setLegalReady(true);
           setStep('auth_method');
           setPaywallGate({ ownerId: attempt.userId, decision, skipReferral });
           return;
@@ -2318,7 +2390,9 @@ export default function OnboardingScreen() {
         'auth_method'
       );
       assertCurrentProviderRequest(startingUserId);
-      await (provider === 'apple' ? signInWithApple() : signInWithGoogle());
+      await (provider === 'apple'
+        ? signInWithApple('signup')
+        : signInWithGoogle('signup'));
 
       if (!isCurrentProviderRequest())
         throw accountChangedError(t('fullAuth.source.error.account_changed'));
@@ -2333,11 +2407,6 @@ export default function OnboardingScreen() {
         outcome: 'succeeded',
         selection: provider,
         stage: 'auth',
-      });
-      trackProductEvent('Authentication Result', {
-        flow: 'signup',
-        method: provider,
-        outcome: 'succeeded',
       });
 
       assertCurrentProviderRequest(authenticatedUserId);
@@ -2357,7 +2426,7 @@ export default function OnboardingScreen() {
       if (!legalConfirmed) {
         throw new Error(t('fullAuth.source.error.confirm_documents'));
       }
-      if (!(await hasCurrentLegalReceipt(authenticatedUserId, claimedDraft)))
+      if (!(await getConfirmedLegalReceipt(authenticatedUserId, claimedDraft)))
         return;
       await preserveLegacyMarketingEmailConsent(
         authenticatedUserId,
@@ -2601,7 +2670,7 @@ export default function OnboardingScreen() {
     setAuthNotice(null);
     try {
       if (
-        !(await hasCurrentLegalReceipt(currentUserId, {
+        !(await getConfirmedLegalReceipt(currentUserId, {
           promise,
           proofType,
           durationDays: duration,
@@ -2742,25 +2811,42 @@ export default function OnboardingScreen() {
               style={[
                 styles.welcomeBody,
                 compact && styles.welcomeBodyCompact,
+                isIPadLandscape && styles.iPadWelcomeBody,
                 { paddingHorizontal: phoneLayout.screenInset },
               ]}
               testID="onboarding-welcome-body"
             >
-              <Text style={styles.welcomeWordmark}>
-                {t('fullAuth.onboarding.menta')}
-              </Text>
               <View
                 style={[
-                  styles.welcomeMascotStage,
-                  compact && styles.welcomeMascotStageCompact,
-                  { height: welcomeHeroSize },
+                  styles.welcomeVisual,
+                  isIPadLandscape && styles.iPadWelcomeVisual,
                 ]}
               >
-                <Mascot pose="welcome" size={welcomeHeroSize} />
+                <Text style={styles.welcomeWordmark}>
+                  {t('fullAuth.onboarding.menta')}
+                </Text>
+                <View
+                  style={[
+                    styles.welcomeMascotStage,
+                    compact && styles.welcomeMascotStageCompact,
+                    { height: welcomeHeroSize },
+                  ]}
+                >
+                  <Mascot pose="welcome" size={welcomeHeroSize} />
+                </View>
               </View>
-              <View style={styles.welcomeCopy}>
+              <View
+                style={[
+                  styles.welcomeCopy,
+                  isIPadLandscape && styles.iPadWelcomeCopy,
+                ]}
+              >
                 <Text
-                  style={[styles.heroTitle, compact && styles.heroTitleCompact]}
+                  style={[
+                    styles.heroTitle,
+                    compact && styles.heroTitleCompact,
+                    isIPadLandscape && styles.iPadWelcomeTitle,
+                  ]}
                 >
                   {t('onboarding.welcome.title')}
                 </Text>
@@ -2769,6 +2855,7 @@ export default function OnboardingScreen() {
                     styles.heroBody,
                     styles.welcomeBodyText,
                     bodySmallLeading,
+                    isIPadLandscape && styles.iPadWelcomeBodyText,
                   ]}
                 >
                   {t('onboarding.welcome.body')}
@@ -2779,6 +2866,7 @@ export default function OnboardingScreen() {
               style={[
                 styles.footerStack,
                 styles.welcomeFooter,
+                isIPad && styles.iPadWelcomeFooter,
                 {
                   paddingBottom: actionDockBottomPadding,
                   paddingHorizontal: phoneLayout.screenInset,
@@ -2792,7 +2880,7 @@ export default function OnboardingScreen() {
                     action: 'continued',
                     stage: 'welcome',
                   });
-                  move('draft');
+                  move('meet');
                 }}
                 testID="onboarding-start"
               />
@@ -2812,6 +2900,278 @@ export default function OnboardingScreen() {
               />
             </View>
           </ScrollView>
+        );
+      case 'meet':
+        return (
+          <View style={styles.flex}>
+            <MentaHeader
+              onBack={back}
+              progress={0.06}
+              screenInset={phoneLayout.screenInset}
+              showBrand={false}
+            />
+            <View
+              style={[
+                styles.introStage,
+                { paddingHorizontal: phoneLayout.screenInset },
+              ]}
+              testID="onboarding-meet-body"
+            >
+              <MentaNarrator
+                layout="stacked"
+                mascotSize={compact ? 240 : 320}
+                message={t('onboarding.meet.message')}
+                state="today-accepted"
+                testID="onboarding-meet-narrator"
+              />
+            </View>
+            <View
+              style={[
+                styles.proofActionDock,
+                styles.fixedActionDock,
+                {
+                  paddingBottom: actionDockBottomPadding,
+                  paddingHorizontal: phoneLayout.screenInset,
+                },
+              ]}
+            >
+              <View style={styles.flexButton}>
+                <PrimaryButton
+                  label={t('onboarding.continue')}
+                  onPress={() => {
+                    trackOnboardingJourney({
+                      action: 'continued',
+                      stage: 'meet',
+                    });
+                    move('obstacle');
+                  }}
+                  testID="onboarding-meet-continue"
+                />
+              </View>
+            </View>
+          </View>
+        );
+      case 'obstacle':
+        return (
+          <View style={styles.flex}>
+            <MentaHeader
+              onBack={back}
+              progress={0.1}
+              screenInset={phoneLayout.screenInset}
+              showBrand={false}
+            />
+            <ScrollView
+              contentContainerStyle={contentStyle}
+              showsVerticalScrollIndicator={false}
+              style={styles.flex}
+              testID="onboarding-obstacle-body"
+            >
+              <View style={styles.introQuestion}>
+                <MentaNarrator
+                  message={t('onboarding.obstacle.question')}
+                  state="today-clear"
+                  testID="onboarding-obstacle-narrator"
+                />
+                <View
+                  accessibilityRole="radiogroup"
+                  style={styles.obstacleList}
+                >
+                  {onboardingObstacles.map(option => {
+                    const selected = obstacle === option.value;
+                    return (
+                      <Pressable
+                        accessibilityRole="radio"
+                        accessibilityState={{ checked: selected, selected }}
+                        key={option.value}
+                        onPress={() => {
+                          setObstacle(option.value);
+                          trackOnboardingJourney({
+                            action: 'selected',
+                            selection: `obstacle_${option.value}`,
+                            stage: 'obstacle',
+                          });
+                          void emitHaptic({ type: 'selection' });
+                        }}
+                        style={({ pressed }) => [
+                          styles.proofRow,
+                          styles.obstacleRow,
+                          selected && styles.proofRowSelected,
+                          pressed && styles.pressed,
+                        ]}
+                        testID={`onboarding-obstacle-${option.value}`}
+                      >
+                        <View
+                          accessibilityElementsHidden
+                          importantForAccessibility="no-hide-descendants"
+                          style={styles.proofIconSlot}
+                        >
+                          <option.Icon
+                            color={selected ? colours.action : colours.text}
+                            size={22}
+                          />
+                        </View>
+                        <View style={styles.proofText}>
+                          <Text style={styles.proofRowTitle}>
+                            {obstacleLabel(option.value, t)}
+                          </Text>
+                        </View>
+                        {selected ? (
+                          <View style={styles.choiceCheck}>
+                            <CheckIcon color={colours.canvas} size={15} />
+                          </View>
+                        ) : null}
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            </ScrollView>
+            <View
+              style={[
+                styles.proofActionDock,
+                styles.fixedActionDock,
+                {
+                  paddingBottom: actionDockBottomPadding,
+                  paddingHorizontal: phoneLayout.screenInset,
+                },
+              ]}
+            >
+              <View style={styles.flexButton}>
+                <PrimaryButton
+                  disabled={!obstacle}
+                  label={t('onboarding.continue')}
+                  onPress={() => {
+                    trackOnboardingJourney({
+                      action: 'continued',
+                      stage: 'obstacle',
+                    });
+                    move('evidence');
+                  }}
+                  testID="onboarding-obstacle-continue"
+                />
+              </View>
+            </View>
+          </View>
+        );
+      case 'evidence':
+        return (
+          <View style={styles.flex}>
+            <MentaHeader
+              onBack={back}
+              progress={0.14}
+              screenInset={phoneLayout.screenInset}
+              showBrand={false}
+            />
+            <ScrollView
+              contentContainerStyle={contentStyle}
+              showsVerticalScrollIndicator={false}
+              style={styles.flex}
+              testID="onboarding-evidence-body"
+            >
+              <View style={styles.evidenceStack}>
+                <MentaNarrator
+                  message={t('onboarding.evidence.menta')}
+                  state="pro-active"
+                  testID="onboarding-evidence-narrator"
+                />
+                <View
+                  accessible
+                  accessibilityLabel={`${t('onboarding.evidence.with_friend')}, ${t('onboarding.evidence.stat')}. ${t('onboarding.evidence.alone')}, ${t('onboarding.evidence.alone_stat')}.`}
+                  style={styles.evidenceChart}
+                  testID="onboarding-evidence-chart"
+                >
+                  {(
+                    [
+                      {
+                        key: 'friend',
+                        label: t('onboarding.evidence.with_friend'),
+                        value: t('onboarding.evidence.stat'),
+                        share: 0.76,
+                        strong: true,
+                      },
+                      {
+                        key: 'alone',
+                        label: t('onboarding.evidence.alone'),
+                        value: t('onboarding.evidence.alone_stat'),
+                        share: 0.43,
+                        strong: false,
+                      },
+                    ] as const
+                  ).map(bar => (
+                    <View key={bar.key} style={styles.evidenceColumn}>
+                      <View style={styles.evidenceBarSlot}>
+                        <Text
+                          style={[
+                            styles.evidenceValue,
+                            !bar.strong && styles.evidenceValueMuted,
+                          ]}
+                          textScale={Math.min(onboardingTextScale, 1.1)}
+                        >
+                          {bar.value}
+                        </Text>
+                        <Animated.View
+                          style={[
+                            styles.evidenceBar,
+                            !bar.strong && styles.evidenceBarMuted,
+                            {
+                              height: 190 * bar.share,
+                              opacity: evidenceProgress,
+                              transform: [
+                                {
+                                  translateY: evidenceProgress.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: [motion.distance(24), 0],
+                                  }),
+                                },
+                              ],
+                            },
+                          ]}
+                        />
+                      </View>
+                      <Text
+                        style={[
+                          styles.evidenceBarLabel,
+                          !bar.strong && styles.evidenceBarLabelMuted,
+                        ]}
+                      >
+                        {bar.label}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+                <Text style={styles.evidenceTitle}>
+                  {t('onboarding.evidence.title')}
+                </Text>
+                <Text style={styles.evidenceSource}>
+                  {t('onboarding.evidence.source')}
+                </Text>
+              </View>
+            </ScrollView>
+            <View
+              style={[
+                styles.proofActionDock,
+                styles.fixedActionDock,
+                {
+                  paddingBottom: actionDockBottomPadding,
+                  paddingHorizontal: phoneLayout.screenInset,
+                },
+              ]}
+            >
+              <View style={styles.flexButton}>
+                <PrimaryButton
+                  label={t('onboarding.evidence.action')}
+                  onPress={() => {
+                    trackOnboardingJourney({
+                      action: 'continued',
+                      stage: 'evidence',
+                    });
+                    move('draft');
+                  }}
+                  testID="onboarding-evidence-continue"
+                />
+              </View>
+            </View>
+          </View>
         );
       case 'draft':
         return (
@@ -2896,14 +3256,13 @@ export default function OnboardingScreen() {
                     }
                   >
                     <View style={styles.draftCopy}>
-                      <Text style={styles.draftKicker}>
-                        {t('fullAuth.onboarding.your_first_promise')}
-                      </Text>
-                      <Text style={styles.draftTitle}>
-                        {t(
+                      <MentaNarrator
+                        message={t(
                           'fullAuth.onboarding.what_s_one_thing_you_want_to_do'
                         )}
-                      </Text>
+                        state="today-correction"
+                        testID="onboarding-draft-narrator"
+                      />
                     </View>
                     {!promise.trim() || examplesExpanded ? (
                       <View style={styles.exampleChoices}>
@@ -3138,7 +3497,7 @@ export default function OnboardingScreen() {
                       : undefined
                   }
                 >
-                  {usesWideIPadWorkspace ? (
+                  {showsIPadProofRail ? (
                     <View
                       style={styles.iPadStepRail}
                       testID="onboarding-proof-ipad-rail"
@@ -3182,18 +3541,15 @@ export default function OnboardingScreen() {
                   >
                     {!proofDisclosure ? (
                       <View style={styles.proofCopy}>
+                        <MentaNarrator
+                          message={t('onboarding.proof.question')}
+                          state="today-proof-due"
+                          testID="onboarding-proof-narrator"
+                        />
                         <Text style={styles.promiseContext} numberOfLines={2}>
                           {t('fullAuth.onboarding.for_promise', {
                             promise: promise.trim(),
                           })}
-                        </Text>
-                        <Text style={styles.proofTitle}>
-                          {t('fullAuth.onboarding.how_will_you_prove_it')}
-                        </Text>
-                        <Text style={[styles.heroBody, bodySmallLeading]}>
-                          {t(
-                            'fullAuth.onboarding.choose_what_you_ll_add_when_it_s_done_you_can_in'
-                          )}
                         </Text>
                       </View>
                     ) : null}
@@ -3235,7 +3591,11 @@ export default function OnboardingScreen() {
                               ]}
                               testID={`onboarding-proof-${option.value}`}
                             >
-                              <View style={styles.proofIconSlot}>
+                              <View
+                                accessibilityElementsHidden
+                                importantForAccessibility="no-hide-descendants"
+                                style={styles.proofIconSlot}
+                              >
                                 <option.Icon
                                   size={22}
                                   color={
@@ -3327,26 +3687,12 @@ export default function OnboardingScreen() {
                             </Text>
                           </Pressable>
                         </View>
-                        <View
-                          style={[
-                            styles.accountabilityCopy,
-                            phoneLayout.isCompactHeight &&
-                              styles.accountabilityCopyCompact,
-                          ]}
-                        >
-                          <Text
-                            style={styles.accountabilityTitle}
-                            textScale={Math.min(onboardingTextScale, 1.18)}
-                          >
-                            {t(
-                              'fullAuth.onboarding.who_will_hold_you_accountable'
-                            )}
-                          </Text>
-                          <Text style={[styles.heroBody, bodySmallLeading]}>
-                            {t(
-                              'fullAuth.onboarding.this_choice_sets_your_next_step_it_does_not_add_'
-                            )}
-                          </Text>
+                        <View style={styles.accountabilityCopy}>
+                          <MentaNarrator
+                            message={t('onboarding.accountability.question')}
+                            state="pro-active"
+                            testID="onboarding-accountability-narrator"
+                          />
                         </View>
                         <View
                           accessibilityRole="radiogroup"
@@ -3357,16 +3703,16 @@ export default function OnboardingScreen() {
                             [
                               {
                                 value: 'new_group',
-                                title: t('fullAuth.onboarding.create_my_group'),
+                                title: t('onboarding.accountability.trusted'),
                                 detail: t(
-                                  'fullAuth.onboarding.create_my_group_detail'
+                                  'onboarding.accountability.trusted_detail'
                                 ),
                               },
                               {
                                 value: 'just_me',
-                                title: t('todayProof.promise.private_only'),
+                                title: t('onboarding.accountability.private'),
                                 detail: t(
-                                  'fullAuth.onboarding.start_privately_you_can_invite_people_later'
+                                  'onboarding.accountability.private_detail'
                                 ),
                               },
                             ] as const
@@ -3374,12 +3720,10 @@ export default function OnboardingScreen() {
                             const selected =
                               accountabilityConfirmed &&
                               accountabilityChoice === option.value;
-                            const AccountabilityIcon =
-                              option.value === 'new_group'
-                                ? UsersIcon
-                                : LockIcon;
+                            const recommended = option.value === 'new_group';
                             return (
                               <Pressable
+                                accessibilityLabel={`${option.title}. ${option.detail}${recommended ? ` ${t('onboarding.accountability.recommended')}.` : ''}`}
                                 accessibilityRole="radio"
                                 accessibilityState={{
                                   checked: selected,
@@ -3401,22 +3745,48 @@ export default function OnboardingScreen() {
                                 }}
                                 style={({ pressed }) => [
                                   styles.proofRow,
-                                  phoneLayout.isCompactHeight &&
-                                    styles.proofRowCompact,
                                   styles.accountabilityRow,
+                                  recommended && styles.accountabilityRowArt,
                                   selected && styles.proofRowSelected,
                                   pressed && styles.pressed,
                                 ]}
                                 testID={`onboarding-accountability-${option.value}`}
                               >
-                                <View style={styles.proofIconSlot}>
-                                  <AccountabilityIcon
-                                    color={
-                                      selected ? colours.action : colours.text
-                                    }
-                                    size={22}
+                                {recommended ? (
+                                  <View
+                                    accessibilityElementsHidden
+                                    importantForAccessibility="no-hide-descendants"
+                                    style={styles.recommendedTag}
+                                  >
+                                    <Text style={styles.recommendedTagText}>
+                                      {t(
+                                        'onboarding.accountability.recommended'
+                                      )}
+                                    </Text>
+                                  </View>
+                                ) : null}
+                                {recommended ? (
+                                  <Image
+                                    accessibilityElementsHidden
+                                    importantForAccessibility="no-hide-descendants"
+                                    resizeMode="contain"
+                                    source={reviewerRoleArt}
+                                    style={styles.accountabilityArt}
                                   />
-                                </View>
+                                ) : (
+                                  <View
+                                    accessibilityElementsHidden
+                                    importantForAccessibility="no-hide-descendants"
+                                    style={styles.proofIconSlot}
+                                  >
+                                    <LockIcon
+                                      color={
+                                        selected ? colours.action : colours.text
+                                      }
+                                      size={22}
+                                    />
+                                  </View>
+                                )}
                                 <View
                                   style={[
                                     styles.proofText,
@@ -3451,6 +3821,9 @@ export default function OnboardingScreen() {
                               </Pressable>
                             );
                           })}
+                          <Text style={styles.accountabilityNote}>
+                            {t('onboarding.accountability.note')}
+                          </Text>
                         </View>
                       </Animated.View>
                     ) : null}
@@ -3482,7 +3855,7 @@ export default function OnboardingScreen() {
                           </Text>
                           <Text style={styles.iPadSummaryValue}>
                             {accountabilityChoice === 'new_group'
-                              ? t('fullAuth.onboarding.create_my_group')
+                              ? t('onboarding.accountability.trusted')
                               : t('todayProof.promise.private_only')}
                           </Text>
                         </View>
@@ -3506,6 +3879,9 @@ export default function OnboardingScreen() {
                 styles.proofActionDock,
                 styles.fixedActionDock,
                 usesWideIPadWorkspace && styles.iPadProofFooter,
+                usesWideIPadWorkspace &&
+                  !showsIPadProofRail &&
+                  styles.iPadProofFooterWithoutRail,
                 {
                   paddingBottom: actionDockBottomPadding,
                   paddingHorizontal: phoneLayout.screenInset,
@@ -3535,7 +3911,7 @@ export default function OnboardingScreen() {
           <>
             <MentaHeader
               onBack={back}
-              progress={0.54}
+              progress={0.62}
               screenInset={phoneLayout.screenInset}
             />
             <View style={styles.onboardingOverflowStage}>
@@ -3562,6 +3938,13 @@ export default function OnboardingScreen() {
                 testID="onboarding-preview-body"
               >
                 <View style={styles.reviewContentStage}>
+                  <MentaNarrator
+                    layout="stacked"
+                    mascotSize={compact ? 132 : 176}
+                    message={t('onboarding.preview.question')}
+                    state="promise-guide"
+                    testID="onboarding-preview-narrator"
+                  />
                   <Text style={[headingLeading, styles.previewTitle]}>
                     {t('fullAuth.onboarding.review_your_promise')}
                   </Text>
@@ -3656,7 +4039,7 @@ export default function OnboardingScreen() {
           <>
             <MentaHeader
               onBack={back}
-              progress={0.62}
+              progress={0.54}
               screenInset={phoneLayout.screenInset}
             />
             <View style={styles.onboardingOverflowStage}>
@@ -3682,16 +4065,11 @@ export default function OnboardingScreen() {
                 testID="onboarding-duration-body"
               >
                 <View style={styles.durationCopy}>
-                  <Text style={[headingLeading, styles.previewTitle]}>
-                    {t(
-                      'fullAuth.onboarding.how_long_do_you_want_to_keep_this_promise'
-                    )}
-                  </Text>
-                  <Text style={[styles.heroBody, bodySmallLeading]}>
-                    {t(
-                      'fullAuth.onboarding.choose_a_length_you_can_genuinely_follow_through'
-                    )}
-                  </Text>
+                  <MentaNarrator
+                    message={t('onboarding.duration.question')}
+                    state="today-at-risk"
+                    testID="onboarding-duration-narrator"
+                  />
                 </View>
                 <View style={styles.durationPromiseStage}>
                   <View style={styles.durationPromiseCard}>
@@ -3720,9 +4098,7 @@ export default function OnboardingScreen() {
                           trackOnboardingJourney({
                             action: 'selected',
                             selection: `days_${option}` as
-                              | 'days_7'
-                              | 'days_14'
-                              | 'days_30',
+                              'days_7' | 'days_14' | 'days_30',
                             stage: 'duration',
                           });
                           void emitHaptic({ type: 'selection' });
@@ -4058,9 +4434,9 @@ export default function OnboardingScreen() {
           </>
         );
       case 'receipt': {
-        const dueWindow = formatPromiseDueWindow(
-          activationReceipt?.nextDueAt ?? null
-        );
+        // Onboarding promises are daily; this matches the create flow's
+        // review instead of the server's legacy UTC deadline hour.
+        const dueWindow = describeFirstProofDay(null, locale, t);
         const activation = activationReceipt?.activation;
         const receiptConfirmed = Boolean(activation?.confirmed);
         const referral = activationReceipt?.referral;
@@ -4154,9 +4530,7 @@ export default function OnboardingScreen() {
                     <Text style={styles.receiptFactLabel}>
                       {t('fullAuth.onboarding.next_due')}
                     </Text>
-                    <Text style={styles.receiptFactValue}>
-                      {dueWindow ?? '—'}
-                    </Text>
+                    <Text style={styles.receiptFactValue}>{dueWindow}</Text>
                   </View>
                   <View style={styles.receiptStat}>
                     <Text style={styles.receiptFactLabel}>
@@ -4307,11 +4681,9 @@ export default function OnboardingScreen() {
                         scaleTypeMetrics(bodySmallLeading, onboardingTextScale),
                       ]}
                     >
-                      {!pendingInvite && !isReplay && !authNotice
-                        ? t('onboarding.paywall.disclosure')
-                        : t(
-                            'fullAuth.onboarding.choose_how_you_want_to_continue_your_draft_stays'
-                          )}
+                      {t(
+                        'fullAuth.onboarding.choose_how_you_want_to_continue_your_draft_stays'
+                      )}
                     </Text>
                   </View>
                 ) : null}
@@ -4361,6 +4733,13 @@ export default function OnboardingScreen() {
                         });
                       }}
                       presentation="consent"
+                      summaries={{
+                        terms: t('onboarding.legal.terms_summary'),
+                        community_standards: t(
+                          'onboarding.legal.community_summary'
+                        ),
+                        privacy: t('onboarding.legal.privacy_summary'),
+                      }}
                       testID="onboarding-auth-legal-documents"
                       textScale={onboardingTextScale}
                     />
@@ -4625,7 +5004,19 @@ export default function OnboardingScreen() {
         style={styles.safeArea}
         testID="onboarding-screen-root"
       >
-        {screen}
+        <View
+          onLayout={onScreenLayout}
+          testID="onboarding-route-frame"
+          style={[
+            styles.routeFrame,
+            isIPad && styles.iPadRouteFrame,
+            isIPad && usesFocusedIPadFrame && styles.iPadFocusedFrame,
+          ]}
+        >
+          <OnboardingStepTransition direction={stepDirectionRef.current}>
+            {screen}
+          </OnboardingStepTransition>
+        </View>
       </SafeAreaView>
       {paywallGate && paywallGate.ownerId === user?.id ? (
         <PaywallModal
@@ -4651,8 +5042,131 @@ export default function OnboardingScreen() {
 }
 
 const styles = StyleSheet.create({
+  accountabilityRowArt: {
+    paddingLeft: mentaSpacing[2],
+    paddingTop: mentaSpacing[4],
+  },
+  accountabilityArt: {
+    height: 88,
+    width: 80,
+    flexShrink: 0,
+  },
+  recommendedTag: {
+    position: 'absolute',
+    right: mentaSpacing[4],
+    top: -13,
+    height: 26,
+    justifyContent: 'center',
+    paddingHorizontal: mentaSpacing[3],
+    borderRadius: 999,
+    backgroundColor: colours.action,
+    zIndex: 1,
+  },
+  recommendedTagText: {
+    color: colours.canvas,
+    fontFamily: fonts.interBold,
+    fontSize: 12,
+    letterSpacing: 0.6,
+    lineHeight: 16,
+    textTransform: 'uppercase',
+  },
+  accountabilityNote: {
+    color: mentaColors.text.muted,
+    fontFamily: fonts.inter,
+    fontSize: 15,
+    lineHeight: 21,
+    paddingTop: mentaSpacing[1],
+  },
+  introStage: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  introQuestion: {
+    gap: mentaSpacing[6],
+    paddingTop: mentaSpacing[4],
+  },
+  obstacleList: {
+    gap: mentaSpacing[3],
+  },
+  obstacleRow: {
+    minHeight: 72,
+  },
+  evidenceStack: {
+    gap: mentaSpacing[5],
+    paddingTop: mentaSpacing[4],
+  },
+  evidenceChart: {
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: mentaSpacing[8],
+    paddingTop: mentaSpacing[1],
+  },
+  evidenceColumn: {
+    alignItems: 'center',
+    gap: mentaSpacing[2],
+    width: 120,
+  },
+  evidenceValue: {
+    color: colours.text,
+    fontFamily: fonts.newsreader,
+    fontSize: 44,
+    letterSpacing: -1,
+    lineHeight: 50,
+  },
+  evidenceValueMuted: {
+    color: colours.mutedInk,
+  },
+  evidenceBarSlot: {
+    alignItems: 'center',
+    gap: mentaSpacing[2],
+    height: 250,
+    justifyContent: 'flex-end',
+    width: 96,
+  },
+  evidenceBar: {
+    backgroundColor: colours.paper,
+    borderBottomLeftRadius: 6,
+    borderBottomRightRadius: 6,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    width: 84,
+  },
+  evidenceBarMuted: {
+    backgroundColor: '#3A3A38',
+  },
+  evidenceBarLabel: {
+    color: colours.text,
+    fontFamily: fonts.interSemibold,
+    fontSize: 15,
+    lineHeight: 21,
+    textAlign: 'center',
+  },
+  evidenceBarLabelMuted: {
+    color: colours.mutedInk,
+    fontFamily: fonts.inter,
+  },
+  evidenceTitle: {
+    color: colours.mutedInk,
+    fontFamily: fonts.inter,
+    fontSize: 17,
+    lineHeight: 25,
+    textAlign: 'center',
+    paddingHorizontal: mentaSpacing[2],
+  },
+  evidenceSource: {
+    color: mentaColors.text.muted,
+    fontFamily: fonts.inter,
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
   flex: { flex: 1 },
   safeArea: { flex: 1, backgroundColor: colours.canvas },
+  routeFrame: { flex: 1, width: '100%' },
+  iPadRouteFrame: { alignSelf: 'center', maxWidth: 1180 },
+  iPadFocusedFrame: { maxWidth: 780 },
   header: {
     height: mentaLayout.minimumTouchTarget,
     paddingHorizontal: mentaLayout.screenInset,
@@ -4717,6 +5231,28 @@ const styles = StyleSheet.create({
   welcomeBodyCompact: {
     gap: mentaSpacing[2],
   },
+  welcomeVisual: { alignItems: 'center', gap: mentaSpacing[3], width: '100%' },
+  iPadWelcomeBody: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: mentaSpacing[8],
+  },
+  iPadWelcomeVisual: { flex: 1, maxWidth: 430 },
+  iPadWelcomeCopy: { alignItems: 'flex-start', flex: 1, maxWidth: 460 },
+  iPadWelcomeTitle: {
+    fontSize: 42,
+    lineHeight: 48,
+    maxWidth: 460,
+    textAlign: 'left',
+  },
+  iPadWelcomeBodyText: {
+    fontSize: 19,
+    lineHeight: 28,
+    maxWidth: 430,
+    textAlign: 'left',
+  },
+  iPadWelcomeFooter: { alignSelf: 'center', maxWidth: 680 },
   welcomeMascotStage: {
     width: '100%',
     alignItems: 'center',
@@ -5101,6 +5637,9 @@ const styles = StyleSheet.create({
     marginLeft: 284,
     marginRight: 288,
   },
+  iPadProofFooterWithoutRail: {
+    marginLeft: mentaSpacing[8],
+  },
   localCopy: {
     flex: 1,
     color: colours.mutedInk,
@@ -5363,7 +5902,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   reviewArtefactStage: {
-    maxWidth: 382,
+    alignSelf: 'center',
+    maxWidth: 640,
     width: '100%',
   },
   todayCard: {

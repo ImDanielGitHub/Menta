@@ -2,6 +2,7 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { Directory, File, Paths } from 'expo-file-system';
 
 import { ImageService } from '@/lib/image-service';
+import { addBreadcrumb as recordProofDiagnostic } from '@/lib/sentry';
 
 export type LocalProofMediaType = 'photo' | 'video';
 
@@ -84,6 +85,9 @@ export const persistProofMediaLocally = async ({
   mediaType: LocalProofMediaType;
   clientEventId: string;
 }): Promise<DurableProofMedia> => {
+  recordProofDiagnostic('local_prepare_started', {
+    isPhoto: mediaType === 'photo',
+  });
   const directory = getProofMediaDirectory();
 
   if (mediaType === 'photo') {
@@ -102,6 +106,7 @@ export const persistProofMediaLocally = async ({
       ImageManipulator.ImageManipulator.manipulate(sourceUri);
     imageContext.resize({ width: 1080 });
     const renderedImage = await imageContext.renderAsync();
+    recordProofDiagnostic('photo_render_completed');
     const compressed = await renderedImage.saveAsync({
       compress: 0.7,
       format: ImageManipulator.SaveFormat.JPEG,
@@ -111,6 +116,7 @@ export const persistProofMediaLocally = async ({
     }
 
     const durable = await replaceDurableFile(compressed.uri, destination);
+    recordProofDiagnostic('local_save_completed');
     return {
       localMediaUri: durable.uri,
       mediaType,
@@ -122,6 +128,7 @@ export const persistProofMediaLocally = async ({
   const format = getVideoFormat(sourceUri);
   const destination = new File(directory, `${clientEventId}.${format.fileExt}`);
   const durable = await replaceDurableFile(sourceUri, destination);
+  recordProofDiagnostic('local_save_completed');
   return {
     localMediaUri: durable.uri,
     mediaType,
@@ -136,6 +143,9 @@ export const readDurableProofMedia = async ({
   localMediaUri: string;
   mediaType: LocalProofMediaType;
 }): Promise<DurableProofMedia & { fileData: string }> => {
+  recordProofDiagnostic('file_read_started', {
+    isPhoto: mediaType === 'photo',
+  });
   const prepared = getDurableProofMedia({ localMediaUri, mediaType });
   const file = new File(prepared.localMediaUri);
   if (
@@ -143,9 +153,16 @@ export const readDurableProofMedia = async ({
     file.size <= 0 ||
     file.size > MAX_PROOF_MEDIA_BYTES
   ) {
+    recordProofDiagnostic('file_size_rejected');
     throw new Error('Choose proof media smaller than 50 MB.');
   }
+  recordProofDiagnostic('file_base64_started', {
+    sizeMiB: Math.ceil(file.size / (1024 * 1024)),
+  });
   const fileData = await file.base64();
+  recordProofDiagnostic('file_base64_completed', {
+    hasData: Boolean(fileData),
+  });
   if (!fileData) {
     throw new Error('Menta could not reopen the saved proof on this phone.');
   }
@@ -181,13 +198,16 @@ export const uploadDurableProofMedia = async ({
     `${userId}/proof-${challengeId}-${clientEventId}.` + prepared.fileExt;
 
   try {
+    recordProofDiagnostic('storage_upload_started');
     await ImageService.upload(
       'CHALLENGE_VERIFICATIONS',
       objectKey,
       prepared.fileData,
       prepared.contentType
     );
+    recordProofDiagnostic('storage_upload_completed');
   } catch (error) {
+    recordProofDiagnostic('storage_upload_failed');
     const message = error instanceof Error ? error.message : String(error);
     if (!/already exists|duplicate/i.test(message)) throw error;
   }

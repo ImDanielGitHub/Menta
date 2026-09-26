@@ -40,7 +40,7 @@ export const notificationsFrCA = {
   'notifications.phone.allowed': 'Les notifications sont autorisées',
   'notifications.phone.allowed_by_phone': 'Autorisées par ce téléphone',
   'notifications.status.on': 'Activées',
-  'notifications.menta.title': 'Menta rappels',
+  'notifications.menta.title': 'Rappels Menta',
   'notifications.menta.not_connected': 'Cet appareil n’est pas encore connecté',
   'notifications.menta.connected': 'Cet appareil est connecté',
   'notifications.status.checking': 'Vérification…',
@@ -53,7 +53,7 @@ export const notificationsFrCA = {
   'notifications.notice.setup_failed.title':
     'La configuration des rappels n’a pas abouti',
   'notifications.notice.setup_failed.body':
-    'Réessayer, ou Continuer sans rappels.',
+    'Réessayez ou continuez sans rappels.',
   'notifications.notice.still_off.title':
     'Les notifications sont toujours désactivées',
   'notifications.notice.still_off.body':
@@ -77,7 +77,7 @@ export const notificationsFrCA = {
   'notifications.notice.settings_opening.body':
     'Choisissez si Menta peut envoyer des notifications, puis revenez ici.',
   'notifications.notice.settings_failed.title':
-    'Impossible de Ouvrir les paramètres',
+    'Impossible d’ouvrir les paramètres',
   'notifications.notice.settings_failed.body':
     'Ouvrez les paramètres du téléphone, choisissez Menta, puis Notifications pour modifier cette autorisation.',
   'notifications.onboarding.title': 'Ne ratez pas le moment.',

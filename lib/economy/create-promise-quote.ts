@@ -105,7 +105,9 @@ export function describeCreatePromiseQuota(
   if (reason === 'active') {
     return {
       title: t('commerce.economy.quotaActiveTitle'),
-      message: t('commerce.economy.quotaActiveMessage'),
+      message: t('commerce.economy.quotaActiveMessage', {
+        limit: ACTIVE_LIMIT,
+      }),
     };
   }
 

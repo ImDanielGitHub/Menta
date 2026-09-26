@@ -72,6 +72,7 @@ jest.mock('@/store/invite-store', () => {
 });
 
 jest.mock('@/lib/promises/accountability', () => ({
+  ...jest.requireActual('@/lib/promises/accountability'),
   accountabilityRoleCopy: () => ({ title: 'Review my proof' }),
   loadPromiseAccountabilityInvitePreview: (...args: unknown[]) =>
     mockLoad(...args),

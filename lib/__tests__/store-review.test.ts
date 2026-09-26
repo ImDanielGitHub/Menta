@@ -255,17 +255,17 @@ describe('store review request contract', () => {
     expect(mockedRequestReview).not.toHaveBeenCalled();
   });
 
-  it('opens the platform review pages from Settings', async () => {
+  it('does not open the hosted app review pages from a public installation', async () => {
     const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
 
     Platform.OS = 'ios';
-    await expect(openStoreWriteReview()).resolves.toBe(true);
-    expect(openURL).toHaveBeenLastCalledWith(APP_STORE_WRITE_REVIEW_URL);
+    await expect(openStoreWriteReview()).resolves.toBe(false);
+    expect(APP_STORE_WRITE_REVIEW_URL).toBe('');
 
     Platform.OS = 'android';
-    await expect(openStoreWriteReview()).resolves.toBe(true);
-    expect(openURL).toHaveBeenLastCalledWith(PLAY_STORE_WRITE_REVIEW_URL);
-    expect(PLAY_STORE_WRITE_REVIEW_URL).toContain('showAllReviews=true');
+    await expect(openStoreWriteReview()).resolves.toBe(false);
+    expect(PLAY_STORE_WRITE_REVIEW_URL).toBe('');
+    expect(openURL).not.toHaveBeenCalled();
     openURL.mockRestore();
   });
 });

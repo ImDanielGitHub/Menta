@@ -1,5 +1,11 @@
-import React from 'react';
-import { StyleSheet, View, type DimensionValue } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { StyleSheet, View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 
 import { MentaMascot, type MascotSize } from '@/components/ui/MentaMascot';
 import { AppButton } from '@/components/ui/AppButton';
@@ -8,6 +14,7 @@ import {
   AppTextScaleProvider,
   useAppTextScale,
 } from '@/components/ui/AppScaledText';
+import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import {
   mentaColors,
   mentaLayout,
@@ -17,18 +24,32 @@ import {
 } from '@/constants/MentaDesignSystem';
 import { useTheme } from '@/constants/ThemeContext';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
-import { ChevronRightIcon, ShieldCheckIcon } from '@/components/ui/icons';
+import {
+  ChevronRightIcon,
+  RefreshCwIcon,
+  ShieldCheckIcon,
+  UsersIcon,
+  WifiOffIcon,
+} from '@/components/ui/icons';
 import { CoachSnoozeControl } from '@/components/streak/CoachSnoozeControl';
 import { ProofDueCountdown } from '@/components/streak/ProofDueCountdown';
+import {
+  TodayPromiseReceipt,
+  type TodayPromiseReceiptData,
+} from '@/components/today/TodayPromiseReceipt';
+import { TodaySpeechBubble } from '@/components/today/TodaySpeechBubble';
+import {
+  TodayCountdownHero,
+  useTodayCountdownNote,
+} from '@/components/today/TodayCountdownHero';
+import { MOTION_DISTANCES, MOTION_DURATIONS } from '@/lib/motion/tokens';
+import { useMotionPreferences } from '@/lib/motion/use-motion-preferences';
 import { useTranslation } from '@/lib/localization';
 
-import type { TodayPresentation } from '@/components/loop/today-copy';
-
-type TodayProgress = {
-  streakCount: number | null;
-  dayNumber: number | null;
-  totalDays: number | null;
-};
+import type {
+  TodayAccent,
+  TodayPresentation,
+} from '@/components/loop/today-copy';
 
 type TodayStateCardProps = {
   presentation: TodayPresentation;
@@ -36,68 +57,117 @@ type TodayStateCardProps = {
   onSecondaryPress?: (() => void) | null;
   onRemindLater?: (() => void | Promise<void>) | null;
   primaryDisabled?: boolean;
-  progress?: TodayProgress | null;
+  /** Cream receipt for the promise the hero is about. */
+  promiseReceipt?: TodayPromiseReceiptData | null;
+  /** Menta's one-line prompt at a genuine orientation point. */
+  mascotPrompt?: string | null;
   textScale?: number;
 };
 
-function TodayProgressSummary({
-  progress,
+const HALO_COLOR: Record<TodayAccent, string> = {
+  action: mentaColors.actionSoft,
+  success: mentaColors.successSoft,
+  warning: mentaColors.warningSoft,
+  danger: mentaColors.dangerSoft,
+  muted: mentaColors.raised,
+};
+
+/**
+ * Fades and lifts a Today state into place when the state changes while the
+ * screen is open. The first paint is static; Reduce Motion keeps it static.
+ */
+function TodayStateEntrance({
+  stateKey,
+  children,
 }: {
-  progress?: TodayProgress | null;
+  stateKey: string;
+  children: React.ReactNode;
 }) {
-  const { t } = useTranslation();
-  if (!progress) return null;
+  const motion = useMotionPreferences();
+  const progress = useSharedValue(1);
+  const previousKey = useRef(stateKey);
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: 0.4 + progress.value * 0.6,
+    transform: [{ translateY: (1 - progress.value) * MOTION_DISTANCES.md }],
+  }));
 
-  const hasStreak = progress.streakCount !== null;
-  const hasDay = progress.dayNumber !== null;
-  if (!hasStreak && !hasDay) return null;
+  useEffect(() => {
+    if (previousKey.current === stateKey) return;
+    previousKey.current = stateKey;
+    if (!motion.allowsTransform) return;
+    progress.value = 0;
+    progress.value = withTiming(1, {
+      duration: MOTION_DURATIONS.screen,
+      easing: Easing.out(Easing.cubic),
+    });
+  }, [motion.allowsTransform, progress, stateKey]);
 
-  const streakLabel = hasStreak
-    ? t('today.progress.streak_days', { count: progress.streakCount! })
-    : null;
-  const dayLabel = hasDay
-    ? progress.totalDays
-      ? t('today.progress.day_of', {
-          day: progress.dayNumber!,
-          total: progress.totalDays,
-        })
-      : t('today.progress.day', { day: progress.dayNumber! })
-    : null;
-  const accessibilityParts = [
-    streakLabel
-      ? t('today.progress.accessibility.current_streak', {
-          value: streakLabel,
-        })
-      : null,
-    dayLabel
-      ? t('today.progress.accessibility.promise', { value: dayLabel })
-      : null,
-  ].filter(Boolean);
+  return <Animated.View style={animatedStyle}>{children}</Animated.View>;
+}
+
+/**
+ * The framed mascot stage from the Paper Today artboards. The halo takes the
+ * state's accent. An approved day gets one springy pop when it arrives.
+ */
+function TodayHeroStage({
+  presentation,
+  height,
+  mascotSize,
+}: {
+  presentation: TodayPresentation;
+  height: number;
+  mascotSize: MascotSize;
+}) {
+  const motion = useMotionPreferences();
+  const scale = useSharedValue(1);
+  const previousState = useRef(presentation.state);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  useEffect(() => {
+    const arrived =
+      previousState.current !== presentation.state &&
+      presentation.state === 'accepted-today';
+    previousState.current = presentation.state;
+    if (!arrived || !presentation.animateMascot || !motion.allowsTransform) {
+      return;
+    }
+    scale.value = 0.82;
+    scale.value = withTiming(1, {
+      duration: MOTION_DURATIONS.complex,
+      easing: Easing.out(Easing.back(2)),
+    });
+  }, [
+    motion.allowsTransform,
+    presentation.animateMascot,
+    presentation.state,
+    scale,
+  ]);
+
+  if (!presentation.mascot) return null;
 
   return (
-    <View
-      accessible
-      accessibilityLabel={accessibilityParts.join(' ')}
-      style={styles.progressSummary}
-      testID="today-progress-summary"
-    >
-      {streakLabel ? (
-        <View style={styles.progressMetric}>
-          <Text style={styles.progressValue}>{streakLabel}</Text>
-          <Text style={styles.progressLabel}>
-            {t('today.progress.current_streak')}
-          </Text>
-        </View>
-      ) : null}
-      {streakLabel && dayLabel ? <View style={styles.progressDivider} /> : null}
-      {dayLabel ? (
-        <View style={styles.progressMetric}>
-          <Text style={styles.progressValue}>{dayLabel}</Text>
-          <Text style={styles.progressLabel}>
-            {t('today.progress.promise')}
-          </Text>
-        </View>
-      ) : null}
+    <View style={[styles.heroVisual, { height }]} testID="today-hero-visual">
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        style={[
+          styles.heroHalo,
+          {
+            backgroundColor: HALO_COLOR[presentation.accent],
+            height: height - mentaSpacing[6],
+            width: height - mentaSpacing[6],
+          },
+        ]}
+      />
+      <Animated.View style={animatedStyle}>
+        <MentaMascot
+          state={presentation.mascot}
+          size={mascotSize}
+          style={styles.heroMascot}
+        />
+      </Animated.View>
     </View>
   );
 }
@@ -126,67 +196,122 @@ function AccountabilityReceipt({
   );
 }
 
+function TodayCountdownNote(props: {
+  localDay: string;
+  timeZone: string;
+  dueAtIso: string | null;
+}) {
+  const note = useTodayCountdownNote(props);
+  if (!note) return null;
+  return (
+    <Text style={styles.countdownNote} testID="today-countdown-note">
+      {note}
+    </Text>
+  );
+}
+
 function TodayHero({
   presentation,
   onPrimaryPress,
   onSecondaryPress,
   primaryDisabled,
-  progress,
+  promiseReceipt,
 }: TodayStateCardProps) {
   const phoneLayout = usePhoneLayout();
   const isPassiveWait =
     presentation.primaryAction === 'wait' ||
     presentation.primaryAction === 'wait-upload';
   const hidesDecorativeVisual = phoneLayout.width <= 340;
+  // The receipt carries routine days. The mascot stays for a genuine change:
+  // the day being approved, or a state with no promise receipt to anchor it.
+  const showsStage =
+    Boolean(presentation.mascot) &&
+    !hidesDecorativeVisual &&
+    (!promiseReceipt || presentation.state === 'accepted-today');
   const mascotSize: MascotSize = phoneLayout.isShortHeight ? 'lg' : 'xl';
   const heroVisualHeight = phoneLayout.isShortHeight
     ? 128
     : phoneLayout.isCompactHeight || phoneLayout.width < 414
       ? 156
       : 168;
+  const showsAccountabilityReceipt =
+    Boolean(presentation.accountabilityReceipt) &&
+    !(promiseReceipt && presentation.state === 'accepted-today');
+
+  const countdown =
+    presentation.state === 'proof-due' ? presentation.countdown : null;
 
   return (
     <>
       <Text style={styles.heroDate}>{presentation.dateLabel}</Text>
 
-      <View style={styles.heroCopyBlock}>
-        <Text style={styles.heroTitle}>{presentation.title}</Text>
-        <Text
-          style={[
-            styles.heroDetail,
-            phoneLayout.isCompactWidth ? styles.heroDetailCompact : null,
-          ]}
-        >
-          {presentation.detail}
-        </Text>
-      </View>
-
-      {presentation.mascot && !hidesDecorativeVisual ? (
-        <View
-          style={[styles.heroVisual, { height: heroVisualHeight }]}
-          testID="today-hero-visual"
-        >
-          <MentaMascot
-            state={presentation.mascot}
-            size={mascotSize}
-            style={styles.heroMascot}
+      {countdown ? (
+        <View style={styles.heroCountdown}>
+          <TodayCountdownHero
+            dueAtIso={countdown.dueAtIso}
+            localDay={countdown.localDay}
+            mascot={presentation.mascot}
+            preferredReminderTime={countdown.preferredReminderTime}
+            streak={countdown.streak ?? null}
+            timeZone={countdown.timeZone}
           />
         </View>
       ) : null}
 
-      <AccountabilityReceipt receipt={presentation.accountabilityReceipt} />
+      {!countdown && showsStage ? (
+        <TodayHeroStage
+          height={heroVisualHeight}
+          mascotSize={mascotSize}
+          presentation={presentation}
+        />
+      ) : null}
 
-      <TodayProgressSummary progress={progress} />
+      {!countdown ? (
+        <View
+          style={[
+            styles.heroCopyBlock,
+            showsStage ? styles.heroCopyAfterStage : null,
+          ]}
+        >
+          <Text style={styles.heroTitle}>{presentation.title}</Text>
+          <Text
+            style={[
+              styles.heroDetail,
+              phoneLayout.isCompactWidth ? styles.heroDetailCompact : null,
+            ]}
+          >
+            {presentation.detail}
+          </Text>
+        </View>
+      ) : null}
+
+      {promiseReceipt ? (
+        <View style={styles.heroReceipt}>
+          <TodayPromiseReceipt receipt={promiseReceipt} />
+        </View>
+      ) : null}
+
+      {showsAccountabilityReceipt ? (
+        <AccountabilityReceipt receipt={presentation.accountabilityReceipt} />
+      ) : null}
 
       <View style={styles.heroActions}>
         {!isPassiveWait ? (
           <AppButton
             disabled={primaryDisabled}
+            haptic
             onPress={onPrimaryPress}
             size="large"
             title={presentation.primaryLabel}
             variant="accent"
             fullWidth
+          />
+        ) : null}
+        {countdown ? (
+          <TodayCountdownNote
+            dueAtIso={countdown.dueAtIso}
+            localDay={countdown.localDay}
+            timeZone={countdown.timeZone}
           />
         ) : null}
         {presentation.secondaryLabel && onSecondaryPress ? (
@@ -254,6 +379,7 @@ function TodayAllClearState({
       <View style={styles.accountabilityActions}>
         <AppButton
           disabled={primaryDisabled}
+          haptic
           onPress={onPrimaryPress}
           size="large"
           title={presentation.primaryLabel}
@@ -280,6 +406,7 @@ function TodayAccountabilityState({
   onSecondaryPress,
   onRemindLater,
   primaryDisabled,
+  mascotPrompt,
 }: TodayStateCardProps) {
   const { colors } = useTheme();
   const phoneLayout = usePhoneLayout();
@@ -288,6 +415,33 @@ function TodayAccountabilityState({
     presentation.state === 'streak-broken';
   const isProofDueCountdown =
     presentation.state === 'proof-due' && Boolean(presentation.countdown);
+  const prompt = presentation.prompt ?? mascotPrompt;
+  const heading = (
+    <View
+      style={[
+        styles.accountabilityHeading,
+        isProofDueCountdown ? styles.proofDueHeading : null,
+        isRecoveryState ? styles.recoveryHeading : null,
+      ]}
+    >
+      <Text
+        style={[
+          styles.accountabilityTitle,
+          isRecoveryState ? styles.recoveryText : null,
+        ]}
+      >
+        {presentation.title}
+      </Text>
+      <Text
+        style={[
+          styles.accountabilityDetail,
+          isRecoveryState ? styles.recoveryText : null,
+        ]}
+      >
+        {presentation.detail}
+      </Text>
+    </View>
+  );
   return (
     <View
       style={{ minHeight: phoneLayout.todayAccountabilityMinHeight }}
@@ -295,12 +449,7 @@ function TodayAccountabilityState({
     >
       <Text style={styles.heroDate}>{presentation.dateLabel}</Text>
 
-      {!isProofDueCountdown ? (
-        <View style={styles.accountabilityHeading}>
-          <Text style={styles.accountabilityTitle}>{presentation.title}</Text>
-          <Text style={styles.accountabilityDetail}>{presentation.detail}</Text>
-        </View>
-      ) : null}
+      {!isProofDueCountdown && !isRecoveryState ? heading : null}
 
       {presentation.mascot ? (
         <View
@@ -333,6 +482,9 @@ function TodayAccountabilityState({
           ]}
           testID="today-accountability-visual"
         >
+          {prompt && isRecoveryState ? (
+            <TodaySpeechBubble testID="today-mascot-prompt" text={prompt} />
+          ) : null}
           <MentaMascot
             state={presentation.mascot}
             size={
@@ -368,12 +520,7 @@ function TodayAccountabilityState({
         </View>
       ) : null}
 
-      {isProofDueCountdown ? (
-        <View style={[styles.accountabilityHeading, styles.proofDueHeading]}>
-          <Text style={styles.accountabilityTitle}>{presentation.title}</Text>
-          <Text style={styles.accountabilityDetail}>{presentation.detail}</Text>
-        </View>
-      ) : null}
+      {isProofDueCountdown || isRecoveryState ? heading : null}
 
       {presentation.facts?.length ? (
         <View style={styles.accountabilityFacts}>
@@ -426,6 +573,7 @@ function TodayAccountabilityState({
       >
         <AppButton
           disabled={primaryDisabled}
+          haptic
           onPress={onPrimaryPress}
           size="large"
           title={presentation.primaryLabel}
@@ -454,6 +602,7 @@ function TodayEmptyState({
   onPrimaryPress,
   onSecondaryPress,
   primaryDisabled,
+  mascotPrompt,
 }: TodayStateCardProps) {
   const phoneLayout = usePhoneLayout();
   const mascotSize = phoneLayout.isShortHeight
@@ -482,6 +631,12 @@ function TodayEmptyState({
           ]}
           testID="today-empty-visual"
         >
+          {mascotPrompt ? (
+            <TodaySpeechBubble
+              testID="today-mascot-prompt"
+              text={mascotPrompt}
+            />
+          ) : null}
           {presentation.mascot ? (
             <MentaMascot
               state={presentation.mascot}
@@ -495,6 +650,7 @@ function TodayEmptyState({
       <View style={styles.emptyActions} testID="today-empty-actions">
         <AppButton
           disabled={primaryDisabled}
+          haptic
           onPress={onPrimaryPress}
           size="large"
           title={presentation.primaryLabel}
@@ -515,6 +671,11 @@ function TodayEmptyState({
   );
 }
 
+/**
+ * Loading keeps the hero geometry: date, framed stage, centred heading and
+ * detail, the promise receipt and the primary action, so nothing jumps when
+ * the confirmed state arrives.
+ */
 function TodayLoadingSkeleton() {
   const { t } = useTranslation();
   const phoneLayout = usePhoneLayout();
@@ -524,19 +685,6 @@ function TodayLoadingSkeleton() {
       ? 156
       : 168;
 
-  const placeholder = (
-    height: number,
-    width: DimensionValue = '100%',
-    testID?: string
-  ) => (
-    <View
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-      style={[styles.loadingPlaceholder, { height, width }]}
-      testID={testID}
-    />
-  );
-
   return (
     <View
       accessible
@@ -545,30 +693,71 @@ function TodayLoadingSkeleton() {
       style={styles.skeletonStack}
       testID="today-loading-skeleton"
     >
-      {placeholder(16, '34%', 'today-loading-date')}
-      <View style={styles.skeletonCopy}>
-        {placeholder(38, '78%')}
-        {placeholder(23, '92%')}
-        {placeholder(23, '68%')}
-      </View>
+      <SkeletonLoader
+        announce={false}
+        height={16}
+        testID="today-loading-date"
+        width="42%"
+      />
       {phoneLayout.width > 340 ? (
-        <View
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-          style={{ height: visualHeight }}
+        <SkeletonLoader
+          announce={false}
+          borderRadius={mentaRadii.large}
+          height={visualHeight}
           testID="today-loading-hero"
         />
       ) : null}
-      <View style={styles.skeletonProgress}>
-        {placeholder(44, '32%')}
-        {placeholder(44, '38%')}
+      <View style={styles.skeletonCopy}>
+        <SkeletonLoader announce={false} height={34} width="82%" />
+        <SkeletonLoader announce={false} height={18} width="92%" />
+        <SkeletonLoader announce={false} height={18} width="64%" />
       </View>
-      <View
-        style={styles.loadingAction}
+      <SkeletonLoader
+        announce={false}
+        borderRadius={mentaRadii.large}
+        height={144}
+        testID="today-loading-receipt"
+      />
+      <SkeletonLoader
+        announce={false}
+        borderRadius={mentaRadii.round}
+        height={mentaLayout.primaryControlHeight}
         testID="today-loading-primary-action"
       />
     </View>
   );
+}
+
+const SYSTEM_TILE_TONE: Record<TodayAccent, { background: string }> = {
+  action: { background: mentaColors.actionSoft },
+  success: { background: mentaColors.successSoft },
+  warning: { background: mentaColors.warningSoft },
+  danger: { background: mentaColors.dangerSoft },
+  muted: { background: mentaColors.raised },
+};
+
+const SYSTEM_ICON_COLOR: Record<TodayAccent, string> = {
+  action: mentaColors.action,
+  success: mentaColors.success,
+  warning: mentaColors.warning,
+  danger: mentaColors.danger,
+  muted: mentaColors.text.secondary,
+};
+
+function SystemStateIcon({
+  presentation,
+}: {
+  presentation: TodayPresentation;
+}) {
+  const color = SYSTEM_ICON_COLOR[presentation.accent];
+  switch (presentation.state) {
+    case 'offline-stale':
+      return <WifiOffIcon color={color} size={22} />;
+    case 'group-at-risk':
+      return <UsersIcon color={color} size={22} />;
+    default:
+      return <RefreshCwIcon color={color} size={22} />;
+  }
 }
 
 function TodayStateCardContent({
@@ -577,7 +766,8 @@ function TodayStateCardContent({
   onSecondaryPress,
   onRemindLater = null,
   primaryDisabled = false,
-  progress = null,
+  promiseReceipt = null,
+  mascotPrompt = null,
 }: TodayStateCardProps) {
   const isLoading = presentation.state === 'loading';
 
@@ -589,12 +779,14 @@ function TodayStateCardContent({
         style={styles.stateLane}
         testID="today-state-all-clear"
       >
-        <TodayAllClearState
-          presentation={presentation}
-          onPrimaryPress={onPrimaryPress}
-          onSecondaryPress={onSecondaryPress}
-          primaryDisabled={primaryDisabled}
-        />
+        <TodayStateEntrance stateKey={presentation.state}>
+          <TodayAllClearState
+            presentation={presentation}
+            onPrimaryPress={onPrimaryPress}
+            onSecondaryPress={onSecondaryPress}
+            primaryDisabled={primaryDisabled}
+          />
+        </TodayStateEntrance>
       </View>
     );
   }
@@ -606,12 +798,15 @@ function TodayStateCardContent({
         style={styles.stateLane}
         testID={`today-state-${presentation.state}`}
       >
-        <TodayEmptyState
-          presentation={presentation}
-          onPrimaryPress={onPrimaryPress}
-          onSecondaryPress={onSecondaryPress}
-          primaryDisabled={primaryDisabled}
-        />
+        <TodayStateEntrance stateKey={presentation.state}>
+          <TodayEmptyState
+            presentation={presentation}
+            onPrimaryPress={onPrimaryPress}
+            onSecondaryPress={onSecondaryPress}
+            primaryDisabled={primaryDisabled}
+            mascotPrompt={mascotPrompt}
+          />
+        </TodayStateEntrance>
       </View>
     );
   }
@@ -624,13 +819,15 @@ function TodayStateCardContent({
         style={styles.stateLane}
         testID={`today-state-${presentation.state}`}
       >
-        <TodayHero
-          presentation={presentation}
-          onPrimaryPress={onPrimaryPress}
-          onSecondaryPress={onSecondaryPress}
-          primaryDisabled={primaryDisabled}
-          progress={progress}
-        />
+        <TodayStateEntrance stateKey={presentation.state}>
+          <TodayHero
+            presentation={presentation}
+            onPrimaryPress={onPrimaryPress}
+            onSecondaryPress={onSecondaryPress}
+            primaryDisabled={primaryDisabled}
+            promiseReceipt={promiseReceipt}
+          />
+        </TodayStateEntrance>
       </View>
     );
   }
@@ -643,13 +840,16 @@ function TodayStateCardContent({
         style={styles.stateLane}
         testID={`today-state-${presentation.state}`}
       >
-        <TodayAccountabilityState
-          presentation={presentation}
-          onPrimaryPress={onPrimaryPress}
-          onSecondaryPress={onSecondaryPress}
-          onRemindLater={onRemindLater}
-          primaryDisabled={primaryDisabled}
-        />
+        <TodayStateEntrance stateKey={presentation.state}>
+          <TodayAccountabilityState
+            presentation={presentation}
+            onPrimaryPress={onPrimaryPress}
+            onSecondaryPress={onSecondaryPress}
+            onRemindLater={onRemindLater}
+            primaryDisabled={primaryDisabled}
+            mascotPrompt={mascotPrompt}
+          />
+        </TodayStateEntrance>
       </View>
     );
   }
@@ -664,25 +864,32 @@ function TodayStateCardContent({
       {isLoading ? (
         <TodayLoadingSkeleton />
       ) : (
-        <>
-          <View style={styles.heroRow}>
+        <TodayStateEntrance stateKey={presentation.state}>
+          <Text style={styles.heroDate}>{presentation.dateLabel}</Text>
+          <View style={styles.systemCard}>
+            <View
+              style={[
+                styles.systemTile,
+                {
+                  backgroundColor:
+                    SYSTEM_TILE_TONE[presentation.accent].background,
+                },
+              ]}
+            >
+              <SystemStateIcon presentation={presentation} />
+            </View>
             <View style={styles.heroCopy}>
               <Text style={styles.title}>{presentation.title}</Text>
               <Text style={styles.detail}>{presentation.detail}</Text>
             </View>
-            {presentation.mascot ? (
-              <MentaMascot
-                state={presentation.mascot}
-                size="sm"
-                style={styles.mascot}
-              />
-            ) : null}
           </View>
 
           <View style={styles.actions}>
             <AppButton
               disabled={primaryDisabled}
+              haptic
               onPress={onPrimaryPress}
+              size="large"
               title={presentation.primaryLabel}
               variant="accent"
               fullWidth
@@ -690,13 +897,14 @@ function TodayStateCardContent({
             {presentation.secondaryLabel && onSecondaryPress ? (
               <AppButton
                 onPress={onSecondaryPress}
+                size="large"
                 title={presentation.secondaryLabel}
                 variant="outline"
                 fullWidth
               />
             ) : null}
           </View>
-        </>
+        </TodayStateEntrance>
       )}
     </View>
   );
@@ -716,6 +924,22 @@ export function TodayStateCard(props: TodayStateCardProps): React.ReactElement {
 }
 
 const styles = StyleSheet.create({
+  heroCountdown: {
+    marginBottom: mentaSpacing[6],
+    marginTop: mentaSpacing[5],
+  },
+  recoveryHeading: {
+    alignItems: 'center',
+    marginTop: mentaSpacing[5],
+  },
+  recoveryText: {
+    textAlign: 'center',
+  },
+  countdownNote: {
+    ...mentaTypography.bodySmall,
+    color: mentaColors.text.muted,
+    textAlign: 'center',
+  },
   stateLane: {
     alignSelf: 'center',
     maxWidth: mentaLayout.taskLane,
@@ -753,8 +977,19 @@ const styles = StyleSheet.create({
     gap: mentaSpacing[2],
   },
   systemState: {
-    gap: mentaSpacing[5],
     paddingVertical: mentaSpacing[3],
+  },
+  systemCard: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: mentaSpacing[4],
+  },
+  systemTile: {
+    alignItems: 'center',
+    borderRadius: mentaRadii.medium,
+    height: 48,
+    justifyContent: 'center',
+    width: 48,
   },
   heroDate: {
     ...mentaTypography.bodySmallMedium,
@@ -763,14 +998,27 @@ const styles = StyleSheet.create({
   },
   heroVisual: {
     alignItems: 'center',
+    backgroundColor: mentaColors.surface,
+    borderColor: mentaColors.border,
+    borderRadius: mentaRadii.large,
+    borderWidth: 1,
     justifyContent: 'center',
-    marginTop: mentaSpacing[2],
     overflow: 'visible',
     position: 'relative',
     width: '100%',
   },
+  heroHalo: {
+    borderRadius: mentaRadii.round,
+    position: 'absolute',
+  },
   heroMascot: {
     flexShrink: 0,
+  },
+  heroCopyAfterStage: {
+    marginTop: mentaSpacing[5],
+  },
+  heroReceipt: {
+    marginTop: mentaSpacing[6],
   },
   heroCopyBlock: {
     alignItems: 'center',
@@ -788,37 +1036,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   heroDetailCompact: { maxWidth: '100%' },
-  progressSummary: {
-    alignItems: 'stretch',
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    marginTop: mentaSpacing[5],
-    paddingVertical: mentaSpacing[3],
-  },
-  progressMetric: {
-    alignItems: 'center',
-    flex: 1,
-    gap: mentaSpacing[1],
-    minWidth: 0,
-  },
-  progressDivider: {
-    backgroundColor: mentaColors.border,
-    width: StyleSheet.hairlineWidth,
-  },
-  progressValue: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-    fontVariant: ['tabular-nums'],
-    textAlign: 'center',
-  },
-  progressLabel: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-    textAlign: 'center',
-  },
   heroActions: {
     gap: mentaSpacing[2],
     paddingTop: mentaSpacing[5],
@@ -967,11 +1184,6 @@ const styles = StyleSheet.create({
     gap: mentaSpacing[3],
     marginTop: mentaSpacing[6],
   },
-  heroRow: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: mentaSpacing[4],
-  },
   heroCopy: {
     flex: 1,
     minWidth: 0,
@@ -985,13 +1197,9 @@ const styles = StyleSheet.create({
     color: mentaColors.text.secondary,
     marginTop: mentaSpacing[2],
   },
-  mascot: {
-    flexShrink: 0,
-    marginRight: -mentaSpacing[1],
-    marginTop: -mentaSpacing[1],
-  },
   actions: {
     gap: mentaSpacing[2],
+    marginTop: mentaSpacing[8],
   },
   skeletonStack: {
     gap: mentaSpacing[5],
@@ -999,21 +1207,5 @@ const styles = StyleSheet.create({
   skeletonCopy: {
     alignItems: 'center',
     gap: mentaSpacing[3],
-  },
-  skeletonProgress: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: mentaSpacing[5],
-    paddingVertical: mentaSpacing[2],
-  },
-  loadingPlaceholder: {
-    backgroundColor: mentaColors.skeleton,
-    borderRadius: mentaRadii.small,
-  },
-  loadingAction: {
-    backgroundColor: mentaColors.skeleton,
-    borderRadius: mentaRadii.large,
-    height: mentaLayout.primaryControlHeight,
-    width: '100%',
   },
 });

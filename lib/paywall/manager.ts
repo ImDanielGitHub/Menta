@@ -1,5 +1,3 @@
-import { nanoid } from 'nanoid/non-secure';
-
 export type PaywallContext = 'challenge' | 'group' | 'member' | 'general';
 
 export type PaywallOpenOptions = {
@@ -18,6 +16,7 @@ class PaywallManager {
   private listeners: Set<Listener> = new Set();
   private visibilityListeners: Set<VisibilityListener> = new Set();
   private visible = false;
+  private openSequence = 0;
 
   subscribe(listener: Listener) {
     this.listeners.add(listener);
@@ -49,7 +48,8 @@ class PaywallManager {
   }
 
   open(options: PaywallOpenOptions = {}) {
-    const payload = { id: nanoid(), ...options };
+    this.openSequence += 1;
+    const payload = { id: `paywall-${this.openSequence}`, ...options };
     this.listeners.forEach(l => {
       try {
         l(payload);

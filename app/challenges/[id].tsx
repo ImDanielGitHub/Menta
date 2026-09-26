@@ -26,7 +26,7 @@ import { AppFieldRow } from '@/components/ui/AppFields';
 import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import { ConfirmDestructiveSheet } from '@/components/ui/ConfirmDestructiveSheet';
 import { AppInlineNotice } from '@/components/ui/AppFeedback';
-import ModalCard from '@/components/ui/modal/ModalCard';
+import { ModalCard } from '@/components/ui/modal/ModalCard';
 import { AppScreen } from '@/components/ui/AppShell';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { SimpleBottomSheet } from '@/components/ui/SimpleBottomSheet';
@@ -60,6 +60,7 @@ import {
   FreezeInventoryCard,
   ProtectedStreakReceipt,
 } from '@/components/streak';
+import { STREAK_FREEZE_SHOP_HREF } from '@/components/shop/shop-links';
 import { useAuthStore } from '@/store/auth-store';
 import {
   Challenge as StoreChallenge,
@@ -2672,6 +2673,12 @@ export default function ChallengeDetailScreen() {
                 localDay={streakState.latestOutcome.localDay}
                 resultingStreak={streakState.latestOutcome.resultingStreak}
                 freezeUsed={streakState.latestOutcome.freezeUsed}
+                freezesRemaining={streakState.latestOutcome.freezesRemaining}
+                onRefill={
+                  isUserParticipant
+                    ? () => router.push(STREAK_FREEZE_SHOP_HREF)
+                    : undefined
+                }
               />
             ) : null}
 
@@ -2696,6 +2703,7 @@ export default function ChallengeDetailScreen() {
               submitLoading={isNavigatingToVerification}
               onSubmitProof={handleSubmitProof}
               onOpenFreezes={() => router.push('/inventory')}
+              onGetFreeze={() => router.push(STREAK_FREEZE_SHOP_HREF)}
               onRemindLater={() => snoozeCoachMessages()}
             />
 
@@ -2896,6 +2904,10 @@ export default function ChallengeDetailScreen() {
               setItemsVisible(false);
               router.push('/inventory');
             }}
+            onGetFreeze={() => {
+              setItemsVisible(false);
+              router.push(STREAK_FREEZE_SHOP_HREF);
+            }}
             isStreakStateLoading={isStreakStateLoading}
             streakState={streakState}
           />
@@ -3087,6 +3099,7 @@ function SupportSection({
   getPowerUpLabel,
   onUseInventory,
   onOpenFreezeInventory,
+  onGetFreeze,
   isStreakStateLoading,
   streakState,
 }: {
@@ -3096,6 +3109,7 @@ function SupportSection({
   getPowerUpLabel: (sku: string) => string;
   onUseInventory: (sku: string) => void;
   onOpenFreezeInventory: () => void;
+  onGetFreeze: () => void;
   isStreakStateLoading: boolean;
   streakState: ReturnType<typeof useStreakState>['streakState'];
 }) {
@@ -3115,6 +3129,7 @@ function SupportSection({
             <FreezeInventoryCard
               freezeCount={streakState.freezeCount}
               onPress={onOpenFreezeInventory}
+              onGetMore={onGetFreeze}
             />
           </>
         ) : null}

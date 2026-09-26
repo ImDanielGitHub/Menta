@@ -1,32 +1,18 @@
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { AppButton, type AppButtonProps } from '@/components/ui/AppButton';
+import { AppButton } from '@/components/ui/AppButton';
+import { MentaMascot } from '@/components/ui/MentaMascot';
 import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
+import { RefreshCcwIcon } from '@/components/ui/icons';
 import {
-  AlertTriangleIcon,
-  BotIcon,
-  ChevronRightIcon,
-  ClockIcon,
-  CrownIcon,
-  DiamondIcon,
-  FlameIcon,
-  PaletteIcon,
-  RefreshCcwIcon,
-  ShoppingBagIcon,
-  SnowflakeIcon,
-  SparklesIcon,
-  WalletIcon,
-  ZapIcon,
-} from '@/components/ui/icons';
-import {
+  mentaColors,
   mentaLayout,
   mentaRadii,
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
 import { useTheme } from '@/constants/ThemeContext';
-import { useLargeTypeLineLimit } from '@/lib/accessibility';
 import { normalizeShopCategory } from '@/lib/shop/powerUpSupport';
 import { useTranslation } from '@/lib/localization/use-translation';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
@@ -60,144 +46,6 @@ export function getShopCategoryId(
   if (normalized === 'cosmetic') return 'cosmetic';
   if (normalized === 'ai_upgrade') return 'ai_upgrade';
   return 'power_up';
-}
-
-export function formatShopCategory(
-  category?: string | null,
-  t: (key: import('@/lib/localization/en-NZ').TranslationKey) => string = key =>
-    (
-      ({
-        'commerce.shop.categoryStyle': 'Style',
-        'commerce.shop.categoryAi': 'AI',
-        'commerce.shop.categoryBoost': 'Boost',
-      }) as Record<string, string>
-    )[key] ?? key
-) {
-  const normalized = getShopCategoryId(category);
-  if (normalized === 'cosmetic') return t('commerce.shop.categoryStyle');
-  if (normalized === 'ai_upgrade') return t('commerce.shop.categoryAi');
-  return t('commerce.shop.categoryBoost');
-}
-
-export function ShopItemGlyph({
-  item,
-  color,
-  size = 28,
-}: {
-  item: Pick<ShopDisplayItem, 'sku' | 'name'>;
-  color: string;
-  size?: number;
-}) {
-  const sku = String(item.sku || '').toLowerCase();
-  const name = item.name.toLowerCase();
-  const props = { size, color };
-
-  if (sku.includes('freeze') || name.includes('freeze')) {
-    return <SnowflakeIcon {...props} />;
-  }
-  if (sku.includes('time') || sku.includes('extension')) {
-    return <ClockIcon {...props} />;
-  }
-  if (sku.includes('double') || sku.includes('point')) {
-    return <FlameIcon {...props} />;
-  }
-  if (sku.includes('booster') || sku.includes('boost')) {
-    return <ZapIcon {...props} />;
-  }
-  if (sku.includes('frame') || name.includes('frame')) {
-    return <SparklesIcon {...props} />;
-  }
-  if (name.includes('theme')) return <PaletteIcon {...props} />;
-  if (name.includes('badge')) return <DiamondIcon {...props} />;
-  if (name.includes('ai') || sku.includes('ai')) return <BotIcon {...props} />;
-  if (name.includes('streak')) return <CrownIcon {...props} />;
-  return <SparklesIcon {...props} />;
-}
-
-export function ShopHeaderBlock({
-  label,
-  title,
-  subtitle,
-  icon,
-}: {
-  label: string;
-  title: string;
-  subtitle?: string;
-  icon?: React.ReactNode;
-}) {
-  const theme = useTheme();
-  const styles = createStyles(theme);
-  return (
-    <View style={styles.header}>
-      <View style={styles.headerLabelRow}>
-        {icon}
-        <Text style={styles.headerLabel}>{label}</Text>
-      </View>
-      <Text accessibilityRole="header" style={styles.headerTitle}>
-        {title}
-      </Text>
-      {subtitle ? <Text style={styles.headerSubtitle}>{subtitle}</Text> : null}
-    </View>
-  );
-}
-
-export function ShopMetricStrip({
-  metrics,
-}: {
-  metrics: {
-    label: string;
-    value: string;
-    icon?: React.ReactNode;
-    onPress?: () => void;
-  }[];
-}) {
-  const theme = useTheme();
-  const styles = createStyles(theme);
-
-  return (
-    <View style={styles.metricStrip}>
-      {metrics.map((metric, index) => {
-        const content = (
-          <>
-            <View style={styles.metricTop}>
-              {metric.icon}
-              <Text style={styles.metricLabel}>{metric.label}</Text>
-            </View>
-            <Text style={styles.metricValue}>{metric.value}</Text>
-          </>
-        );
-
-        if (metric.onPress) {
-          return (
-            <Pressable
-              key={metric.label}
-              accessibilityRole="button"
-              onPress={metric.onPress}
-              style={({ pressed }) => [
-                styles.metricCell,
-                index < metrics.length - 1 && styles.metricCellBorder,
-                pressed && styles.pressed,
-              ]}
-            >
-              {content}
-            </Pressable>
-          );
-        }
-
-        return (
-          <View
-            key={metric.label}
-            style={[
-              styles.metricCell,
-              index < metrics.length - 1 && styles.metricCellBorder,
-            ]}
-          >
-            {content}
-          </View>
-        );
-      })}
-    </View>
-  );
 }
 
 export function ShopFilterChips({
@@ -261,140 +109,6 @@ export function ShopFilterChips({
   );
 }
 
-export function ShopListRow({
-  item,
-  eyebrow,
-  showCategoryLabel = true,
-  stateLabel,
-  rightLabel,
-  actionLabel,
-  actionVariant = 'primary',
-  actionDisabled = false,
-  actionLoading = false,
-  onPress,
-  onAction,
-  testID,
-}: {
-  item: ShopDisplayItem;
-  eyebrow?: string;
-  showCategoryLabel?: boolean;
-  stateLabel?: string;
-  rightLabel?: string;
-  actionLabel?: string;
-  actionVariant?: AppButtonProps['variant'];
-  actionDisabled?: boolean;
-  actionLoading?: boolean;
-  onPress: () => void;
-  onAction?: () => void;
-  testID?: string;
-}) {
-  const theme = useTheme();
-  const styles = createStyles(theme);
-  const { t } = useTranslation();
-  const phoneLayout = usePhoneLayout();
-  const useStackedAction =
-    phoneLayout.isCompactWidth || phoneLayout.fontScale >= 1.2;
-  const descriptionLines = useLargeTypeLineLimit(2);
-  const titleLines = useLargeTypeLineLimit(1);
-  const priceLines = useLargeTypeLineLimit(1);
-  const description = item.description?.trim();
-  const categoryLabel = showCategoryLabel
-    ? eyebrow || formatShopCategory(item.category, t)
-    : eyebrow;
-
-  const itemIdentity = (
-    <>
-      <View style={styles.itemIconPlane}>
-        <ShopItemGlyph item={item} color={theme.colors.text.primary} />
-      </View>
-
-      <View style={styles.itemCopy}>
-        {categoryLabel || stateLabel ? (
-          <View style={styles.itemMetaRow}>
-            {categoryLabel ? (
-              <Text style={styles.itemEyebrow}>{categoryLabel}</Text>
-            ) : null}
-            {stateLabel ? (
-              <Text style={styles.itemState}>{stateLabel}</Text>
-            ) : null}
-          </View>
-        ) : null}
-        <Text numberOfLines={titleLines} style={styles.itemTitle}>
-          {item.name}
-        </Text>
-        {description ? (
-          <Text style={styles.itemDescription} numberOfLines={descriptionLines}>
-            {description}
-          </Text>
-        ) : null}
-      </View>
-    </>
-  );
-
-  if (actionLabel && onAction) {
-    return (
-      <View
-        style={[styles.itemRow, useStackedAction && styles.itemRowStacked]}
-        testID={testID}
-      >
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('commerce.shop.openItem', { name: item.name })}
-          onPress={onPress}
-          style={({ pressed }) => [
-            styles.itemIdentityAction,
-            pressed && styles.pressed,
-          ]}
-        >
-          {itemIdentity}
-        </Pressable>
-
-        <View
-          style={[
-            styles.itemTrail,
-            useStackedAction && styles.itemTrailStacked,
-          ]}
-        >
-          <AppButton
-            title={
-              actionLoading ? t('commerce.accessibility.checking') : actionLabel
-            }
-            accessibilityLabel={`${actionLabel} ${item.name}`}
-            variant={actionVariant}
-            size="small"
-            disabled={actionDisabled}
-            loading={actionLoading}
-            preserveLabelPositionOnLoading
-            onPress={onAction}
-            fullWidth={useStackedAction}
-          />
-        </View>
-      </View>
-    );
-  }
-
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={t('commerce.shop.openItem', { name: item.name })}
-      onPress={onPress}
-      style={({ pressed }) => [styles.itemRow, pressed && styles.pressed]}
-      testID={testID}
-    >
-      {itemIdentity}
-
-      <View style={styles.itemTrail}>
-        {rightLabel ? (
-          <Text numberOfLines={priceLines} style={styles.itemRight}>
-            {rightLabel}
-          </Text>
-        ) : null}
-        <ChevronRightIcon size={18} color={theme.colors.text.tertiary} />
-      </View>
-    </Pressable>
-  );
-}
-
 export function ShopSectionHeader({
   title,
   description,
@@ -413,7 +127,9 @@ export function ShopSectionHeader({
   return (
     <View style={styles.sectionHeader} testID={testID}>
       <View style={styles.sectionCopy}>
-        <Text style={styles.sectionTitle}>{title}</Text>
+        <Text accessibilityRole="header" style={styles.sectionTitle}>
+          {title}
+        </Text>
         {description ? (
           <Text style={styles.sectionDescription}>{description}</Text>
         ) : null}
@@ -430,6 +146,27 @@ export function ShopSectionHeader({
   );
 }
 
+function SkeletonCard({ showCopyLines = 2 }: { showCopyLines?: number }) {
+  const theme = useTheme();
+  const styles = createStyles(theme);
+  return (
+    <View style={styles.skeletonCard}>
+      <SkeletonLoader announce={false} style={styles.skeletonArt} />
+      <View style={styles.skeletonCopy}>
+        <SkeletonLoader announce={false} style={styles.skeletonTitle} />
+        {showCopyLines > 1 ? (
+          <SkeletonLoader announce={false} style={styles.skeletonDescription} />
+        ) : null}
+      </View>
+      <SkeletonLoader announce={false} style={styles.skeletonTrail} />
+    </View>
+  );
+}
+
+/**
+ * Destination-shaped loading: the same card, art and price geometry the shelf
+ * uses, across the full content width.
+ */
 export function ShopCollectionSkeleton({
   title,
   message,
@@ -463,26 +200,17 @@ export function ShopCollectionSkeleton({
       </View>
 
       <View style={styles.collectionSkeletonBody}>
-        <View style={styles.skeletonMetricStrip} testID="shop-loading-metrics">
-          {Array.from({ length: metricCount }, (_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.skeletonMetric,
-                index < metricCount - 1 && styles.skeletonMetricBorder,
-              ]}
-            >
+        {metricCount > 0 ? (
+          <View style={styles.skeletonMetricRow} testID="shop-loading-metrics">
+            {Array.from({ length: metricCount }, (_, index) => (
               <SkeletonLoader
+                key={index}
                 announce={false}
-                style={styles.skeletonMetricLabel}
+                style={styles.skeletonMetric}
               />
-              <SkeletonLoader
-                announce={false}
-                style={styles.skeletonMetricValue}
-              />
-            </View>
-          ))}
-        </View>
+            ))}
+          </View>
+        ) : null}
 
         {showFilters ? (
           <View style={styles.skeletonFilters} testID="shop-loading-filters">
@@ -506,21 +234,7 @@ export function ShopCollectionSkeleton({
 
         <View style={styles.skeletonList} testID="shop-loading-skeleton">
           {Array.from({ length: rowCount }, (_, index) => (
-            <View key={index} style={styles.skeletonRow}>
-              <SkeletonLoader announce={false} style={styles.skeletonGlyph} />
-              <View style={styles.skeletonCopy}>
-                <SkeletonLoader
-                  announce={false}
-                  style={styles.skeletonEyebrow}
-                />
-                <SkeletonLoader announce={false} style={styles.skeletonTitle} />
-                <SkeletonLoader
-                  announce={false}
-                  style={styles.skeletonDescription}
-                />
-              </View>
-              <SkeletonLoader announce={false} style={styles.skeletonTrail} />
-            </View>
+            <SkeletonCard key={index} />
           ))}
         </View>
       </View>
@@ -554,50 +268,37 @@ export function ShopStatePanel({
         style={styles.loadingState}
         testID={testID}
       >
-        <Text style={styles.stateTitle}>{title}</Text>
-        {message ? <Text style={styles.stateText}>{message}</Text> : null}
+        <Text style={styles.collectionLoadingTitle}>{title}</Text>
+        {message ? (
+          <Text style={styles.collectionLoadingMessage}>{message}</Text>
+        ) : null}
         <View style={styles.skeletonList} testID="shop-loading-skeleton">
           {[0, 1, 2, 3].map(index => (
-            <View key={index} style={styles.skeletonRow}>
-              <SkeletonLoader announce={false} style={styles.skeletonGlyph} />
-              <View style={styles.skeletonCopy}>
-                <SkeletonLoader
-                  announce={false}
-                  style={styles.skeletonEyebrow}
-                />
-                <SkeletonLoader announce={false} style={styles.skeletonTitle} />
-              </View>
-              <SkeletonLoader announce={false} style={styles.skeletonTrail} />
-            </View>
+            <SkeletonCard key={index} showCopyLines={1} />
           ))}
         </View>
       </View>
     );
   }
 
-  const icon =
-    kind === 'error' ? (
-      <AlertTriangleIcon size={28} color={theme.colors.text.primary} />
-    ) : (
-      <ShoppingBagIcon size={28} color={theme.colors.text.primary} />
-    );
-
   return (
     <View style={styles.statePanel} testID={testID}>
-      <View
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-        style={styles.stateGlyph}
-      >
-        {icon}
+      <MentaMascot
+        state={kind === 'error' ? 'calm-warning' : 'empty-guide'}
+        size="md"
+      />
+      <View style={styles.stateCopy}>
+        <Text accessibilityRole="header" style={styles.stateTitle}>
+          {title}
+        </Text>
+        {message ? <Text style={styles.stateText}>{message}</Text> : null}
       </View>
-      <Text style={styles.stateTitle}>{title}</Text>
-      {message ? <Text style={styles.stateText}>{message}</Text> : null}
       {actionTitle && onAction ? (
         <AppButton
           title={actionTitle}
-          variant={kind === 'error' ? 'outline' : 'primary'}
-          size="medium"
+          variant={kind === 'error' ? 'outline' : 'accent'}
+          size="large"
+          fullWidth
           icon={
             kind === 'error' ? (
               <RefreshCcwIcon size={15} color={theme.colors.text.primary} />
@@ -610,64 +311,10 @@ export function ShopStatePanel({
   );
 }
 
-export function ShopWalletIcon({ size = 16 }: { size?: number }) {
-  const theme = useTheme();
-  return <WalletIcon size={size} color={theme.colors.text.secondary} />;
-}
-
 const createStyles = (theme: ReturnType<typeof useTheme>) =>
   StyleSheet.create({
-    header: {
-      gap: 9,
-    },
-    headerLabelRow: {
-      minHeight: 22,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 9,
-    },
-    headerLabel: {
-      color: theme.colors.text.tertiary,
-      ...mentaTypography.labelBold,
-    },
-    headerTitle: {
-      ...mentaTypography.display,
-      color: theme.colors.text.primary,
-    },
-    headerSubtitle: {
-      color: theme.colors.text.secondary,
-      ...mentaTypography.body,
-    },
-    metricStrip: {
-      flexDirection: 'row',
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.border.secondary,
-    },
-    metricCell: {
-      flex: 1,
-      minHeight: 70,
-      paddingVertical: 14,
-      paddingRight: 12,
-      justifyContent: 'center',
-      gap: 5,
-    },
-    metricCellBorder: {
-      borderRightWidth: StyleSheet.hairlineWidth,
-      borderRightColor: theme.colors.border.secondary,
-    },
-    metricTop: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 7,
-    },
-    metricLabel: {
-      color: theme.colors.text.tertiary,
-      ...mentaTypography.labelBold,
-    },
-    metricValue: {
-      color: theme.colors.text.primary,
-      ...mentaTypography.bodySemibold,
+    pressed: {
+      opacity: 0.72,
     },
     filterScroll: {
       marginHorizontal: -mentaSpacing[6],
@@ -680,11 +327,13 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: mentaSpacing[2],
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderColor: 'transparent',
-      paddingHorizontal: mentaSpacing[3],
+      borderRadius: mentaRadii.round,
+      borderWidth: 1,
+      borderColor: theme.colors.border.secondary,
+      paddingHorizontal: mentaSpacing[4],
     },
     filterChipSelected: {
+      backgroundColor: mentaColors.actionSoft,
       borderColor: theme.colors.accent.primary,
     },
     filterText: {
@@ -698,92 +347,12 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
     filterTextSelected: {
       color: theme.colors.accent.primary,
     },
-    itemRow: {
-      minHeight: 76,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 13,
-      paddingVertical: 12,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: theme.colors.border.secondary,
-    },
-    itemRowStacked: {
-      alignItems: 'stretch',
-      flexDirection: 'column',
-      gap: mentaSpacing[3],
-      paddingVertical: mentaSpacing[4],
-    },
-    itemIdentityAction: {
-      flex: 1,
-      minWidth: 0,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 13,
-    },
-    pressed: {
-      opacity: 0.72,
-      transform: [{ scale: 0.992 }],
-    },
-    itemIconPlane: {
-      width: 32,
-      height: 44,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    itemCopy: {
-      flex: 1,
-      minWidth: 0,
-      gap: 3,
-    },
-    itemMetaRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 10,
-    },
-    itemEyebrow: {
-      color: theme.colors.text.tertiary,
-      ...mentaTypography.labelBold,
-    },
-    itemState: {
-      flexShrink: 1,
-      color: theme.colors.text.tertiary,
-      ...mentaTypography.label,
-      textAlign: 'right',
-    },
-    itemTitle: {
-      color: theme.colors.text.primary,
-      ...mentaTypography.bodySemibold,
-      minWidth: 0,
-    },
-    itemDescription: {
-      color: theme.colors.text.secondary,
-      ...mentaTypography.caption,
-    },
-    itemTrail: {
-      minWidth: 56,
-      flexShrink: 0,
-      alignItems: 'flex-end',
-      gap: 8,
-    },
-    itemTrailStacked: {
-      alignItems: 'stretch',
-      minWidth: 0,
-      width: '100%',
-    },
-    itemRight: {
-      color: theme.colors.text.primary,
-      ...mentaTypography.bodySmallMedium,
-      maxWidth: 108,
-      minWidth: 0,
-      textAlign: 'right',
-    },
     sectionHeader: {
       alignItems: 'flex-end',
       flexDirection: 'row',
       gap: mentaSpacing[4],
       justifyContent: 'space-between',
-      paddingTop: mentaSpacing[2],
+      paddingBottom: mentaSpacing[1],
     },
     sectionCopy: {
       flex: 1,
@@ -820,34 +389,14 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
     collectionSkeletonBody: {
       gap: mentaSpacing[5],
     },
-    skeletonMetricStrip: {
-      borderBottomColor: theme.colors.border.secondary,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderTopColor: theme.colors.border.secondary,
-      borderTopWidth: StyleSheet.hairlineWidth,
+    skeletonMetricRow: {
       flexDirection: 'row',
+      gap: mentaSpacing[3],
     },
     skeletonMetric: {
+      borderRadius: mentaRadii.large,
       flex: 1,
-      gap: mentaSpacing[2],
-      justifyContent: 'center',
-      minHeight: 70,
-      paddingRight: mentaSpacing[3],
-      paddingVertical: mentaSpacing[3],
-    },
-    skeletonMetricBorder: {
-      borderRightColor: theme.colors.border.secondary,
-      borderRightWidth: StyleSheet.hairlineWidth,
-    },
-    skeletonMetricLabel: {
-      borderRadius: mentaRadii.small,
-      height: 9,
-      width: '58%',
-    },
-    skeletonMetricValue: {
-      borderRadius: mentaRadii.small,
-      height: 17,
-      width: '76%',
+      height: 64,
     },
     skeletonFilters: {
       flexDirection: 'row',
@@ -855,91 +404,83 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
     },
     skeletonFilter: {
       borderRadius: mentaRadii.round,
-      height: 36,
+      height: 44,
     },
     skeletonSection: {
       gap: mentaSpacing[2],
     },
     skeletonSectionTitle: {
       borderRadius: mentaRadii.small,
-      height: 22,
+      height: 26,
       width: 132,
     },
     skeletonSectionBody: {
       borderRadius: mentaRadii.small,
-      height: 12,
+      height: 14,
       width: '68%',
     },
-    statePanel: {
-      minHeight: 220,
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 10,
-      paddingVertical: 32,
-      paddingHorizontal: 20,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.border.secondary,
+    skeletonList: {
+      gap: mentaSpacing[3],
+      marginTop: mentaSpacing[1],
     },
-    stateGlyph: {
+    skeletonCard: {
       alignItems: 'center',
+      borderColor: theme.colors.border.secondary,
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      flexDirection: 'row',
+      gap: mentaSpacing[4],
+      minHeight: 96,
+      paddingHorizontal: mentaSpacing[4],
+    },
+    skeletonArt: {
+      borderRadius: 18,
+      height: 64,
+      width: 64,
+    },
+    skeletonCopy: {
+      flex: 1,
+      gap: mentaSpacing[2],
+    },
+    skeletonTitle: {
+      borderRadius: mentaRadii.small,
+      height: 17,
+      width: '64%',
+    },
+    skeletonDescription: {
+      borderRadius: mentaRadii.small,
+      height: 13,
+      width: '90%',
+    },
+    skeletonTrail: {
+      borderRadius: mentaRadii.round,
+      height: 36,
+      width: 72,
+    },
+    loadingState: {
+      gap: mentaSpacing[2],
+      paddingTop: mentaSpacing[1],
+    },
+    statePanel: {
+      alignItems: 'center',
+      gap: mentaSpacing[4],
       justifyContent: 'center',
-      minHeight: 32,
+      minHeight: 280,
+      paddingVertical: mentaSpacing[6],
+    },
+    stateCopy: {
+      alignItems: 'center',
+      gap: mentaSpacing[2],
+      maxWidth: mentaLayout.readingMeasure,
     },
     stateTitle: {
-      ...mentaTypography.heading,
+      ...mentaTypography.title,
       color: theme.colors.text.primary,
       textAlign: 'center',
     },
     stateText: {
       color: theme.colors.text.secondary,
-      ...mentaTypography.bodySmall,
+      ...mentaTypography.body,
       textAlign: 'center',
-    },
-    loadingState: {
-      gap: 8,
-      paddingTop: 4,
-    },
-    skeletonList: {
-      marginTop: 8,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: theme.colors.border.secondary,
-    },
-    skeletonRow: {
-      minHeight: 76,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 13,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: theme.colors.border.secondary,
-    },
-    skeletonGlyph: {
-      width: 28,
-      height: 28,
-      borderRadius: mentaRadii.small,
-    },
-    skeletonCopy: {
-      flex: 1,
-      gap: 8,
-    },
-    skeletonEyebrow: {
-      width: 62,
-      height: 8,
-      borderRadius: mentaRadii.small,
-    },
-    skeletonTitle: {
-      width: '70%',
-      height: 15,
-      borderRadius: mentaRadii.small,
-    },
-    skeletonDescription: {
-      borderRadius: mentaRadii.small,
-      height: 10,
-      width: '88%',
-    },
-    skeletonTrail: {
-      width: 42,
-      height: 16,
-      borderRadius: mentaRadii.small,
     },
   });

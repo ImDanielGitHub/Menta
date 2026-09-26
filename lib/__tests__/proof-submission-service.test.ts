@@ -31,6 +31,8 @@ jest.mock('@/lib/services/proof-media-service', () => ({
 }));
 
 const mockSupabase = supabase as jest.Mocked<typeof supabase>;
+const mockProofRpc = jest.fn();
+const mockRpcSetHeader = jest.fn();
 const mockCheckMilestone = StreakManager.checkMilestone as jest.Mock;
 const mockUploadDurableProofMedia = uploadDurableProofMedia as jest.Mock;
 const mockReleaseDurableProofMedia = releaseDurableProofMedia as jest.Mock;
@@ -65,11 +67,7 @@ const buildSuccessfulRpcPayload = ({
   longestStreak?: number;
   inputAccepted?: boolean;
   dayStatus?:
-    | 'pending_review'
-    | 'already_applied'
-    | 'done'
-    | 'freeze_used'
-    | 'missed';
+    'pending_review' | 'already_applied' | 'done' | 'freeze_used' | 'missed';
   milestone?: {
     reached: true;
     milestone: number;
@@ -130,7 +128,7 @@ const installMatchingReceiptReadback = () => {
           };
         }
 
-        const rpcMock = mockSupabase.rpc as jest.Mock;
+        const rpcMock = mockProofRpc;
         const callIndex = rpcMock.mock.calls.length - 1;
         const rpcArgs = rpcMock.mock.calls[callIndex]?.[1] ?? {};
         const rpcResponse = await rpcMock.mock.results[callIndex]?.value;
@@ -161,6 +159,22 @@ const installMatchingReceiptReadback = () => {
 describe('proof-submission-service', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
+    (mockSupabase.auth.getSession as jest.Mock).mockResolvedValue({
+      data: {
+        session: { user: { id: 'user-1' }, access_token: 'fake-user-1-token' },
+      },
+      error: null,
+    });
+    mockProofRpc.mockReset();
+    mockProofRpc.mockResolvedValue({ data: null, error: null });
+    (mockSupabase.rpc as jest.Mock).mockImplementation(
+      (...args: unknown[]) => ({
+        setHeader: (name: string, value: string) => {
+          mockRpcSetHeader(name, value);
+          return mockProofRpc(...args);
+        },
+      })
+    );
     await AsyncStorage.clear();
     mockCheckMilestone.mockResolvedValue(null);
     mockUploadDurableProofMedia.mockResolvedValue(
@@ -177,6 +191,124 @@ describe('proof-submission-service', () => {
       false
     );
     expect(canReleaseConfirmedLocalProofMedia('unknown-result')).toBe(false);
+  });
+
+  it('dispatches text proof with the confirmed owner token when the client account changes at dispatch', async () => {
+    const clientEventId = '14141414-1414-4414-8414-141414141414';
+    mockProofRpc.mockResolvedValue({
+      data: buildSuccessfulRpcPayload({
+        submissionId: '15151515-1515-4515-8515-151515151515',
+        clientEventId,
+        mediaType: 'text',
+        submissionText: 'Completed 45 minutes of study.',
+      }),
+      error: null,
+    });
+    mockRpcSetHeader.mockImplementationOnce(() => {
+      (mockSupabase.auth.getSession as jest.Mock).mockResolvedValue({
+        data: {
+          session: {
+            user: { id: 'user-2' },
+            access_token: 'fake-user-2-token',
+          },
+        },
+        error: null,
+      });
+    });
+
+    await submitChallengeProof({
+      userId: 'user-1',
+      challengeId: 'challenge-1',
+      clientEventId,
+      proofValue: 'Completed 45 minutes of study.',
+      proofType: 'text',
+    });
+
+    expect(mockRpcSetHeader).toHaveBeenCalledWith(
+      'Authorization',
+      'Bearer fake-user-1-token'
+    );
+    expect(mockProofRpc).toHaveBeenCalledTimes(1);
+  });
+
+  it('preserves text proof without submitting it as an account that signed in during the target check', async () => {
+    let finishTargetCheck!: (value: unknown) => void;
+    let targetCheckStarted!: () => void;
+    const started = new Promise<void>(resolve => {
+      targetCheckStarted = resolve;
+    });
+    (mockSupabase.from as jest.Mock).mockReturnValue({
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      maybeSingle: jest.fn(() => {
+        targetCheckStarted();
+        return new Promise(resolve => {
+          finishTargetCheck = resolve;
+        });
+      }),
+    });
+    const clientEventId = '12121212-1212-4212-8212-121212121212';
+    const submission = submitChallengeProof({
+      userId: 'user-1',
+      challengeId: 'challenge-1',
+      proofValue: 'Completed 45 minutes of study.',
+      proofType: 'text',
+      clientEventId,
+    });
+    await started;
+    (mockSupabase.auth.getSession as jest.Mock).mockResolvedValue({
+      data: { session: { user: { id: 'user-2' } } },
+      error: null,
+    });
+    finishTargetCheck({
+      data: { challenge_id: 'challenge-1', status: 'active' },
+      error: null,
+    });
+
+    await expect(submission).rejects.toMatchObject({
+      code: 'ACCOUNT_CHANGED',
+      receiptStatus: 'saved-local',
+    });
+    expect(mockSupabase.rpc).not.toHaveBeenCalled();
+    expect(await getProofDraft(clientEventId)).toMatchObject({
+      userId: 'user-1',
+      proofValue: 'Completed 45 minutes of study.',
+      status: 'saved-local',
+    });
+  });
+
+  it('keeps uploaded and local media recoverable when the account changes during upload', async () => {
+    mockUploadDurableProofMedia.mockImplementationOnce(async () => {
+      (mockSupabase.auth.getSession as jest.Mock).mockResolvedValue({
+        data: { session: { user: { id: 'user-2' } } },
+        error: null,
+      });
+      return 'user-1/preserved-proof.jpg';
+    });
+    const clientEventId = '13131313-1313-4313-8313-131313131313';
+
+    await expect(
+      submitChallengeProof({
+        userId: 'user-1',
+        challengeId: 'challenge-1',
+        proofValue: 'file:///documents/preserved-proof.jpg',
+        localMediaUri: 'file:///documents/preserved-proof.jpg',
+        proofType: 'photo',
+        clientEventId,
+      })
+    ).rejects.toMatchObject({
+      code: 'ACCOUNT_CHANGED',
+      receiptStatus: 'saved-local',
+    });
+
+    expect(mockSupabase.rpc).not.toHaveBeenCalled();
+    expect(mockReleaseDurableProofMedia).not.toHaveBeenCalled();
+    expect(await getProofDraft(clientEventId)).toMatchObject({
+      userId: 'user-1',
+      localMediaUri: 'file:///documents/preserved-proof.jpg',
+      remoteMediaUrl: 'user-1/preserved-proof.jpg',
+      status: 'saved-local',
+    });
   });
 
   it('decodes a complete correction receipt and rejects mismatched identities', () => {
@@ -321,7 +453,7 @@ describe('proof-submission-service', () => {
       milestone: 3,
       reward: 25,
     });
-    (mockSupabase.rpc as jest.Mock).mockResolvedValue({
+    mockProofRpc.mockResolvedValue({
       data: buildSuccessfulRpcPayload({
         submissionId: '11111111-1111-4111-8111-111111111111',
         clientEventId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
@@ -366,7 +498,7 @@ describe('proof-submission-service', () => {
   it('reconciles a correction receipt under its new client event id', async () => {
     const clientEventId = '81818181-8181-4181-8181-818181818181';
     const replacedSubmissionId = '82828282-8282-4282-8282-828282828282';
-    (mockSupabase.rpc as jest.Mock).mockResolvedValue({
+    mockProofRpc.mockResolvedValue({
       data: buildSuccessfulRpcPayload({
         submissionId: '83838383-8383-4383-8383-838383838383',
         clientEventId,
@@ -400,7 +532,7 @@ describe('proof-submission-service', () => {
       reward: 25,
       rewardGranted: true as const,
     };
-    (mockSupabase.rpc as jest.Mock).mockResolvedValue({
+    mockProofRpc.mockResolvedValue({
       data: buildSuccessfulRpcPayload({
         submissionId: '22222222-2222-4222-8222-222222222222',
         clientEventId: '23232323-2323-4232-8232-232323232323',
@@ -431,7 +563,7 @@ describe('proof-submission-service', () => {
   });
 
   it('uploads durable local media before RPC and releases it only after a server receipt', async () => {
-    (mockSupabase.rpc as jest.Mock).mockResolvedValue({
+    mockProofRpc.mockResolvedValue({
       data: buildSuccessfulRpcPayload({
         submissionId: '33333333-3333-4333-8333-333333333333',
         clientEventId: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
@@ -471,7 +603,7 @@ describe('proof-submission-service', () => {
   });
 
   it('keeps correction-requested media for a clearer resubmission', async () => {
-    (mockSupabase.rpc as jest.Mock).mockResolvedValue({
+    mockProofRpc.mockResolvedValue({
       data: buildSuccessfulRpcPayload({
         submissionId: '44444444-4444-4444-8444-444444444444',
         clientEventId: '12121212-1212-4212-8212-121212121212',
@@ -496,7 +628,7 @@ describe('proof-submission-service', () => {
   });
 
   it('does not trust an RPC success that cannot be read back by the same send key', async () => {
-    (mockSupabase.rpc as jest.Mock).mockResolvedValue({
+    mockProofRpc.mockResolvedValue({
       data: buildSuccessfulRpcPayload({
         submissionId: '55555555-5555-4555-8555-555555555555',
         clientEventId: '13131313-1313-4313-8313-131313131313',
@@ -600,7 +732,7 @@ describe('proof-submission-service', () => {
   });
 
   it('keeps an incomplete successful response unknown and queued', async () => {
-    (mockSupabase.rpc as jest.Mock).mockResolvedValue({
+    mockProofRpc.mockResolvedValue({
       data: {
         success: true,
         submissionId: 'submission-without-status',
@@ -636,7 +768,7 @@ describe('proof-submission-service', () => {
   it('removes uploaded media only on definitive RPC failure', async () => {
     const remove = jest.fn().mockResolvedValue({ data: null, error: null });
     (mockSupabase.storage.from as jest.Mock).mockReturnValue({ remove });
-    (mockSupabase.rpc as jest.Mock).mockResolvedValue({
+    mockProofRpc.mockResolvedValue({
       data: buildFailedRpcPayload(
         'Challenge is no longer active',
         'CHALLENGE_NOT_FOUND'
@@ -668,7 +800,7 @@ describe('proof-submission-service', () => {
     const clientEventId = '35353535-3535-4535-8535-353535353535';
     const remove = jest.fn().mockResolvedValue({ data: null, error: null });
     (mockSupabase.storage.from as jest.Mock).mockReturnValue({ remove });
-    (mockSupabase.rpc as jest.Mock).mockResolvedValue({
+    mockProofRpc.mockResolvedValue({
       data: {
         ...buildFailedRpcPayload(
           "Today's proof is already waiting for review.",
@@ -710,7 +842,7 @@ describe('proof-submission-service', () => {
   it('keeps the durable file retryable after a definitive media rejection', async () => {
     const remove = jest.fn().mockResolvedValue({ data: null, error: null });
     (mockSupabase.storage.from as jest.Mock).mockReturnValue({ remove });
-    (mockSupabase.rpc as jest.Mock).mockResolvedValue({
+    mockProofRpc.mockResolvedValue({
       data: buildFailedRpcPayload(
         'Challenge is no longer active',
         'CHALLENGE_NOT_FOUND'
@@ -746,7 +878,7 @@ describe('proof-submission-service', () => {
   it('keeps uploaded media and marks unknown-result on ambiguous network failure', async () => {
     const remove = jest.fn().mockResolvedValue({ data: null, error: null });
     (mockSupabase.storage.from as jest.Mock).mockReturnValue({ remove });
-    (mockSupabase.rpc as jest.Mock).mockResolvedValue({
+    mockProofRpc.mockResolvedValue({
       data: null,
       error: { message: 'Network request failed' },
     });
@@ -778,7 +910,7 @@ describe('proof-submission-service', () => {
   it('treats a database check rejection as failed, not result unknown', async () => {
     const remove = jest.fn().mockResolvedValue({ data: null, error: null });
     (mockSupabase.storage.from as jest.Mock).mockReturnValue({ remove });
-    (mockSupabase.rpc as jest.Mock).mockResolvedValue({
+    mockProofRpc.mockResolvedValue({
       data: null,
       error: {
         code: '23514',
@@ -836,7 +968,7 @@ describe('proof-submission-service', () => {
   });
 
   it('reuses the same client event id across resume retries', async () => {
-    (mockSupabase.rpc as jest.Mock)
+    mockProofRpc
       .mockResolvedValueOnce({
         data: null,
         error: { message: 'timed out' },

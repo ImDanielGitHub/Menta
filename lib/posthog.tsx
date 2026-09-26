@@ -36,7 +36,7 @@ export const isPostHogReplayEnabled = (): boolean => false;
 
 export const canStartPostHog = (
   key: string | undefined | null
-): key is string => Boolean(key?.trim());
+): key is string => Boolean(key?.trim() && !key.trim().startsWith('phx_'));
 
 const getConfiguredPostHogKey = (): string | undefined => {
   const key = process.env.EXPO_PUBLIC_POSTHOG_KEY?.trim();

@@ -30,4 +30,57 @@ export const todayEnNZ = {
   'today.proof.empty.body':
     'Make a promise and your first check-in will appear here.',
   'today.proof.empty.action': 'Make one',
+  'today.home.streak.caption': 'day streak',
+  'today.home.streak.accessibility':
+    'Best current streak {days}. {status} Shows each promise streak.',
+  'today.home.streak.accessibility_none':
+    'No streak yet. Shows how streaks count.',
+  'today.home.streak.status_kept': 'Today is approved.',
+  'today.home.streak.status_waiting': 'Today’s proof is waiting for review.',
+  'today.home.streak.status_due': 'Today’s proof is still due.',
+  'today.home.streak.status_risk': 'Today’s proof is due soon.',
+  'today.home.momenta.caption': 'Momenta',
+  'today.home.momenta.accessibility': '{balance} Momenta. Opens your wallet.',
+  'today.home.momenta.accessibility_unknown':
+    'Momenta balance not confirmed yet. Opens your wallet.',
+  'today.home.week.accessibility':
+    'Last 7 days: {count} days with approved proof.',
+  'today.home.week.accessibility.one':
+    'Last 7 days: {count} day with approved proof.',
+  'today.home.week.accessibility.other':
+    'Last 7 days: {count} days with approved proof.',
+  'today.home.streaks.title': 'Your streaks',
+  'today.home.streaks.note':
+    'A streak counts days with approved proof, not days a promise was open.',
+  'today.home.streaks.empty':
+    'Your first streak starts when a reviewer approves your proof.',
+  'today.home.streaks.longest': 'Longest {days}',
+  'today.home.streaks.row_accessibility':
+    '{promise}. Streak {days}. {status}. Opens promise history.',
+  'today.home.receipt.accessibility': 'Today’s promise. {facts}',
+  'today.home.receipt.proof': 'Proof',
+  'today.home.receipt.progress': 'Progress',
+  'today.home.receipt.streak': 'Streak',
+  'today.home.receipt.group': 'Group',
+  'today.home.receipt.today': 'Today',
+  'today.home.receipt.photo': 'Photo',
+  'today.home.receipt.video': 'Video',
+  'today.home.receipt.note': 'Written note',
+  'today.home.receipt.status_saved': 'Saved on this phone',
+  'today.home.receipt.status_sending': 'Sending',
+  'today.home.also.detail': '{where} · {day}',
+  'today.home.personal': 'Personal',
+  'today.home.review_queue': 'Open the review queue',
+  'today.home.bubble.returning': 'Start where you are.',
+  'today.countdown.hours_minutes': '{hours}h {minutes}m',
+  'today.countdown.hours': '{hours}h',
+  'today.countdown.minutes': '{minutes} min',
+  'today.countdown.left_proof': 'left to add today’s proof',
+  'today.countdown.left_streak': 'left to keep your {count}-day streak',
+  'today.countdown.left_extension': 'left in your extension',
+  'today.countdown.note_midnight': 'Proof counts until midnight.',
+  'today.countdown.note_last_hour': 'After midnight this day counts as missed.',
+  'today.countdown.note_extension': 'Proof counts until your extension ends.',
+  'today.countdown.accessibility': '{duration} {caption}. {note}',
+  'today.home.bubble.no_promises': 'What’s one thing you keep meaning to do?',
 } as const;

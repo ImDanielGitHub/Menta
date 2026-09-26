@@ -223,6 +223,47 @@ export const fullCommerceEnNZ = {
   'commerce.shop.appearance.fortnightFrame': 'Fortnight Frame',
   'commerce.shop.appearance.monthFrame': 'Month Frame',
   'commerce.shop.appearance.seasonFrame': 'Season Frame',
+  'commerce.shop.appearance.emberDescription':
+    'Warm amber buttons and highlights.',
+  'commerce.shop.appearance.glacierDescription':
+    'Icy cyan buttons and highlights.',
+  'commerce.shop.appearance.auroraDescription':
+    'Northern-lights mint buttons and highlights.',
+  'commerce.shop.appearance.irisDescription':
+    'Cool indigo buttons and highlights.',
+  'commerce.shop.appearance.cobaltDescription':
+    'Electric blue buttons and highlights.',
+  'commerce.shop.appearance.jadeDescription': 'Emerald buttons and highlights.',
+  'commerce.shop.appearance.orchidDescription':
+    'Cool magenta buttons and highlights.',
+  'commerce.shop.appearance.horizonDescription':
+    'Sky blue buttons and highlights.',
+  'commerce.shop.appearance.graphiteDescription':
+    'Cool silver buttons and highlights.',
+  'commerce.shop.appearance.neonDescription':
+    'Cyan and lime buttons and highlights.',
+  'commerce.shop.appearance.tidepoolDescription':
+    'Deep teal buttons and highlights.',
+  'commerce.shop.appearance.goldFrameDescription':
+    'A warm gold ring around your profile photo.',
+  'commerce.shop.appearance.violetFrameDescription':
+    'A gold-to-violet ring around your profile photo.',
+  'commerce.shop.appearance.iceFrameDescription':
+    'A glacier cyan ring around your profile photo.',
+  'commerce.shop.appearance.neonFrameDescription':
+    'A cyan, lime and magenta ring around your profile photo.',
+  'commerce.shop.appearance.obsidianFrameDescription':
+    'A cool slate ring around your profile photo.',
+  'commerce.shop.appearance.sparkFrameDescription':
+    'A mint ring around your profile photo.',
+  'commerce.shop.appearance.weekFrameDescription':
+    'A mint-to-indigo ring around your profile photo.',
+  'commerce.shop.appearance.fortnightFrameDescription':
+    'A thicker indigo ring around your profile photo.',
+  'commerce.shop.appearance.monthFrameDescription':
+    'A blue aurora ring around your profile photo.',
+  'commerce.shop.appearance.seasonFrameDescription':
+    'A mint, indigo and orchid ring around your profile photo.',
   'commerce.shop.automaticProtection': 'Automatic protection',
   'commerce.shop.automaticProtectionDetail':
     'Menta applies these after an eligible missed day.',
@@ -729,7 +770,7 @@ export const fullCommerceEnNZ = {
   'commerce.economy.createCost': '{amount} Momenta',
   'commerce.economy.quotaActiveTitle': 'You’re at the free promise limit',
   'commerce.economy.quotaActiveMessage':
-    'Free accounts can keep 2 live promises. Finish or leave one, or start Pro before creating another.',
+    'Free accounts can keep {limit} live promises. Finish or leave one, or start Pro before creating another.',
   'commerce.economy.quotaMonthlyTitle': 'Monthly create limit reached',
   'commerce.economy.quotaMonthlyMessage':
     'The free plan includes 4 new promises each month. Your draft is still here.',
@@ -746,6 +787,61 @@ export const fullCommerceEnNZ = {
   'commerce.wallet.refreshingBalance': 'Refreshing balance…',
   'commerce.wallet.rewardClaimInProgress':
     'Menta is still checking your previous reward.',
+  'commerce.shop.balanceChipAccessibility':
+    'Momenta balance: {amount}. Opens your wallet.',
+  'commerce.shop.tagNew': 'New',
+  'commerce.shop.quantity': '×{count}',
+  'commerce.shop.seeAllItems': 'See all',
+  'commerce.shop.cardAccessibility': '{name}. {price}. {status}.',
+  'commerce.shop.ownedTileAccessibility': '{name}. {state}.',
+  'commerce.shop.itemActionAccessibility': '{action}: {name}',
+  'commerce.shop.detailSummaryAccessibility':
+    '{kind}. {name}. {status}. {price}.',
+  'commerce.shop.buying': 'Buying…',
+  'commerce.shop.topUpBubble':
+    'You need {amount} more Momenta for {name}. Here’s how to earn them.',
+  'commerce.shop.refreshCountIfStale':
+    '{message} Refresh your items if the available count has not updated.',
+  'commerce.shop.checkStatusIfStale':
+    '{message} Check status if the balance or inventory does not update immediately.',
+  'commerce.shop.inYourItems':
+    '{name} is in Your items. Your balance has been updated.',
+  'commerce.celebrate.added': '{name} added.',
+  'commerce.celebrate.gain': '+{count}',
+  'commerce.celebrate.youHave': 'You now have',
+  'commerce.celebrate.styleNotActive':
+    'It’s yours. Menta couldn’t switch to it yet. Tap Use this style to apply it.',
+  'commerce.wallet.earnOptionAccessibility': '{title}. {meta}. {value}.',
+  'commerce.freeze.remaining': '{count} freezes left',
+  'commerce.freeze.remaining.one': '{count} freeze left',
+  'commerce.freeze.remaining.other': '{count} freezes left',
+  'commerce.freeze.getAnother': 'Get another freeze',
+  'commerce.freeze.getFirst': 'Get a Streak Freeze',
+  'commerce.freeze.protectedTitle':
+    'Your Streak Freeze protected your {count}-day streak.',
+  'commerce.firstMiss.open': 'Get your free streak freeze',
+  'commerce.firstMiss.accessibility': 'Your first missed day',
+  'commerce.firstMiss.titleOffer': 'Missed a day? Let’s keep going.',
+  'commerce.firstMiss.titleConfirmed': 'Your missed day is covered.',
+  'commerce.firstMiss.bodyConfirmedStreak':
+    'Your free freeze protected your {count}-day streak. Add proof today to continue it.',
+  'commerce.firstMiss.bodyConfirmed':
+    'Your free freeze covered the missed day. Add proof today to start building your streak.',
+  'commerce.firstMiss.noteConfirmed':
+    'The freeze covers the missed day only. It does not count as completed proof.',
+  'commerce.firstMiss.backToToday': 'Back to Today',
+  'commerce.firstMiss.errorUnconfirmed':
+    'The freeze could not be confirmed. Try again.',
+  'commerce.firstMiss.errorUnavailable':
+    'This first-day offer is no longer available. You can still add proof today.',
+  'commerce.firstMiss.bubble': '{weekday} slipped by. It happens to everyone.',
+  'commerce.firstMiss.decisionTitle': 'Keep your {count}-day streak?',
+  'commerce.firstMiss.decisionBody':
+    'Your first missed day is on us. A free Streak Freeze covers {weekday}, and your count stays at {count}.',
+  'commerce.firstMiss.decisionBodyNoCount':
+    'Your first missed day is on us. A free Streak Freeze covers {weekday}.',
+  'commerce.firstMiss.keep': 'Keep my streak for free',
+  'commerce.firstMiss.startOver': 'Start over at day 1',
 } as const;
 
 export type FullCommerceKey = keyof typeof fullCommerceEnNZ;

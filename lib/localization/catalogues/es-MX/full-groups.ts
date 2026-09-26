@@ -29,8 +29,8 @@ export const fullGroupsEsMX = {
   'groups.tab.invite_needed_title': 'Invitación necesaria',
   'groups.tab.invite_needed_detail':
     'Este grupo no es público. Usa un código de alguien que ya esté dentro.',
-  'groups.tab.joined_title': 'grupo unido',
-  'groups.tab.joined_action': 'grupo',
+  'groups.tab.joined_title': 'Te uniste al grupo',
+  'groups.tab.joined_action': 'Abrir grupo',
   'groups.tab.join_unknown_title': 'Unirse no confirmado',
   'groups.tab.join_unknown_detail':
     'Menta no pudo confirmar si te uniste. Consulta Mis grupos antes de volver a intentarlo.',
@@ -39,8 +39,8 @@ export const fullGroupsEsMX = {
   'groups.tab.enter_code_action': 'Introduce el código',
   'groups.tab.sign_in': 'Iniciar sesión',
   'groups.tab.my_groups': 'Mis grupos',
-  'groups.tab.try_again': 'Intentar otra vez',
-  'groups.tab.go_today': 'Ir a hoy',
+  'groups.tab.try_again': 'Volver a intentarlo',
+  'groups.tab.go_today': 'Ir a Hoy',
   'groups.tab.back_groups': 'Volver a Grupos',
   'groups.tab.create_action': 'Crear grupo',
   'groups.tab.new': 'Nuevo',
@@ -86,7 +86,7 @@ export const fullGroupsEsMX = {
   'groups.archive.open_hint':
     'Abre este grupo en el historial de solo lectura.',
   'groups.archive.open_label': 'Abrir grupo archivado {group}',
-  'groups.archive.check_again': 'comprobar de nuevo',
+  'groups.archive.check_again': 'Volver a comprobar',
   'groups.archive.loading': 'Cargando grupos archivados',
   'groups.archive.empty_label':
     'No hay grupos archivados. Los grupos que archives o finalices aparecerán aquí.',
@@ -112,7 +112,7 @@ export const fullGroupsEsMX = {
   'groups.create.settings_prompt': '¿Quién puede encontrar y unirse?',
   'groups.create.review_prompt': '¿Listo para crear este grupo?',
   'groups.create.choose_join': 'Elige quién puede unirse',
-  'groups.create.review_group': 'revisión del grupo',
+  'groups.create.review_group': 'Revisar grupo',
   'groups.create.create_group': 'Crear grupo',
   'groups.create.name_heading': 'Nombra el grupo',
   'groups.create.sign_in_title': 'Es necesario iniciar sesión',
@@ -149,15 +149,15 @@ export const fullGroupsEsMX = {
   'groups.create.image_help':
     'Elige la imagen que la gente verá al lado de este grupo.',
   'groups.create.reminders_detail':
-    'Permitir recordatorios de revisiones para este grupo. Los miembros aún controlan las notificaciones en tus celulares.',
-  'groups.create.your_group': 'tu grupo',
+    'Permitir recordatorios de revisión en este grupo. Cada miembro sigue decidiendo las notificaciones en su celular.',
+  'groups.create.your_group': 'Tu grupo',
   'groups.create.review_outcome':
-    'Crear el grupo te convierte en tu primer miembro. Nadie más se une hasta que les envías una invitación y luego puedes cambiar el nombre y la configuración.',
+    'Al crear el grupo, te conviertes en su primer miembro. Nadie más se une hasta que le envíes una invitación, y después puedes cambiar el nombre y la configuración.',
   'groups.create.back_from_creation': 'Volver de la creación del grupo',
   'groups.create.step': 'Paso {current} de {total}',
   'groups.create.nothing_created': 'Aún no se ha creado nada.',
   'groups.create.add_then_invite':
-    'Añade la primera promesa y luego invite a personas.',
+    'Agrega la primera promesa y luego invita a personas.',
   'groups.create.creating_detail':
     'Mantén esta pantalla abierta mientras Menta crea el grupo.',
   'groups.create.entries_saved': 'Tus entradas todavía están en esta pantalla.',
@@ -172,11 +172,11 @@ export const fullGroupsEsMX = {
   'groups.create.restoring_draft': 'Restaurando el borrador de tu grupo',
   'groups.create.creating': 'Creando {group}',
   'groups.create.creating_button': 'Creando…',
-  'groups.create.try_again': 'Intentar otra vez',
-  'groups.create.invite_people': 'invitar gente',
+  'groups.create.try_again': 'Volver a intentarlo',
+  'groups.create.invite_people': 'Invitar a personas',
   'groups.create.add_promise': 'Añadir la primera promesa',
-  'groups.create.open_group': 'grupo',
-  'groups.create.go_today': 'Ir a hoy',
+  'groups.create.open_group': 'Abrir grupo',
+  'groups.create.go_today': 'Ir a Hoy',
   'groups.create.back': 'Atrás',
   'groups.create.exit_setup': 'Salir de la configuración',
   'groups.create.restoring_button': 'Restaurando borrador…',
@@ -236,7 +236,7 @@ export const fullGroupsEsMX = {
   'groups.create.insufficient_momenta':
     'No tienes suficiente Momenta para crear este grupo.',
   'groups.create.link_failed':
-    'Menta no pudo confirmar el grupo y la primera promesa juntos. El borrador de tu grupo todavía está aquí. Intentar otra vez.',
+    'Menta no pudo confirmar el grupo y la primera promesa a la vez. El borrador de tu grupo sigue aquí. Vuelve a intentarlo.',
   'groups.create.image_move_label': 'Mover',
   'groups.create.image_focus_label': 'Enfocar',
   'groups.create.image_reset_label': 'Reiniciar',
@@ -259,30 +259,30 @@ export const fullGroupsEsMX = {
     'Tu saldo de Momenta está actualizado. Tu primera prueba está lista en este {destination}.',
   'groups.join.debit': '−{amount}',
   'groups.join.confirm': 'Únete a {cost} Momenta',
-  'groups.join.maybe_later': 'tal vez más tarde',
+  'groups.join.maybe_later': 'Quizá más tarde',
   'groups.join.cost': 'Coste de inscripción',
   'groups.join.available': 'Disponible ahora',
   'groups.join.need_more_title': 'Necesitas {shortfall} más Momenta',
   'groups.join.need_more_detail': 'No se te ha cobrado y aún no te has unido.',
   'groups.join.earn': 'Ver formas de ganar',
-  'groups.join.back_today': 'Volver a hoy',
+  'groups.join.back_today': 'Volver a Hoy',
   'groups.join.not_reserved_title': 'Tu lugar aún no está reservado',
   'groups.join.not_reserved_detail':
     'Gana más Momenta y luego regresa aquí para unirte.',
   'groups.join.receipt_label': 'Unirse al recibo',
   'groups.join.membership': 'Pertenencia',
   'groups.join.joined': 'Unido',
-  'groups.join.momenta': 'momentos',
+  'groups.join.momenta': 'Momenta',
   'groups.join.new_balance': 'Nuevo equilibrio · {balance}',
   'groups.join.no_charge': 'Sin cargo',
   'groups.join.first_proof': 'Primera prueba',
-  'groups.join.open_group': 'grupo',
-  'groups.join.open_promise': 'promesa abierta',
+  'groups.join.open_group': 'Abrir grupo',
+  'groups.join.open_promise': 'Abrir promesa',
   'groups.join.check_status_title': 'Necesitamos verificar si te uniste',
   'groups.join.check_status_detail':
     'La última solicitud terminó antes de que Menta recibiera un recibo. No volveremos a unirnos hasta que se comprueba la pertenencia y el saldo.',
   'groups.join.check_status': 'Verificar estado de unión',
-  'groups.join.return_today': 'Volver a hoy',
+  'groups.join.return_today': 'Volver a Hoy',
   'groups.join.second_paused_title': 'Una segunda unión está en pausa',
   'groups.join.second_paused_detail':
     'Verificar el resultado existente evita una membresía o cargo duplicado.',
@@ -301,7 +301,7 @@ export const fullGroupsEsMX = {
   'groups.join.open_current':
     'Abre una promesa actual o solicita un nuevo enlace de invitación.',
 
-  'groups.invite.title': 'invitar gente',
+  'groups.invite.title': 'Invitar a personas',
   'groups.invite.back_group': 'Volver al grupo',
   'groups.invite.loading': 'Cargando invitación activa',
   'groups.invite.missing_group':
@@ -310,7 +310,7 @@ export const fullGroupsEsMX = {
     'Menta no pudo cargar esta invitación. Comprueba tu conexión y vuelve a intentarlo.',
   'groups.invite.copy_link': 'Copiar enlace de invitación',
   'groups.invite.copy_code': 'Copiar código de invitación',
-  'groups.invite.copied': 'copiado',
+  'groups.invite.copied': 'Copiado',
   'groups.invite.link_copied': 'Enlace de invitación copiado.',
   'groups.invite.code_copied': 'Código de invitación copiado.',
   'groups.invite.copy_error':
@@ -319,24 +319,24 @@ export const fullGroupsEsMX = {
   'groups.invite.share_closed':
     'La invitación sigue aquí si necesitas enviarla o copiarla de nuevo.',
   'groups.invite.share_error':
-    'La menú para compartir no se abrió. Intentar otra vez.',
+    'No se abrió el menú para compartir. Vuelve a intentarlo.',
   'groups.invite.replace': 'Reemplazar código de invitación',
   'groups.invite.replace_loading': 'Reemplazo…',
   'groups.invite.keep': 'Mantener la invitación actual',
   'groups.invite.new_share': 'Compartir nueva invitación',
   'groups.invite.replace_question': '¿Reemplazar esta invitación?',
-  'groups.invite.current_code': 'código actual',
+  'groups.invite.current_code': 'Código actual',
   'groups.invite.stops_working': 'Dejará de funcionar',
   'groups.invite.not_replaced': 'Invitación no reemplazada',
   'groups.invite.new_ready': 'Nueva invitación lista',
-  'groups.invite.active_code': 'código activo',
+  'groups.invite.active_code': 'Código activo',
   'groups.invite.active': 'Activo',
   'groups.invite.show_qr': 'Mostrar código QR',
   'groups.invite.hide_qr': 'Ocultar código QR',
   'groups.invite.show_qr_detail':
     'Abre un código ampliado para que alguien cercano lo escanea.',
   'groups.invite.replace_detail': 'La invitación actual dejará de funcionar.',
-  'groups.invite.try_again': 'Intentar otra vez',
+  'groups.invite.try_again': 'Volver a intentarlo',
   'groups.invite.back': 'Atrás',
   'groups.invite.load_failed': 'La invitación no se cargó',
   'groups.invite.action_failed': 'La acción de invitación falló',
@@ -355,7 +355,7 @@ export const fullGroupsEsMX = {
   'groups.invite.qr_label':
     'Código QR de invitación grupal para invitación {code}',
   'groups.invite.no_code': 'No se proporcionó ningún código de invitación.',
-  'groups.invite.group_invite': 'invitación grupal',
+  'groups.invite.group_invite': 'Invitación al grupo',
   'groups.invite.share_title': 'Invitar personas a {group}',
   'groups.invite.share_returned': 'Invitar listo para compartir',
   'groups.invite.replaced_accessibility':
@@ -381,7 +381,7 @@ export const fullGroupsEsMX = {
   'groups.preview.joining': 'Unión...',
   'groups.preview.join': 'Unirse al grupo',
   'groups.preview.join_hint':
-    'Únete a este grupo para participar en tus promesas compartidas.',
+    'Únete a este grupo para participar en sus promesas compartidas.',
   'groups.preview.view_board': 'Ver tablero',
   'groups.preview.view_board_hint':
     'Consulta las promesas del grupo y los miembros antes de unirte.',
@@ -408,7 +408,7 @@ export const fullGroupsEsMX = {
   'groups.admin.selected': 'Seleccionado',
   'groups.admin.review_reminders': 'Revisar recordatorios',
   'groups.admin.reminders_detail':
-    'Los miembros deben permitir las notificaciones en tu celular.',
+    'Los miembros tienen que permitir las notificaciones en su celular.',
   'groups.admin.reminders_allowed': 'Recordatorios de revisiones permitidos',
   'groups.admin.invitations': 'Invitaciones',
   'groups.admin.manage_invite': 'Administrar invitación',
@@ -422,7 +422,7 @@ export const fullGroupsEsMX = {
     'Este grupo ya no está disponible en la lista actual.',
   'groups.admin.group_not_found': 'Grupo no encontrado',
   'groups.admin.settings_permission_detail':
-    'Sólo los propietarios y administradores pueden gestionar esta configuración de grupo.',
+    'Solo los propietarios y administradores pueden administrar esta configuración del grupo.',
   'groups.admin.settings_unavailable': 'Ajustes no disponibles',
   'groups.admin.group': 'Grupo',
   'groups.admin.ownership': 'Propiedad del grupo',
@@ -436,18 +436,18 @@ export const fullGroupsEsMX = {
   'groups.admin.description':
     'Gestionar el acceso, las invitaciones y la pertenencia.',
   'groups.admin.save': 'Guardar cambios',
-  'groups.admin.saving': 'Ahorro…',
-  'groups.admin.settings': 'Ajustes de grupo',
+  'groups.admin.saving': 'Guardando…',
+  'groups.admin.settings': 'Configuración del grupo',
   'groups.admin.delete_question': '¿Eliminar grupo?',
   'groups.admin.delete_warning':
-    'Esto elimina permanentemente el grupo, tus promesas compartidas, tu historial de pruebas y el acceso de miembros para todos. Mantén esta pantalla abierta hasta que Menta confirme el resultado.',
+    'Esto elimina para siempre el grupo, sus promesas compartidas, su historial de pruebas y el acceso de todos los miembros. Mantén esta pantalla abierta hasta que Menta confirme el resultado.',
   'groups.admin.members_description':
     'Mira quién pertenece a este grupo y qué rol tiene cada persona.',
   'groups.admin.members_manage_description':
     'Invita a personas o cambia los roles de los miembros.',
   'groups.admin.access': 'Acceso',
   'groups.admin.manage': 'Administrar',
-  'groups.admin.view_only': 'Ver sólo',
+  'groups.admin.view_only': 'Solo ver',
   'groups.admin.invite_empty_detail':
     'Envía la invitación primero. Los roles de los miembros aparecerán aquí una vez que alguien se una.',
   'groups.admin.no_members': 'Aún no hay miembros',
@@ -462,20 +462,20 @@ export const fullGroupsEsMX = {
   'groups.admin.view_member': 'Ver {member}',
   'groups.admin.member_hint': 'Abre acciones de miembros.',
   'groups.admin.member_readonly_hint': 'Detalles de miembro de solo lectura.',
-  'groups.admin.locked': 'bloqueado',
+  'groups.admin.locked': 'Bloqueado',
   'groups.admin.updating': 'Actualizando',
   'groups.admin.loading_members': 'Cargando miembros',
-  'groups.admin.loading_settings': 'Cargando configuración de grupo',
+  'groups.admin.loading_settings': 'Cargando configuración del grupo',
   'groups.admin.load_members_error':
     'No se pudieron cargar los miembros del grupo.',
   'groups.admin.members_load_failed': 'Los miembros no pudieron cargar',
-  'groups.admin.invite_people': 'invitar gente',
+  'groups.admin.invite_people': 'Invitar a personas',
   'groups.admin.member_actions_hint':
     'Abre informes. Los administradores de grupo también ven acciones de función y eliminación.',
   'groups.admin.open_member_actions': 'Acciones abiertas para {member}',
   'groups.board.you': 'Tú',
   'groups.board.member_status_accessibility': '{name}. {status}. {detail}',
-  'groups.board.review_member': 'Revise la prueba de {member}',
+  'groups.board.review_member': 'Revisar la prueba de {member}',
   'groups.board.submit_proof': 'Envía tu prueba',
   'groups.board.loading': 'Cargando tablero de grupo',
   'groups.board.no_review': 'No es necesario revisar las pruebas',
@@ -502,8 +502,8 @@ export const fullGroupsEsMX = {
   'groups.board.approved_today': 'Aprobado hoy',
   'groups.board.approved_count': '{completed} de {total} aprobado',
   'groups.board.added_proof_count': '{count} de {total} agregaron una prueba',
-  'groups.board.today_board': 'tablero de hoy',
-  'groups.board.public_group': 'grupo publico',
+  'groups.board.today_board': 'Tablero de hoy',
+  'groups.board.public_group': 'Grupo público',
   'groups.board.member_count': 'Miembros de {count}',
   'groups.board.shared_promise_label': 'Promesa compartida',
   'groups.board.default_promise': 'Preséntese y comparta pruebas',
@@ -516,7 +516,7 @@ export const fullGroupsEsMX = {
   'groups.board.final_rule':
     'La regla de prueba final se conserva como referencia.',
   'groups.board.proof_history': 'Historial de pruebas',
-  'groups.board.promise_rules': 'reglas de promesa',
+  'groups.board.promise_rules': 'Reglas de la promesa',
   'groups.board.saved_board': 'Mostrando el tablero del grupo guardado',
   'groups.board.saved_status': 'Estado guardado',
   'groups.board.saved_approved':
@@ -554,7 +554,7 @@ export const fullGroupsEsMX = {
   'groups.detail.unavailable': 'Grupo no disponible',
   'groups.detail.unavailable_detail':
     'Este grupo puede estar archivado, ser privado o no estar disponible temporalmente.',
-  'groups.detail.what_you_can_do': 'que puedes hacer',
+  'groups.detail.what_you_can_do': 'Qué puedes hacer',
   'groups.detail.what_you_can_do_detail':
     'Inténtalo de nuevo, vuelve a Grupos o pídele al propietario del grupo una nueva invitación.',
   'groups.admin.discard_question': '¿Descartar cambios?',
@@ -585,27 +585,27 @@ export const fullGroupsEsMX = {
   'groups.empty.shared_detail':
     'Añade la primera promesa para que todos sepan qué hacer y qué pruebas cuentan.',
   'groups.empty.add_promise': 'Añadir la primera promesa',
-  'groups.empty.invite_people': 'invitar gente',
+  'groups.empty.invite_people': 'Invitar a personas',
   'groups.empty.shared_note':
     'No se debe pagar nada hasta que se cumpla la primera promesa.',
-  'groups.join.open_camera': 'cámara abierta',
+  'groups.join.open_camera': 'Abrir cámara',
   'groups.join.scan_detail': 'Escanea un código QR de invitación grupal.',
   'groups.join.enter_code_instead':
     'Introduce el código de invitación en tu lugar',
   'groups.join.code_required': 'Código de invitación *',
-  'groups.join.code_accessibility': 'código de invitación',
+  'groups.join.code_accessibility': 'Código de invitación',
   'groups.join.code_placeholder': 'CAMINATA-7K2',
   'groups.join.code_placeholder_long': 'ABCD2345',
   'groups.join.link_or_code': 'Enlace o código de invitación',
-  'groups.join.find_invite': 'encontrar invitación',
+  'groups.join.find_invite': 'Buscar invitación',
   'groups.join.paste_clipboard': 'Pegar desde el portapapeles',
   'groups.join.checking_invite': 'Comprobando invitación de grupo',
   'groups.join.not_now': 'Ahora no',
   'groups.join.joining_long': 'Unión…',
   'groups.join.continue_sign_in': 'Continuar iniciando sesión',
   'groups.join.retry_preview': 'Reintentar vista previa',
-  'groups.join.how_it_works': 'como funciona',
-  'groups.join.group_invite': 'invitación grupal',
+  'groups.join.how_it_works': 'Cómo funciona',
+  'groups.join.group_invite': 'Invitación al grupo',
   'groups.join.shared_promise': 'Promesa compartida',
   'groups.join.close_scanner': 'Cerrar el escáner de invitaciones',
   'groups.join.code_helper':
@@ -621,7 +621,7 @@ export const fullGroupsEsMX = {
   'groups.join.preview_paid':
     'Unirse cuesta {cost} Momenta. Tu código se utiliza sólo después de que el grupo te acepte.',
   'groups.join.preview_unknown':
-    'Tu código se utiliza sólo después de que el grupo te acepte. Si unirse a Momenta cuesta, verá el monto antes de gastar nada.',
+    'Tu código solo se usa cuando el grupo te acepta. Si unirte cuesta Momenta, verás la cantidad antes de gastar nada.',
   'groups.join.preview_free_membership': 'Unirte aquí es gratis.',
   'groups.join.preview_paid_detail':
     'Unirse cuesta {cost} Momenta. La vista previa no te ha cobrado.',
@@ -642,7 +642,7 @@ export const fullGroupsEsMX = {
   'groups.join.details':
     'Verá las promesas del grupo, enviará pruebas cuando sea necesario realizar el seguimiento y revisará otras pruebas cuando sea necesario. Un seguimiento cuenta después de que un miembro acepta la prueba. Las pruebas, las rachas y las revisiones quedan ligadas al grupo.',
   'groups.join.receipt.already': 'Ya eres miembro',
-  'groups.join.receipt.joined': 'grupo unido',
+  'groups.join.receipt.joined': 'Te uniste al grupo',
   'groups.join.receipt.already_title': 'Ya estás en este grupo.',
   'groups.join.receipt.joined_title': 'Estás en {group}.',
   'groups.join.receipt.group_fallback': 'el grupo',
@@ -653,12 +653,12 @@ export const fullGroupsEsMX = {
   'groups.join.receipt.spent_detail':
     'Pasaste {cost} Momenta. Abre el grupo para ver las promesas y el primer seguimiento.',
   'groups.join.receipt.spent_label': 'Momenta gastado',
-  'groups.join.receipt.zero': '0 momentos',
+  'groups.join.receipt.zero': '0 Momenta',
   'groups.join.receipt.spent_value': '{cost} Momentas',
   'groups.join.receipt.next_move': 'Tu próximo movimiento',
   'groups.join.receipt.view_group': 'Ver grupo',
   'groups.join.receipt.view_groups': 'Ver grupos',
-  'groups.join.receipt.use_another': 'usa otro codigo',
+  'groups.join.receipt.use_another': 'Usar otro código',
   'groups.join.receipt.join_another': 'Únete a otro grupo',
   'groups.join.show_momenta': 'Mostrar opciones de Momenta',
   'groups.join.see_pro': 'Ver planes Pro',
@@ -670,7 +670,7 @@ export const fullGroupsEsMX = {
   'groups.join.watch_ad': 'Ver anuncio de Momenta',
   'groups.join.see_pro_options': 'Ver opciones profesionales',
   'groups.join.cost_needed':
-    'Unirse cuesta {cost} Momenta. Agrega suficiente Momenta y luego regresa a esta invitación.',
+    'Unirse cuesta {cost} Momenta. Consigue suficientes Momenta y luego regresa a esta invitación.',
   'groups.join.promise_invite_found': 'Invitación prometida encontrada',
   'groups.join.promise_invite_detail':
     'Esta invitación es para una promesa, no para un grupo. Menta lo guardó para que la aplicación pueda abrirlo después de iniciar sesión.',
@@ -688,7 +688,7 @@ export const fullGroupsEsMX = {
     'Pídele al propietario del grupo una nueva invitación.',
   'groups.join.replaced_title': 'Esta invitación fue reemplazada',
   'groups.join.replaced_detail':
-    'Pídele al propietario del grupo tu enlace o código más reciente.',
+    'Pide a quien creó el grupo su enlace o código más reciente.',
   'groups.join.inactive_title': 'Este grupo ya no está activo.',
   'groups.join.inactive_detail': 'Ninguna membresía o Momenta cambió.',
   'groups.join.invalid_invite_detail':
@@ -702,11 +702,11 @@ export const fullGroupsEsMX = {
     'Menta no pudo comprobar esta invitación. Nada ha cambiado, por lo que es seguro volver a intentarlo cuando esté en línea.',
   'groups.join.unavailable_title': 'Esta invitación no está disponible',
   'groups.join.unavailable_detail':
-    'Pregúntale al propietario del grupo tu invitación de grupo actual.',
+    'Pide a quien creó el grupo su invitación actual.',
   'groups.join.qr_invalid_title': 'QR no incluía una invitación grupal',
   'groups.join.qr_invalid_detail':
     'Escanea un QR de invitación de grupo Menta o introduce el código manualmente.',
-  'groups.join.missing_code_title': 'código faltante',
+  'groups.join.missing_code_title': 'Falta el código',
   'groups.join.missing_code_detail':
     'Introduce un código de invitación o escanea una invitación QR para continuar.',
   'groups.join.invalid_code_title':
@@ -758,7 +758,7 @@ export const fullGroupsEsMX = {
     'Código QR no disponible. Aún puedes probar las opciones para compartir o copiar a continuación.',
   'groups.referral.qr_preparing': 'Preparando tu código QR…',
   'groups.redirect.title': 'Unirse',
-  'groups.redirect.invite_code': 'código de invitación',
+  'groups.redirect.invite_code': 'Código de invitación',
   'groups.redirect.promise_saved': 'Invitación de promesa guardada',
   'groups.redirect.promise_subtitle':
     'Comprobando el enlace de promesa y tu estado de inicio de sesión.',
@@ -796,7 +796,7 @@ export const fullGroupsEsMX = {
   'groups.redirect.referral_existing_title':
     'La invitación es para cuentas nuevas.',
   'groups.redirect.referral_existing_subtitle':
-    'Esta cuenta ya está configurada, por lo que Menta no cambiará tu referencia.',
+    'Esta cuenta ya está configurada, así que Menta no cambiará su invitación.',
   'groups.redirect.account_ready': 'Cuenta ya configurada',
   'groups.redirect.account_ready_detail':
     'Los enlaces de referencia se aplican al crear una nueva cuenta Menta. Tu cuenta actual permanece sin cambios.',
@@ -816,9 +816,9 @@ export const fullGroupsEsMX = {
   'groups.detail.first_promise_detail':
     'Añade la regla de promesa y prueba que todos usarán.',
   'groups.detail.reviews_title': 'Reseñas',
-  'groups.detail.invite': 'invitar gente',
+  'groups.detail.invite': 'Invitar a personas',
   'groups.detail.add_promise': 'Añadir la primera promesa',
-  'groups.detail.open_board': 'tablero abierto',
+  'groups.detail.open_board': 'Abrir tablero',
   'groups.detail.review_later': 'Revisar más tarde',
   'groups.detail.commitments': 'Los compromisos que este grupo está siguiendo.',
   'groups.detail.add': 'Añadir',
@@ -832,32 +832,32 @@ export const fullGroupsEsMX = {
   'groups.detail.report_detail':
     'Informar contenido grupal inseguro o inapropiado.',
   'groups.detail.invite_sheet_detail':
-    'Copia el código o abre la menú para compartir.',
+    'Copia el código o abre el menú para compartir.',
   'groups.detail.members_sheet_detail': 'Ver roles y administrar el acceso.',
   'groups.detail.settings_sheet_detail':
     'Cambia el nombre, quién puede unirse, las invitaciones y los controles del propietario.',
   'groups.detail.leave': 'Dejar grupo',
   'groups.detail.delete': 'Eliminar grupo',
-  'groups.detail.delete_detail': 'Elimina el grupo y tu historial para todos.',
+  'groups.detail.delete_detail': 'Elimina el grupo y su historial para todos.',
   'groups.detail.delete_warning':
-    'Esto elimina permanentemente el grupo, tus promesas compartidas, tu historial de pruebas y el acceso de miembros para todos.',
+    'Esto elimina para siempre el grupo, sus promesas compartidas, su historial de pruebas y el acceso de todos los miembros.',
   'groups.detail.cancel': 'Cancelar',
   'groups.detail.sign_in_detail': 'Inicia sesión antes de unirte a este grupo.',
   'groups.detail.joined_title': 'Unido',
   'groups.detail.joined_detail': 'Estás en el grupo.',
   'groups.detail.join_failed': 'Unirse falló',
   'groups.detail.join_failed_detail': 'No se pudo unir a este grupo.',
-  'groups.detail.left_title': 'grupo de izquierda',
+  'groups.detail.left_title': 'Saliste del grupo',
   'groups.detail.left_detail': 'Ya no perteneces a este grupo.',
   'groups.detail.leave_unknown_title': 'Salida no confirmada',
   'groups.detail.leave_unknown_detail':
-    'Menta no pudo confirmar si te fuiste. Vuelve a Grupos y comprueba tu membresía antes de volver a intentarlo.',
+    'Menta no pudo confirmar si saliste. Vuelve a Grupos y revisa si sigues siendo miembro antes de volver a intentarlo.',
   'groups.detail.leave_failed_title': 'Dejar no completado',
   'groups.detail.leave_warning':
     'Dejarás de aparecer en este grupo y no podrás enviar ni revisar nuevas promesas de grupo. Las pruebas del historial permanecen en la historia del grupo.',
   'groups.detail.deleted_title': 'Grupo eliminado',
   'groups.detail.deleted_detail':
-    'El grupo, tus promesas compartidas y tu historial de pruebas fueron eliminados para todos.',
+    'El grupo, sus promesas compartidas y su historial de pruebas se eliminaron para todos.',
   'groups.detail.delete_unknown_title': 'Eliminar no confirmado',
   'groups.detail.delete_unknown_detail':
     'Menta no pudo confirmar si el grupo fue eliminado. Vuelve a Grupos y comprueba antes de volver a intentarlo.',
@@ -865,16 +865,16 @@ export const fullGroupsEsMX = {
   'groups.detail.archive_failed_title': 'Error de archivado',
   'groups.detail.not_archived_title': 'Grupo no archivado',
   'groups.detail.archive_failed_detail':
-    'Menta no pudo archivar este grupo. Tu historial y tu posición en la lista activa no han cambiado. Inténtalo de nuevo.',
+    'Menta no pudo archivar este grupo. Su historial y su posición en la lista de activos no han cambiado. Vuelve a intentarlo.',
   'groups.detail.archived_title': 'Grupo archivado',
   'groups.detail.archived_detail':
-    'Ahora está en grupos archivados y tu historial aún está disponible.',
+    'Ahora está en Grupos archivados y su historial sigue disponible.',
   'groups.detail.day_streak': 'Racha de grupo de días {count}',
   'groups.detail.open_proof_detail': 'Abre tu prueba para este grupo.',
   'groups.detail.member_board_detail': 'Hay personas {count} en este foro.',
   'groups.detail.created_title': 'Grupo creado.',
   'groups.detail.created_detail':
-    'Añade la primera promesa compartida y luego invite a personas.',
+    'Agrega la primera promesa compartida y luego invita a personas.',
   'groups.detail.privacy_group': 'Grupo {privacy}',
   'groups.detail.joined_count': '{count} se unió',
   'groups.detail.invite_ready': 'Enlace de invitación listo',
@@ -889,8 +889,8 @@ export const fullGroupsEsMX = {
   'groups.detail.no_fixed_streak': 'Sin objetivo de racha fija',
   'groups.detail.review_against_promise':
     'Revisión contra la promesa compartida.',
-  'groups.share.back_you': 'De vuelta a ti',
-  'groups.share.invite_someone': 'invitar a alguien',
+  'groups.share.back_you': 'Volver a Perfil',
+  'groups.share.invite_someone': 'Invitar a alguien',
   'groups.share.invite_someone_title': 'Invitar a alguien a Menta',
   'groups.share.preparing': 'Preparando tu invitación',
   'groups.share.choose_where': 'Elige dónde compartir',
@@ -903,14 +903,14 @@ export const fullGroupsEsMX = {
   'groups.share.preparing_detail':
     'Tu invitación se abrirá cuando el enlace esté listo.',
   'groups.share.choose_where_detail':
-    'Elige una persona o aplicación en la menú para compartir de tu celular.',
+    'Elige una persona o una app en el menú para compartir del celular.',
   'groups.share.returned_detail':
     'Menta no puede decir si se envió el enlace. Puedes compartirlo de nuevo o copiarlo.',
   'groups.share.copied_detail':
     'Está en el portapapeles de este celular. No ha sido enviado.',
   'groups.share.unavailable_detail':
     'El enlace no se ha copiado ni abierto. Inténtalo de nuevo.',
-  'groups.share.share_hint': 'Abre la menú para compartir de tu celular.',
+  'groups.share.share_hint': 'Abre el menú para compartir del celular.',
   'groups.share.share_subtitle': 'Envíalo a través de cualquier aplicación.',
   'groups.share.share_link': 'Compartir enlace',
   'groups.share.copy_hint': 'Copia el enlace de invitación a este celular.',
@@ -926,7 +926,7 @@ export const fullGroupsEsMX = {
     'Aún puedes compartir tu enlace. Menta mostrará los términos de la recompensa cuando pueda confirmarlos.',
   'groups.share.rewards_paused': 'Las recompensas están en pausa',
   'groups.share.paused_detail':
-    'Aún puedes compartir tu enlace, pero Menta no agregará Momenta de referencia mientras el programa esté en pausa.',
+    'Aún puedes compartir tu enlace, pero Menta no agregará Momenta por invitaciones mientras el programa esté en pausa.',
   'groups.share.annual_limit': 'Límite anual',
   'groups.share.rewards_title': 'Tus recompensas por recomendar',
   'groups.share.limit_resets': 'Restablecimientos de límites',
@@ -936,9 +936,9 @@ export const fullGroupsEsMX = {
   'groups.share.preparing_action': 'Preparando invitación…',
   'groups.share.opening_handoff': 'Abrir menú para compartir',
   'groups.share.opening_action': 'Abriendo menú para compartir...',
-  'groups.share.share_again': 'compartir de nuevo',
+  'groups.share.share_again': 'Volver a compartir',
   'groups.share.message':
-    'Únete a mí en Menta. Usa este enlace y luego crea tu primera promesa para completar la referencia.\\n\\n{link}',
+    'Únete a Menta conmigo. Usa este enlace y crea tu primera promesa para completar la invitación.\n\n{link}',
   'groups.join.clipboard_empty': 'Portapapeles vacío',
   'groups.join.clipboard_empty_detail':
     'Copia un código de invitación, luego vuelve y péguelo aquí.',
@@ -987,7 +987,7 @@ export const fullGroupsEsMX = {
   'groups.funding.status_membership_mismatch':
     'Menta devolvió el estatus de miembro para un promesa diferente.',
   'groups.funding.status_unknown':
-    'Menta aún no pudo verificar tu membresía. Intentar otra vez.',
+    'Menta aún no pudo comprobar si eres miembro. Vuelve a intentarlo.',
   'groups.funding.status_unavailable':
     'Menta aún no pudo verificar esta unión.',
   'groups.funding.member_without_receipt':
@@ -1008,7 +1008,7 @@ export const fullGroupsEsMX = {
     'Descanso, reflexión y rutinas tranquilas',
   'groups.source.metric.member_unit': 'miembro',
   'groups.source.metric.members_unit': 'miembros',
-  'groups.source.metric.day_streak_unit': 'racha de días del grupo',
+  'groups.source.metric.day_streak_unit': 'días de racha del grupo',
   'groups.source.metric.day_streak_value': 'racha de {count} días',
   'groups.source.metric.proof_unit': 'prueba por revisar',
   'groups.source.metric.proofs_unit': 'pruebas por revisar',
@@ -1056,7 +1056,7 @@ export const fullGroupsEsMX = {
   'groups.source.promise.default_subtitle':
     'Abre la regla de prueba y envía la de hoy.',
   'groups.source.promise.detail_default':
-    'Abre la promesa para ver tu regla de prueba e historial.',
+    'Abre la promesa para ver su regla de prueba y su historial.',
   'groups.source.promise.detail': 'Abre los detalles de la promesa.',
   'groups.source.proof.count': '{count} pruebas',
   'groups.source.proof.count.one': '{count} prueba',
@@ -1073,11 +1073,11 @@ export const fullGroupsEsMX = {
   'groups.source.review.open': 'Revisar {count}',
   'groups.source.member.view_all': 'Ver los {count}',
   'groups.source.read_only.ended_on':
-    'Este grupo terminó el {date}. Puedes ver tus promesas, miembros e historial de pruebas.',
+    'Este grupo terminó el {date}. Puedes ver sus promesas, sus miembros y su historial de pruebas.',
   'groups.source.read_only.failed':
-    'Este grupo terminó sin alcanzar tu objetivo. Puedes ver tus promesas, miembros e historial de pruebas.',
+    'Este grupo terminó sin alcanzar su objetivo. Puedes ver sus promesas, sus miembros y su historial de pruebas.',
   'groups.source.read_only.ended':
-    'Este grupo ha terminado. Puedes ver tus promesas, miembros e historial de pruebas.',
+    'Este grupo ha terminado. Puedes ver sus promesas, sus miembros y su historial de pruebas.',
   'groups.source.accountability.saved_group_picker.open_action':
     'Hacerlo con un grupo',
   'groups.source.accountability.saved_group_picker.title':
@@ -1155,4 +1155,19 @@ export const fullGroupsEsMX = {
     '{group} está listo y no se compartió nada. Vuelve a la promesa para elegir el siguiente paso.',
   'groups.create.promise_link.check_again': 'Revisar el vínculo',
   'groups.create.promise_link.return_to_promise': 'Volver a la promesa',
+  'groups.share.pass_title': '¿Me ayudas a cumplir?',
+  'groups.share.pass_from': 'De {name}',
+  'groups.share.pitch_title': 'Trae a alguien que se preocupe por cómo vas.',
+  'groups.share.pitch_proof':
+    'Ven tu prueba y la confirman con un toque. Son segundos.',
+  'groups.share.pitch_reward':
+    'Cuando haga su primera promesa, cada uno recibe {amount} Momenta.',
+  'groups.share.pitch_link': 'Pueden unirse solo con este enlace.',
+  'groups.share.sent_step_join': 'Lo abren y se unen a Menta.',
+  'groups.share.sent_step_promise': 'Hacen su primera promesa.',
+  'groups.share.sent_step_reward':
+    'Hacen su primera promesa y cada uno recibe {amount} Momenta.',
+  'groups.share.you': 'Tú',
+  'groups.share.checker': 'Quien te revisa',
+  'groups.share.sent_title': '¿Ya lo enviaste? Esto es lo que sigue.',
 } as const satisfies Pick<EnglishCatalogue, FullGroupsKey>;

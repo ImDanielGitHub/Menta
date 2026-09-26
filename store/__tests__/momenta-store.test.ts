@@ -72,6 +72,7 @@ describe('MomentaStore', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (mockSupabase.rpc as jest.Mock).mockReset();
     mockGetMyProfile.mockResolvedValue({
       id: 'user-1',
       email: 'test@example.com',
@@ -214,20 +215,15 @@ describe('MomentaStore', () => {
 
     it('does not commit stale ownership reads after the account scope changes', async () => {
       let resolveOwned:
-        | ((value: { data: unknown[]; error: null }) => void)
-        | undefined;
+        ((value: { data: unknown[]; error: null }) => void) | undefined;
       let resolvePurchased:
-        | ((value: { data: unknown[]; error: null }) => void)
-        | undefined;
+        ((value: { data: unknown[]; error: null }) => void) | undefined;
       let resolveEquipped:
-        | ((value: { data: unknown[]; error: null }) => void)
-        | undefined;
+        ((value: { data: unknown[]; error: null }) => void) | undefined;
       let resolveHistory:
-        | ((value: { data: unknown[]; error: null }) => void)
-        | undefined;
+        ((value: { data: unknown[]; error: null }) => void) | undefined;
       let resolveBalance:
-        | ((value: Awaited<ReturnType<typeof getMyProfile>>) => void)
-        | undefined;
+        ((value: Awaited<ReturnType<typeof getMyProfile>>) => void) | undefined;
       const ownedResult = new Promise<{ data: unknown[]; error: null }>(
         resolve => {
           resolveOwned = resolve;
@@ -442,8 +438,7 @@ describe('MomentaStore', () => {
 
     it('does not commit a late adjustment receipt into a new account scope', async () => {
       let resolveReward:
-        | ((value: { data: null; error: null }) => void)
-        | undefined;
+        ((value: { data: null; error: null }) => void) | undefined;
       const rewardResponse = new Promise<{
         data: null;
         error: null;
@@ -495,17 +490,21 @@ describe('MomentaStore', () => {
   });
 
   describe('claimAdReward', () => {
+    it('does not read or grant a reward without a transaction ID', async () => {
+      await expect(useMomentaStore.getState().claimAdReward()).resolves.toEqual(
+        {
+          earned: false,
+          amount: 0,
+          reason: 'unknown',
+        }
+      );
+      expect(mockSupabase.rpc).not.toHaveBeenCalled();
+      expect(useMomentaStore.getState().balance).toBe(0);
+    });
+
     it('uses the server amount and refreshes the account receipt', async () => {
-      const transaction = {
-        id: 'transaction-1',
-        user_id: 'user-1',
-        amount: 10,
-        transaction_type: 'bonus',
-        description: 'Ad reward',
-        created_at: '2026-08-10T00:00:00.000Z',
-      };
       (mockSupabase.rpc as jest.Mock).mockResolvedValue({
-        data: { success: true, amount: 10, new_balance: 110 },
+        data: { status: 'applied', amount: 10, newBalance: 105 },
         error: null,
       });
       mockGetMyProfile.mockResolvedValueOnce({
@@ -521,67 +520,65 @@ describe('MomentaStore', () => {
         is_pro: false,
         is_approved: true,
       });
-      mockLatestTransactionQuery(transaction);
-
-      const result = await useMomentaStore.getState().claimAdReward();
+      const result = await useMomentaStore.getState().claimAdReward('ad-1');
 
       expect(result).toEqual({ earned: true, amount: 10 });
-      expect(mockSupabase.rpc).toHaveBeenCalledWith('claim_momenta_reward', {
-        p_user_id: 'user-1',
-        p_reward_type: 'ad_reward',
-      });
+      expect(mockSupabase.rpc).toHaveBeenCalledWith(
+        'get_my_revenuecat_ad_reward_receipt',
+        {
+          p_client_transaction_id: 'ad-1',
+        }
+      );
+      expect(mockSupabase.rpc).toHaveBeenCalledTimes(1);
       expect(useMomentaStore.getState()).toMatchObject({
         balance: 110,
         transactionHistoryError: null,
       });
-      expect(useMomentaStore.getState().transactions[0]).toMatchObject({
-        id: 'transaction-1',
-        amount: 10,
-      });
+      expect(useMomentaStore.getState().transactions).toEqual([]);
     });
 
-    it('returns plain copy for a server reward limit', async () => {
+    it('returns a product reason for a server reward limit', async () => {
       (mockSupabase.rpc as jest.Mock).mockResolvedValue({
-        data: { success: false, error: 'DAILY_LIMIT' },
+        data: { status: 'ignored', amount: 0, reason: 'daily_limit' },
         error: null,
       });
 
-      const result = await useMomentaStore.getState().claimAdReward();
+      const result = await useMomentaStore.getState().claimAdReward('ad-1');
 
       expect(result).toMatchObject({
         earned: false,
         amount: 0,
         reason: 'daily-limit',
       });
-      expect(result.message).toContain("today's sponsor rewards");
-      expect(result.message).not.toContain('DAILY_LIMIT');
     });
 
-    it('keeps one authoritative reward claim in flight per account', async () => {
+    it('keeps one receipt lookup in flight per account and transaction', async () => {
       let resolveReward:
         | ((value: {
-            data: { success: false; error: 'DAILY_LIMIT' };
+            data: { status: 'ignored'; amount: 0; reason: 'daily_limit' };
             error: null;
           }) => void)
         | undefined;
       const rewardResponse = new Promise<{
-        data: { success: false; error: 'DAILY_LIMIT' };
+        data: { status: 'ignored'; amount: 0; reason: 'daily_limit' };
         error: null;
       }>(resolve => {
         resolveReward = resolve;
       });
       (mockSupabase.rpc as jest.Mock).mockReturnValueOnce(rewardResponse);
 
-      const firstClaim = useMomentaStore.getState().claimAdReward();
+      const firstClaim = useMomentaStore.getState().claimAdReward('ad-1');
       await waitFor(() =>
-        expect(mockSupabase.rpc).toHaveBeenCalledWith('claim_momenta_reward', {
-          p_user_id: 'user-1',
-          p_reward_type: 'ad_reward',
-        })
+        expect(mockSupabase.rpc).toHaveBeenCalledWith(
+          'get_my_revenuecat_ad_reward_receipt',
+          {
+            p_client_transaction_id: 'ad-1',
+          }
+        )
       );
 
       await expect(
-        useMomentaStore.getState().claimAdReward()
+        useMomentaStore.getState().claimAdReward('ad-1')
       ).resolves.toMatchObject({
         earned: false,
         amount: 0,
@@ -590,7 +587,7 @@ describe('MomentaStore', () => {
       expect(mockSupabase.rpc).toHaveBeenCalledTimes(1);
 
       resolveReward?.({
-        data: { success: false, error: 'DAILY_LIMIT' },
+        data: { status: 'ignored', amount: 0, reason: 'daily_limit' },
         error: null,
       });
       await expect(firstClaim).resolves.toMatchObject({
@@ -602,11 +599,11 @@ describe('MomentaStore', () => {
 
     it('does not accept a malformed reward receipt', async () => {
       (mockSupabase.rpc as jest.Mock).mockResolvedValue({
-        data: { success: true, amount: '10', new_balance: 110 },
+        data: { status: 'applied', amount: '10', newBalance: 110 },
         error: null,
       });
 
-      const result = await useMomentaStore.getState().claimAdReward();
+      const result = await useMomentaStore.getState().claimAdReward('ad-1');
 
       expect(result).toMatchObject({
         earned: false,
@@ -619,31 +616,33 @@ describe('MomentaStore', () => {
     it('does not apply a late reward to a new account scope', async () => {
       let resolveReward:
         | ((value: {
-            data: { success: true; amount: number; new_balance: number };
+            data: { status: 'applied'; amount: number; newBalance: number };
             error: null;
           }) => void)
         | undefined;
       const rewardResponse = new Promise<{
-        data: { success: true; amount: number; new_balance: number };
+        data: { status: 'applied'; amount: number; newBalance: number };
         error: null;
       }>(resolve => {
         resolveReward = resolve;
       });
       (mockSupabase.rpc as jest.Mock).mockReturnValueOnce(rewardResponse);
 
-      const pendingReward = useMomentaStore.getState().claimAdReward();
+      const pendingReward = useMomentaStore.getState().claimAdReward('ad-1');
       await waitFor(() =>
-        expect(mockSupabase.rpc).toHaveBeenCalledWith('claim_momenta_reward', {
-          p_user_id: 'user-1',
-          p_reward_type: 'ad_reward',
-        })
+        expect(mockSupabase.rpc).toHaveBeenCalledWith(
+          'get_my_revenuecat_ad_reward_receipt',
+          {
+            p_client_transaction_id: 'ad-1',
+          }
+        )
       );
       act(() => {
         useMomentaStore.getState().activateAccountScope('user-2');
         useMomentaStore.setState({ balance: 25 });
       });
       resolveReward?.({
-        data: { success: true, amount: 10, new_balance: 110 },
+        data: { status: 'applied', amount: 10, newBalance: 110 },
         error: null,
       });
 
@@ -746,8 +745,7 @@ describe('MomentaStore', () => {
 
     it('does not commit a late spend receipt into a new account scope', async () => {
       let resolveSpend:
-        | ((value: { data: { success: true }; error: null }) => void)
-        | undefined;
+        ((value: { data: { success: true }; error: null }) => void) | undefined;
       const spendResponse = new Promise<{
         data: { success: true };
         error: null;
@@ -1655,8 +1653,7 @@ describe('MomentaStore', () => {
 
     it('does not apply a late unequip receipt to a new account scope', async () => {
       let resolveUnequip:
-        | ((value: { data: { success: true }; error: null }) => void)
-        | undefined;
+        ((value: { data: { success: true }; error: null }) => void) | undefined;
       const unequipResponse = new Promise<{
         data: { success: true };
         error: null;

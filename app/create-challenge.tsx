@@ -1,28 +1,29 @@
 import React from 'react';
 import {
-  AccessibilityInfo,
   Keyboard,
-  KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import ModalCard from '@/components/ui/modal/ModalCard';
-import PaywallModal from '@/components/paywall/PaywallModal';
 import {
-  ArrowLeftIcon,
+  useKeyboardOverlap,
+  useRevealFocusedInput,
+} from '@/hooks/use-keyboard-overlap';
+import { ModalCard } from '@/components/ui/modal/ModalCard';
+import { PaywallModal } from '@/components/paywall/PaywallModal';
+import type { MascotState } from '@/components/ui/MentaMascot';
+import { useRewardedMomentaAd } from '@/lib/hooks/use-rewarded-momenta-ad';
+import { useAdRewardAmount } from '@/lib/hooks/useAdReward';
+import {
   ArrowRightIcon,
-  CameraIcon,
   CheckIcon,
   ShieldIcon,
-  TypeIcon,
   XIcon,
 } from '@/components/ui/icons';
 import {
@@ -32,6 +33,7 @@ import {
 } from '@/constants/ThemeContext';
 import {
   mentaColors,
+  mentaHeadingRoles,
   mentaLayout,
   mentaRadii,
   mentaSpacing,
@@ -41,13 +43,23 @@ import { AUTHORING_SAFETY_DISCLOSURE } from '@/lib/content-safety';
 import { useAuthStore } from '@/store/auth-store';
 import { useChallengeStore, type Challenge } from '@/store/challenge-store';
 import { useMomentaStore } from '@/store/momenta-store';
+import { useGroupStore } from '@/store/group-store';
 import {
-  AppButton,
-  AppChoiceChip,
-  AppKeyboardDoneAccessory,
-  AppOptionCard,
-  AppScreen,
-} from '@/components/ui';
+  PromiseFlowHeader,
+  PromiseFlowQuestion,
+  PromiseLengthStep,
+  PromiseProofStep,
+  PromiseReviewStep,
+  PromiseReviewerStep,
+  PromiseTitleStep,
+  checkInWeekdaysFor,
+  describeCheckInPlan,
+  describeFirstProofDay,
+  proofKindLabel,
+  type CheckInPlan,
+  type ReviewerChoice,
+} from '@/components/challenge/create/PromiseFlow';
+import { AppButton, AppScreen } from '@/components/ui';
 import {
   GroupModeNoGroupState,
   NotificationEducationState,
@@ -66,20 +78,13 @@ import {
   type ChallengeCreateSearchParams,
 } from '@/lib/challenge-mode';
 import {
-  commitmentTemplates,
+  getCommitmentTemplates,
   resolveCommitmentTemplate,
   type CommitmentTemplate,
   type CommitmentTemplateId,
 } from '@/lib/commitments/templates';
-import { getTemplatePickerState } from '@/lib/commitments/template-picker-state';
-import {
-  CREATE_INTENSITY_SHOP_NOTE,
-  listCreateIntensityOptions,
-} from '@/lib/commitments/create-intensity-copy';
-import {
-  formatPromiseDueWindow,
-  type PromiseCreationReceipt,
-} from '@/lib/commitments/promise-creation-receipt';
+import { listCreateIntensityOptions } from '@/lib/commitments/create-intensity-copy';
+import { type PromiseCreationReceipt } from '@/lib/commitments/promise-creation-receipt';
 import type {
   ChallengeDifficulty,
   ChallengeVerificationType,
@@ -98,7 +103,6 @@ import {
 } from '@/lib/promise-creation-draft';
 import { buildInviteShareUrl } from '@/lib/invite-links';
 import { copyToClipboard } from '@/lib/qr-utils';
-import { PromiseArtefact } from '@/components/challenge/PromiseArtefact';
 import { isLegalAcceptanceRequiredError } from '@/lib/legal-acceptance';
 import { groupQueryKeys } from '@/lib/group-query-keys';
 import { trackProductEvent } from '@/lib/posthog';
@@ -120,34 +124,9 @@ type Localise = (
 ) => string;
 const durationOptions = [7, 14, 30] as const;
 const MIN_PROOF_DESCRIPTION_LENGTH = 8;
-const CREATE_PROMISE_KEYBOARD_ACCESSORY_ID =
-  'create-promise-keyboard-accessory';
-const withEllipsis = (value: string) =>
-  `${value.trim().replace(/[.!?]+$/u, '')}…`;
-const promisePlaceholderExamples = commitmentTemplates.map(template =>
-  withEllipsis(template.title)
-);
-const countsWhenPlaceholderExamples = commitmentTemplates.map(template =>
-  withEllipsis(template.description)
-);
-const difficultyOptions = listCreateIntensityOptions();
+const PROMISE_TITLE_MAX_LENGTH = 100;
 
-const proofOptions: {
-  id: Exclude<ChallengeVerificationType, 'none'>;
-  note: string;
-  icon: React.ReactNode;
-}[] = [
-  {
-    id: 'photo',
-    note: 'Best when the completed action or result needs to be seen.',
-    icon: <CameraIcon size={18} color={mentaColors.text.primary} />,
-  },
-  {
-    id: 'text',
-    note: 'Best for a short written check-in.',
-    icon: <TypeIcon size={18} color={mentaColors.text.primary} />,
-  },
-];
+type CreateStepId = 'name' | 'proof' | 'who' | 'length' | 'review';
 
 const getSingleParam = (
   value: string | string[] | undefined
@@ -201,14 +180,28 @@ export default function CreateChallengeScreen() {
     () => resolveChallengeMode(params),
     [params]
   );
-  const mode =
+  const routeMode =
     resolvedMode.usedLegacyParams && !resolvedMode.groupId
       ? 'solo'
       : resolvedMode.mode;
-  const groupId = mode === 'group' ? resolvedMode.groupId : null;
+  const routeGroupId = routeMode === 'group' ? resolvedMode.groupId : null;
+  const commitmentTemplates = getCommitmentTemplates(locale);
+  const difficultyOptions = React.useMemo(
+    () => listCreateIntensityOptions(locale),
+    [locale]
+  );
+  const screenRootRef = React.useRef<View>(null);
+  const footerActionsRef = React.useRef<View>(null);
+  const bodyScrollRef = React.useRef<ScrollView>(null);
+  const focusedInputReveal = useRevealFocusedInput(bodyScrollRef);
+  const keyboardOverlap = useKeyboardOverlap({
+    rootRef: screenRootRef,
+    targetRef: footerActionsRef,
+    onShown: focusedInputReveal.requestReveal,
+  });
   const selectedParamTemplate = React.useMemo(
-    () => resolveCommitmentTemplate(params.templateId),
-    [params.templateId]
+    () => resolveCommitmentTemplate(params.templateId, locale),
+    [locale, params.templateId]
   );
   const styles = useThemedStyles(createStyles);
   const theme = useTheme();
@@ -228,6 +221,8 @@ export default function CreateChallengeScreen() {
   const isStoreLoading = useChallengeStore(state => state.isLoading);
   const balance = useMomentaStore(state => state.balance);
   const fetchBalance = useMomentaStore(state => state.fetchBalance);
+  const { watch: watchRewardedAd } = useRewardedMomentaAd('promise_create');
+  const adRewardAmount = useAdRewardAmount();
 
   const onboardingTitle = getSingleParam(params.title);
   const onboardingVerificationType = getSingleParam(params.verificationType);
@@ -238,12 +233,32 @@ export default function CreateChallengeScreen() {
     isProofType(onboardingVerificationType) ||
     isOnboardingHandoff;
 
+  const showsReviewerStep = routeMode !== 'group' && !isOnboardingHandoff;
+  const groups = useGroupStore(state => state.groups);
+  const userGroupIds = useGroupStore(state => state.userGroups);
+  const fetchUserGroups = useGroupStore(state => state.fetchUserGroups);
+  React.useEffect(() => {
+    if (!showsReviewerStep || !user?.id) return;
+    void fetchUserGroups(user.id).catch(() => undefined);
+  }, [fetchUserGroups, showsReviewerStep, user?.id]);
+  const reviewerGroups = React.useMemo(
+    () =>
+      groups
+        .filter(
+          group =>
+            userGroupIds.includes(group.id) &&
+            group.status === 'active' &&
+            group.kind !== 'promise'
+        )
+        .map(group => ({
+          id: group.id,
+          name: group.name,
+          memberCount: group.member_count,
+        })),
+    [groups, userGroupIds]
+  );
+
   const [currentStep, setCurrentStep] = React.useState(0);
-  const [costConfirmation, setCostConfirmation] = React.useState<{
-    cost: number;
-    balance: number;
-  } | null>(null);
-  const [showTemplates, setShowTemplates] = React.useState(false);
   const [templateId, setTemplateId] = React.useState<
     CommitmentTemplateId | undefined
   >(selectedParamTemplate?.id);
@@ -277,6 +292,17 @@ export default function CreateChallengeScreen() {
   const [difficulty, setDifficulty] = React.useState<ChallengeDifficulty>(
     selectedParamTemplate?.difficulty ?? 'medium'
   );
+  const [checkInPlan, setCheckInPlan] = React.useState<CheckInPlan>({
+    kind: 'every',
+  });
+  const [reviewer, setReviewer] = React.useState<ReviewerChoice>({
+    kind: 'self',
+  });
+  const groupId =
+    routeGroupId ?? (reviewer.kind === 'group' ? reviewer.groupId : null);
+  const mode: 'solo' | 'group' =
+    routeMode === 'group' || groupId ? 'group' : 'solo';
+  const checkInWeekdays = checkInWeekdaysFor(checkInPlan);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [paywallVisible, setPaywallVisible] = React.useState(false);
   const [paywallVariant, setPaywallVariant] = React.useState<
@@ -304,7 +330,6 @@ export default function CreateChallengeScreen() {
     React.useState<ReferralShareOutcome>('idle');
   const [referralWorking, setReferralWorking] = React.useState(false);
   const [isDraftRestoring, setIsDraftRestoring] = React.useState(true);
-  const [didRestoreDraft, setDidRestoreDraft] = React.useState(false);
   const [isSavingDraftExit, setIsSavingDraftExit] = React.useState(false);
   const [unknownCreateResultAt, setUnknownCreateResultAt] = React.useState<
     string | null
@@ -313,18 +338,6 @@ export default function CreateChallengeScreen() {
     React.useState<string | null>(null);
   const submittingRef = React.useRef(false);
   const creationReceiptRef = React.useRef(false);
-
-  React.useEffect(() => {
-    setCostConfirmation(null);
-  }, [
-    description,
-    difficulty,
-    duration,
-    proofDescription,
-    proofType,
-    submissionText,
-    title,
-  ]);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -351,55 +364,77 @@ export default function CreateChallengeScreen() {
       templateId
         ? commitmentTemplates.find(template => template.id === templateId)
         : null,
-    [templateId]
+    [commitmentTemplates, templateId]
   );
 
-  const steps = React.useMemo(
-    () => [
-      {
-        id: 'name',
-        title: t('todayProof.create.promise_question'),
-        subtitle: t('todayProof.create.promise_question_detail'),
-      },
-      {
-        id: 'proof',
-        title: t('todayProof.create.proof_question'),
-        subtitle:
-          mode === 'solo'
-            ? t('todayProof.create.proof_solo_detail')
-            : t('todayProof.create.proof_group_detail'),
-      },
-      {
-        id: 'pace',
-        title: t('todayProof.create.flexibility_question'),
-        subtitle: t('todayProof.create.flexibility_detail'),
-      },
-      {
-        id: 'review',
-        title: t('todayProof.create.review_question'),
-        subtitle: t('todayProof.create.review_detail'),
-      },
-    ],
-    [mode, t]
+  const stepIds = React.useMemo<CreateStepId[]>(
+    () =>
+      showsReviewerStep
+        ? ['name', 'proof', 'who', 'length', 'review']
+        : ['name', 'proof', 'length', 'review'],
+    [showsReviewerStep]
   );
-
-  const activeStep = steps[currentStep];
+  const activeStepId = stepIds[Math.min(currentStep, stepIds.length - 1)];
+  const nextStepId = stepIds[currentStep + 1];
+  const isReviewStep = activeStepId === 'review';
+  const reviewShortfall =
+    isReviewStep && promiseQuote && promiseQuote.cost > balance
+      ? promiseQuote.cost - balance
+      : 0;
+  const narratorState: MascotState =
+    activeStepId === 'proof'
+      ? 'today-proof-due'
+      : activeStepId === 'length'
+        ? 'today-at-risk'
+        : activeStepId === 'review'
+          ? reviewShortfall > 0
+            ? 'momenta-short'
+            : 'promise-confirmed'
+          : 'promise-guide';
+  const narratorMessage =
+    reviewShortfall > 0
+      ? t('commerce.topUp.shortBubble', {
+          amount: reviewShortfall.toLocaleString(),
+        })
+      : activeStepId === 'name'
+        ? t('todayProof.createFlow.promiseBubble')
+        : activeStepId === 'proof'
+          ? t('todayProof.createFlow.proofBubble')
+          : activeStepId === 'who'
+            ? t('todayProof.createFlow.whoBubble')
+            : activeStepId === 'length'
+              ? t('todayProof.createFlow.lengthBubble')
+              : t('todayProof.createFlow.reviewBubble');
   const proofDescriptionLength = proofDescription.trim().length;
-  const proofDescriptionNeedsMore =
-    proofDescriptionLength < MIN_PROOF_DESCRIPTION_LENGTH;
   const selectedDifficulty =
     difficultyOptions.find(option => option.id === difficulty) ??
     difficultyOptions[1];
+  const scheduleLabel = describeCheckInPlan(checkInPlan, locale, t);
+  const checkerLabel =
+    reviewer.kind === 'group'
+      ? reviewer.name
+      : routeGroupId
+        ? (groups.find(group => group.id === routeGroupId)?.name ??
+          t('todayProof.createFlow.yourGroups'))
+        : reviewer.kind === 'friend'
+          ? t('todayProof.createFlow.checkerFriend')
+          : t('todayProof.createFlow.checkerMe');
   const primaryCta =
-    currentStep === 0
+    activeStepId === 'name'
       ? t('todayProof.create.choose_proof')
-      : currentStep === 1
-        ? t('todayProof.create.choose_schedule')
-        : currentStep === 2
-          ? t('todayProof.create.review_promise')
-          : costConfirmation
-            ? `Confirm ${costConfirmation.cost.toLocaleString()} Momenta`
-            : t('todayProof.create.create_promise');
+      : activeStepId === 'proof'
+        ? nextStepId === 'who'
+          ? t('todayProof.createFlow.chooseWho')
+          : t('todayProof.createFlow.chooseLength')
+        : activeStepId === 'who'
+          ? t('todayProof.createFlow.chooseLength')
+          : activeStepId === 'length'
+            ? t('todayProof.createFlow.useDays', { count: duration })
+            : reviewShortfall > 0
+              ? t('commerce.topUp.getAmountMore', {
+                  amount: reviewShortfall.toLocaleString(),
+                })
+              : t('todayProof.createFlow.start');
   const applyTemplate = (template: CommitmentTemplate) => {
     setTemplateId(template.id);
     setTitle(template.title);
@@ -409,26 +444,14 @@ export default function CreateChallengeScreen() {
     setSubmissionText(template.submissionText);
     setDuration(template.durationDays);
     setDifficulty(template.difficulty);
-    setShowTemplates(false);
-  };
-
-  const clearTemplate = () => {
-    setTemplateId(undefined);
-    setDescription('');
-    setShowTemplates(false);
   };
 
   const isStepValid = React.useMemo(() => {
-    if (currentStep === 0) {
-      return (
-        title.trim().length >= 3 &&
-        description.trim().length >= MIN_PROOF_DESCRIPTION_LENGTH
-      );
-    }
-    if (currentStep === 1)
+    if (activeStepId === 'name') return title.trim().length >= 3;
+    if (activeStepId === 'proof')
       return proofDescriptionLength >= MIN_PROOF_DESCRIPTION_LENGTH;
     return true;
-  }, [currentStep, description, proofDescriptionLength, title]);
+  }, [activeStepId, proofDescriptionLength, title]);
   const isCreationBusy =
     isSubmitting || isStoreLoading || isDraftRestoring || isSavingDraftExit;
   const isCreationOutcomeUnknown = creationRecovery?.kind === 'unknown-result';
@@ -460,7 +483,8 @@ export default function CreateChallengeScreen() {
 
       return {
         ownerUserId: user.id,
-        currentStep: toPromiseDraftStep(currentStep),
+        // Drafts keep four steps; a saved review reopens on the length step.
+        currentStep: toPromiseDraftStep(Math.min(currentStep, 3)),
         title,
         description,
         proofType: isProofType(proofType) ? proofType : 'photo',
@@ -528,7 +552,6 @@ export default function CreateChallengeScreen() {
     resetToRouteDefaults();
 
     if (!userId) {
-      setDidRestoreDraft(false);
       setIsDraftRestoring(false);
       return () => {
         cancelled = true;
@@ -536,7 +559,6 @@ export default function CreateChallengeScreen() {
     }
 
     if (hasExplicitRouteDefaults) {
-      setDidRestoreDraft(false);
       setIsDraftRestoring(false);
       return () => {
         cancelled = true;
@@ -547,7 +569,6 @@ export default function CreateChallengeScreen() {
     void loadPromiseCreationDraft(userId)
       .then(draft => {
         if (cancelled || !draft) {
-          if (!cancelled) setDidRestoreDraft(false);
           return;
         }
 
@@ -573,11 +594,9 @@ export default function CreateChallengeScreen() {
           setCreationRecovery(recovery);
           setCreationError(recovery);
         }
-        setDidRestoreDraft(true);
       })
       .catch(error => {
         console.warn('[PromiseCreationDraft] Could not restore draft:', error);
-        if (!cancelled) setDidRestoreDraft(false);
       })
       .finally(() => {
         if (!cancelled) setIsDraftRestoring(false);
@@ -625,7 +644,8 @@ export default function CreateChallengeScreen() {
 
   const handlePostFirstProof = React.useCallback(() => {
     if (!createdChallenge) return;
-    router.replace({
+    // Leave the creation modal so its review step cannot stay underneath.
+    router.dismissTo({
       pathname: '/verification',
       params: {
         challengeId: createdChallenge.id,
@@ -642,6 +662,14 @@ export default function CreateChallengeScreen() {
     }
     handleViewCreatedChallenge();
   }, [groupId, handleViewCreatedChallenge, router]);
+
+  const handleInviteFriend = React.useCallback(() => {
+    if (!createdChallenge) return;
+    router.dismissTo({
+      pathname: '/promise-accountability',
+      params: { challengeId: createdChallenge.id, source: 'promise' },
+    } as never);
+  }, [createdChallenge, router]);
 
   const handleBackToToday = React.useCallback(() => {
     router.replace('/(tabs)' as never);
@@ -724,22 +752,15 @@ export default function CreateChallengeScreen() {
       return;
     }
     Keyboard.dismiss();
-    if (currentStep === 0 && title.trim().length < 3) {
+    if (activeStepId === 'name' && title.trim().length < 3) {
       setCreationError({
         title: t('todayProof.create.name_promise'),
         message: t('todayProof.create.name_promise_detail'),
       });
       return;
     }
-    if (currentStep === 0 && description.trim().length < 8) {
-      setCreationError({
-        title: t('todayProof.create.say_what_counts'),
-        message: t('todayProof.create.say_what_counts_detail'),
-      });
-      return;
-    }
     if (
-      currentStep === 1 &&
+      activeStepId === 'proof' &&
       proofDescription.trim().length < MIN_PROOF_DESCRIPTION_LENGTH
     ) {
       setCreationError({
@@ -750,8 +771,16 @@ export default function CreateChallengeScreen() {
     }
     setCreationError(null);
     setCreationRecovery(null);
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(step => step + 1);
+    if (!isReviewStep) {
+      setCurrentStep(step => Math.min(step + 1, stepIds.length - 1));
+      return;
+    }
+    if (reviewShortfall > 0 && promiseQuote) {
+      // The review already says how short the balance is and the draft is
+      // autosaved, so the top-up opens without an error notice.
+      setPaywallVariant('insufficient');
+      setQuotaLimit(undefined);
+      setPaywallVisible(true);
       return;
     }
     void submit();
@@ -783,15 +812,6 @@ export default function CreateChallengeScreen() {
       setCreationError({
         title: t('todayProof.create.name_promise'),
         message: t('todayProof.create.short_name'),
-      });
-      setCurrentStep(0);
-      return;
-    }
-
-    if (description.trim().length < 8) {
-      setCreationError({
-        title: t('todayProof.create.say_what_counts'),
-        message: t('todayProof.create.short_rule'),
       });
       setCurrentStep(0);
       return;
@@ -830,7 +850,6 @@ export default function CreateChallengeScreen() {
       const currentBalance = useMomentaStore.getState().balance;
       const cost = quote.cost;
       if (cost > currentBalance) {
-        setCostConfirmation(null);
         setPaywallVariant('insufficient');
         setQuotaLimit(undefined);
         setCreationError({
@@ -841,33 +860,15 @@ export default function CreateChallengeScreen() {
         return;
       }
 
-      if (
-        cost > 0 &&
-        (costConfirmation?.cost !== cost ||
-          costConfirmation.balance !== currentBalance)
-      ) {
-        setCostConfirmation({ cost, balance: currentBalance });
-        setCreationError({
-          title: `Spend ${cost.toLocaleString()} Momenta?`,
-          message: `Your confirmed balance is ${currentBalance.toLocaleString()}. Creating this promise leaves ${(currentBalance - cost).toLocaleString()} Momenta. Press the confirmation button to create it.`,
-        });
-        AccessibilityInfo.announceForAccessibility?.(
-          `Confirm spending ${cost.toLocaleString()} Momenta. Your balance will be ${(currentBalance - cost).toLocaleString()} Momenta.`
-        );
-        return;
-      }
-
-      setCostConfirmation(null);
-
+      // The review screen shows the cost and what is left, so starting the
+      // promise is the confirmation.
       const startDate = new Date();
       const endDate = addDays(startDate, Math.max(1, duration - 1));
 
       const { challenge, receipt } = await createChallengeWithPayment({
         title: trimmedTitle,
         description:
-          description.trim() ||
-          selectedTemplate?.description ||
-          proofDescription.trim(),
+          description.trim() || selectedTemplate?.description || trimmedTitle,
         category: selectedTemplate?.category ?? 'personal',
         startDate: toDateString(startDate),
         endDate: toDateString(endDate),
@@ -886,6 +887,7 @@ export default function CreateChallengeScreen() {
         allowSelfReview: mode === 'solo',
         groupId: groupId ?? undefined,
         cost,
+        checkInWeekdays,
       });
 
       if (groupId) {
@@ -1106,249 +1108,98 @@ export default function CreateChallengeScreen() {
     }
   }, [buildCurrentPromiseDraft, groupId, isSavingDraftExit, mode, router, t]);
 
+  const promiseSummaryParts = [
+    proofKindLabel(isProofType(proofType) ? proofType : 'photo', t),
+    scheduleLabel,
+    t('todayProof.createFlow.days', { count: duration }),
+  ];
+
   const renderStep = () => {
-    if (currentStep === 0) {
+    if (activeStepId === 'name') {
       return (
-        <View style={styles.stepStack}>
-          <PromiseArtefact
-            editable
-            promise={title}
-            countsWhen={description}
-            disabled={isCreationBusy}
-            onChangePromise={value => {
-              setTitle(value);
-              clearCreationIssue();
-            }}
-            onChangeCountsWhen={value => {
-              setDescription(value);
-              clearCreationIssue();
-            }}
-            promiseInputTestID="create-promise-name-input"
-            countsWhenInputTestID="create-promise-what-counts-input"
-            promisePlaceholders={promisePlaceholderExamples}
-            countsWhenPlaceholders={countsWhenPlaceholderExamples}
-            testID="create-promise-artefact"
-          />
-
-          <Text style={styles.promiseArtefactHelper}>
-            {mode === 'solo'
-              ? t('todayProof.create.start_rule_solo')
-              : t('todayProof.create.start_rule_group')}
-          </Text>
-
-          <Pressable
-            testID="create-promise-use-template"
-            accessibilityRole="button"
-            accessibilityState={{ disabled: isCreationBusy }}
-            disabled={isCreationBusy}
-            onPress={() => setShowTemplates(true)}
-            style={({ pressed }) => [
-              styles.inlineRow,
-              isCreationBusy && styles.disabled,
-              pressed && styles.pressed,
-            ]}
-          >
-            <View style={styles.inlineRowCopy}>
-              <Text style={styles.inlineRowTitle}>
-                {t('todayProof.create.use_template')}
-              </Text>
-              <Text style={styles.inlineRowMeta} numberOfLines={1}>
-                {selectedTemplate
-                  ? selectedTemplate.title
-                  : t('todayProof.create.start_common')}
-              </Text>
-            </View>
-            <View style={styles.trailingIcon}>
-              <ArrowRightIcon size={16} color={theme.colors.text.tertiary} />
-            </View>
-          </Pressable>
-        </View>
+        <PromiseTitleStep
+          value={title}
+          maxLength={PROMISE_TITLE_MAX_LENGTH}
+          suggestions={commitmentTemplates
+            .slice(0, 3)
+            .map(template => ({ id: template.id, title: template.title }))}
+          disabled={isCreationBusy}
+          onChange={value => {
+            setTitle(value);
+            clearCreationIssue();
+          }}
+          onPickSuggestion={id => {
+            const template = commitmentTemplates.find(item => item.id === id);
+            if (template) applyTemplate(template);
+            clearCreationIssue();
+          }}
+          onSubmit={goNext}
+        />
       );
     }
 
-    if (currentStep === 1) {
+    if (activeStepId === 'proof') {
       return (
-        <View style={styles.stepStack}>
-          <View style={styles.rowGroup}>
-            {proofOptions.map(option => (
-              <AppOptionCard
-                key={option.id}
-                testID={`create-promise-proof-${option.id}`}
-                title={
-                  option.id === 'photo'
-                    ? t('todayProof.create.photo_video')
-                    : t('todayProof.promise.text_proof')
-                }
-                description={option.note}
-                icon={option.icon}
-                selected={
-                  option.id === 'photo'
-                    ? proofType === 'photo' || proofType === 'video'
-                    : proofType === option.id
-                }
-                disabled={isCreationBusy}
-                onPress={() => setProofType(option.id)}
-              />
-            ))}
-          </View>
-
-          <View style={styles.fieldBlock}>
-            <FieldHeader
-              label={t('todayProof.create.proof_show_required')}
-              count={`${proofDescription.trim().length}/300`}
-            />
-            <TextInput
-              testID="create-promise-reviewer-instructions-input"
-              accessibilityLabel={t('todayProof.create.proof_show')}
-              value={proofDescription}
-              accessibilityHint={t('todayProof.create.proof_required_hint', {
-                count: MIN_PROOF_DESCRIPTION_LENGTH,
-              })}
-              onChangeText={value => {
-                setProofDescription(value);
-                clearCreationIssue();
-              }}
-              placeholder={t('todayProof.create.photo_example')}
-              placeholderTextColor={theme.colors.text.placeholder}
-              style={styles.compactInput}
-              multiline
-              inputAccessoryViewID={CREATE_PROMISE_KEYBOARD_ACCESSORY_ID}
-              textAlignVertical="top"
-              editable={!isCreationBusy}
-              maxLength={300}
-            />
-            <Text
-              testID="create-promise-proof-helper"
-              style={styles.fieldHelper}
-            >
-              {proofDescriptionNeedsMore
-                ? t('todayProof.create.proof_minimum', {
-                    count: MIN_PROOF_DESCRIPTION_LENGTH,
-                  })
-                : mode === 'solo'
-                  ? t('todayProof.create.proof_rule')
-                  : t('todayProof.create.group_proof_rule')}
-            </Text>
-            <Text style={styles.fieldHelper}>
-              {AUTHORING_SAFETY_DISCLOSURE}
-            </Text>
-          </View>
-
-          <View style={styles.fieldBlock}>
-            <FieldHeader
-              label={t('todayProof.create.prompt_optional')}
-              count={`${submissionText.trim().length}/200`}
-            />
-            <TextInput
-              testID="create-promise-proof-prompt-input"
-              accessibilityLabel={t('todayProof.create.prompt')}
-              value={submissionText}
-              onChangeText={value => {
-                setSubmissionText(value);
-                clearCreationIssue();
-              }}
-              placeholder={t('todayProof.create.prompt_example')}
-              placeholderTextColor={theme.colors.text.placeholder}
-              style={styles.compactInput}
-              multiline
-              inputAccessoryViewID={CREATE_PROMISE_KEYBOARD_ACCESSORY_ID}
-              textAlignVertical="top"
-              editable={!isCreationBusy}
-              maxLength={200}
-            />
-          </View>
-        </View>
+        <PromiseProofStep
+          promiseTitle={title.trim()}
+          proofKind={isProofType(proofType) ? proofType : 'photo'}
+          proofRule={proofDescription}
+          shared={mode === 'group' || reviewer.kind === 'friend'}
+          safetyNote={AUTHORING_SAFETY_DISCLOSURE}
+          disabled={isCreationBusy}
+          onChangeKind={kind => {
+            setProofType(kind);
+            clearCreationIssue();
+          }}
+          onChangeRule={value => {
+            setProofDescription(value);
+            clearCreationIssue();
+          }}
+        />
       );
     }
 
-    if (currentStep === 2) {
+    if (activeStepId === 'who') {
       return (
-        <View style={styles.stepStack}>
-          <View style={styles.fieldBlock}>
-            <Text style={styles.fieldLabel}>
-              {t('todayProof.create.length')}
-            </Text>
-            <View style={styles.chipRow}>
-              {durationOptions.map(days => (
-                <AppChoiceChip
-                  key={days}
-                  testID={`create-promise-duration-${days}`}
-                  label={t('todayProof.create.days_unit', { count: days })}
-                  selected={duration === days}
-                  disabled={isCreationBusy}
-                  style={styles.durationChip}
-                  onPress={() => setDuration(days)}
-                />
-              ))}
-            </View>
-          </View>
+        <PromiseReviewerStep
+          groups={reviewerGroups}
+          value={reviewer}
+          disabled={isCreationBusy}
+          onChange={value => {
+            setReviewer(value);
+            clearCreationIssue();
+          }}
+        />
+      );
+    }
 
-          <View style={styles.rowGroup}>
-            {difficultyOptions.map(option => (
-              <AppOptionCard
-                key={option.id}
-                testID={`create-promise-intensity-${option.id}`}
-                title={option.label}
-                description={option.note}
-                selected={difficulty === option.id}
-                disabled={isCreationBusy}
-                onPress={() => setDifficulty(option.id)}
-              />
-            ))}
-            <Text style={styles.noteText}>{CREATE_INTENSITY_SHOP_NOTE}</Text>
-          </View>
-        </View>
+    if (activeStepId === 'length') {
+      return (
+        <PromiseLengthStep
+          promiseTitle={title.trim()}
+          summary={`${proofKindLabel(
+            isProofType(proofType) ? proofType : 'photo',
+            t
+          )} · ${checkerLabel}`}
+          durations={durationOptions}
+          duration={duration}
+          plan={checkInPlan}
+          disabled={isCreationBusy}
+          onChangeDuration={setDuration}
+          onChangePlan={setCheckInPlan}
+        />
       );
     }
 
     return (
-      <View style={styles.reviewList}>
-        <PromiseArtefact
-          compact
-          promise={title.trim()}
-          countsWhen={description.trim()}
-          disabled={isCreationBusy}
-          onPress={() => setCurrentStep(0)}
-          accessibilityHint={t('todayProof.create.edit_wording')}
-          testID="create-promise-review-artefact"
-        />
-        <ReviewLine
-          label={t('todayProof.create.proof_type')}
-          value={t('todayProof.create.proof_type_daily', {
-            type: getProofTypeLabel(proofType, t),
-          })}
-          disabled={isCreationBusy}
-          onPress={() => setCurrentStep(1)}
-        />
-        <ReviewLine
-          label={t('todayProof.create.proof_counts')}
-          value={proofDescription.trim()}
-          disabled={isCreationBusy}
-          onPress={() => setCurrentStep(1)}
-        />
-        <ReviewLine
-          label={t('todayProof.residual.schedule')}
-          value={`${duration} days · ${selectedDifficulty.label}`}
-          disabled={isCreationBusy}
-          onPress={() => setCurrentStep(2)}
-        />
-        <ReviewLine
-          label={t('todayProof.residual.momenta')}
-          value={
-            promiseQuote
-              ? describeCreatePromiseCost(promiseQuote.cost)
-              : t('todayProof.create.confirming')
-          }
-        />
-        <View style={styles.reviewNote}>
-          <ShieldIcon size={18} color={theme.colors.text.secondary} />
-          <Text style={styles.noteText}>
-            {mode === 'solo'
-              ? t('todayProof.create.private_send')
-              : t('todayProof.create.group_review_rule')}
-          </Text>
-        </View>
-      </View>
+      <PromiseReviewStep
+        short={reviewShortfall > 0}
+        bubble={narratorMessage}
+        promiseTitle={title.trim()}
+        summary={promiseSummaryParts.join(' · ')}
+        checker={checkerLabel}
+        firstProof={describeFirstProofDay(checkInWeekdays, locale, t)}
+      />
     );
   };
 
@@ -1429,7 +1280,7 @@ export default function CreateChallengeScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <ReferralBridgeState
           promiseTitle={createdChallenge.title}
-          groupSummary={`${duration} days · ${selectedDifficulty.label} schedule`}
+          groupSummary={`${t('todayProof.createFlow.days', { count: duration })} · ${scheduleLabel}`}
           shareOutcome={referralShareOutcome}
           working={referralWorking}
           onShareInvite={() => {
@@ -1445,246 +1296,166 @@ export default function CreateChallengeScreen() {
     );
   }
 
+  const creationNotice = creationError ? (
+    <View style={styles.creationError}>
+      <CreationStateNotice
+        title={creationError.title}
+        description={creationError.message}
+        tone={creationRecovery?.kind === 'unknown-result' ? 'warning' : 'error'}
+        actionLabel={
+          creationRecovery?.kind === 'session-expired'
+            ? 'Sign in'
+            : creationRecovery?.kind === 'unknown-result'
+              ? 'Check Today'
+              : canSaveGateDraftAndExit
+                ? 'Save draft and exit'
+                : undefined
+        }
+        onAction={
+          creationRecovery?.kind === 'session-expired' ||
+          creationRecovery?.kind === 'unknown-result'
+            ? handleCreationRecoveryAction
+            : canSaveGateDraftAndExit
+              ? () => void handleSaveDraftAndExit()
+              : undefined
+        }
+      />
+    </View>
+  ) : isCreationOutcomeUnknown && todayReadbackRequestedAt ? (
+    <View style={styles.creationError}>
+      <CreationStateNotice
+        testID="create-promise-fresh-start-after-today"
+        title={t('todayProof.create.check_today_before')}
+        description={t('todayProof.create.missing_after_refresh')}
+        tone="warning"
+        actionLabel="Start a fresh promise"
+        onAction={handleStartFreshPromise}
+      />
+    </View>
+  ) : null;
+
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <AppScreen
-        lane="working"
-        hasTabBar={false}
-        padding={false}
-        scrollable={false}
-        contentContainerStyle={styles.screen}
-        testID="create-promise-screen"
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.keyboard}
+      <View ref={screenRootRef} style={styles.screenRoot}>
+        <AppScreen
+          lane="working"
+          hasTabBar={false}
+          padding={false}
+          // The iOS sheet already sits below the status bar, and the footer
+          // owns the home indicator inset, so the shell adds neither.
+          safeArea={false}
+          scrollable={false}
+          contentContainerStyle={styles.screen}
+          testID="create-promise-screen"
         >
           <View
             style={[
-              styles.header,
-              { paddingHorizontal: phoneLayout.screenInset },
-            ]}
-          >
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('todayProof.create.back_from_creation')}
-              accessibilityState={{ disabled: isCreationBusy }}
-              disabled={isCreationBusy}
-              onPress={goBack}
-              style={({ pressed }) => [
-                styles.iconButton,
-                isCreationBusy && styles.disabled,
-                pressed && styles.pressed,
-              ]}
-            >
-              <ArrowLeftIcon size={18} color={theme.colors.text.primary} />
-            </Pressable>
-            <View style={styles.headerCopy}>
-              <Text style={styles.headerTitle}>
-                {t('todayProof.create.create_promise')}
-              </Text>
-            </View>
-            <View style={styles.headerSpacer} />
-          </View>
-
-          <View
-            style={[
-              styles.progressBlock,
-              { paddingHorizontal: phoneLayout.screenInset },
-            ]}
-          >
-            <Text
-              accessibilityRole="text"
-              style={styles.progressLabel}
-              testID="create-promise-step-label"
-            >
-              {t('todayProof.create.step_progress', {
-                current: currentStep + 1,
-                total: steps.length,
-              })}
-            </Text>
-            <View style={styles.progressSegments}>
-              {steps.map((step, index) => (
-                <View
-                  key={step.id}
-                  style={[
-                    styles.progressSegment,
-                    index <= currentStep && styles.progressSegmentActive,
-                  ]}
-                />
-              ))}
-            </View>
-          </View>
-
-          <ScrollView
-            style={styles.bodyScroll}
-            contentContainerStyle={[
-              styles.body,
-              { paddingHorizontal: phoneLayout.screenInset },
-            ]}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode={
-              Platform.OS === 'ios' ? 'interactive' : 'on-drag'
-            }
-            showsVerticalScrollIndicator={false}
-            bounces={false}
-          >
-            <View style={styles.copyBlock}>
-              <Text style={styles.stepTitle}>{activeStep.title}</Text>
-              <Text style={styles.stepSubtitle}>{activeStep.subtitle}</Text>
-            </View>
-
-            {isDraftRestoring ? (
-              <View style={styles.creationError}>
-                <CreationStateNotice
-                  testID="create-promise-restoring-draft"
-                  title={t('todayProof.create.restoring_draft')}
-                  description={t('todayProof.create.nothing_created')}
-                  tone="info"
-                />
-              </View>
-            ) : creationError ? (
-              <View style={styles.creationError}>
-                <CreationStateNotice
-                  title={creationError.title}
-                  description={creationError.message}
-                  tone={
-                    creationRecovery?.kind === 'unknown-result'
-                      ? 'warning'
-                      : 'error'
-                  }
-                  actionLabel={
-                    creationRecovery?.kind === 'session-expired'
-                      ? 'Sign in'
-                      : creationRecovery?.kind === 'unknown-result'
-                        ? 'Check Today'
-                        : canSaveGateDraftAndExit
-                          ? 'Save draft and exit'
-                          : undefined
-                  }
-                  onAction={
-                    creationRecovery?.kind === 'session-expired' ||
-                    creationRecovery?.kind === 'unknown-result'
-                      ? handleCreationRecoveryAction
-                      : canSaveGateDraftAndExit
-                        ? () => void handleSaveDraftAndExit()
-                        : undefined
-                  }
-                />
-              </View>
-            ) : isCreationBusy ? (
-              <View style={styles.creationError}>
-                <CreationStateNotice
-                  testID="create-challenge-saving-notice"
-                  title={t('todayProof.create.creating')}
-                  description={t('todayProof.create.keep_open')}
-                  tone="info"
-                />
-              </View>
-            ) : null}
-
-            {!isDraftRestoring && didRestoreDraft ? (
-              <View style={styles.creationError}>
-                <CreationStateNotice
-                  testID="create-promise-restored-draft"
-                  title={t('todayProof.create.draft_restored')}
-                  description={t('todayProof.create.private_on_phone')}
-                  tone="info"
-                />
-              </View>
-            ) : null}
-
-            {isCreationOutcomeUnknown && todayReadbackRequestedAt ? (
-              <View style={styles.creationError}>
-                <CreationStateNotice
-                  testID="create-promise-fresh-start-after-today"
-                  title={t('todayProof.create.check_today_before')}
-                  description={t('todayProof.create.missing_after_refresh')}
-                  tone="warning"
-                  actionLabel="Start a fresh promise"
-                  onAction={handleStartFreshPromise}
-                />
-              </View>
-            ) : null}
-
-            <View style={styles.stage}>{renderStep()}</View>
-          </ScrollView>
-
-          <View
-            style={[
-              styles.footer,
+              styles.keyboard,
               {
-                paddingBottom: Math.max(insets.bottom, theme.spacing.md),
-                paddingHorizontal: phoneLayout.screenInset,
+                paddingTop:
+                  Platform.OS === 'ios' ? theme.spacing.sm : insets.top,
+                paddingBottom: keyboardOverlap,
               },
             ]}
           >
-            <View style={styles.footerActionRow}>
-              {currentStep > 0 ? (
-                <AppButton
-                  testID="create-promise-back"
-                  accessibilityLabel={t('todayProof.proof.back')}
-                  onPress={goBack}
-                  disabled={isCreationBusy}
-                  leftIcon={
-                    <ArrowLeftIcon
-                      size={17}
-                      color={theme.colors.text.primary}
-                    />
-                  }
-                  style={styles.backButton}
-                  title={t('todayProof.proof.back')}
-                  variant="outline"
-                />
-              ) : null}
+            <PromiseFlowHeader
+              first={currentStep === 0}
+              progress={(currentStep + 1) / stepIds.length}
+              disabled={isCreationBusy}
+              onBack={goBack}
+            />
 
-              <AppButton
-                testID={`create-promise-primary-${activeStep.id}`}
-                accessibilityLabel={
-                  isCreationOutcomeUnknown
-                    ? unknownCreationPrimaryLabel
-                    : primaryCta
-                }
-                onPress={goNext}
-                disabled={
-                  !isStepValid || isCreationBusy || isCreationOutcomeUnknown
-                }
-                loading={isCreationBusy}
-                preserveLabelPositionOnLoading
-                rightIcon={
-                  currentStep === steps.length - 1 ? (
-                    <CheckIcon size={17} color={mentaColors.canvas} />
-                  ) : (
-                    <ArrowRightIcon size={17} color={mentaColors.canvas} />
-                  )
-                }
-                style={styles.primaryButton}
-                title={
-                  isCreationBusy
-                    ? isDraftRestoring
-                      ? t('todayProof.create.restoring')
-                      : t('todayProof.residual.creating_promise')
-                    : isCreationOutcomeUnknown
+            <ScrollView
+              key={activeStepId}
+              ref={bodyScrollRef}
+              onLayout={focusedInputReveal.onLayout}
+              onScroll={focusedInputReveal.onScroll}
+              scrollEventThrottle={16}
+              style={styles.bodyScroll}
+              contentContainerStyle={[
+                styles.body,
+                isReviewStep && styles.bodyCentered,
+                { paddingHorizontal: phoneLayout.screenInset },
+              ]}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode={
+                Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+              }
+              showsVerticalScrollIndicator={false}
+              bounces={false}
+            >
+              {isReviewStep ? null : (
+                <PromiseFlowQuestion
+                  state={narratorState}
+                  message={narratorMessage}
+                  testID="create-promise-narrator"
+                />
+              )}
+              {creationNotice}
+              {renderStep()}
+            </ScrollView>
+
+            <View
+              style={[
+                styles.footer,
+                {
+                  paddingBottom: Math.max(insets.bottom, theme.spacing.md),
+                  paddingHorizontal: phoneLayout.screenInset,
+                },
+              ]}
+            >
+              <View ref={footerActionsRef} style={styles.footerActions}>
+                {isReviewStep && promiseQuote ? (
+                  <CostReceipt
+                    cost={promiseQuote.cost}
+                    balance={balance}
+                    freeLabel={describeCreatePromiseCost(promiseQuote.cost)}
+                  />
+                ) : null}
+                <AppButton
+                  testID={`create-promise-primary-${activeStepId}`}
+                  accessibilityLabel={
+                    isCreationOutcomeUnknown
                       ? unknownCreationPrimaryLabel
                       : primaryCta
-                }
-              />
+                  }
+                  onPress={goNext}
+                  disabled={
+                    !isStepValid || isCreationBusy || isCreationOutcomeUnknown
+                  }
+                  loading={isCreationBusy}
+                  preserveLabelPositionOnLoading
+                  style={styles.primaryButton}
+                  title={
+                    isCreationBusy
+                      ? isDraftRestoring
+                        ? t('todayProof.create.restoring')
+                        : t('todayProof.residual.creating_promise')
+                      : isCreationOutcomeUnknown
+                        ? unknownCreationPrimaryLabel
+                        : primaryCta
+                  }
+                />
+                {isReviewStep ? (
+                  <AppButton
+                    testID="create-promise-edit"
+                    variant="text"
+                    disabled={isCreationBusy}
+                    textStyle={styles.editLabel}
+                    onPress={() => setCurrentStep(0)}
+                    title={
+                      reviewShortfall > 0
+                        ? t('todayProof.createFlow.editPromise')
+                        : t('todayProof.createFlow.edit')
+                    }
+                  />
+                ) : null}
+              </View>
             </View>
           </View>
-          <AppKeyboardDoneAccessory
-            nativeID={CREATE_PROMISE_KEYBOARD_ACCESSORY_ID}
-          />
-        </KeyboardAvoidingView>
-      </AppScreen>
-
-      <TemplatePickerSheet
-        visible={showTemplates}
-        selectedTemplateId={templateId}
-        onClose={() => setShowTemplates(false)}
-        onApply={applyTemplate}
-        onClear={templateId ? clearTemplate : undefined}
-      />
+        </AppScreen>
+      </View>
 
       <CreationReceiptSheet
         visible={Boolean(createdChallenge)}
@@ -1692,14 +1463,21 @@ export default function CreateChallengeScreen() {
         title={createdChallengeTitle}
         proofType={createdProofType}
         duration={duration}
-        difficultyLabel={selectedDifficulty.label}
+        difficultyLabel={scheduleLabel}
+        firstProofDue={describeFirstProofDay(checkInWeekdays, locale, t)}
         receipt={creationReceipt}
         onPostFirstProof={handlePostFirstProof}
         onOpenGroup={handleOpenCreatedGroup}
         onViewPromise={handleViewCreatedChallenge}
         onBackToToday={handleBackToToday}
         onSetReminder={handleOpenReminderEducation}
-        onInvitePerson={mode === 'group' ? handleOpenReferralBridge : undefined}
+        onInvitePerson={
+          mode === 'group'
+            ? handleOpenReferralBridge
+            : reviewer.kind === 'friend'
+              ? handleInviteFriend
+              : undefined
+        }
       />
 
       <PaywallModal
@@ -1714,24 +1492,78 @@ export default function CreateChallengeScreen() {
         quotaLimit={quotaLimit}
         quotaContext="challenge"
         shortfall={Math.max((promiseQuote?.cost ?? 0) - balance, 0)}
+        balance={balance}
+        requiredAmount={promiseQuote?.cost}
+        onWatchAd={watchRewardedAd}
+        adRewardAmount={adRewardAmount}
+        onCheckProof={() => router.push('/review-queue' as never)}
       />
     </>
   );
 }
 
-const FieldHeader: React.FC<{ label: string; count: string }> = ({
-  label,
-  count,
-}) => {
-  const styles = useThemedStyles(createStyles);
-
+/** Costs, then what is left: the same receipt row the first-promise gift uses. */
+const CostReceipt: React.FC<{
+  cost: number;
+  balance: number;
+  freeLabel: string;
+}> = ({ cost, balance, freeLabel }) => {
+  const { t } = useTranslation();
+  const short = cost > balance;
   return (
-    <View style={styles.fieldHeader}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      <Text style={styles.fieldCount}>{count}</Text>
+    <View style={costReceiptStyles.row} testID="create-promise-cost-receipt">
+      <View style={costReceiptStyles.side}>
+        <Text style={costReceiptStyles.label}>{t('commerce.topUp.costs')}</Text>
+        <Text style={costReceiptStyles.value}>
+          {cost === 0
+            ? freeLabel
+            : t('commerce.topUp.amount', { amount: cost.toLocaleString() })}
+        </Text>
+      </View>
+      {cost > 0 ? (
+        <View style={[costReceiptStyles.side, costReceiptStyles.end]}>
+          <Text style={costReceiptStyles.label}>
+            {short
+              ? t('commerce.topUp.youHaveLabel')
+              : t('commerce.topUp.leftAfter')}
+          </Text>
+          <Text style={costReceiptStyles.value}>
+            {short
+              ? t('commerce.topUp.amount', {
+                  amount: balance.toLocaleString(),
+                })
+              : t('commerce.topUp.leftOf', {
+                  left: (balance - cost).toLocaleString(),
+                  balance: balance.toLocaleString(),
+                })}
+          </Text>
+        </View>
+      ) : null}
     </View>
   );
 };
+
+const costReceiptStyles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: mentaSpacing[3],
+    paddingVertical: mentaSpacing[4],
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: mentaColors.border,
+  },
+  side: { gap: mentaSpacing[1], flexShrink: 1 },
+  end: { alignItems: 'flex-end' },
+  label: {
+    ...mentaTypography.label,
+    color: mentaColors.text.muted,
+  },
+  value: {
+    ...mentaTypography.title,
+    color: mentaColors.text.primary,
+  },
+});
 
 const CreationStateNotice: React.FC<{
   testID?: string;
@@ -1795,302 +1627,6 @@ const CreationStateNotice: React.FC<{
   );
 };
 
-const ReviewLine: React.FC<{
-  label: string;
-  value: string;
-  disabled?: boolean;
-  onPress?: () => void;
-}> = ({ label, value, disabled = false, onPress }) => {
-  const { t } = useTranslation();
-  const styles = useThemedStyles(createStyles);
-  const body = (
-    <>
-      <View style={styles.reviewCopy}>
-        <Text style={styles.reviewLabel}>{label}</Text>
-        <Text style={styles.reviewValue} numberOfLines={2}>
-          {value}
-        </Text>
-      </View>
-      {onPress ? (
-        <Text style={styles.changeText}>{t('todayProof.residual.change')}</Text>
-      ) : null}
-    </>
-  );
-
-  if (!onPress) {
-    return <View style={styles.reviewLine}>{body}</View>;
-  }
-
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ disabled }}
-      disabled={disabled}
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.reviewLine,
-        disabled && styles.disabled,
-        pressed && styles.pressed,
-      ]}
-    >
-      {body}
-    </Pressable>
-  );
-};
-
-const TemplatePickerSheet: React.FC<{
-  visible: boolean;
-  selectedTemplateId?: CommitmentTemplateId;
-  onClose: () => void;
-  onApply: (template: CommitmentTemplate) => void;
-  onClear?: () => void;
-  templates?: readonly CommitmentTemplate[];
-}> = ({
-  visible,
-  selectedTemplateId,
-  onClose,
-  onApply,
-  onClear,
-  templates = commitmentTemplates,
-}) => {
-  const { t } = useTranslation();
-  const theme = useTheme();
-  const styles = useThemedStyles(createStyles);
-  const insets = useSafeAreaInsets();
-  const phoneLayout = usePhoneLayout();
-  const [pendingTemplateId, setPendingTemplateId] = React.useState<
-    CommitmentTemplateId | undefined
-  >(selectedTemplateId);
-  const templatePickerState = React.useMemo(
-    () => getTemplatePickerState(templates),
-    [templates]
-  );
-  const pendingTemplate =
-    templatePickerState.kind === 'ready'
-      ? templatePickerState.templates.find(
-          template => template.id === pendingTemplateId
-        )
-      : null;
-
-  React.useEffect(() => {
-    if (visible) setPendingTemplateId(selectedTemplateId);
-  }, [selectedTemplateId, visible]);
-
-  const applySelectedTemplate = () => {
-    if (!pendingTemplate) return;
-    onApply(pendingTemplate);
-  };
-
-  return (
-    <ModalCard
-      visible={visible}
-      onClose={onClose}
-      surface="sheet"
-      animationType="slide"
-      accessibilityLabel={t('todayProof.create.template_picker')}
-      cardStyle={styles.templateSheet}
-    >
-      <View
-        style={[
-          styles.templateSheetInner,
-          {
-            paddingBottom: Math.max(insets.bottom, theme.spacing.md),
-            paddingHorizontal: phoneLayout.screenInset,
-          },
-        ]}
-      >
-        <View style={styles.sheetGrabber} />
-        <View style={styles.sheetHeader}>
-          <View style={styles.headerSpacer} />
-          <Text style={styles.sheetTitle}>
-            {t('todayProof.residual.starter_templates')}
-          </Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('todayProof.create.close_templates')}
-            onPress={onClose}
-            style={({ pressed }) => [
-              styles.iconButton,
-              pressed && styles.pressed,
-            ]}
-          >
-            <XIcon size={18} color={theme.colors.text.primary} />
-          </Pressable>
-        </View>
-        <Text style={styles.sheetSubtitle}>
-          {t(
-            'todayProof.residual.choose_one_then_edit_the_promise_and_proof_rule'
-          )}
-        </Text>
-
-        {templatePickerState.kind === 'ready' ? (
-          <>
-            <ScrollView
-              style={styles.templateScroll}
-              contentContainerStyle={styles.templateList}
-              showsVerticalScrollIndicator
-            >
-              {templatePickerState.templates.map(template => {
-                const isSelected = template.id === pendingTemplateId;
-                const isTextProof = template.verificationType === 'text';
-                const flexibilityLabel =
-                  difficultyOptions.find(
-                    option => option.id === template.difficulty
-                  )?.label ?? 'Standard';
-
-                return (
-                  <Pressable
-                    key={template.id}
-                    testID={`create-promise-template-${template.id}`}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: isSelected }}
-                    onPress={() => setPendingTemplateId(template.id)}
-                    style={({ pressed }) => [
-                      styles.templateRow,
-                      isSelected && styles.templateRowActive,
-                      pressed && styles.pressed,
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.templateIcon,
-                        isSelected && styles.templateIconActive,
-                      ]}
-                    >
-                      {isTextProof ? (
-                        <TypeIcon
-                          size={17}
-                          color={
-                            isSelected
-                              ? theme.colors.text.primary
-                              : theme.colors.text.secondary
-                          }
-                        />
-                      ) : (
-                        <CameraIcon
-                          size={17}
-                          color={
-                            isSelected
-                              ? theme.colors.text.primary
-                              : theme.colors.text.secondary
-                          }
-                        />
-                      )}
-                    </View>
-                    <View style={styles.choiceCopy}>
-                      <Text style={styles.choiceTitle} numberOfLines={1}>
-                        {template.title}
-                      </Text>
-                      <Text style={styles.choiceBody} numberOfLines={2}>
-                        {`${template.durationDays} days · ${getProofTypeLabel(
-                          template.verificationType,
-                          t
-                        ).toLowerCase()} proof · ${flexibilityLabel}`}
-                      </Text>
-                    </View>
-                    <View style={styles.trailingIcon}>
-                      {isSelected ? (
-                        <CheckIcon
-                          size={17}
-                          color={theme.colors.text.primary}
-                        />
-                      ) : (
-                        <ArrowRightIcon
-                          size={17}
-                          color={theme.colors.text.tertiary}
-                        />
-                      )}
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-
-            <View style={styles.templateActions}>
-              <Pressable
-                testID="create-promise-apply-template"
-                accessibilityRole="button"
-                accessibilityLabel={t(
-                  'todayProof.create.use_selected_template'
-                )}
-                accessibilityState={{ disabled: !pendingTemplate }}
-                disabled={!pendingTemplate}
-                onPress={applySelectedTemplate}
-                style={({ pressed }) => [
-                  styles.templateApplyButton,
-                  !pendingTemplate && styles.disabled,
-                  pressed && pendingTemplate && styles.pressed,
-                ]}
-              >
-                <Text style={styles.templateApplyButtonText}>
-                  {t('todayProof.create.use_selected_template')}
-                </Text>
-              </Pressable>
-              <Pressable
-                testID="create-promise-write-own"
-                accessibilityRole="button"
-                accessibilityLabel={t('todayProof.create.write_own')}
-                onPress={onClose}
-                style={({ pressed }) => [
-                  styles.clearTemplate,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text style={styles.clearTemplateText}>
-                  {t('todayProof.create.write_own')}
-                </Text>
-              </Pressable>
-            </View>
-
-            {onClear ? (
-              <Pressable
-                accessibilityRole="button"
-                onPress={onClear}
-                style={({ pressed }) => [
-                  styles.clearTemplate,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text style={styles.clearTemplateText}>
-                  {t('todayProof.residual.clear_template')}
-                </Text>
-              </Pressable>
-            ) : null}
-          </>
-        ) : (
-          <View style={styles.templateUnavailable}>
-            <View style={styles.templateUnavailableIcon}>
-              <ShieldIcon size={18} color={mentaColors.warning} />
-            </View>
-            <Text style={styles.templateUnavailableTitle}>
-              {t('todayProof.residual.templates_are_unavailable')}
-            </Text>
-            <Text style={styles.templateUnavailableBody}>
-              {t(
-                'todayProof.residual.no_template_was_applied_your_promise_details_and_proof_rule_stay'
-              )}
-            </Text>
-            <Pressable
-              testID="create-promise-write-own-unavailable"
-              accessibilityRole="button"
-              accessibilityLabel={t('todayProof.create.write_promise')}
-              onPress={onClose}
-              style={({ pressed }) => [
-                styles.templateApplyButton,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={styles.templateApplyButtonText}>
-                {t('todayProof.create.write_promise')}
-              </Text>
-            </Pressable>
-          </View>
-        )}
-      </View>
-    </ModalCard>
-  );
-};
-
 const CreationReceiptSheet: React.FC<{
   visible: boolean;
   mode: 'solo' | 'group';
@@ -2098,6 +1634,8 @@ const CreationReceiptSheet: React.FC<{
   proofType: Exclude<ChallengeVerificationType, 'none'>;
   duration: number;
   difficultyLabel: string;
+  /** The same first required day the review step showed. */
+  firstProofDue: string;
   receipt: PromiseCreationReceipt | null;
   onPostFirstProof: () => void;
   onOpenGroup: () => void;
@@ -2112,6 +1650,7 @@ const CreationReceiptSheet: React.FC<{
   proofType,
   duration,
   difficultyLabel,
+  firstProofDue,
   receipt,
   onPostFirstProof,
   onOpenGroup,
@@ -2126,13 +1665,10 @@ const CreationReceiptSheet: React.FC<{
   const insets = useSafeAreaInsets();
   const isGroup = mode === 'group';
   const isFirstPromiseReceipt = !isGroup && receipt?.isFirstPromise === true;
-  const dueWindow = receipt ? formatPromiseDueWindow(receipt.nextDueAt) : null;
   const receiptTitle = isGroup ? 'Group promise saved' : 'Promise saved';
-  const receiptBody = dueWindow
-    ? `Your next proof is due ${dueWindow}.`
-    : isGroup
-      ? 'The proof and review rules are saved. Invite people when the group is ready.'
-      : 'Post the first proof when you are ready to begin.';
+  const receiptBody = isGroup
+    ? 'The proof and review rules are saved. Invite people when the group is ready.'
+    : 'Post the first proof when you are ready to begin.';
 
   return (
     <ModalCard
@@ -2188,7 +1724,7 @@ const CreationReceiptSheet: React.FC<{
             <View style={styles.firstReceiptPaperFacts}>
               <ReceiptPaperFact
                 label={t('todayProof.create.first_due')}
-                value={dueWindow ?? 'Schedule saved'}
+                value={firstProofDue}
               />
               <ReceiptPaperFact
                 label={t('todayProof.proof.receipt')}
@@ -2207,6 +1743,10 @@ const CreationReceiptSheet: React.FC<{
               <ReceiptRow
                 label={t('todayProof.residual.schedule')}
                 value={`${duration} days · ${difficultyLabel}`}
+              />
+              <ReceiptRow
+                label={t('todayProof.create.first_due')}
+                value={firstProofDue}
               />
               <ReceiptRow
                 label={t('todayProof.review.review_action')}
@@ -2321,6 +1861,9 @@ const createStyles = (theme: ThemeContextType) =>
     keyboard: {
       flex: 1,
     },
+    screenRoot: {
+      flex: 1,
+    },
     header: {
       minHeight: 56,
       paddingHorizontal: theme.spacing.lg,
@@ -2346,10 +1889,8 @@ const createStyles = (theme: ThemeContextType) =>
       gap: 2,
     },
     headerTitle: {
+      ...mentaTypography.control,
       color: theme.colors.text.primary,
-      fontSize: theme.typography.sizes.base,
-      fontWeight: theme.typography.weights.semibold,
-      letterSpacing: 0,
     },
     headerSpacer: {
       width: 38,
@@ -2365,24 +1906,12 @@ const createStyles = (theme: ThemeContextType) =>
       color: mentaColors.text.secondary,
       fontVariant: ['tabular-nums'],
     },
-    progressSegments: {
-      flexDirection: 'row',
-      gap: theme.spacing.xs,
-    },
-    progressSegment: {
-      flex: 1,
-      height: 4,
-      borderRadius: mentaRadii.round,
-      backgroundColor: theme.colors.border.secondary,
-    },
-    progressSegmentActive: {
-      backgroundColor: theme.colors.accent.primary,
-    },
     body: {
-      paddingHorizontal: theme.spacing.lg,
-      paddingTop: theme.spacing.lg,
+      flexGrow: 1,
       paddingBottom: theme.spacing.xl,
-      gap: theme.spacing.lg,
+    },
+    bodyCentered: {
+      justifyContent: 'center',
     },
     bodyScroll: {
       flex: 1,
@@ -2395,8 +1924,8 @@ const createStyles = (theme: ThemeContextType) =>
       ...mentaTypography.heading,
     },
     stepSubtitle: {
-      color: theme.colors.text.secondary,
-      ...mentaTypography.body,
+      color: theme.colors.text.muted,
+      ...mentaTypography.bodySmall,
     },
     stage: {
       flex: 1,
@@ -2449,8 +1978,7 @@ const createStyles = (theme: ThemeContextType) =>
       paddingHorizontal: theme.spacing.sm,
     },
     creationStateActionText: {
-      ...mentaTypography.caption,
-      fontWeight: theme.typography.weights.semibold,
+      ...mentaTypography.captionMedium,
     },
     stepStack: {
       gap: theme.spacing.md,
@@ -2460,14 +1988,6 @@ const createStyles = (theme: ThemeContextType) =>
       color: theme.colors.text.secondary,
       marginTop: -mentaSpacing[1],
       paddingHorizontal: mentaSpacing[1],
-    },
-    titleInput: {
-      minHeight: 68,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: theme.colors.border.primary,
-      color: theme.colors.text.primary,
-      ...mentaTypography.title,
-      paddingVertical: theme.spacing.sm,
     },
     inlineRow: {
       minHeight: 58,
@@ -2487,29 +2007,17 @@ const createStyles = (theme: ThemeContextType) =>
       gap: 3,
     },
     inlineRowTitle: {
+      ...mentaTypography.bodySemibold,
       color: theme.colors.text.primary,
-      fontSize: theme.typography.sizes.base,
-      fontWeight: theme.typography.weights.semibold,
     },
     inlineRowMeta: {
+      ...mentaTypography.bodySmall,
       color: theme.colors.text.tertiary,
-      fontSize: theme.typography.sizes.sm,
-      lineHeight: 19,
-    },
-    noteRow: {
-      minHeight: 68,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.md,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: theme.colors.border.secondary,
     },
     noteText: {
+      ...mentaTypography.bodySmall,
       flex: 1,
       color: theme.colors.text.secondary,
-      fontSize: theme.typography.sizes.sm,
-      lineHeight: 20,
     },
     rowGroup: {
       gap: theme.spacing.sm,
@@ -2569,13 +2077,6 @@ const createStyles = (theme: ThemeContextType) =>
       ...mentaTypography.body,
       backgroundColor: mentaColors.raised,
     },
-    promiseNameInput: {
-      minHeight: 82,
-      ...mentaTypography.title,
-    },
-    largeInput: {
-      minHeight: 118,
-    },
     chipRow: {
       flexDirection: 'row',
       gap: theme.spacing.sm,
@@ -2601,21 +2102,17 @@ const createStyles = (theme: ThemeContextType) =>
       gap: 3,
     },
     reviewLabel: {
+      ...mentaTypography.bodySmall,
       color: theme.colors.text.tertiary,
-      fontSize: theme.typography.sizes.sm,
-      fontWeight: theme.typography.weights.semibold,
-      letterSpacing: 0,
     },
     reviewValue: {
+      ...mentaTypography.bodyMedium,
       color: theme.colors.text.primary,
-      fontSize: theme.typography.sizes.sm,
-      lineHeight: 19,
-      letterSpacing: 0,
     },
+    // Inline "Change" links read as actions, in violet, as in onboarding.
     changeText: {
-      color: theme.colors.text.secondary,
-      fontSize: theme.typography.sizes.sm,
-      fontWeight: theme.typography.weights.semibold,
+      ...mentaTypography.bodySmallMedium,
+      color: theme.colors.accent.primary,
     },
     reviewNote: {
       minHeight: 64,
@@ -2625,23 +2122,20 @@ const createStyles = (theme: ThemeContextType) =>
       paddingTop: theme.spacing.md,
     },
     footer: {
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: theme.colors.border.secondary,
       paddingTop: theme.spacing.md,
-      paddingHorizontal: theme.spacing.lg,
-      gap: theme.spacing.sm,
       backgroundColor: mentaColors.canvas,
     },
-    footerActionRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
+    footerActions: {
       gap: theme.spacing.sm,
     },
     backButton: {
       minWidth: 104,
     },
     primaryButton: {
-      flex: 1,
+      alignSelf: 'stretch',
+    },
+    editLabel: {
+      color: mentaColors.action,
     },
     disabled: {
       opacity: 0.38,
@@ -2728,20 +2222,15 @@ const createStyles = (theme: ThemeContextType) =>
       borderBottomColor: theme.colors.border.secondary,
     },
     receiptLabel: {
+      ...mentaTypography.label,
       color: theme.colors.text.tertiary,
-      fontSize: theme.typography.sizes.xs,
-      fontWeight: theme.typography.weights.semibold,
       textTransform: 'uppercase',
-      letterSpacing: 0,
     },
     receiptValue: {
+      ...mentaTypography.bodySmallMedium,
       flex: 1,
       color: theme.colors.text.primary,
-      fontSize: theme.typography.sizes.sm,
-      fontWeight: theme.typography.weights.semibold,
-      lineHeight: 19,
       textAlign: 'right',
-      letterSpacing: 0,
     },
     receiptActions: {
       gap: theme.spacing.sm,
@@ -2767,18 +2256,15 @@ const createStyles = (theme: ThemeContextType) =>
       gap: theme.spacing.xs,
     },
     sheetTitle: {
+      ...mentaHeadingRoles.section,
       color: theme.colors.text.primary,
-      fontSize: theme.typography.sizes.lg,
-      fontWeight: theme.typography.weights.semibold,
       textAlign: 'center',
     },
     sheetSubtitle: {
+      ...mentaTypography.bodySmall,
       color: theme.colors.text.secondary,
-      fontSize: theme.typography.sizes.sm,
-      lineHeight: 20,
       marginTop: theme.spacing.sm,
       marginBottom: theme.spacing.md,
-      letterSpacing: 0,
     },
     templateList: {
       borderTopWidth: StyleSheet.hairlineWidth,
@@ -2817,20 +2303,6 @@ const createStyles = (theme: ThemeContextType) =>
       gap: theme.spacing.xs,
       paddingTop: theme.spacing.xs,
     },
-    templateApplyButton: {
-      minHeight: 52,
-      borderRadius: mentaRadii.small,
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingHorizontal: theme.spacing.lg,
-      backgroundColor: theme.colors.accent.primary,
-    },
-    templateApplyButtonText: {
-      color: theme.colors.onPrimary,
-      fontSize: theme.typography.sizes.base,
-      fontWeight: theme.typography.weights.semibold,
-      letterSpacing: 0,
-    },
     templateUnavailable: {
       alignItems: 'flex-start',
       gap: theme.spacing.sm,
@@ -2857,17 +2329,6 @@ const createStyles = (theme: ThemeContextType) =>
       color: theme.colors.text.secondary,
       fontSize: theme.typography.sizes.sm,
       lineHeight: 20,
-      letterSpacing: 0,
-    },
-    clearTemplate: {
-      minHeight: 48,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    clearTemplateText: {
-      color: theme.colors.text.secondary,
-      fontSize: theme.typography.sizes.sm,
-      fontWeight: theme.typography.weights.semibold,
       letterSpacing: 0,
     },
     pressed: {

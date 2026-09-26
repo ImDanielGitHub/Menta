@@ -66,26 +66,21 @@ describe('localised source formatters', () => {
   });
 
   it('keeps production fallbacks and weekday context', () => {
-    const now = new Date('2026-08-31T12:10:00.000Z');
+    const now = new Date(2026, 7, 31, 12, 10);
     expect(formatProofRelativeTime('not-a-date', now, 'en-US', translate)).toBe(
       'Sent recently'
     );
     expect(
-      formatProofRelativeTime(
-        '2026-08-31T12:10:00.000Z',
-        now,
-        'en-US',
-        translate
-      )
+      formatProofRelativeTime(now.toISOString(), now, 'en-US', translate)
     ).toBe('Sent just now');
     expect(
       formatProofRelativeTime(
-        '2026-08-28T12:10:00.000Z',
+        new Date(2026, 7, 28, 12, 10).toISOString(),
         now,
         'en-NZ',
         translate
       )
-    ).toBe('Sent saturday');
+    ).toBe('Sent friday');
     expect(formatGroupDate(null, 'en-NZ')).toBeNull();
   });
 });

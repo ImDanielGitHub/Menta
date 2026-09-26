@@ -23,7 +23,7 @@ export const fullTodayProofPtPT = {
   'todayProof.today.open_review_queue': 'Abra a fila de análise',
   'todayProof.today.loading_home': 'ecrã inicial de Hoje',
   'todayProof.today.home_unverified': 'Hoje não pôde ser verificado.',
-  'todayProof.today.last_update': 'Exibindo sua última atualização',
+  'todayProof.today.last_update': 'A mostrar a sua última atualização',
   'todayProof.today.loading_accessibility': 'A carregar mais de Hoje',
   'todayProof.today.local_proof_drafts': 'Rascunhos locais de comprovativo',
   'todayProof.today.all_clear_accessibility_with_review':
@@ -31,7 +31,7 @@ export const fullTodayProofPtPT = {
   'todayProof.today.protected_accessibility': 'Sequência protegida. {detail}',
   'todayProof.group.reminders_unavailable': 'Lembretes indisponíveis',
   'todayProof.group.nudge_unavailable_detail':
-    'Menta ainda não pode autorizar o destinatário e devolver um comprovativo de entrega verificado.',
+    'A Menta ainda não pode autorizar o destinatário e devolver um comprovativo de entrega verificado.',
   'todayProof.group.no_proof_submitted': 'Nenhum comprovativo enviado ainda',
   'todayProof.group.pending_detail': '{media} · ainda não conta',
   'todayProof.group.send_clearer':
@@ -41,7 +41,7 @@ export const fullTodayProofPtPT = {
   'todayProof.today.layout_classified': 'Layout da aplicação classificado',
   'todayProof.today.more': 'Mais de hoje',
   'todayProof.today.stale_snapshot':
-    'Exibindo a última captura confirmada. Nenhum comprovativo ou resultado de análise mudou aqui.',
+    'A mostrar a última captura confirmada. Nenhum comprovativo ou resultado de análise mudou aqui.',
   'todayProof.today.risk_checked': '{count} de {total} fizeram registo',
   'todayProof.today.risk_due': '{count} registo ainda pendente',
   'todayProof.today.risk_due.one': '{count} registo ainda pendente',
@@ -63,7 +63,7 @@ export const fullTodayProofPtPT = {
     'Ideal quando a ação ou resultado concluído precisa ser visto.',
   'todayProof.create.text': 'Comprovativo em texto',
   'todayProof.create.text_note': 'Ideal para um registo escrito curto.',
-  'todayProof.create.promise_question': 'O que a pessoa está prometendo?',
+  'todayProof.create.promise_question': 'O que está a prometer?',
   'todayProof.create.promise_question_detail':
     'Nomeie a ação diária e indique exatamente o que conta como concluído.',
   'todayProof.create.proof_question': 'Escolha o comprovativo',
@@ -74,9 +74,9 @@ export const fullTodayProofPtPT = {
   'todayProof.create.flexibility_question': 'Escolha a flexibilidade',
   'todayProof.create.flexibility_detail':
     'Decida quanto a agenda pode mudar após iniciar.',
-  'todayProof.create.review_question': 'Verifique sua promessa',
+  'todayProof.create.review_question': 'Verifique a sua promessa',
   'todayProof.create.review_detail':
-    'Analise a promessa, comprovativo e agenda antes de criá‑la.',
+    'Reveja a promessa, o comprovativo e o horário antes de a criar.',
   'todayProof.create.choose_proof': 'Escolha o comprovativo',
   'todayProof.create.choose_schedule': 'Escolha a agenda',
   'todayProof.create.review_promise': 'Analise a promessa',
@@ -100,18 +100,18 @@ export const fullTodayProofPtPT = {
   'todayProof.create.cost_unconfirmed':
     'Não foi possível confirmar o custo da promessa',
   'todayProof.create.cost_unconfirmed_detail':
-    'Menta não criou a promessa nem consumiu Momenta. Verifique sua ligação e tente novamente.',
+    'A Menta não criou a promessa nem gastou Momenta. Verifique a sua ligação e tente novamente.',
   'todayProof.create.more_momenta': 'Mais Momenta necessário',
   'todayProof.create.promise_created': 'Promessa criada',
   'todayProof.create.draft_not_saved': 'Rascunho não guardado',
   'todayProof.create.sign_in_again':
     'Inicie sessão novamente antes de sair desta promessa.',
   'todayProof.create.draft_not_saved_detail':
-    'Menta não pôde guardar este rascunho neste telemóvel. Fique aqui e tente novamente.',
+    'A Menta não conseguiu guardar este rascunho neste telemóvel. Fique aqui e tente novamente.',
   'todayProof.create.start_rule_solo':
     'Nomeie a ação e defina a menor quantidade que contará como concluída a cada dia.',
   'todayProof.create.start_rule_group':
-    'Nomeie a ação e defina a menor quantidade que a pessoa e o grupo contarão como concluída a cada dia.',
+    'Dê um nome à ação e defina o mínimo que o utilizador e o grupo vão contar como feito em cada dia.',
   'todayProof.create.use_template': 'Usar um modelo',
   'todayProof.create.start_common': 'Comece a partir de uma promessa comum.',
   'todayProof.create.proof_show_required':
@@ -129,7 +129,7 @@ export const fullTodayProofPtPT = {
   'todayProof.create.proof_rule_placeholder':
     'Descreva o que o comprovativo deve mostrar ou dizer',
   'todayProof.create.self_review_rule':
-    'Deixe a regra clara antes de começar. O seu comprovativo conta ao enviá‑la.',
+    'Deixe a regra clara antes de começar. O seu comprovativo conta quando o enviar.',
   'todayProof.create.group_proof_rule':
     'Informe aos analistas do grupo o que confirma que foi concluído.',
   'todayProof.create.prompt_optional':
@@ -140,15 +140,15 @@ export const fullTodayProofPtPT = {
     'Mantenha um único lembrete prático para quem envia o comprovativo.',
   'todayProof.create.prompt': 'Instrução exibida no registo',
   'todayProof.create.prompt_example':
-    'Exemplo: O que a pessoa fez e por quanto tempo?',
+    'Exemplo: o que fez e durante quanto tempo?',
   'todayProof.create.edit_wording': 'Editar texto da promessa',
   'todayProof.create.proof_type': 'Tipo de comprovativo',
   'todayProof.create.proof_counts': 'O que conta como comprovativo',
-  'todayProof.create.confirming': 'Confirmando…',
+  'todayProof.create.confirming': 'A confirmar…',
   'todayProof.create.length': 'Duração',
   'todayProof.create.proof_type_daily': 'Comprovativo {type}, diária',
   'todayProof.create.private_send':
-    'Esta promessa é privada. O seu comprovativo conta ao enviá‑la.',
+    'Esta promessa é privada. O seu comprovativo conta quando o enviar.',
   'todayProof.create.group_review_rule':
     'Membros do grupo verificam o comprovativo contra esta regra.',
   'todayProof.create.promise_label': 'Promessa',
@@ -158,18 +158,18 @@ export const fullTodayProofPtPT = {
     'Nomeie a ação para reconhecê‑la quando aparecer em Hoje.',
   'todayProof.create.what_counts': 'O que conta?',
   'todayProof.create.description_placeholder':
-    'O que a pessoa fará a cada dia e o que conta como concluído?',
+    'O que vai fazer em cada dia e o que conta como feito?',
   'todayProof.create.description_helper':
     'Regras específicas são mais fáceis de seguir e analisar.',
-  'todayProof.create.loading_groups': 'A carregar seus grupos...',
+  'todayProof.create.loading_groups': 'A carregar os seus grupos...',
   'todayProof.create.keep_solo': 'Mantenha individual',
   'todayProof.create.private_streak':
-    'Privado. O seu comprovativo conta ao enviá‑la e sua sequência é monitorada.',
+    'Privado. O seu comprovativo conta quando o enviar e a sua sequência é acompanhada.',
   'todayProof.create.start_solo': 'Comece individualmente por enquanto',
   'todayProof.create.start_solo_detail':
     'Não precisa de um grupo para começar. Crie uma promessa pessoal agora e, depois, crie uma promessa em grupo se a análise partilhada ajudar.',
   'todayProof.create.private_promise':
-    'Uma promessa privada em que o comprovativo conta ao enviá‑la.',
+    'Uma promessa privada em que o comprovativo conta quando o enviar.',
   'todayProof.create.want_group': 'Quer um grupo depois?',
   'todayProof.create.finish_first':
     'Conclua esta configuração primeiro. Pode criar ou entrar num grupo depois.',
@@ -182,31 +182,31 @@ export const fullTodayProofPtPT = {
   'todayProof.create.group_policy':
     'Este grupo busco comprovativo em {percent}% dos dias e permite {count} dias consecutivos sem comprovativo.',
   'todayProof.create.personal_policy':
-    'Esta promessa é só sua. Escolha uma agenda que ainda consiga cumprir num dia corrido.',
+    'Esta promessa é só sua. Escolha um horário que consiga cumprir mesmo num dia cheio.',
   'todayProof.create.choose_group_policy':
-    'Escolha um grupo para ver suas regras antes de criar a promessa.',
+    'Escolha um grupo para ver as regras dele antes de criar a promessa.',
   'todayProof.create.group_commitment': 'Compromisso de grupo de {count} dias',
   'todayProof.create.back_from_creation': 'Voltar da criação de promessa',
-  'todayProof.create.restoring_draft': 'Restaurando este rascunho…',
+  'todayProof.create.restoring_draft': 'A restaurar este rascunho…',
   'todayProof.create.nothing_created': 'Nada foi criado ainda.',
   'todayProof.create.sign_in': 'Entrar',
   'todayProof.create.save_exit': 'guardar rascunho e sair',
-  'todayProof.create.creating': 'Criando sua promessa…',
+  'todayProof.create.creating': 'A criar a sua promessa…',
   'todayProof.create.keep_open':
     'Mantenha este ecrã aberto até que seja guardado.',
   'todayProof.create.draft_restored': 'Rascunho restaurado',
   'todayProof.create.private_on_phone':
-    'Ainda está privado neste telemóvel até que a pessoa crie.',
+    'Continua privada neste telemóvel até a criar.',
   'todayProof.create.check_today_before':
     'Verifique Hoje antes de começar novamente',
   'todayProof.create.missing_after_refresh':
     'Se a promessa ainda faltar após Hoje atualizar, inicie uma nova.',
   'todayProof.create.start_new': 'Iniciar uma nova promessa',
-  'todayProof.create.restoring': 'Restaurando…',
+  'todayProof.create.restoring': 'A restaurar…',
   'todayProof.create.template_picker': 'Seletor de modelos',
   'todayProof.create.close_templates': 'Fechar modelos',
   'todayProof.create.use_selected_template': 'Usar modelo selecionado',
-  'todayProof.create.write_own': 'Escrever minha própria promessa',
+  'todayProof.create.write_own': 'Escrever a minha própria promessa',
   'todayProof.create.write_promise': 'Escrever uma promessa',
   'todayProof.create.group_saved': 'Promessa de grupo guardada',
   'todayProof.create.promise_saved': 'Promessa guardada',
@@ -221,8 +221,8 @@ export const fullTodayProofPtPT = {
   'todayProof.create.proof_counts_when_sent':
     'Comprovativo conta ao ser enviada',
   'todayProof.create.group_members': 'Membros do grupo',
-  'todayProof.create.only_you': 'Só a pessoa',
-  'todayProof.create.open_promise': 'Abrir minha promessa',
+  'todayProof.create.only_you': 'Só o utilizador',
+  'todayProof.create.open_promise': 'Abrir a minha promessa',
   'todayProof.create.open_group': 'Abrir grupo',
   'todayProof.create.post_first_proof': 'Publicar primeiro comprovativo',
   'todayProof.create.back_today': 'Voltar a Hoje',
@@ -230,27 +230,27 @@ export const fullTodayProofPtPT = {
   'todayProof.create.set_reminder': 'Definir lembrete',
   'todayProof.solo.back': 'Voltar',
   'todayProof.solo.items': 'Os seus itens',
-  'todayProof.solo.items_hint':
-    'Abre os impulsos e estilos que a pessoa possui.',
+  'todayProof.solo.items_hint': 'Abre os impulsos e estilos que tem.',
   'todayProof.solo.create_personal': 'Criar promessa pessoal',
   'todayProof.solo.heading': 'Promessas pessoais',
   'todayProof.solo.detail': 'Registre hoje ou reveja o que completou.',
   'todayProof.solo.no_active': 'Nenhuma promessa ativa',
   'todayProof.solo.no_past': 'Nenhuma promessa passada',
   'todayProof.solo.completed_under_past':
-    'Suas promessas concluídas ainda estão disponíveis em Passadas.',
+    'As suas promessas concluídas continuam disponíveis em Passadas.',
   'todayProof.solo.create_private':
     'Crie uma promessa privada quando estiver pronto para começar.',
   'todayProof.solo.ended': 'Promessas aparecem aqui após o término confirmado.',
   'todayProof.solo.view_past': 'Ver promessas passadas',
   'todayProof.solo.create': 'Criar uma promessa',
-  'todayProof.solo.showing_last_update': 'Exibindo sua última atualização',
+  'todayProof.solo.showing_last_update': 'A mostrar a sua última atualização',
   'todayProof.solo.load_failed': 'Não foi possível carregar promessas pessoais',
-  'todayProof.solo.loading_accessibility': 'A carregar suas promessas pessoais',
-  'todayProof.solo.loading': 'A carregar suas promessas…',
+  'todayProof.solo.loading_accessibility':
+    'A carregar as suas promessas pessoais',
+  'todayProof.solo.loading': 'A carregar as suas promessas…',
   'todayProof.solo.no_personal': 'Não tem promessas pessoais',
   'todayProof.solo.no_personal_detail':
-    'Uma promessa pessoal é uma ação que a pessoa se compromete a fazer, com fotografia como comprovativo a cada vez. A pessoa analisa o seu próprio comprovativo.',
+    'Uma promessa pessoal é uma ação com que se compromete, com uma fotografia como comprovativo sempre que a faz. É o próprio utilizador que analisa o seu comprovativo.',
   'todayProof.solo.create_group': 'Faça uma promessa com um grupo',
   'todayProof.solo.active_count': 'Ativo {count}',
   'todayProof.solo.past_count': 'Passado {count}',
@@ -300,7 +300,7 @@ export const fullTodayProofPtPT = {
     'O código de convite ainda está visível aqui. Tente copiar novamente.',
   'todayProof.promise.share_failed': 'Falha ao partilhar',
   'todayProof.promise.share_failed_detail':
-    'Menta não pôde abrir a ecrã de partilha. Copie o código ou tente novamente.',
+    'A Menta não conseguiu abrir o ecrã de partilha. Copie o código ou tente novamente.',
   'todayProof.promise.close_invite': 'Fechar modal de convite da promessa',
   'todayProof.promise.copy_invite': 'Copiar código de convite',
   'todayProof.promise.copy_code': 'Copiar código',
@@ -313,13 +313,13 @@ export const fullTodayProofPtPT = {
   'todayProof.promise.unsupported_proof':
     'Este método de comprovativo ainda não é suportado aqui.',
   'todayProof.promise.solo_no_invite':
-    'Promessas individuais não utilizam ligações de convite.',
+    'Promessas individuais não utilizam links de convite.',
   'todayProof.promise.invite_unavailable':
-    'Menta não pôde gerar um código de convite. Nada mudou.',
+    'A Menta não conseguiu gerar um código de convite. Nada mudou.',
   'todayProof.promise.try_later': 'Por favor, tente novamente mais tarde.',
   'todayProof.promise.boost_failed': 'Falha ao ativar impulso:',
   'todayProof.promise.boost_failed_detail':
-    'Menta não pôde confirmar se o tempo foi adicionado. Verifique novamente antes de usar outra extensão.',
+    'A Menta não conseguiu confirmar se o tempo foi adicionado. Verifique novamente antes de usar outra extensão.',
   'todayProof.promise.waiting_review': 'a aguardar análise',
   'todayProof.promise.waiting_review_detail':
     'O seu comprovativo foi enviado. Não é necessário enviá‑la duas vezes.',
@@ -351,13 +351,13 @@ export const fullTodayProofPtPT = {
   'todayProof.promise.today_counts':
     'Hoje ainda conta. O resultado não muda até o comprovativo ser resolvida.',
   'todayProof.promise.reviewed_by': 'Analisado por',
-  'todayProof.promise.only_you': 'Só a pessoa',
+  'todayProof.promise.only_you': 'Só o utilizador',
   'todayProof.promise.group_members': 'Membros do grupo',
   'todayProof.promise.invite_only': 'Apenas convite',
   'todayProof.promise.not_checked': 'Não registado',
-  'todayProof.promise.just_you': 'Só a pessoa',
+  'todayProof.promise.just_you': 'Só o utilizador',
   'todayProof.promise.left': 'Saiu da promessa',
-  'todayProof.promise.left_detail': 'A pessoa saiu desta promessa.',
+  'todayProof.promise.left_detail': 'Saiu desta promessa.',
   'todayProof.promise.deleted': 'A promessa foi eliminada.',
   'todayProof.promise.not_changed':
     'A promessa não foi alterada. Tente novamente.',
@@ -389,9 +389,9 @@ export const fullTodayProofPtPT = {
   'todayProof.promise.delete': 'eliminar promessa',
   'todayProof.promise.leave': 'Sair da promessa',
   'todayProof.promise.delete_detail':
-    'Exclui esta promessa, histórico de comprovativos, ligações de convite e contexto de análise. Não há como desfazer.',
+    'Exclui esta promessa, histórico de comprovativos, links de convite e contexto de análise. Não há como desfazer.',
   'todayProof.promise.leave_detail':
-    'A pessoa deixa de enviar comprovativos aqui. As comprovativos existentes permanecem no histórico da promessa.',
+    'Deixa de enviar comprovativos aqui. Os comprovativos existentes ficam no histórico da promessa.',
   'todayProof.promise.details': 'Detalhes da promessa',
   'todayProof.promise.proof_rule_detail':
     'Mostre a ação concluída de forma clara para o analista indicado.',
@@ -402,18 +402,18 @@ export const fullTodayProofPtPT = {
     'O que conta, quando vence e quem analisa.',
   'todayProof.promise.how_works': 'Como funciona esta promessa',
   'todayProof.promise.your_proof': 'O seu comprovativo',
-  'todayProof.promise.no_proof_you': 'Ainda não há comprovativo sua',
+  'todayProof.promise.no_proof_you': 'Ainda não há comprovativos seus',
   'todayProof.promise.other_proof': 'Comprovativos de outros membros',
   'todayProof.promise.no_other_proof':
     'Ainda não há comprovativos de outros membros',
   'todayProof.promise.other_proof_detail':
-    'Seus registos aprovados e pendentes aparecerão aqui.',
-  'todayProof.promise.preparing_invite': 'Preparando convite…',
+    'Os registos aprovados e pendentes desta pessoa aparecem aqui.',
+  'todayProof.promise.preparing_invite': 'A preparar o convite…',
   'todayProof.promise.open_review_queue': 'Abrir fila de análise',
   'todayProof.promise.report': 'Denunciar promessa',
   'todayProof.promise.reminder_question': 'Gostaria de um lembrete?',
   'todayProof.promise.reminder_detail':
-    'Menta pode lembrar a pessoa antes que a promessa vença.',
+    'A Menta pode lembrá-lo antes do prazo desta promessa.',
   'todayProof.promise.remind_about': 'Lembrar-me desta promessa',
   'todayProof.promise.remind_detail':
     'Enviar um lembrete antes do comprovativo vencer.',
@@ -422,10 +422,10 @@ export const fullTodayProofPtPT = {
   'todayProof.promise.invite_question': 'Convidar alguém para esta promessa?',
   'todayProof.promise.invite_detail':
     'Eles podem ler a pré‑visualização antes de decidir entrar.',
-  'todayProof.promise.link_copied': 'ligação de convite copiado',
+  'todayProof.promise.link_copied': 'Link de convite copiado',
   'todayProof.promise.link_copied_detail':
-    'Cole o ligação onde quiser para convidá‑los.',
-  'todayProof.promise.link_not_copied': 'ligação não foi copiado',
+    'Cole o link onde quiser para convidá‑los.',
+  'todayProof.promise.link_not_copied': 'Link não foi copiado',
   'todayProof.promise.link_not_copied_detail':
     'O convite não mudou. Tente copiar novamente ou ignore por enquanto.',
   'todayProof.promise.skip': 'Ignorar por enquanto',
@@ -433,19 +433,19 @@ export const fullTodayProofPtPT = {
   'todayProof.promise.joined': '{count} entrou',
   'todayProof.promise.joined_one': '{count} entrou',
   'todayProof.promise.private': 'Promessa privada',
-  'todayProof.promise.private_only': 'Só a pessoa pode ver esta promessa.',
+  'todayProof.promise.private_only': 'Só o utilizador pode ver esta promessa.',
   'todayProof.promise.no_people': 'Ninguém entrou ainda.',
   'todayProof.promise.private_proof':
-    'O seu comprovativo permanece privada e conta quando a pessoa a envia.',
+    'O seu comprovativo fica privado e conta quando o enviar.',
   'todayProof.promise.share_ready': 'Partilhe o convite quando estiver pronto.',
   'todayProof.promise.joined_on': 'Entrou em {date}',
   'todayProof.promise.day_streak': 'Sequência de {count} dia',
   'todayProof.promise.loading_people': 'A carregar participantes da promessa',
-  'todayProof.promise.opening_invite': 'Abrindo convite',
+  'todayProof.promise.opening_invite': 'A abrir o convite',
   'todayProof.promise.recent_proof': 'Comprovativo recente',
   'todayProof.promise.proof_log': 'Registo de comprovativos',
   'todayProof.promise.no_proof': 'Ainda sem comprovativo',
-  'todayProof.promise.checkins_appear': 'Seus registos aparecerão aqui.',
+  'todayProof.promise.checkins_appear': 'Os seus registos vão aparecer aqui.',
   'todayProof.promise.proof_history': 'Histórico de comprovativos',
   'todayProof.promise.submit_appears':
     'Envie o comprovativo e ela aparecerá aqui.',
@@ -463,7 +463,7 @@ export const fullTodayProofPtPT = {
   'todayProof.promise.no_retry':
     'Nenhum comprovativo precisa de nova tentativa',
   'todayProof.promise.retry_appears':
-    'Comprovativo devolvida com nota de análise aparecerá aqui.',
+    'Os comprovativos devolvidos com uma nota de análise aparecem aqui.',
   'todayProof.promise.checking_history_updates':
     'A verificar atualizações no histórico',
   'todayProof.promise.loading_history_short': 'A carregar histórico',
@@ -508,12 +508,13 @@ export const fullTodayProofPtPT = {
   'todayProof.promise.open_device_player': 'Abrir no reprodutor do dispositivo',
   'todayProof.promise.open_video_detail': 'Abrir este vídeo de comprovativo',
   'todayProof.promise.device_player_detail':
-    'Menta abrirá o vídeo no reprodutor do seu dispositivo para que a pessoa analise o comprovativo.',
+    'A Menta vai abrir o vídeo no leitor do seu dispositivo para poder analisar o comprovativo.',
   'todayProof.proof.hold_to_send': 'Segure para enviar',
-  'todayProof.proof.keep_holding': 'continuar segurando…',
+  'todayProof.proof.keep_holding': 'continue a manter premido…',
   'todayProof.proof.release_cancel': 'Solte ou deslize para cancelar',
   'todayProof.proof.send_one_tap': 'Enviar com um toque',
-  'todayProof.proof.keep_holding_sentence': 'continuar segurando para enviar.',
+  'todayProof.proof.keep_holding_sentence':
+    'continue a manter premido para enviar.',
   'todayProof.proof.send': 'Enviar comprovativo',
   'todayProof.proof.send_detail': 'Toque para enviar esto comprovativo agora.',
   'todayProof.proof.send_now': 'Envia esto comprovativo agora.',
@@ -531,13 +532,12 @@ export const fullTodayProofPtPT = {
   'todayProof.proof.text_preview': 'Pré‑visualização do texto',
   'todayProof.proof.open_full_view': 'Abrir ecrã cheia',
   'todayProof.proof.report_issue': 'Reportar problema',
-  'todayProof.proof.private_full':
-    'Visualização completa de comprovativo privada',
+  'todayProof.proof.private_full': 'Vista completa de comprovativo privado',
   'todayProof.proof.private_full_detail':
-    'Comprovativo privada em visualização completa',
+    'Comprovativo privado em vista completa',
   'todayProof.proof.sending': 'A enviar comprovativo',
   'todayProof.proof.meta': '{type} · {time}',
-  'todayProof.proof.private': 'Comprovativo privada',
+  'todayProof.proof.private': 'Comprovativo privado',
   'todayProof.proof.close': 'Fechar',
   'todayProof.proof.write': 'Escreva o seu comprovativo',
   'todayProof.proof.write_detail':
@@ -551,9 +551,9 @@ export const fullTodayProofPtPT = {
   'todayProof.proof.saved_detail':
     'Este rascunho está guardado neste telemóvel. Abra quando estiver pronto para enviar.',
   'todayProof.proof.uploading_detail':
-    'Pode sair deste ecrã. Menta continuará tentando enquanto o app estiver aberto e online.',
+    'Pode sair deste ecrã. A Menta continua a tentar enquanto a aplicação estiver aberta e online.',
   'todayProof.proof.sent_detail':
-    'Menta recebeu o seu comprovativo para esta promessa.',
+    'A Menta recebeu o seu comprovativo para esta promessa.',
   'todayProof.proof.pending_detail':
     'O seu comprovativo está a aguardar análise. Não precisa enviá‑la novamente.',
   'todayProof.proof.unknown_detail':
@@ -593,11 +593,11 @@ export const fullTodayProofPtPT = {
   'todayProof.proof.text_helper':
     'Inclua o que fez, quando fez e um detalhe claro.',
   'todayProof.proof.hold_label': 'Segure para enviar o comprovativo',
-  'todayProof.proof.hold_holding': 'continuar segurando para enviar…',
+  'todayProof.proof.hold_holding': 'continue a manter premido para enviar…',
   'todayProof.review.loading': 'A carregar análise do comprovativo',
   'todayProof.review.reviews': 'Análises',
-  'todayProof.review.opening_proof': 'Abrindo comprovativo',
-  'todayProof.review.opening_video_proof': 'Abrindo comprovativo em vídeo',
+  'todayProof.review.opening_proof': 'A abrir o comprovativo',
+  'todayProof.review.opening_video_proof': 'A abrir o comprovativo em vídeo',
   'todayProof.review.filter_all': 'Todos',
   'todayProof.review.filter_pending': 'Pendentes',
   'todayProof.review.filter_approved': 'Aprovados',
@@ -612,9 +612,9 @@ export const fullTodayProofPtPT = {
   'todayProof.review.fair_decision':
     'O seu comprovativo aguarda decisão justa. Ainda ninguém tem comprovativo pronto para si analisar.',
   'todayProof.review.none_waiting':
-    'Nenhum envio a aguardar análise. Novas comprovativos aparecerão aqui com o contexto necessário.',
+    'Nenhum envio a aguardar análise. Os novos comprovativos aparecem aqui com o contexto necessário.',
   'todayProof.review.none_approved':
-    'Ainda não há comprovativos aprovadas nesta visualização. As aprovações aparecerão aqui.',
+    'Ainda não há comprovativos aprovados nesta vista. Os envios aprovados vão aparecer aqui.',
   'todayProof.review.none_retry':
     'Nenhum comprovativo precisa ser refeita. Geralmente significa que os envios foram claros.',
   'todayProof.review.nothing':
@@ -633,23 +633,24 @@ export const fullTodayProofPtPT = {
   'todayProof.review.reward_failed':
     'A decisão do comprovativo foi guardada, mas não foi possível confirmar a recompensa.',
   'todayProof.review.decision_unconfirmed':
-    'Menta não conseguiu confirmar o resultado da análise.',
+    'A Menta não conseguiu confirmar o resultado da análise.',
   'todayProof.review.incomplete_receipt':
-    'Menta recebeu um recibo de análise incompleto.',
+    'A Menta recebeu um recibo de análise incompleto.',
   'todayProof.review.reward_already_logged':
     'Esta recompensa de análise já foi registada.',
   'todayProof.review.reward_added_amount': '+{amount} Momenta adicionados',
   'todayProof.review.reward_added':
     'A sua recompensa de análise já foi adicionada.',
-  'todayProof.review.checking_reward': 'A verificar sua recompensa…',
-  'todayProof.review.show_all': 'Mostrar todas as comprovativos',
+  'todayProof.review.checking_reward':
+    'A verificar a sua recompensa de análise…',
+  'todayProof.review.show_all': 'Mostrar todos os comprovativos',
   'todayProof.review.review_next': 'Analisar próximo comprovativo ({count})',
   'todayProof.review.changed': 'Análise alterada',
   'todayProof.review.reload_title': 'Recarregar esto comprovativo',
   'todayProof.review.changed_detail':
-    'Ela mudou enquanto a pessoa analisava. Nada foi enviado. Recarregue antes de decidir.',
+    'Mudou enquanto a analisava. Nada foi enviado. Recarregue antes de decidir.',
   'todayProof.review.changed_detail_with_note':
-    'Ela mudou enquanto a pessoa analisava. Nada foi enviado. Recarregue antes de decidir. A sua nota de correção não enviada: {note}',
+    'Mudou enquanto a analisava. Nada foi enviado. Recarregue antes de decidir. A sua nota de correção não enviada: {note}',
   'todayProof.review.current_status': 'estado atual: {status}',
   'todayProof.review.filter_accessibility': 'Mostrar comprovativos {status}',
   'todayProof.review.back_queue': 'Voltar à fila',
@@ -687,7 +688,7 @@ export const fullTodayProofPtPT = {
   'todayProof.review.choose_reason': 'Escolha um motivo',
   'todayProof.review.reason_detail':
     'Escolha o comentários que facilite a avaliação da próximo comprovativo.',
-  'todayProof.review.keep_reviewing': 'Continuar analisando',
+  'todayProof.review.keep_reviewing': 'Continuar a analisar',
   'todayProof.review.sending_retry': 'A enviar nota de nova tentativa',
   'todayProof.review.send_retry': 'Enviar nota de nova tentativa',
   'todayProof.review.close_reasons': 'Fechar motivos de rejeição',
@@ -719,7 +720,7 @@ export const fullTodayProofPtPT = {
   'todayProof.streak.missed_day': 'O dia perdido',
   'todayProof.streak.missed_day_title': '{day} foi perdido.',
   'todayProof.streak.no_proof_counted':
-    'Nenhum comprovativo contada para {day}. A sua sequência anterior terminou em {streak}, e seu histórico continua aqui.',
+    'Nenhum comprovativo contou para {day}. A sua sequência anterior terminou em {streak} e o seu histórico continua aqui.',
   'todayProof.streak.previous_days': '{count} dia',
   'todayProof.streak.previous_days_other': '{count} dias',
   'todayProof.streak.history_action': 'Ver histórico de {count} dias',
@@ -807,7 +808,7 @@ export const fullTodayProofPtPT = {
   'todayProof.streak.default_time': '20:00',
   'todayProof.creation.create_hub': 'Criar hub',
   'todayProof.creation.header': 'Criar',
-  'todayProof.creation.what_create': 'O que a pessoa quer criar?',
+  'todayProof.creation.what_create': 'O que quer criar?',
   'todayProof.creation.create_intro':
     'Inicie uma promessa para si ou crie uma com um grupo.',
   'todayProof.creation.create_promise_detail':
@@ -824,10 +825,10 @@ export const fullTodayProofPtPT = {
     'O seu rascunho ainda está privado. Escolha ou crie um grupo antes que os membros possam analisar o seu comprovativo.',
   'todayProof.creation.choose_group': 'Escolher um grupo',
   'todayProof.creation.keep_personal': 'Manter isso pessoal',
-  'todayProof.creation.title': 'Crie uma promessa ou participe de outras.',
+  'todayProof.creation.title': 'Crie uma promessa ou junte-se a outras.',
   'todayProof.creation.subtitle':
-    'Promessas individuais permanecem privadas. Promessas de grupo partilham progresso com as pessoas que a pessoa escolher.',
-  'todayProof.creation.close_hub': 'Fechar hub de criação',
+    'Promessas individuais permanecem privadas. Promessas de grupo partilham o progresso com as pessoas que escolher.',
+  'todayProof.creation.close_hub': 'Fechar a criação',
   'todayProof.creation.create_options': 'Opções de criação',
   'todayProof.creation.group_promise': 'Adicionar uma promessa ao seu grupo',
   'todayProof.creation.group_promise_detail':
@@ -837,7 +838,7 @@ export const fullTodayProofPtPT = {
     'Convide pessoas para um espaço partilhado de promessas e comprovativos.',
   'todayProof.creation.solo_promise': 'Fazer uma promessa individual',
   'todayProof.creation.solo_promise_detail':
-    'Mantenha-a privada e escolha o comprovativo a pessoa mesmo.',
+    'Mantenha-a privada e escolha o comprovativo.',
   'todayProof.creation.saved_invite': 'Abrir convite guardado',
   'todayProof.creation.saved_invite_detail':
     'Código {code} está guardado neste telemóvel.',
@@ -875,9 +876,9 @@ export const fullTodayProofPtPT = {
   'todayProof.residual.the_protected_day_remains_in_proof_history_today_still_needs_its':
     'O dia protegido permanece no histórico de comprovativos. Hoje ainda precisa da o seu próprio comprovativo.',
   'todayProof.residual.status': 'estado',
-  'todayProof.residual.preparing_invite': 'Preparando convite...',
+  'todayProof.residual.preparing_invite': 'A preparar o convite...',
   'todayProof.residual.checking': 'A verificar…',
-  'todayProof.residual.adding_time': 'Adicionando tempo…',
+  'todayProof.residual.adding_time': 'A adicionar tempo…',
   'todayProof.residual.add_12_hours': 'Adicionar 12 horas',
   'todayProof.residual.keep_current_due_time':
     'Manter horário de vencimento atual',
@@ -887,7 +888,7 @@ export const fullTodayProofPtPT = {
   'todayProof.residual.network_request_failed_before_a_response_arrived':
     'Falha no pedido de rede antes de receber resposta',
   'todayProof.residual.momenta': 'Momenta',
-  'todayProof.residual.creating_promise': 'Criando promessa…',
+  'todayProof.residual.creating_promise': 'A criar a promessa…',
   'todayProof.residual.change': 'Alterar',
   'todayProof.residual.starter_templates': 'Modelos iniciais',
   'todayProof.residual.choose_one_then_edit_the_promise_and_proof_rule':
@@ -910,20 +911,20 @@ export const fullTodayProofPtPT = {
   'todayProof.residual.how_many_days_should_this_last':
     'Quantos dias isso deve durar?',
   'todayProof.residual.choose_a_length_you_can_realistically_finish':
-    'Escolha um prazo que a pessoa possa cumprir realisticamente.',
+    'Escolha uma duração que consiga mesmo terminar.',
   'todayProof.residual.custom_window': 'Janela personalizada',
   'todayProof.residual.or_enter_your_own_number_of_days':
-    'Ou introduza seu próprio número de dias',
+    'Ou introduza o seu próprio número de dias',
   'todayProof.residual.duration_must_be_365_days_or_less':
     'A duração deve ser de 365 dias ou menos',
   'todayProof.residual.use_1_365_days': 'Use 1-365 dias.',
   'todayProof.residual.choose_how_strict_the_schedule_should_be':
     'Escolha o quão rigorosa a agenda deve ser',
   'todayProof.residual.the_options_change_the_target_and_the_number_of_missed_days_allo':
-    'As opções alteram a meta e a quantidade de dias perdidos permitidos. Escolha uma que a pessoa possa manter em uma semana ocupada.',
+    'As opções alteram a meta e o número de dias falhados permitidos. Escolha uma que consiga cumprir numa semana cheia.',
   'todayProof.residual.proof_target': 'Meta do comprovativo',
   'todayProof.residual.you_can_change_this_later_if_the_schedule_no_longer_works_for_yo':
-    'Pode mudar isso depois se a agenda não funcionar mais para a pessoa.',
+    'Pode mudar isto mais tarde se o horário deixar de funcionar.',
   'todayProof.residual.let_other_people_find_this_promise':
     'Permitir que outras pessoas encontrem esta promessa',
   'todayProof.residual.people_outside_the_group_can_find_and_join_this_promise':
@@ -940,7 +941,7 @@ export const fullTodayProofPtPT = {
   'todayProof.residual.streak_freeze': 'Congelamento de sequência',
   'todayProof.residual.added_to_your_inventory_for_keeping_this_streak':
     'Adicionado ao seu inventário por manter esta sequência',
-  'todayProof.residual.if_you_share': 'Se a pessoa partilhar',
+  'todayProof.residual.if_you_share': 'Se partilhar',
   'todayProof.residual.your_proof_stays_private':
     'O seu comprovativo permanece privada',
   'todayProof.residual.share_milestone': 'partilhar marco',
@@ -969,9 +970,9 @@ export const fullTodayProofPtPT = {
     'Tente novamente antes de enviar ou analisar o comprovativo.',
   'todayProof.residual.report_a_problem': 'Reportar um problema',
   'todayProof.residual.invite_preview': 'PREVISÃO DO CONVITE',
-  'todayProof.residual.copy_invite_link': 'Copiar ligação do convite',
-  'todayProof.residual.your_promise': 'SUA PROMESSA',
-  'todayProof.residual.type_your_promise': 'Introduza sua promessa…',
+  'todayProof.residual.copy_invite_link': 'Copiar link do convite',
+  'todayProof.residual.your_promise': 'A SUA PROMESSA',
+  'todayProof.residual.type_your_promise': 'Escreva a sua promessa…',
   'todayProof.residual.daily_minimum': 'MÍNIMO DIÁRIO',
   'todayProof.residual.daily_minimum_2': 'Mínimo diário',
   'todayProof.residual.describe_what_counts_as_done':
@@ -982,7 +983,7 @@ export const fullTodayProofPtPT = {
   'todayProof.residual.recent_check_ins': 'Registos recentes',
   'todayProof.residual.logged': 'registado',
   'todayProof.residual.today_stays_open_until_you_check_in':
-    'Hoje permanecerá aberto até que a pessoa registre.',
+    'Hoje fica aberto até fazer o seu registo.',
   'todayProof.residual.sign_in_again': 'Entrar novamente',
   'todayProof.residual.your_session_ended_before_menta_could_start_this_promise_sign_in':
     'A sua sessão terminou antes que a Menta pudesse iniciar esta promessa. Entre, depois volte aqui antes de tentar novamente.',
@@ -997,38 +998,38 @@ export const fullTodayProofPtPT = {
   'todayProof.residual.promise_not_available_to_this_account':
     'Promessa não disponível para esta conta',
   'todayProof.residual.menta_could_not_confirm_that_this_account_can_open_the_promise_a':
-    'Menta não pôde confirmar que esta conta pode abrir a promessa. Peça acesso ao proprietário ou volte para Hoje.',
+    'A Menta não conseguiu confirmar que esta conta pode abrir a promessa. Peça acesso ao proprietário ou volte para Hoje.',
   'todayProof.residual.promise_unavailable': 'Promessa indisponível',
   'todayProof.residual.this_promise_could_not_be_found_for_the_current_account_it_may_h':
-    'Esta promessa não foi encontrada para a conta atual. Pode ter terminado, sido removida ou não estar disponível para a pessoa.',
+    'Esta promessa não foi encontrada na conta atual. Pode ter terminado, sido removida ou não estar disponível para si.',
   'todayProof.residual.promise_unavailable_offline':
     'Promessa indisponível offline',
   'todayProof.residual.menta_cannot_confirm_the_latest_promise_proof_or_review_state_wi':
-    'Menta não pode confirmar o estado mais recente da promessa, comprovativo ou análise sem ligação. Nada foi marcado como concluído aqui.',
+    'A Menta não pode confirmar o estado mais recente da promessa, comprovativo ou análise sem ligação. Nada foi marcado como concluído aqui.',
   'todayProof.residual.promise_could_not_load':
     'Não foi possível carregar a promessa',
   'todayProof.residual.menta_could_not_refresh_this_promise_retry_before_acting_on_a_mi':
-    'Menta não pôde atualizar esta promessa. Tente novamente antes de agir sobre um comprovativo ou análise ausente.',
+    'A Menta não conseguiu atualizar esta promessa. Tente novamente antes de agir sobre um comprovativo ou análise ausente.',
   'todayProof.residual.what_to_change': 'O que mudar',
   'todayProof.residual.your_last_check_in_needs_a_clearer_follow_up_before_the_day_clos':
     'O seu último registo precisa de um acompanhamento mais claro antes do final do dia.',
   'todayProof.residual.saved_on_this_phone': 'guardado neste telemóvel',
   'todayProof.residual.your_draft_stays_on_this_phone_open_menta_when_you_are_online_to':
-    'O seu rascunho permanece neste telemóvel. Abra o Menta quando estiver online para continuar o envio.',
+    'O seu rascunho permanece neste telemóvel. Abra a Menta quando estiver online para continuar o envio.',
   'todayProof.residual.proof_sent': 'Comprovativo enviado',
   'todayProof.residual.your_proof_is_in_but_it_does_not_count_yet_it_counts_after_a_rev':
-    'O seu comprovativo foi enviado, mas ainda não conta. Ela conta depois que um analista a aceita, e a pessoa não precisa enviá‑la novamente.',
+    'O seu comprovativo foi enviado, mas ainda não conta. Conta depois de um analista o aceitar, e não precisa de o enviar novamente.',
   'todayProof.residual.proof_approved': 'Comprovativo aprovado',
   'todayProof.residual.menta_could_not_confirm_whether_your_proof_was_sent_your_origina':
-    'Menta não pôde confirmar se o seu comprovativo foi enviado. O original ainda está guardado neste telemóvel. Verifique o estado antes de reenviar.',
+    'A Menta não conseguiu confirmar se o seu comprovativo foi enviado. O original ainda está guardado neste telemóvel. Verifique o estado antes de reenviar.',
   'todayProof.residual.not_sent': 'Não enviado',
   'todayProof.residual.check_your_connection_then_try_again':
-    'Verifique sua ligação e tente novamente.',
+    'Verifique a sua ligação e tente novamente.',
   'todayProof.residual.reward_summary':
     'Manter essa sequência rende cerca de {reward} Momenta, além de um bloqueio nos 7 e 30 dias.',
   'todayProof.milestone.reached': 'Dia de marco {count} alcançado.',
-  'todayProof.milestone.reached.one': 'A pessoa chegou ao dia {count}.',
-  'todayProof.milestone.reached.other': 'A pessoa chegou a {count} dias.',
+  'todayProof.milestone.reached.one': 'Chegou ao dia {count}.',
+  'todayProof.milestone.reached.other': 'Chegou aos {count} dias.',
   'todayProof.milestone.reward': '+{reward} Momenta',
   'todayProof.streak.day_count': 'Sequência de {count} dia',
   'todayProof.streak.day_count.one': 'Sequência de {count} dia',
@@ -1067,10 +1068,74 @@ export const fullTodayProofPtPT = {
     'Adicione um comprovativo mais claro para terminar hoje.',
   'todayProof.correction.action_proof': 'Adicionar comprovativo mais claro',
   'todayProof.source.accountability.previous_proof': 'Provas anteriores',
-  'todayProof.source.accountability.only_you': 'Apenas tu',
+  'todayProof.source.accountability.only_you': 'Apenas eu',
   'todayProof.source.accountability.visibility_mixed':
-    'Apenas tu e as pessoas de cada promessa',
+    'Apenas eu e as pessoas de cada promessa',
   'todayProof.profile.approved_proof_count': 'Comprovativos aprovados: {count}',
   'todayProof.streak.reminder_row_accessibility':
     'Lembretes de comprovativos. {detail}. Preferência: {status}.',
+  'todayProof.createFlow.close': 'Fechar',
+  'todayProof.createFlow.back': 'Voltar',
+  'todayProof.createFlow.promiseBubble': 'O que quer fazer?',
+  'todayProof.createFlow.promiseLabel': 'A sua promessa',
+  'todayProof.createFlow.draftNote': 'O seu rascunho fica aqui se sair.',
+  'todayProof.createFlow.startFrom': 'Ou comece com uma destas',
+  'todayProof.createFlow.proofBubble': 'Quando terminar, como me vai mostrar?',
+  'todayProof.createFlow.proofFor': 'Para «{title}»',
+  'todayProof.createFlow.photo': 'Fotografia',
+  'todayProof.createFlow.photoDetail': 'Tire uma fotografia.',
+  'todayProof.createFlow.note': 'Nota',
+  'todayProof.createFlow.noteDetail': 'Escreva o que aconteceu.',
+  'todayProof.createFlow.video': 'Vídeo',
+  'todayProof.createFlow.videoDetail': 'Grave um clipe curto.',
+  'todayProof.createFlow.showPhoto': 'O que deve mostrar a fotografia?',
+  'todayProof.createFlow.showNote': 'O que deve dizer a nota?',
+  'todayProof.createFlow.showVideo': 'O que deve mostrar o clipe?',
+  'todayProof.createFlow.showHelpShared':
+    'Quem verificar o seu comprovativo vê isto e sabe o que conta.',
+  'todayProof.createFlow.showHelpSolo':
+    'Vai ver isto sempre que enviar um comprovativo.',
+  'todayProof.createFlow.chooseWho': 'Escolher quem verifica',
+  'todayProof.createFlow.chooseLength': 'Escolher duração',
+  'todayProof.createFlow.whoBubble': 'Quem deve verificar o seu comprovativo?',
+  'todayProof.createFlow.yourGroups': 'Os seus grupos',
+  'todayProof.createFlow.or': 'Ou',
+  'todayProof.createFlow.friend': 'Um amigo',
+  'todayProof.createFlow.friendDetail':
+    'Envie-lhe um convite depois de guardar',
+  'todayProof.createFlow.justMe': 'Só eu por agora',
+  'todayProof.createFlow.justMeDetail': 'Adicione alguém quando quiser',
+  'todayProof.createFlow.groupMembers.one': '{count} membro',
+  'todayProof.createFlow.groupMembers.other': '{count} membros',
+  'todayProof.createFlow.groupMembers': '{count} membros',
+  'todayProof.createFlow.lengthBubble':
+    'Durante quanto tempo quer manter isto?',
+  'todayProof.createFlow.days': '{count} dias',
+  'todayProof.createFlow.checkIns.one': '{count} registo',
+  'todayProof.createFlow.checkIns.other': '{count} registos',
+  'todayProof.createFlow.checkIns': '{count} registos',
+  'todayProof.createFlow.whichDays': 'Que dias contam?',
+  'todayProof.createFlow.everyDay': 'Todos os dias',
+  'todayProof.createFlow.weekdays': 'Dias úteis',
+  'todayProof.createFlow.pickDays': 'Escolher dias',
+  'todayProof.createFlow.pickOneDay': 'Escolha pelo menos um dia.',
+  'todayProof.createFlow.useDays': 'Usar {count} dias',
+  'todayProof.createFlow.reviewBubble': 'Esta é a sua promessa. Está tudo bem?',
+  'todayProof.createFlow.ready': 'Pronto para começar?',
+  'todayProof.createFlow.almostThere': 'Quase lá',
+  'todayProof.createFlow.photoProof': 'Comprovativo com fotografia',
+  'todayProof.createFlow.noteProof': 'Comprovativo com nota',
+  'todayProof.createFlow.videoProof': 'Comprovativo com vídeo',
+  'todayProof.createFlow.checkedBy': 'Verificado por',
+  'todayProof.createFlow.checkerMe': 'Só você',
+  'todayProof.createFlow.checkerFriend': 'Um amigo que convidar',
+  'todayProof.createFlow.checksIt': 'Verificado por {checker}',
+  'todayProof.createFlow.firstProofDue': 'Primeiro comprovativo',
+  'todayProof.createFlow.today': 'Hoje',
+  'todayProof.createFlow.tomorrow': 'Amanhã',
+  'todayProof.createFlow.start': 'Começar a minha promessa',
+  'todayProof.createFlow.edit': 'Editar',
+  'todayProof.createFlow.editPromise': 'Editar promessa',
+  'todayProof.createFlow.dayToggle': '{day}, conta',
+  'todayProof.createFlow.dayToggleOff': '{day}, dia de descanso',
 } as const satisfies Partial<Pick<EnglishCatalogue, FullTodayProofKey>>;

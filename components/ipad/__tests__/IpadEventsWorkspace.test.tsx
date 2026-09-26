@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import {
@@ -71,17 +71,24 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
+const ControlledWorkspace = () => {
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  return (
+    <IpadEventsWorkspace
+      authoredLabel="Your events"
+      items={items}
+      onRefresh={jest.fn()}
+      onSelectedKeyChange={setSelectedKey}
+      refreshing={false}
+      selectedKey={selectedKey}
+      upcomingLabel="Upcoming"
+    />
+  );
+};
+
 describe('iPad events workspace', () => {
   it('selects an event without navigating and opens it only from the explicit action', () => {
-    render(
-      <IpadEventsWorkspace
-        authoredLabel="Your events"
-        items={items}
-        onRefresh={jest.fn()}
-        refreshing={false}
-        upcomingLabel="Upcoming"
-      />
-    );
+    render(<ControlledWorkspace />);
 
     expect(screen.getByTestId('ipad-events-workspace')).toBeTruthy();
     expect(

@@ -83,7 +83,7 @@ let mockRouteParams: { resume?: string } = {};
 const longPromiseFixture =
   'Walk after work every weekday. Take a longer route home. Leave my phone in my bag. Notice how my body feels. Write one honest line before I head inside daily.';
 const fixedActionContentClearance =
-  mentaLayout.primaryControlHeight + mentaSpacing[4] + mentaSpacing[2];
+  mentaLayout.primaryControlHeight + 48 + mentaSpacing[2];
 let mockPhoneLayout = resolvePhoneLayout({
   width: 430,
   height: 932,
@@ -161,7 +161,11 @@ jest.mock('@/components/ui/icons', () => {
     CheckCircleIcon: Icon,
     CheckIcon: Icon,
     ChevronRightIcon: Icon,
+    ClockIcon: Icon,
     ExternalLinkIcon: Icon,
+    EyeOffIcon: Icon,
+    FlameIcon: Icon,
+    MountainIcon: Icon,
     FileTextIcon: Icon,
     InfoIcon: Icon,
     LockIcon: Icon,
@@ -351,7 +355,45 @@ jest.mock('@/store/protected-route-store', () => ({
   },
 }));
 
+const startPromiseSetup = (screen: ReturnType<typeof render>) => {
+  fireEvent.press(screen.getByTestId('onboarding-start'));
+  fireEvent.press(screen.getByTestId('onboarding-meet-continue'));
+  fireEvent.press(screen.getByTestId('onboarding-obstacle-unnoticed'));
+  fireEvent.press(screen.getByTestId('onboarding-obstacle-continue'));
+  fireEvent.press(screen.getByTestId('onboarding-evidence-continue'));
+};
+
 describe('Paper onboarding flow', () => {
+  it('asks what gets in the way before the promise and waits for an answer', () => {
+    const screen = render(<OnboardingScreen />);
+
+    fireEvent.press(screen.getByTestId('onboarding-start'));
+    expect(
+      screen.getByText(
+        'Hi, I’m Menta! I help people do what they said they’d do.'
+      )
+    ).toBeTruthy();
+    fireEvent.press(screen.getByTestId('onboarding-meet-continue'));
+
+    expect(
+      screen.getByText('Be honest. What usually gets in the way?')
+    ).toBeTruthy();
+    expect(screen.getByTestId('onboarding-obstacle-continue')).toBeDisabled();
+    fireEvent.press(screen.getByTestId('onboarding-obstacle-forget'));
+    expect(screen.getByTestId('onboarding-obstacle-continue')).toBeEnabled();
+    fireEvent.press(screen.getByTestId('onboarding-obstacle-continue'));
+
+    expect(screen.getAllByText('76%').length).toBeGreaterThan(0);
+    expect(
+      screen.getByText(/Dr Gail Matthews, Dominican University of California/)
+    ).toBeTruthy();
+    fireEvent.press(screen.getByTestId('onboarding-evidence-continue'));
+    expect(screen.getByTestId('onboarding-promise-input')).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId('onboarding-header-back'));
+    expect(screen.getByTestId('onboarding-evidence-body')).toBeTruthy();
+  });
+
   beforeEach(() => {
     Object.defineProperty(Platform, 'isPad', {
       configurable: true,
@@ -367,6 +409,9 @@ describe('Paper onboarding flow', () => {
     mockLoadOnboardingDraftForUser.mockReset();
     mockSignInWithGoogle.mockReset();
     mockSignInWithApple.mockReset();
+    mockGetMyLegalAcceptanceStatus.mockReset();
+    mockGetCurrentLegalDocuments.mockReset();
+    mockAcceptCurrentLegalDocuments.mockReset();
     mockAuthUser = null;
     mockHasCompletedOnboarding = false;
     mockPendingReferral = null;
@@ -396,6 +441,8 @@ describe('Paper onboarding flow', () => {
       userId: 'new-user',
       accepted: true,
       requiresAcceptance: false,
+      current: currentLegalDocuments,
+      receipt: { acceptedAt: new Date().toISOString() },
     });
     mockGetCurrentLegalDocuments.mockImplementation(() => ({
       then: (resolve: (documents: typeof currentLegalDocuments) => void) => {
@@ -407,6 +454,8 @@ describe('Paper onboarding flow', () => {
       userId: 'new-user',
       accepted: true,
       requiresAcceptance: false,
+      current: currentLegalDocuments,
+      receipt: { acceptedAt: new Date().toISOString() },
     });
     mockSetPendingReferral.mockImplementation(
       (code: string, ownerUserId?: string | null) => {
@@ -435,14 +484,32 @@ describe('Paper onboarding flow', () => {
     mockSignInWithGoogle.mockResolvedValue(undefined);
   });
 
-  const reachAuthMethod = (
+  const continueNotificationStep = async (
+    screen: ReturnType<typeof render>
+  ) => {
+    if (!screen.queryByTestId('notification-privacy-screen')) return;
+    const actions = [
+      'notification-privacy-education-not-now',
+      'notification-privacy-permission-off-continue',
+      'notification-privacy-granted-promise',
+      'notification-privacy-registration-continue',
+    ];
+    await waitFor(() =>
+      expect(actions.some(id => screen.queryByTestId(id))).toBe(true)
+    );
+    const action = actions.map(id => screen.queryByTestId(id)).find(Boolean);
+    fireEvent.press(action!);
+    await screen.findByTestId('onboarding-auth-body');
+  };
+
+  const reachAuthMethod = async (
     screen: ReturnType<typeof render>,
     promise = 'Walk for 20 minutes after work',
     continuePastMomentaGift = true,
     _continuePastLegal = true,
     confirmLegal = true
   ) => {
-    fireEvent.press(screen.getByTestId('onboarding-start'));
+    startPromiseSetup(screen);
     fireEvent.changeText(
       screen.getByTestId('onboarding-promise-input'),
       promise
@@ -459,11 +526,7 @@ describe('Paper onboarding flow', () => {
     ) {
       fireEvent.press(screen.getByTestId('onboarding-momenta-gift-continue'));
     }
-    if (screen.queryByTestId('notification-privacy-education-not-now')) {
-      fireEvent.press(
-        screen.getByTestId('notification-privacy-education-not-now')
-      );
-    }
+    await continueNotificationStep(screen);
     if (screen.queryByTestId('onboarding-auth-legal-confirmation')) {
       if (confirmLegal) {
         fireEvent.press(
@@ -474,13 +537,17 @@ describe('Paper onboarding flow', () => {
     }
   };
 
-  const createFromCombinedAuth = (
+  const prepareCreationAction = async (
     screen: ReturnType<typeof render>,
     referralCode?: string
   ) => {
+    await continueNotificationStep(screen);
+    const legalConfirmation = screen.queryByTestId(
+      'onboarding-auth-legal-confirmation'
+    );
     if (
-      screen.getByTestId('onboarding-auth-legal-confirmation').props
-        .accessibilityState.checked !== true
+      legalConfirmation &&
+      legalConfirmation.props.accessibilityState.checked !== true
     ) {
       fireEvent.press(screen.getByTestId('onboarding-auth-legal-confirmation'));
       fireEvent.press(screen.getByTestId('onboarding-auth-legal-continue'));
@@ -494,16 +561,17 @@ describe('Paper onboarding flow', () => {
         referralCode
       );
     }
-    fireEvent.press(screen.getByTestId('onboarding-auth-create-promise'));
+    await screen.findByText('Save your promise');
+    return screen.getByTestId('onboarding-auth-create-promise');
   };
 
-  it('makes the first-promise Momenta gift explicit before creation', () => {
+  it('makes the first-promise Momenta gift explicit before creation', async () => {
     mockAuthUser = { id: 'copy-user' };
     const screen = render(<OnboardingScreen />);
 
     expect(screen.queryByText(/Your first promise is free/)).toBeNull();
 
-    reachAuthMethod(screen, undefined, false);
+    await reachAuthMethod(screen, undefined, false);
     expect(screen.getByText(/Your first promise is free/)).toBeTruthy();
     expect(screen.getByTestId('onboarding-momenta-gift')).toBeTruthy();
     expect(screen.getByTestId('onboarding-momenta-gift-mascot')).toBeTruthy();
@@ -516,9 +584,11 @@ describe('Paper onboarding flow', () => {
     expect(screen.queryByText(/70 Momenta/)).toBeNull();
 
     fireEvent.press(screen.getByTestId('onboarding-momenta-gift-continue'));
-    expect(screen.getByText('Save your promise')).toBeTruthy();
+    await continueNotificationStep(screen);
+    expect(screen.queryByText('Save your promise')).toBeNull();
     fireEvent.press(screen.getByTestId('onboarding-auth-legal-confirmation'));
     fireEvent.press(screen.getByTestId('onboarding-auth-legal-continue'));
+    expect(screen.getByText('Save your promise')).toBeTruthy();
     expect(screen.getByTestId('onboarding-auth-referral-expand')).toBeTruthy();
     expect(screen.queryByTestId('onboarding-auth-referral-code')).toBeNull();
     expect(screen.getByTestId('onboarding-auth-create-promise')).toBeTruthy();
@@ -527,7 +597,7 @@ describe('Paper onboarding flow', () => {
   it('starts the promise draft instead of adding another explainer screen', () => {
     const screen = render(<OnboardingScreen />);
 
-    fireEvent.press(screen.getByTestId('onboarding-start'));
+    startPromiseSetup(screen);
 
     expect(screen.getByTestId('onboarding-promise-input')).toBeTruthy();
     expect(screen.getByTestId('onboarding-journey-progress')).toBeTruthy();
@@ -538,7 +608,7 @@ describe('Paper onboarding flow', () => {
     expect(longPromiseFixture).toHaveLength(158);
     const screen = render(<OnboardingScreen />);
 
-    fireEvent.press(screen.getByTestId('onboarding-start'));
+    startPromiseSetup(screen);
     const input = screen.getByTestId('onboarding-promise-input');
     expect(screen.queryByText('0 / 160')).toBeNull();
     expect(input.props.maxLength).toBe(160);
@@ -563,19 +633,19 @@ describe('Paper onboarding flow', () => {
     );
   });
 
-  it('uses a full iPad workspace for promise and proof setup', () => {
+  it('uses a full landscape iPad workspace for promise and proof setup', () => {
     Object.defineProperty(Platform, 'isPad', {
       configurable: true,
       value: true,
     });
     mockPhoneLayout = resolvePhoneLayout({
-      width: 1024,
-      height: 1366,
+      width: 1366,
+      height: 1024,
       fontScale: 1,
     });
     const screen = render(<OnboardingScreen />);
 
-    fireEvent.press(screen.getByTestId('onboarding-start'));
+    startPromiseSetup(screen);
 
     expect(screen.getByTestId('onboarding-draft-ipad-workspace')).toHaveStyle({
       flexDirection: 'row',
@@ -614,10 +684,14 @@ describe('Paper onboarding flow', () => {
     fireEvent.press(screen.getByTestId('onboarding-accountability-new_group'));
 
     expect(screen.getAllByText('Photo proof').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Invite someone')).toHaveLength(2);
+    expect(screen.getAllByText('Someone I trust')).toHaveLength(2);
   });
 
   it('keeps narrow iPad and Split View widths on the phone composition', () => {
+    Object.defineProperty(Platform, 'isPad', {
+      configurable: true,
+      value: true,
+    });
     mockPhoneLayout = resolvePhoneLayout({
       width: 820,
       height: 1180,
@@ -625,7 +699,7 @@ describe('Paper onboarding flow', () => {
     });
     const screen = render(<OnboardingScreen />);
 
-    fireEvent.press(screen.getByTestId('onboarding-start'));
+    startPromiseSetup(screen);
 
     expect(screen.queryByTestId('onboarding-draft-ipad-workspace')).toBeNull();
     expect(
@@ -633,6 +707,73 @@ describe('Paper onboarding flow', () => {
         screen.getByTestId('onboarding-draft-body').props.contentContainerStyle
       ).paddingHorizontal
     ).toBe(24);
+  });
+
+  it('keeps iPad proof choices and the draft through rotation before window metrics settle', () => {
+    Object.defineProperty(Platform, 'isPad', {
+      configurable: true,
+      value: true,
+    });
+    mockPhoneLayout = resolvePhoneLayout({ width: 1366, height: 1024 });
+    const screen = render(<OnboardingScreen />);
+    startPromiseSetup(screen);
+    fireEvent.changeText(
+      screen.getByTestId('onboarding-promise-input'),
+      'Read ten pages before bed'
+    );
+    fireEvent.press(screen.getByTestId('onboarding-draft-continue'));
+    fireEvent.press(screen.getByTestId('onboarding-proof-photo'));
+    fireEvent.press(screen.getByTestId('onboarding-accountability-new_group'));
+
+    expect(screen.getByTestId('onboarding-proof-ipad-rail')).toBeTruthy();
+    fireEvent(screen.getByTestId('onboarding-route-frame'), 'layout', {
+      nativeEvent: { layout: { x: 0, y: 0, width: 810, height: 1080 } },
+    });
+    expect(screen.queryByTestId('onboarding-proof-ipad-rail')).toBeNull();
+    expect(screen.queryByTestId('onboarding-proof-ipad-summary')).toBeNull();
+    expect(
+      screen.getByTestId('onboarding-accountability-new_group').props
+        .accessibilityState
+    ).toMatchObject({ checked: true });
+    expect(screen.getByTestId('onboarding-proof-continue')).not.toBeDisabled();
+
+    mockPhoneLayout = resolvePhoneLayout({ width: 810, height: 1080 });
+    screen.rerender(<OnboardingScreen />);
+    expect(screen.queryByTestId('onboarding-proof-ipad-rail')).toBeNull();
+
+    mockPhoneLayout = resolvePhoneLayout({ width: 1366, height: 1024 });
+    screen.rerender(<OnboardingScreen />);
+    expect(screen.queryByTestId('onboarding-proof-ipad-rail')).toBeNull();
+    fireEvent(screen.getByTestId('onboarding-route-frame'), 'layout', {
+      nativeEvent: { layout: { x: 0, y: 0, width: 1180, height: 1024 } },
+    });
+    expect(screen.getByTestId('onboarding-proof-ipad-rail')).toBeTruthy();
+    expect(screen.getByText('Read ten pages before bed')).toBeTruthy();
+    expect(
+      screen.getByTestId('onboarding-accountability-new_group').props
+        .accessibilityState
+    ).toMatchObject({ checked: true });
+    expect(screen.getByTestId('onboarding-proof-continue')).not.toBeDisabled();
+  });
+
+  it('keeps a readable two-column proof workspace on a portrait iPad', () => {
+    Object.defineProperty(Platform, 'isPad', {
+      configurable: true,
+      value: true,
+    });
+    mockPhoneLayout = resolvePhoneLayout({ width: 1024, height: 1366 });
+    const screen = render(<OnboardingScreen />);
+    startPromiseSetup(screen);
+    fireEvent.changeText(
+      screen.getByTestId('onboarding-promise-input'),
+      'Read ten pages before bed'
+    );
+    fireEvent.press(screen.getByTestId('onboarding-draft-continue'));
+    expect(screen.queryByTestId('onboarding-proof-ipad-rail')).toBeNull();
+    expect(screen.getByTestId('onboarding-proof-ipad-summary')).toBeTruthy();
+    fireEvent.press(screen.getByTestId('onboarding-proof-photo'));
+    fireEvent.press(screen.getByTestId('onboarding-accountability-new_group'));
+    expect(screen.getByTestId('onboarding-proof-continue')).not.toBeDisabled();
   });
 
   it('keeps long entry and terminal setup content scrollable above fixed actions', async () => {
@@ -643,7 +784,7 @@ describe('Paper onboarding flow', () => {
     });
     const screen = render(<OnboardingScreen />);
 
-    fireEvent.press(screen.getByTestId('onboarding-start'));
+    startPromiseSetup(screen);
     const input = screen.getByTestId('onboarding-promise-input');
     fireEvent(input, 'focus');
     fireEvent.changeText(input, longPromiseFixture);
@@ -749,7 +890,7 @@ describe('Paper onboarding flow', () => {
         return 1;
       });
     const screen = render(<OnboardingScreen />);
-    fireEvent.press(screen.getByTestId('onboarding-start'));
+    startPromiseSetup(screen);
     const draftBody = screen.getByTestId('onboarding-draft-body');
     const promiseField = screen.getByTestId('onboarding-promise-field');
 
@@ -792,7 +933,7 @@ describe('Paper onboarding flow', () => {
     const screen = render(<OnboardingScreen />);
     const welcomeRoot = screen.getByTestId('onboarding-screen-root');
 
-    fireEvent.press(screen.getByTestId('onboarding-start'));
+    startPromiseSetup(screen);
     const draftRoot = screen.getByTestId('onboarding-screen-root');
     expect(draftRoot).not.toBe(welcomeRoot);
     fireEvent.changeText(
@@ -811,13 +952,13 @@ describe('Paper onboarding flow', () => {
       'value',
       'Walk after dinner tonight'
     );
-    expect(screen.getByText('What’s one thing you want to do?')).toHaveStyle({
-      fontSize: 39,
-      lineHeight: 45.5,
+    expect(screen.getByTestId('onboarding-draft-narrator-text')).toHaveStyle({
+      fontSize: 23.4,
+      lineHeight: 32.5,
     });
   });
 
-  it('measures every onboarding step with the large-phone text envelope', () => {
+  it('measures every onboarding step with the large-phone text envelope', async () => {
     mockPhoneLayout = resolvePhoneLayout({
       width: 430,
       height: 932,
@@ -832,14 +973,26 @@ describe('Paper onboarding flow', () => {
       expect(style.lineHeight).toBeGreaterThanOrEqual(49);
     };
 
+    const expectScaledNarrator = (testID: string, copy: string) => {
+      const narrator = screen.getByTestId(testID);
+      expect(narrator).toHaveProp('accessibilityLabel', copy);
+      expect(narrator).toHaveProp('allowFontScaling', false);
+      const style = StyleSheet.flatten(narrator.props.style);
+      expect(style.fontSize).toBeGreaterThanOrEqual(25);
+      expect(style.lineHeight).toBeGreaterThanOrEqual(35);
+    };
+
     const welcomeTitle = screen.getByText(
       'Keep the promises you make to yourself.'
     );
     expect(welcomeTitle).toHaveProp('allowFontScaling', false);
     expect(welcomeTitle).toHaveStyle({ fontSize: 43.4, lineHeight: 51.8 });
 
-    fireEvent.press(screen.getByTestId('onboarding-start'));
-    expectScaledHeading('What’s one thing you want to do?');
+    startPromiseSetup(screen);
+    expectScaledNarrator(
+      'onboarding-draft-narrator-text',
+      'What’s one thing you want to do?'
+    );
     expect(screen.getByTestId('onboarding-promise-input')).toHaveProp(
       'allowFontScaling',
       false
@@ -858,29 +1011,33 @@ describe('Paper onboarding flow', () => {
       'Walk for 20 minutes after work'
     );
     fireEvent.press(screen.getByTestId('onboarding-draft-continue'));
-    expectScaledHeading('How will you show you did it?');
+    expectScaledNarrator(
+      'onboarding-proof-narrator-text',
+      'When it’s done, how will you show me?'
+    );
     fireEvent.press(screen.getByTestId('onboarding-proof-photo'));
     fireEvent.press(screen.getByTestId('onboarding-accountability-new_group'));
     fireEvent.press(screen.getByTestId('onboarding-proof-continue'));
-    expectScaledHeading('How long do you want to keep this promise?');
-    expect(
-      screen.getByText('Choose a length you can genuinely follow through on.')
-    ).toHaveStyle({ fontSize: 21, lineHeight: 32.2 });
+    expectScaledNarrator(
+      'onboarding-duration-narrator-text',
+      'How long do you want to keep it going?'
+    );
     fireEvent.press(screen.getByTestId('onboarding-duration-continue'));
     expectScaledHeading('Review your promise');
     fireEvent.press(screen.getByTestId('onboarding-preview-continue'));
     expect(screen.getByTestId('onboarding-momenta-gift-title')).toHaveStyle({
-      fontSize: 58.8,
-      lineHeight: 64.4,
+      fontSize: 50.4,
+      lineHeight: 57.4,
     });
     fireEvent.press(screen.getByTestId('onboarding-momenta-gift-continue'));
-    fireEvent.press(
-      screen.getByTestId('notification-privacy-education-not-now')
-    );
+    await continueNotificationStep(screen);
+    expect(screen.getByTestId('onboarding-auth-legal-surface')).toBeTruthy();
+    fireEvent.press(screen.getByTestId('onboarding-auth-legal-confirmation'));
+    fireEvent.press(screen.getByTestId('onboarding-auth-legal-continue'));
     expectScaledHeading('Save your promise');
     expect(
-      screen.getByTestId('onboarding-auth-legal-confirmation')
-    ).toBeTruthy();
+      screen.queryByTestId('onboarding-auth-legal-confirmation')
+    ).toBeNull();
   });
 
   it.each([
@@ -889,7 +1046,7 @@ describe('Paper onboarding flow', () => {
       height: 568,
       fontScale: 1,
       inset: 20,
-      welcomeMascot: 233,
+      welcomeMascot: 260,
       giftMascot: 152,
     },
     {
@@ -897,36 +1054,36 @@ describe('Paper onboarding flow', () => {
       height: 844,
       fontScale: 1,
       inset: 24,
-      welcomeMascot: 437,
-      giftMascot: 176,
+      welcomeMascot: 390,
+      giftMascot: 184,
     },
     {
       width: 430,
       height: 932,
       fontScale: 1,
       inset: 24,
-      welcomeMascot: 482,
-      giftMascot: 192,
+      welcomeMascot: 430,
+      giftMascot: 224,
     },
     {
       width: 390,
       height: 844,
       fontScale: 1.3,
       inset: 24,
-      welcomeMascot: 437,
-      giftMascot: 176,
+      welcomeMascot: 390,
+      giftMascot: 184,
     },
     {
       width: 430,
       height: 932,
       fontScale: 2.35,
       inset: 24,
-      welcomeMascot: 482,
-      giftMascot: 192,
+      welcomeMascot: 430,
+      giftMascot: 224,
     },
   ])(
     'keeps onboarding readable at $width×$height and font scale $fontScale',
-    frame => {
+    async frame => {
       mockPhoneLayout = resolvePhoneLayout(frame);
       const scaledType = (value: number) =>
         Math.round(value * mockPhoneLayout.textScale * 10) / 10;
@@ -939,7 +1096,7 @@ describe('Paper onboarding flow', () => {
         width: frame.welcomeMascot,
       });
 
-      fireEvent.press(screen.getByTestId('onboarding-start'));
+      startPromiseSetup(screen);
       expect(
         StyleSheet.flatten(
           screen.getByTestId('onboarding-draft-body').props
@@ -983,9 +1140,7 @@ describe('Paper onboarding flow', () => {
       if (frame.fontScale > 1) {
         expect(
           StyleSheet.flatten(
-            screen.getByText(
-              'Choose a length you can genuinely follow through on.'
-            ).props.style
+            screen.getByTestId('onboarding-duration-narrator-text').props.style
           ).lineHeight
         ).toBeGreaterThan(mentaTypography.bodySmall.lineHeight);
       }
@@ -998,50 +1153,37 @@ describe('Paper onboarding flow', () => {
       });
       const giftBody = screen.getByTestId('onboarding-momenta-gift');
       fireEvent.press(screen.getByTestId('onboarding-momenta-gift-continue'));
-      fireEvent.press(
-        screen.getByTestId('notification-privacy-education-not-now')
-      );
-      const authBody = screen.getByTestId('onboarding-auth-body');
+      await continueNotificationStep(screen);
+      let authBody = screen.getByTestId('onboarding-auth-body');
       expect(authBody).not.toBe(giftBody);
       expect(
         StyleSheet.flatten(authBody.props.contentContainerStyle)
           .paddingHorizontal
       ).toBe(frame.inset);
       expect(authBody).toHaveStyle({ flex: 1 });
-      expect(screen.getByText('Read the current terms.')).toBeTruthy();
       expect(
-        screen.getByText('Rules for promises, proof and groups.')
+        screen.getByLabelText(
+          'Terms of Use. How your account and promises work.'
+        )
       ).toBeTruthy();
       expect(
-        screen.getByText('How Menta handles your information.')
+        screen.getByLabelText(
+          'Community Standards. Keep proof safe for work. Respect other people’s privacy.'
+        )
+      ).toBeTruthy();
+      expect(
+        screen.getByLabelText(
+          'Privacy Policy. What Menta collects and how it’s used.'
+        )
       ).toBeTruthy();
       expect(screen.queryByTestId('onboarding-marketing-opt-in')).toBeNull();
       expect(screen.getByTestId('onboarding-header-back')).toHaveStyle({
         minHeight: mentaLayout.minimumTouchTarget,
       });
       if (frame.fontScale > 1) {
-        expect(screen.getByText('Save your promise')).toHaveProp(
-          'allowFontScaling',
-          false
-        );
-        expect(screen.getByText('Save your promise')).toHaveStyle({
-          fontSize: scaledType(mentaTypography.heading.fontSize),
-          lineHeight: scaledType(mentaTypography.heading.lineHeight),
-        });
-        expect(
-          screen.getByText(
-            'Choose how you want to continue. Your draft stays on this phone.'
-          )
-        ).toHaveStyle({
-          fontSize: scaledType(mentaTypography.bodySmall.fontSize),
-          lineHeight: scaledType(
-            mentaTypography.bodySmall.lineHeight +
-              mockPhoneLayout.bodyLineHeightBoost
-          ),
-        });
-        expect(screen.getByText('Read the current terms.')).toHaveStyle({
-          fontSize: scaledType(mentaTypography.caption.fontSize),
-          lineHeight: scaledType(mentaTypography.caption.lineHeight),
+        expect(screen.getByText('Terms of Use')).toHaveStyle({
+          fontSize: scaledType(mentaTypography.bodySemibold.fontSize),
+          lineHeight: scaledType(mentaTypography.bodySemibold.lineHeight),
         });
         expect(
           screen.getByText(
@@ -1051,15 +1193,15 @@ describe('Paper onboarding flow', () => {
           fontSize: scaledType(mentaTypography.bodySmall.fontSize),
           lineHeight: scaledType(mentaTypography.bodySmall.lineHeight),
         });
-        fireEvent.press(
-          screen.getByTestId('onboarding-auth-legal-confirmation')
-        );
-        fireEvent.press(screen.getByTestId('onboarding-auth-legal-continue'));
-        expect(screen.getByText('Continue with Apple')).toHaveStyle({
-          fontSize: scaledType(mentaTypography.control.fontSize),
-          lineHeight: scaledType(mentaTypography.control.lineHeight),
-        });
       }
+      fireEvent.press(screen.getByTestId('onboarding-auth-legal-confirmation'));
+      fireEvent.press(screen.getByTestId('onboarding-auth-legal-continue'));
+      authBody = screen.getByTestId('onboarding-auth-body');
+      expect(screen.getByText('Save your promise')).toHaveProp(
+        'allowFontScaling',
+        false
+      );
+      expect(screen.getByTestId('onboarding-continue-apple')).toBeEnabled();
       act(() => {
         authBody.props.onLayout({
           nativeEvent: { layout: { height: 500 } },
@@ -1089,18 +1231,20 @@ describe('Paper onboarding flow', () => {
       ).toBeTruthy();
       if (frame.fontScale > 1) {
         expect(screen.getByText('Save your promise')).toHaveStyle({
-          fontSize: scaledType(mentaTypography.heading.fontSize),
-          lineHeight: scaledType(mentaTypography.heading.lineHeight),
+          fontSize: scaledType(32),
+          lineHeight: scaledType(36),
         });
         expect(screen.getByText('Continue with Apple')).toHaveStyle({
           fontSize: scaledType(mentaTypography.control.fontSize),
           lineHeight: scaledType(mentaTypography.control.lineHeight),
         });
       }
-      expect(screen.getByText('‹ Promise')).toBeTruthy();
+      expect(screen.getByText('‹ Terms of Use')).toBeTruthy();
       if (frame.fontScale > 1) {
         fireEvent.press(screen.getByTestId('onboarding-header-back'));
-        expect(screen.getByTestId('onboarding-momenta-gift')).toBeTruthy();
+        expect(
+          screen.getByTestId('onboarding-auth-legal-surface')
+        ).toBeTruthy();
       }
     }
   );
@@ -1140,7 +1284,7 @@ describe('Paper onboarding flow', () => {
   it('keeps an empty promise in context with progression disabled', () => {
     const screen = render(<OnboardingScreen />);
 
-    fireEvent.press(screen.getByTestId('onboarding-start'));
+    startPromiseSetup(screen);
     expect(
       screen.getByTestId('onboarding-draft-continue').props.accessibilityState
     ).toMatchObject({ disabled: true });
@@ -1151,7 +1295,7 @@ describe('Paper onboarding flow', () => {
   it('lets proof radio rows grow when Dynamic Type content wraps', () => {
     const screen = render(<OnboardingScreen />);
 
-    fireEvent.press(screen.getByTestId('onboarding-start'));
+    startPromiseSetup(screen);
     fireEvent.changeText(
       screen.getByTestId('onboarding-promise-input'),
       'Walk for 20 minutes after work'
@@ -1166,7 +1310,7 @@ describe('Paper onboarding flow', () => {
       selected: false,
     });
     expect(rowStyle).toMatchObject({
-      minHeight: 68,
+      minHeight: 88,
       paddingVertical: 12,
     });
     expect(rowStyle.height).toBeUndefined();
@@ -1181,7 +1325,7 @@ describe('Paper onboarding flow', () => {
     });
     const screen = render(<OnboardingScreen />);
 
-    fireEvent.press(screen.getByTestId('onboarding-start'));
+    startPromiseSetup(screen);
     fireEvent.changeText(
       screen.getByTestId('onboarding-promise-input'),
       'Walk for 20 minutes after work, then write down what changed and what I want to repeat tomorrow before I finish the day.'
@@ -1208,7 +1352,7 @@ describe('Paper onboarding flow', () => {
   it('preserves the first promise through proof choice and auth handoff', async () => {
     const screen = render(<OnboardingScreen />);
 
-    fireEvent.press(screen.getByTestId('onboarding-start'));
+    startPromiseSetup(screen);
 
     const input = screen.getByTestId('onboarding-promise-input');
     fireEvent.changeText(input, 'Walk for 20 minutes after work');
@@ -1236,12 +1380,11 @@ describe('Paper onboarding flow', () => {
     fireEvent.press(screen.getByTestId('onboarding-preview-continue'));
     expect(screen.getByTestId('onboarding-momenta-gift')).toBeTruthy();
     fireEvent.press(screen.getByTestId('onboarding-momenta-gift-continue'));
-    fireEvent.press(
-      screen.getByTestId('notification-privacy-education-not-now')
-    );
-    expect(screen.getByText('Save your promise')).toBeTruthy();
+    await continueNotificationStep(screen);
+    expect(screen.queryByText('Save your promise')).toBeNull();
     fireEvent.press(screen.getByTestId('onboarding-auth-legal-confirmation'));
     fireEvent.press(screen.getByTestId('onboarding-auth-legal-continue'));
+    expect(screen.getByText('Save your promise')).toBeTruthy();
     expect(screen.queryByText('Return after sign-in')).toBeNull();
     expect(screen.queryByText('Draft saved on this phone')).toBeNull();
     fireEvent.press(screen.getByTestId('onboarding-continue-email'));
@@ -1269,7 +1412,7 @@ describe('Paper onboarding flow', () => {
   it('persists new-group accountability as a next action without claiming creation', async () => {
     const screen = render(<OnboardingScreen />);
 
-    fireEvent.press(screen.getByTestId('onboarding-start'));
+    startPromiseSetup(screen);
     fireEvent.changeText(
       screen.getByTestId('onboarding-promise-input'),
       'Walk for 20 minutes after work'
@@ -1278,10 +1421,10 @@ describe('Paper onboarding flow', () => {
     fireEvent.press(screen.getByTestId('onboarding-proof-note'));
     fireEvent.press(screen.getByTestId('onboarding-accountability-new_group'));
 
-    expect(screen.getByText('Invite someone')).toBeTruthy();
+    expect(screen.getByText('Someone I trust')).toBeTruthy();
     expect(
       screen.getByText(
-        'Your promise is saved and still private. Choose how someone can help, then decide who to invite.'
+        'They see your proof and tap to confirm it. You’ll invite them after you save.'
       )
     ).toBeTruthy();
     expect(screen.queryByText(/name (?:the|your) group/i)).toBeNull();
@@ -1339,7 +1482,7 @@ describe('Paper onboarding flow', () => {
     });
     const screen = render(<OnboardingScreen />);
 
-    fireEvent.press(screen.getByTestId('onboarding-start'));
+    startPromiseSetup(screen);
     fireEvent.changeText(
       screen.getByTestId('onboarding-promise-input'),
       'Walk for 20 minutes after work'
@@ -1352,8 +1495,7 @@ describe('Paper onboarding flow', () => {
     fireEvent.press(screen.getByTestId('onboarding-duration-continue'));
     fireEvent.press(screen.getByTestId('onboarding-preview-continue'));
     fireEvent.press(screen.getByTestId('onboarding-momenta-gift-continue'));
-    expect(screen.getByText('Save your promise')).toBeTruthy();
-    createFromCombinedAuth(screen);
+    fireEvent.press(await prepareCreationAction(screen));
 
     expect(
       screen.getByTestId('onboarding-auth-create-promise').props
@@ -1374,9 +1516,7 @@ describe('Paper onboarding flow', () => {
     expect(await screen.findByText('Your promise is ready.')).toBeTruthy();
     expect(
       StyleSheet.flatten(
-        screen.getByText(
-          'Menta saved the promise and confirmed your account from the same server receipt.'
-        ).props.style
+        screen.getByTestId('onboarding-receipt-continuation').props.style
       ).lineHeight
     ).toBeGreaterThan(mentaTypography.bodySmall.lineHeight);
     expect(mockActivationStatusRpc.mock.contexts[0]).toBe(supabase);
@@ -1413,9 +1553,7 @@ describe('Paper onboarding flow', () => {
       source: 'promise-creation',
     });
     expect(
-      screen.getByText(
-        'Menta saved the promise and confirmed your account from the same server receipt.'
-      )
+      screen.getByRole('image', { name: 'Promise saved and confirmed' })
     ).toBeTruthy();
     expect(screen.getByText('Walk for 20 minutes after work')).toBeTruthy();
     expect(screen.getByText('Next due')).toBeTruthy();
@@ -1483,7 +1621,7 @@ describe('Paper onboarding flow', () => {
       },
     });
     const screen = render(<OnboardingScreen />);
-    reachAuthMethod(screen);
+    await reachAuthMethod(screen);
 
     const skipButton = screen.getByTestId('onboarding-auth-create-promise');
     act(() => {
@@ -1537,7 +1675,7 @@ describe('Paper onboarding flow', () => {
     });
     const screen = render(<OnboardingScreen />);
 
-    fireEvent.press(screen.getByTestId('onboarding-start'));
+    startPromiseSetup(screen);
     fireEvent.changeText(
       screen.getByTestId('onboarding-promise-input'),
       'Walk for 20 minutes after work'
@@ -1550,7 +1688,7 @@ describe('Paper onboarding flow', () => {
     fireEvent.press(screen.getByTestId('onboarding-preview-continue'));
     fireEvent.press(screen.getByTestId('onboarding-momenta-gift-continue'));
 
-    createFromCombinedAuth(screen, referralCode);
+    fireEvent.press(await prepareCreationAction(screen, referralCode));
 
     expect(await screen.findByText('Your promise is ready.')).toBeTruthy();
     expect(mockSetPendingReferral).toHaveBeenCalledWith(
@@ -1591,13 +1729,13 @@ describe('Paper onboarding flow', () => {
       error: null,
     });
     const screen = render(<OnboardingScreen />);
-    reachAuthMethod(screen);
+    await reachAuthMethod(screen);
 
     fireEvent.changeText(
       screen.getByTestId('onboarding-auth-referral-code'),
       typedCode
     );
-    createFromCombinedAuth(screen, typedCode);
+    fireEvent.press(await prepareCreationAction(screen, typedCode));
 
     expect(
       await screen.findByText(/different referral code is already saved/)
@@ -1615,9 +1753,9 @@ describe('Paper onboarding flow', () => {
     mockAuthUser = { id: 'cancel-failed-user' };
     mockCancelPendingReferral.mockResolvedValueOnce(false);
     const screen = render(<OnboardingScreen />);
-    reachAuthMethod(screen);
+    await reachAuthMethod(screen);
 
-    createFromCombinedAuth(screen);
+    fireEvent.press(await prepareCreationAction(screen));
 
     expect(await screen.findByTestId('onboarding-auth-error')).toBeTruthy();
     expect(screen.getByText(/referral was skipped/i)).toBeTruthy();
@@ -1655,7 +1793,7 @@ describe('Paper onboarding flow', () => {
     });
     const screen = render(<OnboardingScreen />);
 
-    fireEvent.press(screen.getByTestId('onboarding-start'));
+    startPromiseSetup(screen);
     fireEvent.changeText(
       screen.getByTestId('onboarding-promise-input'),
       'Walk for 20 minutes after work'
@@ -1667,7 +1805,7 @@ describe('Paper onboarding flow', () => {
     fireEvent.press(screen.getByTestId('onboarding-duration-continue'));
     fireEvent.press(screen.getByTestId('onboarding-preview-continue'));
     fireEvent.press(screen.getByTestId('onboarding-momenta-gift-continue'));
-    createFromCombinedAuth(screen);
+    fireEvent.press(await prepareCreationAction(screen));
 
     expect(await screen.findByText('Your promise is ready.')).toBeTruthy();
     expect(mockCreateFirstPromiseWithPayment).not.toHaveBeenCalled();
@@ -1696,7 +1834,7 @@ describe('Paper onboarding flow', () => {
     });
     const screen = render(<OnboardingScreen />);
 
-    fireEvent.press(screen.getByTestId('onboarding-start'));
+    startPromiseSetup(screen);
     fireEvent.changeText(
       screen.getByTestId('onboarding-promise-input'),
       'Walk for 20 minutes after work'
@@ -1708,7 +1846,7 @@ describe('Paper onboarding flow', () => {
     fireEvent.press(screen.getByTestId('onboarding-duration-continue'));
     fireEvent.press(screen.getByTestId('onboarding-preview-continue'));
     fireEvent.press(screen.getByTestId('onboarding-momenta-gift-continue'));
-    createFromCombinedAuth(screen);
+    fireEvent.press(await prepareCreationAction(screen));
 
     expect(
       await screen.findByText(/could not confirm whether your first promise/)
@@ -1732,9 +1870,9 @@ describe('Paper onboarding flow', () => {
       receipt: null,
     });
     const screen = render(<OnboardingScreen />);
-    reachAuthMethod(screen);
+    await reachAuthMethod(screen);
 
-    createFromCombinedAuth(screen);
+    fireEvent.press(await prepareCreationAction(screen));
     await waitFor(() =>
       expect(
         screen.getByTestId('onboarding-auth-legal-confirmation').props
@@ -1778,7 +1916,7 @@ describe('Paper onboarding flow', () => {
     });
     const screen = render(<OnboardingScreen />);
 
-    fireEvent.press(screen.getByTestId('onboarding-start'));
+    startPromiseSetup(screen);
     fireEvent.changeText(
       screen.getByTestId('onboarding-promise-input'),
       'Walk for 20 minutes after work'
@@ -1790,7 +1928,7 @@ describe('Paper onboarding flow', () => {
     fireEvent.press(screen.getByTestId('onboarding-duration-continue'));
     fireEvent.press(screen.getByTestId('onboarding-preview-continue'));
     fireEvent.press(screen.getByTestId('onboarding-momenta-gift-continue'));
-    createFromCombinedAuth(screen);
+    fireEvent.press(await prepareCreationAction(screen));
     expect(await screen.findByText('Your promise is ready.')).toBeTruthy();
 
     mockAuthUser = { id: 'second-user' };
@@ -1819,9 +1957,9 @@ describe('Paper onboarding flow', () => {
         })
     );
     const screen = render(<OnboardingScreen />);
-    reachAuthMethod(screen);
+    await reachAuthMethod(screen);
 
-    createFromCombinedAuth(screen);
+    fireEvent.press(await prepareCreationAction(screen));
     await waitFor(() =>
       expect(mockActivationStatusRpc).toHaveBeenCalledTimes(1)
     );
@@ -1844,7 +1982,7 @@ describe('Paper onboarding flow', () => {
   it('locks the email handoff while its draft save is pending', async () => {
     let resolveSave: (() => void) | undefined;
     const screen = render(<OnboardingScreen />);
-    reachAuthMethod(screen);
+    await reachAuthMethod(screen);
     mockSaveOnboardingDraft.mockClear();
     mockSaveOnboardingDraft.mockImplementationOnce(
       () =>
@@ -1870,7 +2008,7 @@ describe('Paper onboarding flow', () => {
 
   it('keeps the email handoff retryable when draft persistence fails', async () => {
     const screen = render(<OnboardingScreen />);
-    reachAuthMethod(screen);
+    await reachAuthMethod(screen);
     mockSaveOnboardingDraft.mockClear();
     mockSaveOnboardingDraft.mockRejectedValueOnce(new Error('storage full'));
 
@@ -1895,7 +2033,7 @@ describe('Paper onboarding flow', () => {
         })
     );
     const screen = render(<OnboardingScreen />);
-    reachAuthMethod(screen);
+    await reachAuthMethod(screen);
 
     fireEvent.press(screen.getByTestId('onboarding-continue-google'));
 
@@ -1919,17 +2057,23 @@ describe('Paper onboarding flow', () => {
     );
   });
 
-  it('keeps sign-in separate until required legal consent is selected', () => {
+  it('keeps sign-in separate until required legal consent is selected', async () => {
     const screen = render(<OnboardingScreen />);
-    reachAuthMethod(screen, undefined, true, false, false);
+    await reachAuthMethod(screen, undefined, true, false, false);
 
     expect(screen.getByText('‹ Promise')).toBeTruthy();
-    expect(screen.getByText('Read the current terms.')).toBeTruthy();
     expect(
-      screen.getByText('Rules for promises, proof and groups.')
+      screen.getByLabelText('Terms of Use. How your account and promises work.')
     ).toBeTruthy();
     expect(
-      screen.getByText('How Menta handles your information.')
+      screen.getByLabelText(
+        'Community Standards. Keep proof safe for work. Respect other people’s privacy.'
+      )
+    ).toBeTruthy();
+    expect(
+      screen.getByLabelText(
+        'Privacy Policy. What Menta collects and how it’s used.'
+      )
     ).toBeTruthy();
     expect(screen.queryByText('Read document')).toBeNull();
     expect(screen.queryByTestId('onboarding-marketing-opt-in')).toBeNull();
@@ -1970,10 +2114,11 @@ describe('Paper onboarding flow', () => {
       marketingOptIn: true,
       updatedAt: new Date().toISOString(),
       ownerUserId: 'google-user',
+      notificationEducationHandled: true,
       resumeStep: 'auth_method' as const,
     };
     const screen = render(<OnboardingScreen />);
-    reachAuthMethod(screen);
+    await reachAuthMethod(screen);
     await waitFor(() =>
       expect(mockLoadOnboardingDraftForUser).toHaveBeenCalledTimes(1)
     );
@@ -2019,10 +2164,11 @@ describe('Paper onboarding flow', () => {
       marketingOptIn: false,
       updatedAt: new Date().toISOString(),
       ownerUserId: 'google-user',
+      notificationEducationHandled: true,
       resumeStep: 'auth_method' as const,
     };
     const screen = render(<OnboardingScreen />);
-    reachAuthMethod(screen);
+    await reachAuthMethod(screen);
     await waitFor(() =>
       expect(mockLoadOnboardingDraftForUser).toHaveBeenCalledTimes(1)
     );
@@ -2049,10 +2195,11 @@ describe('Paper onboarding flow', () => {
       marketingOptIn: true,
       updatedAt: new Date().toISOString(),
       ownerUserId: 'google-user',
+      notificationEducationHandled: true,
       resumeStep: 'auth_method' as const,
     };
     const screen = render(<OnboardingScreen />);
-    reachAuthMethod(screen);
+    await reachAuthMethod(screen);
     await waitFor(() =>
       expect(mockLoadOnboardingDraftForUser).toHaveBeenCalledTimes(1)
     );
@@ -2108,6 +2255,7 @@ describe('Paper onboarding flow', () => {
       marketingOptIn: false,
       updatedAt: new Date().toISOString(),
       ownerUserId: 'google-user',
+      notificationEducationHandled: true,
       resumeStep: 'auth_method' as const,
     });
     mockGetMyLegalAcceptanceStatus
@@ -2169,9 +2317,9 @@ describe('Paper onboarding flow', () => {
     );
   });
 
-  it('keeps the auth method full-lane and scroll-safe within the phone frame', () => {
+  it('keeps the auth method full-lane and scroll-safe within the phone frame', async () => {
     const screen = render(<OnboardingScreen />);
-    reachAuthMethod(screen);
+    await reachAuthMethod(screen);
     const contentStyle = StyleSheet.flatten(
       screen.getByTestId('onboarding-auth-body').props.contentContainerStyle
     );
@@ -2180,11 +2328,11 @@ describe('Paper onboarding flow', () => {
     expect(contentStyle).toEqual(
       expect.objectContaining({
         flexGrow: 1,
-        justifyContent: 'flex-start',
+        justifyContent: 'center',
         maxWidth: 430,
-        paddingBottom: 40,
+        paddingBottom: 72,
         paddingHorizontal: 24,
-        paddingTop: 24,
+        paddingTop: 0,
         width: '100%',
       })
     );
@@ -2196,13 +2344,13 @@ describe('Paper onboarding flow', () => {
     });
     expect(screen.getByText('Save your promise')).toHaveStyle({
       fontSize: 32,
-      lineHeight: mentaTypography.heading.lineHeight,
+      lineHeight: 36,
     });
   });
 
   it('lets a signed-out user defer authentication and return to preview', async () => {
     const screen = render(<OnboardingScreen />);
-    reachAuthMethod(screen);
+    await reachAuthMethod(screen);
 
     fireEvent.press(screen.getByTestId('onboarding-auth-not-now'));
 
@@ -2229,7 +2377,7 @@ describe('Paper onboarding flow', () => {
       new Error('Sign-in was cancelled')
     );
     const screen = render(<OnboardingScreen />);
-    reachAuthMethod(screen);
+    await reachAuthMethod(screen);
 
     fireEvent.press(screen.getByTestId('onboarding-continue-google'));
 
@@ -2254,7 +2402,7 @@ describe('Paper onboarding flow', () => {
     ).toBeTruthy();
   });
 
-  it('restores the auth method after a native handoff remount', async () => {
+  it('restores legal review for a legacy signed-out handoff without stored consent', async () => {
     mockLoadOnboardingDraftForUser.mockResolvedValueOnce({
       version: 3,
       promise: 'Walk for 20 minutes after work',
@@ -2262,19 +2410,22 @@ describe('Paper onboarding flow', () => {
       durationDays: 14,
       updatedAt: new Date().toISOString(),
       ownerUserId: null,
+      notificationEducationHandled: true,
       resumeStep: 'auth_method',
     });
 
     const screen = render(<OnboardingScreen />);
 
-    expect(await screen.findByText('Save your promise')).toBeTruthy();
+    expect(
+      await screen.findByTestId('onboarding-auth-legal-surface')
+    ).toBeTruthy();
     expect(
       screen.getByTestId('onboarding-auth-legal-confirmation')
     ).toBeTruthy();
     expect(screen.queryByText('Continue with Google')).toBeNull();
     expect(
       screen.getByText(
-        'Choose how you want to continue. Your draft stays on this phone.'
+        'Read the current account and community documents before you create your promise.'
       )
     ).toBeTruthy();
   });
@@ -2328,6 +2479,18 @@ describe('Paper onboarding flow', () => {
       userId: 'legal-return-user',
       accepted: true,
       requiresAcceptance: false,
+      reason: 'current',
+      current: currentLegalDocuments,
+      enforcement: { promiseCreationRequired: true },
+      receipt: {
+        id: 'legal-receipt-1',
+        acceptedAt: new Date().toISOString(),
+        surface: 'post_auth',
+        appVersion: '1.9.4',
+        appBuild: '158',
+        platform: 'ios',
+        locale: 'en-NZ',
+      },
     });
 
     const screen = render(<OnboardingScreen />);
@@ -2338,10 +2501,61 @@ describe('Paper onboarding flow', () => {
       expect.objectContaining({ marketing_email_opt_in: true })
     );
     expect(mockSaveOnboardingDraft).toHaveBeenCalledWith(
-      expect.objectContaining({ durationDays: 30 }),
+      expect.objectContaining({
+        durationDays: 30,
+        legalConsentAt: expect.any(String),
+        legalConsentVersions: currentLegalVersionTuple,
+      }),
       'legal-return-user',
       null
     );
+  });
+
+  it('requires review when the current documents are newer than the returned receipt', async () => {
+    mockAuthUser = { id: 'changed-doc-user' };
+    mockRouteParams = { resume: 'legal-accepted' };
+    const newerDocuments = {
+      ...currentLegalDocuments,
+      terms: { ...currentLegalDocuments.terms, version: '2026-09-01' },
+    };
+    mockGetCurrentLegalDocuments.mockResolvedValue(newerDocuments);
+    mockLoadOnboardingDraftForUser.mockResolvedValueOnce({
+      version: 3,
+      promise: 'Walk after work',
+      proofType: 'photo',
+      durationDays: 14,
+      notificationEducationHandled: true,
+      marketingOptIn: false,
+      updatedAt: new Date().toISOString(),
+      ownerUserId: 'changed-doc-user',
+      resumeStep: 'legal_acceptance',
+    });
+    mockGetMyLegalAcceptanceStatus.mockResolvedValue({
+      userId: 'changed-doc-user',
+      accepted: true,
+      requiresAcceptance: false,
+      current: currentLegalDocuments,
+      receipt: { acceptedAt: new Date().toISOString() },
+    });
+
+    const screen = render(<OnboardingScreen />);
+
+    await waitFor(() =>
+      expect(mockSaveOnboardingDraft).toHaveBeenCalledWith(
+        expect.objectContaining({
+          legalConsentVersions: currentLegalVersionTuple,
+        }),
+        'changed-doc-user',
+        null
+      )
+    );
+    expect(
+      await screen.findByTestId('onboarding-auth-legal-surface')
+    ).toBeTruthy();
+    expect(screen.getByTestId('onboarding-auth-legal-continue')).toBeDisabled();
+    expect(screen.queryByTestId('onboarding-continue-google')).toBeNull();
+    expect(mockAcceptCurrentLegalDocuments).not.toHaveBeenCalled();
+    expect(mockCreateFirstPromiseWithPayment).not.toHaveBeenCalled();
   });
 
   it('keeps a legal-declined return at review without saving marketing', async () => {
@@ -2360,13 +2574,16 @@ describe('Paper onboarding flow', () => {
 
     const screen = render(<OnboardingScreen />);
 
-    expect(await screen.findByText('Save your promise')).toBeTruthy();
+    expect(
+      await screen.findByTestId('onboarding-auth-legal-surface')
+    ).toBeTruthy();
     expect(screen.getByText(/Legal review was not completed/)).toBeTruthy();
     expect(mockUpdateUserPreferences).not.toHaveBeenCalled();
   });
 
   it('continues an authenticated auth handoff after the gift without repeating providers', async () => {
     mockAuthUser = { id: 'email-user' };
+    mockActivationStatusRpc.mockReturnValueOnce(new Promise(() => {}));
     mockLoadOnboardingDraftForUser.mockResolvedValueOnce({
       version: 3,
       promise: 'Walk for 20 minutes after work',
@@ -2374,12 +2591,15 @@ describe('Paper onboarding flow', () => {
       durationDays: 14,
       updatedAt: new Date().toISOString(),
       ownerUserId: 'email-user',
+      notificationEducationHandled: true,
       resumeStep: 'auth_method',
     });
 
     const screen = render(<OnboardingScreen />);
 
-    expect(await screen.findByText('Save your promise')).toBeTruthy();
+    await waitFor(() =>
+      expect(mockActivationStatusRpc).toHaveBeenCalledTimes(1)
+    );
     expect(screen.queryByText('Continue with Google')).toBeNull();
     expect(screen.queryByTestId('onboarding-momenta-gift')).toBeNull();
     expect(mockLoadOnboardingDraftForUser).toHaveBeenCalledWith({
@@ -2393,7 +2613,7 @@ describe('Paper onboarding flow', () => {
       new Error('Provider unavailable')
     );
     const screen = render(<OnboardingScreen />);
-    reachAuthMethod(screen);
+    await reachAuthMethod(screen);
 
     fireEvent.press(screen.getByTestId('onboarding-continue-google'));
 
@@ -2413,14 +2633,6 @@ describe('Paper onboarding flow', () => {
 
   it('keeps a treatment draft unactivated when checkout is closed and rechecks access before creating it', async () => {
     mockAuthUser = { id: 'paywall-member' };
-    // Earlier cases queue one-shot legal results that clearAllMocks does not
-    // drop. This journey needs a current receipt before checkout can open.
-    mockGetMyLegalAcceptanceStatus.mockReset();
-    mockGetMyLegalAcceptanceStatus.mockResolvedValue({
-      userId: 'paywall-member',
-      accepted: true,
-      requiresAcceptance: false,
-    });
     mockLoadOnboardingDraftForUser.mockResolvedValueOnce({
       version: 3,
       promise: 'Walk after lunch',

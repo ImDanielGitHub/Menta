@@ -12,6 +12,8 @@ import {
   Pressable,
   ScrollView,
   Linking,
+  Platform,
+  useWindowDimensions,
   type ViewStyle,
   type TextStyle,
 } from 'react-native';
@@ -26,7 +28,6 @@ import { useOperationalFlag } from '@/hooks/useOperationalFlag';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppInlineNotice } from '@/components/ui/AppFeedback';
 import { showToast } from '@/components/ui/Toast';
-import { Badge } from '@/components/ui/Badge';
 import { ModalCard } from '@/components/ui/modal/ModalCard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
@@ -58,12 +59,21 @@ import { getPaywallAnalyticsPlacement } from '@/lib/product-analytics';
 import { trackProductEvent } from '@/lib/posthog';
 import { setAmplitudeSessionReplayHold } from '@/lib/amplitude';
 import { useTranslation } from '@/lib/localization/use-translation';
+import {
+  IPAD_BOUNDED_SHEET_MAX_WIDTH,
+  IPAD_BOUNDED_SHEET_MIN_WIDTH,
+} from '@/constants/responsive-layout';
 
 import {
   ProOfferJourney,
   type ProOffer,
 } from '@/components/paywall/pro-offer-journey';
 import { usePaywallAllowed } from '@/lib/paywall/use-paywall-allowed';
+import {
+  MomentaTopUp,
+  type MomentaTopUpAdRest,
+  type MomentaTopUpSubject,
+} from '@/components/momenta/momenta-top-up';
 import { useAuthStore } from '@/store/auth-store';
 
 export type PaywallVariant = 'default' | 'insufficient' | 'quota';
@@ -96,6 +106,12 @@ type PaywallModalProps = {
   shortfall?: number;
   /** Expected reward from the ad, used for clearer UI copy */
   adRewardAmount?: number;
+  /** Current Momenta balance, when the caller knows it. */
+  balance?: number;
+  /** Momenta the blocked action needs, when the caller knows it. */
+  requiredAmount?: number;
+  /** Opens the review queue, where checked proof earns Momenta. */
+  onCheckProof?: () => void;
   variant?: PaywallVariant;
   /** Free tier allowance for the relevant quota (if known) */
   quotaLimit?: number;
@@ -115,6 +131,9 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
   initialView = 'plans',
   shortfall,
   adRewardAmount = DEFAULT_AD_REWARD,
+  balance,
+  requiredAmount,
+  onCheckProof,
   variant = 'default',
   quotaLimit,
   quotaContext = 'general',
@@ -126,15 +145,38 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
   const operationRevision = useRef(0);
   const visible = requestedVisible && allowed && !ownerChanged;
   useEffect(() => {
-    if (requestedVisible && (!allowed || ownerChanged)) onClose();
+    if (requestedVisible && (!allowed || ownerChanged)) {
+      const reason = ownerChanged ? 'account_changed' : 'onboarding_gate';
+      sentryBreadcrumb('paywall_open_blocked', { reason, context });
+      trackProductEvent('Paywall Journey', {
+        stage: 'entry_blocked',
+        context,
+        plan: 'none',
+        reason,
+      });
+      onClose();
+    }
     previousOwner.current = ownerId;
     if (!visible) operationRevision.current += 1;
-  }, [requestedVisible, allowed, ownerChanged, ownerId, visible, onClose]);
+  }, [
+    requestedVisible,
+    allowed,
+    ownerChanged,
+    ownerId,
+    visible,
+    onClose,
+    context,
+  ]);
   const styles = useThemedStyles(createStyles);
   const theme = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const phoneLayout = usePhoneLayout();
+  const usesIPadPurchaseLane =
+    Platform.OS === 'ios' &&
+    Platform.isPad &&
+    width >= IPAD_BOUNDED_SHEET_MIN_WIDTH;
   const { enabled: adsFlag } = useOperationalFlag('ads_enabled');
   const { enabled: safeMode } = useOperationalFlag('safe_mode');
   const adsEnabled = Boolean(onWatchAd) && adsFlag && !safeMode;
@@ -142,6 +184,8 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
   const [offeringsUnavailable, setOfferingsUnavailable] = useState(false);
   const [offeringsLoading, setOfferingsLoading] = useState(false);
   const [adLoading, setAdLoading] = useState(false);
+  const [adCredited, setAdCredited] = useState(0);
+  const [adRest, setAdRest] = useState<MomentaTopUpAdRest>(null);
   const [adFeedback, setAdFeedback] = useState<{
     variant: 'info' | 'warning' | 'error' | 'success';
     title?: string;
@@ -426,11 +470,9 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
           ? rawAmount
           : 0;
       const reason = (result as Record<string, unknown>).reason as
-        | RewardAdResult['reason']
-        | undefined;
+        RewardAdResult['reason'] | undefined;
       const type = (result as Record<string, unknown>).type as
-        | string
-        | undefined;
+        string | undefined;
       return { earned, amount, reason, type };
     }
 
@@ -587,6 +629,12 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
               });
             } catch {}
           }
+          if (
+            normalized.reason === 'cooldown' ||
+            normalized.reason === 'daily_limit'
+          ) {
+            setAdRest(normalized.reason);
+          }
           setAdFeedback(adFailureMessage(normalized.reason));
         } else {
           try {
@@ -616,6 +664,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
 
       // onWatchAd resolves with earned=true only after the caller's server
       // credit succeeds. Show that confirmed result without guessing a balance.
+      setAdCredited(current => current + confirmedAmount);
       setAdFeedback({
         variant: 'success',
         message: t('commerce.wallet.addedToBalance', {
@@ -674,6 +723,8 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
       setPurchaseFeedback(null);
     } else if (!visible) {
       setAdFeedback(null);
+      setAdCredited(0);
+      setAdRest(null);
       setPurchaseFeedback(null);
       setShowFullPaywall(false);
       setPaywallStage('plans');
@@ -955,42 +1006,6 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
       ? Math.ceil(shortfall)
       : null;
   const knownAdReward = Math.max(0, Math.floor(adRewardAmount));
-  const remainingAfterAd =
-    knownShortfall === null
-      ? null
-      : Math.max(0, knownShortfall - knownAdReward);
-  const fundingSubject =
-    context === 'group'
-      ? 'group'
-      : context === 'challenge'
-        ? 'promise'
-        : 'draft';
-  const savedSubjectCopy =
-    fundingSubject === 'group'
-      ? t('commerce.paywall.savedSubject.group')
-      : fundingSubject === 'promise'
-        ? t('commerce.paywall.savedSubject.promise')
-        : t('commerce.paywall.savedSubject.draft');
-  const adFundingCopy =
-    remainingAfterAd === null
-      ? t('commerce.paywall.oneAd', { amount: knownAdReward.toLocaleString() })
-      : remainingAfterAd > 0
-        ? t('commerce.paywall.oneAdStillNeed', {
-            amount: knownAdReward.toLocaleString(),
-            remaining: remainingAfterAd.toLocaleString(),
-          })
-        : fundingSubject === 'group'
-          ? t('commerce.paywall.oneAdEnough.group', {
-              amount: knownAdReward.toLocaleString(),
-            })
-          : fundingSubject === 'promise'
-            ? t('commerce.paywall.oneAdEnough.promise', {
-                amount: knownAdReward.toLocaleString(),
-              })
-            : t('commerce.paywall.oneAdEnough.draft', {
-                amount: knownAdReward.toLocaleString(),
-              });
-
   const stageDetails: Record<
     Exclude<PaywallStage, 'plans'>,
     {
@@ -1131,6 +1146,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
         contentContainerStyle={[
           styles.paywallLane,
           paywallLaneInset,
+          usesIPadPurchaseLane ? styles.iPadPaywallLane : null,
           styles.paywallOutcomeContent,
           outcomeContentInsets,
         ]}
@@ -1243,97 +1259,51 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
     />
   );
 
+  const topUpSubject: MomentaTopUpSubject =
+    context === 'challenge'
+      ? 'promise'
+      : context === 'group'
+        ? 'group'
+        : context === 'member'
+          ? 'join'
+          : 'general';
   const insufficientContent = (
-    <View
-      style={[styles.paywallLane, paywallLaneInset, styles.compactContent]}
-      testID="paywall-compact"
-    >
-      <View style={styles.compactHeader}>
-        <Badge
-          text={t('commerce.commerce.insufficient')}
-          variant="warning"
-          size="small"
-        />
-        <Pressable
-          onPress={onClose}
-          accessibilityLabel={t('commerce.paywall.close')}
-          accessibilityRole="button"
-          style={({ pressed }) => [
-            styles.compactClose,
-            pressed && styles.closePressed,
-          ]}
-        >
-          <XIcon size={18} color={theme.colors.text.secondary} />
-        </Pressable>
-      </View>
-      <Text style={styles.compactTitle}>
-        {knownShortfall !== null
-          ? t('commerce.paywall.needMore', {
-              amount: knownShortfall.toLocaleString(),
-            })
-          : t('commerce.paywall.needMomenta')}
-      </Text>
-      <Text style={styles.compactBody}>{savedSubjectCopy}</Text>
-      {adsEnabled && onWatchAd ? (
-        <View style={styles.compactCard}>
-          <Text style={styles.compactSubtext}>{adFundingCopy}</Text>
-          <AppButton
-            title={
-              adLoading
-                ? t('commerce.paywall.adLoading')
-                : t('commerce.paywall.watchAdFor', {
-                    amount: knownAdReward.toLocaleString(),
-                  })
+    <MomentaTopUp
+      subject={topUpSubject}
+      shortfall={knownShortfall}
+      balance={balance}
+      required={requiredAmount}
+      adReward={knownAdReward}
+      onWatchAd={
+        adsEnabled && onWatchAd && knownAdReward > 0
+          ? () => void handleWatchAd()
+          : undefined
+      }
+      adLoading={adLoading}
+      adRest={adRest}
+      credited={adCredited}
+      feedback={renderAdFeedback()}
+      onGoPro={handleGoProPress}
+      onCheckProof={
+        onCheckProof
+          ? () => {
+              onClose();
+              onCheckProof();
             }
-            onPress={handleWatchAd}
-            variant="accent"
-            size="large"
-            disabled={adLoading}
-            style={styles.compactButton}
-            fullWidth
-          />
-          {renderAdFeedback()}
-        </View>
-      ) : null}
-      <AppButton
-        title={t('commerce.paywall.seePro')}
-        onPress={handleGoProPress}
-        variant="outline"
-        size="large"
-        fullWidth
-      />
-      <AppButton
-        title={t('commerce.action.returnToDraft')}
-        onPress={onClose}
-        variant="ghost"
-        size="large"
-        fullWidth
-      />
-      <Pressable
-        style={styles.restoreLink}
-        onPress={handleRestorePurchases}
-        disabled={!REVENUECAT_SUPPORTED || restoreLoading}
-        accessibilityRole="button"
-        accessibilityLabel={t('commerce.paywall.restore')}
-        accessibilityState={{
-          busy: restoreLoading,
-          disabled: !REVENUECAT_SUPPORTED || restoreLoading,
-        }}
-      >
-        <Text style={styles.restoreLinkText}>
-          {restoreLoading
-            ? t('commerce.paywall.restoring')
-            : t('commerce.paywall.restore')}
-        </Text>
-      </Pressable>
-
-      <View style={{ marginTop: 14 }}>{renderLegalLinks('center')}</View>
-    </View>
+          : undefined
+      }
+      onClose={onClose}
+    />
   );
 
   const quotaContent = (
     <View
-      style={[styles.paywallLane, paywallLaneInset, styles.compactContent]}
+      style={[
+        styles.paywallLane,
+        paywallLaneInset,
+        usesIPadPurchaseLane ? styles.iPadPaywallLane : null,
+        styles.compactContent,
+      ]}
       testID="paywall-compact"
     >
       <View style={styles.compactHeader}>
@@ -1394,8 +1364,8 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
     </View>
   );
 
-  const variantContent =
-    variant === 'insufficient' ? insufficientContent : quotaContent;
+  const variantContent = quotaContent;
+  const showsTopUpSheet = variant === 'insufficient' && !shouldShowFullPaywall;
 
   return (
     <ModalCard
@@ -1411,15 +1381,27 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
           : 'commerce.paywall.close'
       )}
       overlayStyle={styles.overlay}
-      cardStyle={styles.fullScreenCard}
+      cardStyle={
+        showsTopUpSheet
+          ? [styles.fullScreenCard, styles.transparentCard]
+          : styles.fullScreenCard
+      }
     >
+      {showsTopUpSheet ? null : (
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: mentaColors.canvas },
+          ]}
+        />
+      )}
       <View
+        testID="paywall-shell"
         style={[
-          StyleSheet.absoluteFill,
-          { backgroundColor: mentaColors.canvas },
+          styles.fullScreenCard,
+          showsTopUpSheet ? styles.transparentCard : null,
         ]}
-      />
-      <View testID="paywall-shell" style={styles.fullScreenCard}>
+      >
         {shouldShowFullPaywall ? (
           <>
             <Pressable
@@ -1463,6 +1445,8 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
               {paywallStateContent}
             </View>
           </>
+        ) : showsTopUpSheet ? (
+          insufficientContent
         ) : (
           <ScrollView
             style={styles.scrollContainer}
@@ -1482,9 +1466,11 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
 
 interface PaywallStyles {
   overlay: ViewStyle;
+  transparentCard: ViewStyle;
   fullScreenCard: ViewStyle;
   scrollContainer: ViewStyle;
   paywallLane: ViewStyle;
+  iPadPaywallLane: ViewStyle;
   cardContent: ViewStyle;
   paywallOutcomeContent: ViewStyle;
   paywallOutcomeBody: ViewStyle;
@@ -1566,6 +1552,9 @@ const createStyles = (theme: ThemeContextType) =>
     overlay: {
       flex: 1,
     },
+    transparentCard: {
+      backgroundColor: 'transparent',
+    },
     fullScreenCard: {
       flex: 1,
       minHeight: 0,
@@ -1583,6 +1572,9 @@ const createStyles = (theme: ThemeContextType) =>
       maxWidth: mentaLayout.phoneFrameMax,
       alignSelf: 'center',
       paddingHorizontal: mentaSpacing[6],
+    },
+    iPadPaywallLane: {
+      maxWidth: IPAD_BOUNDED_SHEET_MAX_WIDTH,
     },
     cardContent: {
       gap: mentaSpacing[6],

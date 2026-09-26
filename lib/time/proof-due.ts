@@ -164,6 +164,8 @@ export const resolveProofDueCountdown = (args: {
   preferredReminderTime?: string | null;
   dueAtIso?: string | null;
   hide?: boolean;
+  /** Count to the real deadline (midnight or extension), never the reminder. */
+  toDeadline?: boolean;
 }): ProofDueCountdownState => {
   const preferredReminderTime =
     args.preferredReminderTime?.trim() || DEFAULT_PROOF_DUE_TIME;
@@ -242,14 +244,15 @@ export const resolveProofDueCountdown = (args: {
     : nowMs < dueMs
       ? 'due'
       : 'last-chance';
+  const aimsForReminder = phase === 'due' && !args.toDeadline;
   const target = hasExtensionDeadline
     ? 'extension'
-    : phase === 'due'
+    : aimsForReminder
       ? 'reminder'
       : 'midnight';
   const targetMs = hasExtensionDeadline
     ? extensionMs
-    : phase === 'due'
+    : aimsForReminder
       ? dueMs
       : midnightMs;
   const remainingMs = Math.max(0, targetMs - nowMs);

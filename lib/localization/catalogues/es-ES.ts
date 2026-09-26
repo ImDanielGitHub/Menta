@@ -1,4 +1,5 @@
 import type { CompleteCatalogue } from '@/lib/localization/en-NZ';
+import { widgetses } from '@/lib/localization/catalogues/shared/widgets-es';
 import {
   spanishAccountabilityDelta,
   spanishAccountabilityEsESOverrides,
@@ -23,8 +24,11 @@ import { fullGroupsEsES } from '@/lib/localization/catalogues/es-ES/full-groups'
 import { fullEventsEsES } from '@/lib/localization/catalogues/es-ES/full-events';
 import { fullDomainFeedbackEsES } from '@/lib/localization/catalogues/es-ES/full-domain-feedback';
 import { sourceGateEsES } from '@/lib/localization/catalogues/es-ES/source-gate';
+import { momentaTopUpEsES } from '@/lib/localization/catalogues/es-ES/momenta-top-up';
 
 export const esES = {
+  ...momentaTopUpEsES,
+  ...widgetses,
   ...foundationEsES,
   ...languageEsES,
   ...notificationsEsES,

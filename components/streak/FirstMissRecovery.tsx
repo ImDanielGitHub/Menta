@@ -1,11 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { StyleSheet, View } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppScaledText as Text } from '@/components/ui/AppScaledText';
-import { AppScreen, AppTopBar } from '@/components/ui/AppShell';
 import { MentaMascot } from '@/components/ui/MentaMascot';
-import { ModalCard } from '@/components/ui/modal/ModalCard';
+import { TodaySpeechBubble } from '@/components/today/TodaySpeechBubble';
 import {
   mentaColors,
   mentaSpacing,
@@ -13,9 +12,11 @@ import {
 } from '@/constants/MentaDesignSystem';
 import { useAuthStore } from '@/store/auth-store';
 import { getOnboardingInvitationReviewGate } from '@/lib/navigation/onboarding-invitation-lifecycle';
+import { useTranslation } from '@/lib/localization/use-translation';
 import { trackProductEvent } from '@/lib/posthog';
 import {
   claimFirstMissRecovery,
+  FirstMissRecoveryError,
   readFirstMissRecovery,
   type FirstMissOffer,
 } from '@/lib/streak/first-miss-recovery';
@@ -31,14 +32,17 @@ export function FirstMissRecovery({
   onVisibilityChange: (visible: boolean) => void;
 }) {
   const ownerId = useAuthStore(state => state.user?.id);
-  const router = useRouter();
+  const { t, locale } = useTranslation();
   const [focused, setFocused] = useState(false);
   const [offer, setOffer] = useState<FirstMissOffer | null>(null);
   const [visible, setVisible] = useState(false);
   const [busy, setBusy] = useState(false);
   const [confirmedStreak, setConfirmedStreak] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<'unconfirmed' | 'unavailable' | null>(
+    null
+  );
   const inFlight = useRef(false);
+  const dismissed = useRef(false);
   const activeOwner = useRef(ownerId);
   activeOwner.current = ownerId;
   useFocusEffect(
@@ -52,6 +56,7 @@ export function FirstMissRecovery({
     }, [onVisibilityChange])
   );
   useEffect(() => {
+    dismissed.current = false;
     setOffer(null);
     setVisible(false);
     setConfirmedStreak(null);
@@ -66,8 +71,10 @@ export function FirstMissRecovery({
     const timeout = setTimeout(() => controller.abort(), 8_000);
     void readFirstMissRecovery(controller.signal)
       .then(result => {
-        if (!controller.signal.aborted && activeOwner.current === ownerId)
+        if (!controller.signal.aborted && activeOwner.current === ownerId) {
           setOffer(result);
+          if (result && !dismissed.current) setVisible(true);
+        }
       })
       .catch(() => {
         /* Optional offer never blocks the existing Today read. */
@@ -78,8 +85,18 @@ export function FirstMissRecovery({
       controller.abort();
     };
   }, [focused, ownerId, ready, confirmedStreak]);
+  const showing = Boolean(offer) && visible && focused;
+  useEffect(() => {
+    onVisibilityChange(showing);
+    if (showing)
+      trackProductEvent('First Miss Recovery', {
+        stage: 'opened',
+        benefit: 'free_freeze',
+      });
+  }, [onVisibilityChange, showing]);
   const close = () => {
     if (inFlight.current) return;
+    dismissed.current = true;
     setVisible(false);
     onVisibilityChange(false);
     if (confirmedStreak !== null) setOffer(null);
@@ -111,9 +128,7 @@ export function FirstMissRecovery({
     } catch (cause) {
       if (activeOwner.current !== claimOwner) return;
       setError(
-        cause instanceof Error
-          ? cause.message
-          : 'Try again to confirm your freeze.'
+        cause instanceof FirstMissRecoveryError ? cause.reason : 'unconfirmed'
       );
       trackProductEvent('First Miss Recovery', {
         stage: 'failed',
@@ -127,113 +142,142 @@ export function FirstMissRecovery({
   if (!offer || (!visible && Date.parse(offer.expiresAt) <= Date.now()))
     return null;
   const confirmed = confirmedStreak !== null;
-  return (
-    <>
+  if (!visible || !focused) {
+    // "Start over" is not final while the gift is still valid.
+    return (
       <AppButton
-        title="Get your free streak freeze"
+        title={t('commerce.firstMiss.open')}
         variant="outline"
+        textStyle={styles.secondaryText}
         fullWidth
-        onPress={() => {
-          setVisible(true);
-          onVisibilityChange(true);
-          trackProductEvent('First Miss Recovery', {
-            stage: 'opened',
-            benefit: 'free_freeze',
-          });
-        }}
+        onPress={() => setVisible(true)}
       />
-      <ModalCard
-        visible={visible && focused}
-        onClose={close}
-        surface="full_screen"
-        dismissOnBackdrop={!busy}
-        accessibilityLabel="Your first missed day"
-        testID="first-miss-recovery"
-      >
-        <AppScreen lane="focused" hasTabBar={false} padding={false}>
-          <AppTopBar
-            title="A little help"
-            onBack={busy ? undefined : close}
-            style={styles.topBar}
+    );
+  }
+  const weekday = formatWeekday(offer.localDay, locale);
+  const count = offer.previousStreak;
+  return (
+    <View
+      accessibilityLabel={t('commerce.firstMiss.accessibility')}
+      style={styles.panel}
+      testID="first-miss-recovery"
+    >
+      <View style={styles.stage}>
+        {!confirmed ? (
+          <TodaySpeechBubble
+            testID="first-miss-bubble"
+            text={t('commerce.firstMiss.bubble', { weekday })}
           />
-          <ScrollView contentContainerStyle={styles.content}>
-            <MentaMascot
-              state={confirmed ? 'promise-confirmed' : 'first-miss-recovery'}
-              size="hero"
-              style={styles.mascot}
-            />
-            <Text accessibilityRole="header" style={styles.title}>
-              {confirmed
-                ? 'Your missed day is covered.'
-                : 'Missed a day? Let’s keep going.'}
-            </Text>
-            <Text style={styles.promise}>{offer.challengeTitle}</Text>
-            <Text style={styles.body}>
-              {confirmed
-                ? confirmedStreak > 0
-                  ? `Your free freeze protected your ${confirmedStreak}-day streak. Add proof today to continue it.`
-                  : 'Your free freeze covered the missed day. Add proof today to start building your streak.'
-                : 'Missing a day normally breaks an existing streak. For your first missed day, Menta can cover it with one free streak freeze.'}
-            </Text>
-            <Text style={styles.note}>
-              {confirmed
-                ? 'The freeze covers the missed day only. It does not count as completed proof.'
-                : 'This is a one-time gift. It covers yesterday, uses no Momenta, and leaves your saved freezes untouched.'}
-            </Text>
-            {error ? (
-              <Text accessibilityRole="alert" style={styles.error}>
-                {error}
-              </Text>
-            ) : null}
-          </ScrollView>
-          <View style={styles.actions}>
-            <AppButton
-              title={confirmed ? 'Open my promise' : 'Use my free freeze'}
-              variant="accent"
-              loading={busy}
-              disabled={busy}
-              fullWidth
-              onPress={
-                confirmed
-                  ? () => {
-                      setVisible(false);
-                      onVisibilityChange(false);
-                      setOffer(null);
-                      trackProductEvent('First Miss Recovery', {
-                        stage: 'promise_opened',
-                        benefit: 'free_freeze',
-                      });
-                      router.push({
-                        pathname: '/challenges/[id]',
-                        params: { id: offer.challengeId },
-                      });
-                    }
-                  : () => {
-                      void claim();
-                    }
-              }
-            />
-            <AppButton
-              title={confirmed ? 'Back to Today' : 'Not now'}
-              variant="ghost"
-              fullWidth
-              disabled={busy}
-              onPress={close}
-            />
-          </View>
-        </AppScreen>
-      </ModalCard>
-    </>
+        ) : null}
+        <MentaMascot
+          state={confirmed ? 'promise-confirmed' : 'first-miss-recovery'}
+          size="xl"
+        />
+      </View>
+      <Text accessibilityRole="header" style={styles.title}>
+        {confirmed
+          ? t('commerce.firstMiss.titleConfirmed')
+          : count > 0
+            ? t('commerce.firstMiss.decisionTitle', { count })
+            : t('commerce.firstMiss.titleOffer')}
+      </Text>
+      <Text style={styles.body}>
+        {confirmed
+          ? confirmedStreak > 0
+            ? t('commerce.firstMiss.bodyConfirmedStreak', {
+                count: confirmedStreak,
+              })
+            : t('commerce.firstMiss.bodyConfirmed')
+          : count > 0
+            ? t('commerce.firstMiss.decisionBody', { weekday, count })
+            : t('commerce.firstMiss.decisionBodyNoCount', { weekday })}
+      </Text>
+      {confirmed ? (
+        <Text style={styles.note}>{t('commerce.firstMiss.noteConfirmed')}</Text>
+      ) : null}
+      {error ? (
+        <Text accessibilityRole="alert" style={styles.error}>
+          {error === 'unavailable'
+            ? t('commerce.firstMiss.errorUnavailable')
+            : t('commerce.firstMiss.errorUnconfirmed')}
+        </Text>
+      ) : null}
+      <View style={styles.actions}>
+        <AppButton
+          title={
+            confirmed
+              ? t('commerce.firstMiss.backToToday')
+              : t('commerce.firstMiss.keep')
+          }
+          variant="accent"
+          size="large"
+          haptic
+          hapticIntent="selection"
+          loading={busy}
+          disabled={busy}
+          fullWidth
+          onPress={
+            confirmed
+              ? () => {
+                  setVisible(false);
+                  onVisibilityChange(false);
+                  setOffer(null);
+                }
+              : () => {
+                  void claim();
+                }
+          }
+          testID="first-miss-keep"
+        />
+        {!confirmed ? (
+          <AppButton
+            title={t('commerce.firstMiss.startOver')}
+            variant="outline"
+            size="large"
+            textStyle={styles.secondaryText}
+            fullWidth
+            disabled={busy}
+            onPress={close}
+            testID="first-miss-start-over"
+          />
+        ) : null}
+      </View>
+    </View>
   );
 }
+
+const formatWeekday = (localDay: string, locale: string): string => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(localDay);
+  if (!match) return localDay;
+  return new Date(
+    Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12)
+  ).toLocaleDateString(locale, { weekday: 'long', timeZone: 'UTC' });
+};
+
 const styles = StyleSheet.create({
-  topBar: { paddingHorizontal: mentaSpacing[6], paddingTop: mentaSpacing[3] },
-  content: { padding: mentaSpacing[6], gap: mentaSpacing[5] },
-  mascot: { alignSelf: 'center', marginVertical: mentaSpacing[5] },
-  title: { ...mentaTypography.journeyTitle, color: mentaColors.text.primary },
-  promise: { ...mentaTypography.bodySemibold, color: mentaColors.text.primary },
-  body: { ...mentaTypography.body, color: mentaColors.text.secondary },
-  note: { ...mentaTypography.bodySmall, color: mentaColors.text.secondary },
-  error: { ...mentaTypography.body, color: mentaColors.danger },
-  actions: { padding: mentaSpacing[6], gap: mentaSpacing[2] },
+  panel: { gap: mentaSpacing[3], paddingBottom: mentaSpacing[4] },
+  stage: { alignItems: 'center', gap: mentaSpacing[1] },
+  title: {
+    ...mentaTypography.journeyTitle,
+    color: mentaColors.text.primary,
+    marginTop: mentaSpacing[3],
+    textAlign: 'center',
+  },
+  body: {
+    ...mentaTypography.lead,
+    color: mentaColors.text.secondary,
+    textAlign: 'center',
+  },
+  note: {
+    ...mentaTypography.bodySmall,
+    color: mentaColors.text.muted,
+    textAlign: 'center',
+  },
+  error: {
+    ...mentaTypography.body,
+    color: mentaColors.danger,
+    textAlign: 'center',
+  },
+  secondaryText: { color: mentaColors.action },
+  actions: { gap: mentaSpacing[3], marginTop: mentaSpacing[5] },
 });

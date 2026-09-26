@@ -1,6 +1,7 @@
 import {
   focusManager,
   onlineManager,
+  QueryCache,
   QueryClient,
 } from '@tanstack/react-query';
 import { AppState } from 'react-native';
@@ -41,6 +42,9 @@ const asyncStoragePersister = createAsyncStoragePersister({
 
 // Configure React Query client with optimized performance settings
 export const queryClient = new QueryClient({
+  // Query errors are reported once after retries, including background refresh
+  // failures. Observer callbacks do not cover queries in TanStack Query v5.
+  queryCache: new QueryCache({ onError: queryErrorHandler }),
   defaultOptions: {
     queries: {
       // Reduced stale time for frequently-changing data (groups, challenges)
@@ -64,8 +68,9 @@ export const queryClient = new QueryClient({
       networkMode: 'online',
     },
     mutations: {
-      // Retry mutations once on failure
-      retry: 1,
+      // A lost response can follow a committed write. Only mutations with an
+      // explicit idempotency contract may opt into automatic retries.
+      retry: false,
       retryDelay: 1000,
 
       // Handle mutation errors

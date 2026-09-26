@@ -171,6 +171,23 @@ let isConfigured = false;
 let configurePromise: Promise<void> | null = null;
 let desiredAppUserId: string | undefined;
 
+type AdCapability =
+  | 'adTracker'
+  | 'getAppUserID'
+  | 'generateRewardVerificationToken'
+  | 'pollRewardVerification'
+  | RevenueCatAdTrackingPayload['type'];
+const reportedMissingAdCapabilities = new Set<AdCapability>();
+
+const reportMissingAdCapability = (capability: AdCapability): void => {
+  if (reportedMissingAdCapabilities.has(capability)) return;
+  reportedMissingAdCapabilities.add(capability);
+  sentryCapture(new Error('revenuecat_ad_capability_missing'), {
+    context: 'revenuecat_ad_capability_missing',
+    capability,
+  });
+};
+
 const SERVER_CONFIRM_ATTEMPTS = 3;
 const SERVER_CONFIRM_INTERVAL_MS = 500;
 
@@ -265,7 +282,10 @@ async function getPurchasesForAccount(
   if (!RC) return null;
 
   const getAppUserID = getPurchasesMember(RC, 'getAppUserID');
-  if (typeof getAppUserID !== 'function') return null;
+  if (typeof getAppUserID !== 'function') {
+    reportMissingAdCapability('getAppUserID');
+    return null;
+  }
 
   // Account lifecycle owns SDK identity. An ad must never rebind purchases
   // after a delayed callback from a previous account.
@@ -293,7 +313,10 @@ export async function prepareRevenueCatAdReward(
       RC,
       'generateRewardVerificationToken'
     );
-    if (typeof generateToken !== 'function') return null;
+    if (typeof generateToken !== 'function') {
+      reportMissingAdCapability('generateRewardVerificationToken');
+      return null;
+    }
 
     const token = await generateToken(impressionId);
     if (
@@ -325,7 +348,10 @@ export async function pollRevenueCatAdReward(
     if (!RC) return null;
 
     const pollReward = getPurchasesMember(RC, 'pollRewardVerification');
-    if (typeof pollReward !== 'function') return null;
+    if (typeof pollReward !== 'function') {
+      reportMissingAdCapability('pollRewardVerification');
+      return null;
+    }
     return await pollReward(clientTransactionId, trackingMetadata);
   } catch (error) {
     sentryCapture(error, { context: 'revenuecat_ad_verification_failed' });
@@ -346,27 +372,37 @@ export async function trackRevenueCatAdEvent(
 ): Promise<boolean> {
   try {
     const RC = await getPurchasesForAccount(appUserId);
+    if (!RC) return false;
     const tracker = RC?.adTracker ?? RC?.default?.adTracker;
-    if (!tracker) return false;
+    if (!tracker) {
+      reportMissingAdCapability('adTracker');
+      return false;
+    }
+
+    const track = async <TData>(
+      method: ((data: TData) => Promise<void>) | undefined,
+      data: TData
+    ): Promise<boolean> => {
+      if (typeof method !== 'function') {
+        reportMissingAdCapability(payload.type);
+        return false;
+      }
+      await method.call(tracker, data);
+      return true;
+    };
 
     switch (payload.type) {
       case 'loaded':
-        await tracker.trackAdLoaded?.(payload.data);
-        break;
+        return await track(tracker.trackAdLoaded, payload.data);
       case 'displayed':
-        await tracker.trackAdDisplayed?.(payload.data);
-        break;
+        return await track(tracker.trackAdDisplayed, payload.data);
       case 'opened':
-        await tracker.trackAdOpened?.(payload.data);
-        break;
+        return await track(tracker.trackAdOpened, payload.data);
       case 'revenue':
-        await tracker.trackAdRevenue?.(payload.data);
-        break;
+        return await track(tracker.trackAdRevenue, payload.data);
       case 'failed_to_load':
-        await tracker.trackAdFailedToLoad?.(payload.data);
-        break;
+        return await track(tracker.trackAdFailedToLoad, payload.data);
     }
-    return true;
   } catch (error) {
     // Ad reporting must not block a proof receipt, ad dismissal, or reward
     // verification. RevenueCat remains the preferred analytics sink while the

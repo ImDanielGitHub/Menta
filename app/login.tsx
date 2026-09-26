@@ -43,7 +43,13 @@ export default function LoginScreen() {
   const router = useRouter();
   const phoneLayout = usePhoneLayout();
   const { t } = useTranslation();
-  const { isLoading, signInWithApple, signInWithGoogle } = useAuthStore();
+  const {
+    isLoading,
+    signInWithApple,
+    signInWithGoogle,
+    sessionRecoveryRequired,
+    refreshSession,
+  } = useAuthStore();
   const draft = usePaperAuthDraft();
   const { pendingInvite, preview: invitePreview } =
     usePendingPromiseInvitePreview();
@@ -132,11 +138,6 @@ export default function LoginScreen() {
 
     try {
       await (provider === 'apple' ? signInWithApple() : signInWithGoogle());
-      trackProductEvent('Authentication Result', {
-        flow: 'login',
-        method: provider,
-        outcome: 'succeeded',
-      });
       trackInviteAuth(provider, 'succeeded');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : '';
@@ -350,6 +351,19 @@ export default function LoginScreen() {
                 t
               )}
               testID="login-promise-invite-context"
+            />
+          ) : null}
+          {sessionRecoveryRequired && !errorMessage ? (
+            <AppInlineNotice
+              title={t('fullAuth.settings.could_not_check_your_account')}
+              description={t('fullAuth.settings.could_not_load_your_profile')}
+              actionLabel={t('fullAuth.shared.retry_profile')}
+              onAction={() => {
+                void refreshSession().catch(() => undefined);
+              }}
+              tone="warning"
+              testID="login-session-recovery"
+              textScale={phoneLayout.textScale}
             />
           ) : null}
           {errorMessage ? (

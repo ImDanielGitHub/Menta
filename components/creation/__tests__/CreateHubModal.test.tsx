@@ -10,7 +10,7 @@ jest.mock('@/components/ui/modal/ModalCard', () => {
 
   return {
     __esModule: true,
-    default: ({ visible, children, accessibilityLabel }: any) =>
+    ModalCard: ({ visible, children, accessibilityLabel }: any) =>
       visible ? (
         <View accessibilityLabel={accessibilityLabel}>{children}</View>
       ) : null,

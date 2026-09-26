@@ -112,10 +112,50 @@ describe('ModalCard', () => {
     });
   });
 
-  it('keeps contextual iPad sheets on the full-width bottom edge by default', () => {
+  it('bounds regular-width iPad sheets by default', () => {
     jest.mocked(shouldUseBoundedIPadSheet).mockReturnValue(true);
 
     const { getByTestId } = renderModalCard({ surface: 'sheet' });
+
+    expect(getByTestId('modal-card-backdrop')).toHaveStyle({
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 24,
+      paddingVertical: 24,
+    });
+    expect(getByTestId('modal-card-surface')).toHaveStyle({
+      alignSelf: 'center',
+      borderRadius: 16,
+      borderWidth: 1,
+      maxWidth: 600,
+      width: '100%',
+    });
+  });
+
+  it('keeps the phone sheet geometry unchanged when bounded iPad is unavailable', () => {
+    const { getByTestId } = renderModalCard({ surface: 'sheet' });
+
+    expect(getByTestId('modal-card-backdrop')).toHaveStyle({
+      alignItems: 'stretch',
+      justifyContent: 'flex-end',
+      paddingHorizontal: 0,
+      paddingVertical: 0,
+    });
+    expect(getByTestId('modal-card-surface')).toHaveStyle({
+      alignSelf: 'stretch',
+      borderBottomWidth: 0,
+      maxWidth: undefined,
+      width: '100%',
+    });
+  });
+
+  it('allows an immersive iPad sheet to opt into the full-width edge', () => {
+    jest.mocked(shouldUseBoundedIPadSheet).mockReturnValue(true);
+
+    const { getByTestId } = renderModalCard({
+      surface: 'sheet',
+      presentationRole: 'edge',
+    });
 
     expect(getByTestId('modal-card-backdrop')).toHaveStyle({
       alignItems: 'stretch',

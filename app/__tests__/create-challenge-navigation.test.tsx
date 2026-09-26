@@ -5,6 +5,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react-native';
 
 import CreateChallengeScreen from '@/app/create-challenge';
@@ -84,6 +85,18 @@ jest.mock('@/store/momenta-store', () => ({
   ),
 }));
 
+jest.mock('@/store/group-store', () => {
+  const mockGroupState = {
+    groups: [] as unknown[],
+    userGroups: [] as string[],
+    fetchUserGroups: () => Promise.resolve(),
+  };
+  return {
+    useGroupStore: (selector: (state: typeof mockGroupState) => unknown) =>
+      selector(mockGroupState),
+  };
+});
+
 jest.mock('@/lib/hooks/useActionCosts', () => ({
   useActionCosts: () => ({ create_challenge: 30 }),
 }));
@@ -128,13 +141,17 @@ jest.mock('@/lib/motion/haptics', () => ({
 }));
 
 jest.mock('@/components/paywall/PaywallModal', () => {
-  const { Pressable, Text } = jest.requireActual('react-native');
-  return ({ onClose, visible }: { onClose: () => void; visible: boolean }) =>
-    visible ? (
-      <Pressable accessibilityRole="button" onPress={onClose}>
-        <Text>Return to draft</Text>
-      </Pressable>
-    ) : null;
+  const mockModule = (() => {
+    const { Pressable, Text } = jest.requireActual('react-native');
+    return ({ onClose, visible }: { onClose: () => void; visible: boolean }) =>
+      visible ? (
+        <Pressable accessibilityRole="button" onPress={onClose}>
+          <Text>Return to draft</Text>
+        </Pressable>
+      ) : null;
+  })();
+  const mockExport = mockModule?.__esModule ? mockModule.default : mockModule;
+  return { __esModule: true, default: mockExport, PaywallModal: mockExport };
 });
 
 const createdChallenge = {
@@ -162,7 +179,8 @@ const createdChallenge = {
   allowSelfReview: true,
 };
 
-const reachFirstPromiseReceipt = async () => {
+/** Walks name → proof → (who) → length and stops on the review step. */
+const advanceToReview = async () => {
   render(<CreateChallengeScreen />);
 
   await waitFor(() => {
@@ -171,7 +189,17 @@ const reachFirstPromiseReceipt = async () => {
 
   fireEvent.press(screen.getByTestId('create-promise-primary-name'));
   fireEvent.press(screen.getByTestId('create-promise-primary-proof'));
-  fireEvent.press(screen.getByTestId('create-promise-primary-pace'));
+  if (screen.queryByTestId('create-promise-primary-who')) {
+    fireEvent.press(screen.getByTestId('create-promise-primary-who'));
+  }
+  fireEvent.press(screen.getByTestId('create-promise-primary-length'));
+  await waitFor(() => {
+    expect(screen.getByTestId('create-promise-primary-review')).toBeTruthy();
+  });
+};
+
+const reachFirstPromiseReceipt = async () => {
+  await advanceToReview();
   fireEvent.press(screen.getByTestId('create-promise-primary-review'));
 
   await waitFor(() => {
@@ -262,6 +290,13 @@ describe('CreateChallengeScreen confirmed receipt navigation', () => {
 
     expect(screen.getByText('Saved to your account')).toBeTruthy();
     expect(screen.getByText('First due')).toBeTruthy();
+    // Daily promises start counting tomorrow; the receipt must agree with the
+    // review instead of rendering the server's legacy UTC deadline hour.
+    const receipt = within(
+      screen.getByTestId('create-challenge-first-promise-receipt')
+    );
+    expect(receipt.getByText('Tomorrow')).toBeTruthy();
+    expect(receipt.queryByText(/\d:\d\d\s?(AM|PM|am|pm)/)).toBeNull();
     expect(
       screen.getByRole('button', { name: 'Open my promise' })
     ).toBeTruthy();
@@ -290,62 +325,71 @@ describe('CreateChallengeScreen confirmed receipt navigation', () => {
     expect(mockRouter.dismissTo).not.toHaveBeenCalled();
   });
 
-  it('uses a visible step count and canonical radio choices', async () => {
+  it('walks the promise steps with canonical radio choices', async () => {
     render(<CreateChallengeScreen />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('create-promise-step-label')).toHaveTextContent(
-        'Step 1 of 4'
-      );
+      expect(screen.getByTestId('create-promise-primary-name')).toBeEnabled();
     });
-
-    expect(screen.getByTestId('create-promise-artefact')).toBeTruthy();
-    expect(screen.getByText('YOUR PROMISE')).toBeTruthy();
-    expect(screen.getByText('DAILY MINIMUM')).toBeTruthy();
+    expect(screen.getByTestId('create-promise-progress')).toBeTruthy();
 
     fireEvent.press(screen.getByTestId('create-promise-primary-name'));
 
-    expect(screen.getByRole('radio', { name: /Photo or video/ })).toBeTruthy();
-    expect(screen.getByRole('radio', { name: /Text proof/ })).toBeTruthy();
-    expect(
-      screen.getByText('Choose what you will send when this promise is due.')
-    ).toBeTruthy();
-    expect(screen.getByTestId('create-promise-step-label')).toHaveTextContent(
-      'Step 2 of 4'
-    );
-    expect(
-      screen.getByTestId('create-promise-reviewer-instructions-input').props
-        .inputAccessoryViewID
-    ).toBe('create-promise-keyboard-accessory');
-    expect(
-      screen.getByTestId('create-promise-proof-prompt-input').props
-        .inputAccessoryViewID
-    ).toBe('create-promise-keyboard-accessory');
-    expect(screen.getByRole('button', { name: 'Done editing' })).toBeTruthy();
+    expect(screen.getByRole('radio', { name: /^Photo/ })).toBeChecked();
+    expect(screen.getByRole('radio', { name: /^Note/ })).not.toBeChecked();
+    expect(screen.getByRole('radio', { name: /^Video/ })).not.toBeChecked();
 
-    const proofInstructions = screen.getByTestId(
+    const proofRule = screen.getByTestId(
       'create-promise-reviewer-instructions-input'
     );
-    fireEvent.changeText(proofInstructions, 'Yeshq q');
-    expect(screen.getByTestId('create-promise-proof-helper')).toHaveTextContent(
-      'Use at least 8 characters to describe the proof.'
-    );
+    fireEvent.changeText(proofRule, 'Yeshq q');
     expect(screen.getByTestId('create-promise-primary-proof')).toBeDisabled();
-    fireEvent.changeText(proofInstructions, 'Yeshq qq');
+    fireEvent.changeText(proofRule, 'Yeshq qq');
     expect(screen.getByTestId('create-promise-primary-proof')).toBeEnabled();
 
     fireEvent.press(screen.getByTestId('create-promise-primary-proof'));
     expect(
-      screen.getByText(
-        'A 12-hour deadline extension or streak freeze is bought in the shop, not chosen here.'
-      )
-    ).toBeTruthy();
-    fireEvent.press(screen.getByTestId('create-promise-primary-pace'));
+      screen.getByRole('radio', { name: /^Just me for now/ })
+    ).toBeChecked();
     expect(
-      screen.getByText(
-        'This promise is private. Your proof counts when you send it.'
+      screen.getByTestId('create-promise-reviewer-friend')
+    ).not.toBeChecked();
+
+    fireEvent.press(screen.getByTestId('create-promise-primary-who'));
+    const checkedDurations = [7, 14, 30].filter(days => {
+      const row = screen.getByTestId(`create-promise-duration-${days}`);
+      return row.props.accessibilityState?.checked === true;
+    });
+    expect(checkedDurations).toHaveLength(1);
+    expect(screen.getByTestId('create-promise-days-weekdays')).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId('create-promise-primary-length'));
+    expect(screen.getByText('Ready to start?')).toBeTruthy();
+    expect(screen.getByText(/Every day/)).toBeTruthy();
+    expect(screen.getByText('Tomorrow')).toBeTruthy();
+  });
+
+  it('creates a weekday promise that counts only Monday to Friday', async () => {
+    render(<CreateChallengeScreen />);
+    await waitFor(() =>
+      expect(screen.getByTestId('create-promise-primary-name')).toBeEnabled()
+    );
+    fireEvent.press(screen.getByTestId('create-promise-primary-name'));
+    fireEvent.press(screen.getByTestId('create-promise-primary-proof'));
+    fireEvent.press(screen.getByTestId('create-promise-primary-who'));
+
+    fireEvent.press(screen.getByTestId('create-promise-days-weekdays'));
+    expect(screen.getByTestId('create-promise-days-weekdays')).toBeChecked();
+
+    fireEvent.press(screen.getByTestId('create-promise-primary-length'));
+    expect(screen.getByText(/Weekdays/)).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId('create-promise-primary-review'));
+    await waitFor(() =>
+      expect(mockCreateChallengeWithPayment).toHaveBeenCalledWith(
+        expect.objectContaining({ checkInWeekdays: [1, 2, 3, 4, 5] })
       )
-    ).toBeTruthy();
+    );
   });
 
   it('keeps an explicit route template ahead of an unrelated saved draft', async () => {
@@ -373,13 +417,16 @@ describe('CreateChallengeScreen confirmed receipt navigation', () => {
     expect(screen.getByTestId('create-promise-name-input').props.value).toBe(
       'Morning walk'
     );
+    fireEvent.press(screen.getByTestId('create-promise-primary-name'));
     expect(
-      screen.getByTestId('create-promise-what-counts-input').props.value
-    ).toContain('Take a short walk early');
+      screen
+        .getByTestId('create-promise-reviewer-instructions-input')
+        .props.value.trim().length
+    ).toBeGreaterThanOrEqual(8);
   });
 
-  it('saves and exits when Momenta blocks creation', async () => {
-    mockMomentaState.balance = 0;
+  it('offers a top-up from the review when Momenta is short', async () => {
+    mockMomentaState.balance = 20;
     mockIsPro.mockResolvedValue(false);
     mockGetCreatePromiseQuote.mockResolvedValue({
       cost: 30,
@@ -388,36 +435,28 @@ describe('CreateChallengeScreen confirmed receipt navigation', () => {
       isPro: false,
     });
 
-    render(<CreateChallengeScreen />);
-    await waitFor(() =>
-      expect(screen.getByTestId('create-promise-primary-name')).toBeEnabled()
-    );
+    await advanceToReview();
 
-    fireEvent.press(screen.getByTestId('create-promise-primary-name'));
-    fireEvent.press(screen.getByTestId('create-promise-primary-proof'));
-    fireEvent.press(screen.getByTestId('create-promise-primary-pace'));
-    fireEvent.press(screen.getByTestId('create-promise-primary-review'));
-
-    await waitFor(() =>
-      expect(
-        screen.getByRole('button', { name: 'Return to draft' })
-      ).toBeTruthy()
-    );
-    fireEvent.press(screen.getByRole('button', { name: 'Return to draft' }));
+    await waitFor(() => expect(screen.getByText('Almost there')).toBeTruthy());
+    expect(screen.getByText('YOU HAVE')).toBeTruthy();
+    expect(screen.getByText('20 Momenta')).toBeTruthy();
 
     fireEvent.press(
-      await screen.findByRole('button', { name: 'Save draft and exit' })
+      screen.getByRole('button', { name: 'Get 10 more Momenta' })
     );
+    expect(
+      await screen.findByRole('button', { name: 'Return to draft' })
+    ).toBeTruthy();
+    fireEvent.press(screen.getByRole('button', { name: 'Return to draft' }));
 
-    await waitFor(() => {
-      expect(mockSavePromiseCreationDraft).toHaveBeenCalled();
-      expect(mockRouter.replace).toHaveBeenCalledWith('/(tabs)');
-    });
+    // Closing the top-up returns to the same review, not an error notice.
+    expect(screen.getByText('Almost there')).toBeTruthy();
+    expect(screen.queryByText('Save draft and exit')).toBeNull();
     expect(mockCreateChallengeWithPayment).not.toHaveBeenCalled();
     expect(mockEmitConfirmedOutcome).not.toHaveBeenCalled();
   });
 
-  it('requires a second confirmation before spending Momenta', async () => {
+  it('shows the cost beside the start button and spends it in one tap', async () => {
     mockGetCreatePromiseQuote.mockResolvedValue({
       cost: 30,
       activePromises: 1,
@@ -425,24 +464,13 @@ describe('CreateChallengeScreen confirmed receipt navigation', () => {
       isPro: false,
     });
 
-    render(<CreateChallengeScreen />);
-    await waitFor(() =>
-      expect(screen.getByTestId('create-promise-primary-name')).toBeEnabled()
-    );
+    await advanceToReview();
 
-    fireEvent.press(screen.getByTestId('create-promise-primary-name'));
-    fireEvent.press(screen.getByTestId('create-promise-primary-proof'));
-    fireEvent.press(screen.getByTestId('create-promise-primary-pace'));
-    fireEvent.press(screen.getByTestId('create-promise-primary-review'));
-
-    await waitFor(() =>
-      expect(
-        screen.getByRole('button', { name: 'Confirm 30 Momenta' })
-      ).toBeTruthy()
-    );
+    await waitFor(() => expect(screen.getByText('70 of 100')).toBeTruthy());
+    expect(screen.getByText('30 Momenta')).toBeTruthy();
     expect(mockCreateChallengeWithPayment).not.toHaveBeenCalled();
 
-    fireEvent.press(screen.getByRole('button', { name: 'Confirm 30 Momenta' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Start my promise' }));
     await waitFor(() =>
       expect(mockCreateChallengeWithPayment).toHaveBeenCalledTimes(1)
     );
@@ -458,14 +486,7 @@ describe('CreateChallengeScreen confirmed receipt navigation', () => {
       error => error === legalError
     );
 
-    render(<CreateChallengeScreen />);
-    await waitFor(() =>
-      expect(screen.getByTestId('create-promise-primary-name')).toBeEnabled()
-    );
-
-    fireEvent.press(screen.getByTestId('create-promise-primary-name'));
-    fireEvent.press(screen.getByTestId('create-promise-primary-proof'));
-    fireEvent.press(screen.getByTestId('create-promise-primary-pace'));
+    await advanceToReview();
     fireEvent.press(screen.getByTestId('create-promise-primary-review'));
 
     await waitFor(() =>

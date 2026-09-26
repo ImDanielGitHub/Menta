@@ -28,6 +28,7 @@ type SettingsDirectRowProps = {
   showDivider?: boolean;
   disabled?: boolean;
   busy?: boolean;
+  expanded?: boolean;
   accessibilityLabel?: string;
   accessibilityHint?: string;
   testID?: string;
@@ -50,6 +51,7 @@ export const SettingsDirectRow = ({
   showDivider = true,
   disabled = false,
   busy = false,
+  expanded,
   accessibilityLabel,
   accessibilityHint,
   testID,
@@ -112,7 +114,7 @@ export const SettingsDirectRow = ({
       <View
         accessible
         accessibilityLabel={spokenLabel}
-        accessibilityState={{ busy, disabled }}
+        accessibilityState={{ busy, disabled, expanded }}
         accessibilityValue={spokenValue}
         style={rowStyle}
         testID={testID}
@@ -127,7 +129,7 @@ export const SettingsDirectRow = ({
       accessibilityHint={accessibilityHint}
       accessibilityLabel={spokenLabel}
       accessibilityRole="button"
-      accessibilityState={{ busy, disabled }}
+      accessibilityState={{ busy, disabled, expanded }}
       accessibilityValue={spokenValue}
       disabled={disabled}
       onPress={onPress}

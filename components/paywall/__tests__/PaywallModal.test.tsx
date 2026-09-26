@@ -6,7 +6,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react-native';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import PaywallModal from '@/components/paywall/PaywallModal';
 import { ThemeProvider } from '@/constants/ThemeContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -15,6 +15,16 @@ const mockBoolFlags: Record<string, boolean> = {
   ads_enabled: true,
   safe_mode: false,
 };
+let mockPaywallAllowed = true;
+
+jest.mock('@/lib/paywall/use-paywall-allowed', () => ({
+  usePaywallAllowed: () => mockPaywallAllowed,
+}));
+
+jest.mock('@/store/auth-store', () => ({
+  useAuthStore: (selector: (state: { user: { id: string } }) => unknown) =>
+    selector({ user: { id: 'paywall-user' } }),
+}));
 
 jest.mock('@/hooks/useOperationalFlag', () => ({
   useOperationalFlag: (flagKey: string) => ({
@@ -49,12 +59,19 @@ jest.mock('@/lib/amplitude', () => ({
 
 jest.mock('react-native-purchases', () => ({
   PACKAGE_TYPE: {
-    MONTHLY: 'MONTHLY',
+    WEEKLY: 'WEEKLY',
     ANNUAL: 'ANNUAL',
   },
 }));
 
 describe('PaywallModal', () => {
+  const reviewWeeklyOffer = async () => {
+    fireEvent.press(screen.getByText('See Pro plans'));
+    fireEvent.press(await screen.findByRole('radio', { name: /^Weekly Pro/ }));
+    fireEvent.press(screen.getByText('Review my offer'));
+    await screen.findByText('Your Pro plan.');
+  };
+
   const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     <SafeAreaProvider
       initialMetrics={{
@@ -83,10 +100,13 @@ describe('PaywallModal', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPaywallAllowed = true;
     mockBoolFlags.ads_enabled = true;
     mockBoolFlags.safe_mode = false;
     const revenueCat = jest.requireMock('@/lib/paywall/revenuecat') as {
       REVENUECAT_SUPPORTED: boolean;
+      purchasePlan: jest.Mock;
+      restorePurchases: jest.Mock;
       RevenueCatAPI: {
         getOfferings: jest.Mock;
         refreshCustomerInfo: jest.Mock;
@@ -94,13 +114,20 @@ describe('PaywallModal', () => {
       };
     };
     revenueCat.REVENUECAT_SUPPORTED = true;
+    revenueCat.purchasePlan.mockReset().mockResolvedValue({ success: false });
+    revenueCat.restorePurchases
+      .mockReset()
+      .mockResolvedValue({ success: false });
     const { RevenueCatAPI } = revenueCat;
+    RevenueCatAPI.getOfferings.mockReset();
+    RevenueCatAPI.refreshCustomerInfo.mockReset();
+    RevenueCatAPI.confirmServerProAccess.mockReset();
     RevenueCatAPI.getOfferings.mockResolvedValue({
       current: {
         availablePackages: [
           {
-            identifier: 'com.anekedigitalapps.lockedin.pro_monthly',
-            packageType: 'MONTHLY',
+            identifier: '$rc_weekly',
+            packageType: 'WEEKLY',
             product: {
               price: 9.99,
               currencyCode: 'USD',
@@ -125,6 +152,40 @@ describe('PaywallModal', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+  });
+
+  it('offers a return to setup instead of promising free access in hard onboarding', async () => {
+    const onClose = jest.fn();
+    render(<PaywallModal visible context="onboarding" onClose={onClose} />, {
+      wrapper: Wrapper,
+    });
+    expect(
+      await screen.findByText(
+        'Start your promise with Menta Pro. Choose a plan to continue.'
+      )
+    ).toBeTruthy();
+    expect(screen.queryByText('Keep using Menta for free')).toBeNull();
+    fireEvent.press(screen.getByText('Back'));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes without loading offers when onboarding excludes the paywall', () => {
+    mockPaywallAllowed = false;
+    const onClose = jest.fn();
+    const { RevenueCatAPI } = jest.requireMock('@/lib/paywall/revenuecat');
+
+    render(<PaywallModal visible onClose={onClose} />, { wrapper: Wrapper });
+
+    expect(screen.queryByTestId('paywall-modal')).toBeNull();
+    expect(RevenueCatAPI.getOfferings).not.toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalledTimes(1);
+    const { trackProductEvent } = jest.requireMock('@/lib/posthog');
+    expect(trackProductEvent).toHaveBeenCalledWith('Paywall Journey', {
+      stage: 'entry_blocked',
+      context: 'general',
+      plan: 'none',
+      reason: 'onboarding_gate',
+    });
   });
 
   it('does not expose rewarded ads while the dashboard flag is disabled', () => {
@@ -181,7 +242,7 @@ describe('PaywallModal', () => {
       { wrapper: Wrapper }
     );
 
-    fireEvent.press(screen.getByText('Watch an ad for 10 Momenta'));
+    fireEvent.press(screen.getByText('Watch and get 10'));
 
     expect(
       await screen.findByTestId('paywall-ad-success-receipt')
@@ -209,7 +270,7 @@ describe('PaywallModal', () => {
       { wrapper: Wrapper }
     );
 
-    fireEvent.press(screen.getByText('Watch an ad for 10 Momenta'));
+    fireEvent.press(screen.getByText('Watch and get 10'));
 
     expect(
       await screen.findByText(
@@ -271,7 +332,7 @@ describe('PaywallModal', () => {
         { wrapper: Wrapper }
       );
 
-      fireEvent.press(screen.getByText('Watch an ad for 10 Momenta'));
+      fireEvent.press(screen.getByText('Watch and get 10'));
 
       expect(await screen.findByText(title)).toBeTruthy();
       expect(screen.getByText(message)).toBeTruthy();
@@ -294,7 +355,7 @@ describe('PaywallModal', () => {
       { wrapper: Wrapper }
     );
 
-    fireEvent.press(screen.getByText('Watch an ad for 10 Momenta'));
+    fireEvent.press(screen.getByText('Watch and get 10'));
 
     expect(await screen.findByText('Reward not earned')).toBeTruthy();
     expect(
@@ -304,7 +365,7 @@ describe('PaywallModal', () => {
     expect(screen.queryByTestId('paywall-ad-success-receipt')).toBeNull();
   });
 
-  it('shows the exact remaining amount after one ad at the funding gate', () => {
+  it('shows the exact remaining amount and the next ad at the funding gate', async () => {
     const onWatchAd = jest.fn(async () => ({ earned: true, amount: 10 }));
 
     render(
@@ -315,33 +376,37 @@ describe('PaywallModal', () => {
         context="challenge"
         variant="insufficient"
         shortfall={30}
+        balance={0}
+        requiredAmount={30}
         adRewardAmount={10}
       />,
       { wrapper: Wrapper }
     );
 
-    expect(screen.getByText('Need 30 more Momenta')).toBeTruthy();
+    expect(screen.getByText('30 Momenta to go')).toBeTruthy();
     expect(
-      screen.getByText(
-        'Your promise is saved while you choose what to do next.'
-      )
+      screen.getByText('Pick a way. Your promise waits here.')
     ).toBeTruthy();
+    expect(screen.getByText('You have 0')).toBeTruthy();
+    expect(screen.getByText('New promise · 30')).toBeTruthy();
+
+    fireEvent.press(screen.getByText('Watch and get 10'));
+
+    expect(await screen.findByText('+10 in. 20 to go.')).toBeTruthy();
+    expect(screen.getByText('2 more ads and you’re there.')).toBeTruthy();
+    expect(screen.getByTestId('paywall-ad-success-receipt')).toBeTruthy();
     expect(
-      screen.getByText('One ad adds 10 Momenta. You would still need 20 more.')
+      screen.getByTestId('momenta-top-up-primary').props.accessibilityLabel ??
+        screen.getAllByText('Watch another').length
     ).toBeTruthy();
-    expect(screen.getByText('Watch an ad for 10 Momenta')).toBeTruthy();
-    expect(screen.getByText('See Pro plans')).toBeTruthy();
-    expect(screen.getByText('Return to draft')).toBeTruthy();
-    expect(screen.getByText('Restore purchases')).toBeTruthy();
-    expect(screen.getByText('Terms of Use')).toBeTruthy();
-    expect(screen.getByText('Privacy Policy')).toBeTruthy();
   });
 
-  it('only says one ad is enough when its reward covers the shortfall', () => {
+  it('says the person is set only once confirmed ads cover the shortfall', async () => {
+    const onClose = jest.fn();
     render(
       <PaywallModal
         visible
-        onClose={jest.fn()}
+        onClose={onClose}
         onWatchAd={jest.fn(async () => ({ earned: true, amount: 50 }))}
         context="challenge"
         variant="insufficient"
@@ -351,13 +416,15 @@ describe('PaywallModal', () => {
       { wrapper: Wrapper }
     );
 
-    expect(
-      screen.getByText('One ad adds 50 Momenta, enough for this promise.')
-    ).toBeTruthy();
-    expect(screen.queryByText(/would still need/i)).toBeNull();
+    expect(screen.queryByText('You’re all set')).toBeNull();
+    fireEvent.press(screen.getByText('Watch and get 50'));
+
+    expect(await screen.findByText('You’re all set')).toBeTruthy();
+    fireEvent.press(screen.getByText('Back to my promise'));
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps the saved draft and Pro recovery paths when ads are unavailable', () => {
+  it('keeps the saved draft and Pro path when ads are unavailable', async () => {
     const onClose = jest.fn();
 
     render(
@@ -371,55 +438,69 @@ describe('PaywallModal', () => {
       { wrapper: Wrapper }
     );
 
-    expect(
-      screen.getByText('Your group is saved while you choose what to do next.')
-    ).toBeTruthy();
-    expect(screen.queryByText(/Watch an ad for/)).toBeNull();
-    expect(screen.getByText('See Pro plans')).toBeTruthy();
+    expect(screen.getByText('Pick a way. Your group waits here.')).toBeTruthy();
+    expect(screen.queryByText(/Watch and get/)).toBeNull();
+    expect(screen.queryByTestId('momenta-top-up-option-ad')).toBeNull();
 
-    fireEvent.press(screen.getByText('Return to draft'));
+    fireEvent.press(screen.getByTestId('momenta-top-up-primary'));
+    fireEvent.press(await screen.findByText('See Pro plans'));
+    expect(
+      await screen.findByRole('radio', { name: /^Weekly Pro/ })
+    ).toBeTruthy();
+    expect(screen.getByText('Restore purchases')).toBeTruthy();
+  });
+
+  it('closes back to the draft from the top-up sheet', () => {
+    const onClose = jest.fn();
+    render(
+      <PaywallModal
+        visible
+        onClose={onClose}
+        context="group"
+        variant="insufficient"
+        shortfall={25}
+      />,
+      { wrapper: Wrapper }
+    );
+
+    fireEvent.press(screen.getByTestId('momenta-top-up-not-now'));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('shows the actual monthly renewal price without a value claim', async () => {
+  it('shows the actual weekly renewal price before checkout without a value claim', async () => {
     render(<PaywallModal visible onClose={jest.fn()} context="general" />, {
       wrapper: Wrapper,
     });
 
-    expect(await screen.findByText('$9.99')).toBeTruthy();
-    expect(screen.getByText('Billed $9.99 monthly')).toBeTruthy();
+    await reviewWeeklyOffer();
+    expect(screen.getByText('$9.99')).toBeTruthy();
+    expect(
+      screen.getAllByText('$9.99 billed each week. Renews automatically.')
+    ).not.toHaveLength(0);
     expect(screen.queryByText('Best option')).toBeNull();
     expect(screen.queryByText('$2.30/week')).toBeNull();
-    expect(screen.getByText('More room to follow through.')).toBeTruthy();
-    fireEvent.press(screen.getByTestId('paywall-plan-monthly'));
-    expect(screen.getByText('Continue to monthly checkout')).toBeTruthy();
+    expect(screen.getByText('Subscribe to Pro')).toBeTruthy();
     expect(
       screen.getByText(
-        'Auto-renews monthly. $9.99 per month. Cancel anytime in your Apple subscription settings.'
+        'Cancel in your store subscription settings before the next renewal. Your access continues until the paid period ends.'
       )
     ).toBeTruthy();
     expect(screen.queryByText('Best value')).toBeNull();
   });
 
   it('explains Pro before asking for a plan choice', async () => {
-    const { toJSON } = render(
-      <PaywallModal visible onClose={jest.fn()} context="general" />,
-      {
-        wrapper: Wrapper,
-      }
-    );
+    render(<PaywallModal visible onClose={jest.fn()} context="general" />, {
+      wrapper: Wrapper,
+    });
 
-    expect(await screen.findByText('Monthly Pro')).toBeTruthy();
-    expect(screen.getByTestId('paywall-plan-options')).toBeTruthy();
-    expect(screen.getByTestId('paywall-benefits-section')).toBeTruthy();
-
-    const renderedTree = JSON.stringify(toJSON());
-    const firstPlanIndex = renderedTree.indexOf('Monthly Pro');
-    const benefitsIndex = renderedTree.indexOf('What Pro changes');
-
-    expect(firstPlanIndex).toBeGreaterThan(-1);
-    expect(benefitsIndex).toBeGreaterThan(-1);
-    expect(benefitsIndex).toBeLessThan(firstPlanIndex);
+    expect(screen.getByText('More active promises and groups')).toBeTruthy();
+    expect(screen.queryByRole('radio')).toBeNull();
+    fireEvent.press(screen.getByText('See Pro plans'));
+    expect(
+      await screen.findByRole('radio', { name: /^Weekly Pro/ })
+    ).toBeTruthy();
+    expect(screen.getByRole('radio', { name: /^Annual Pro/ })).toBeTruthy();
+    expect(screen.queryByText('Subscribe to Pro')).toBeNull();
   });
 
   it('opens the direct paywall with one human promise and no ornamental label', async () => {
@@ -427,16 +508,14 @@ describe('PaywallModal', () => {
       wrapper: Wrapper,
     });
 
-    expect(
-      await screen.findByText('More room to follow through.')
-    ).toBeTruthy();
+    expect(await screen.findByText('Menta Pro')).toBeTruthy();
     expect(
       screen.getByText(
-        'Keep more promises and groups moving, without free-plan limits getting in the way.'
+        'Menta Pro gives you more space for the promises you want to keep.'
       )
     ).toBeTruthy();
-    expect(screen.getByText('What Pro changes')).toBeTruthy();
-    expect(screen.getByText('Choose a plan')).toBeTruthy();
+    expect(screen.getByText('More active promises and groups')).toBeTruthy();
+    expect(screen.getByText('See Pro plans')).toBeTruthy();
     expect(screen.queryByText('Choose a Menta Pro plan')).toBeNull();
     expect(screen.queryByText('Included with Pro')).toBeNull();
     expect(screen.queryByText(/^[A-Z][A-Z ]{3,}$/)).toBeNull();
@@ -456,159 +535,87 @@ describe('PaywallModal', () => {
       { wrapper: Wrapper }
     );
 
-    expect(await screen.findByText('Monthly Pro')).toBeTruthy();
+    fireEvent.press(screen.getByText('See Pro plans'));
+    expect(
+      await screen.findByRole('radio', { name: /^Weekly Pro/ })
+    ).toBeTruthy();
     expect(screen.queryByText(/Watch ad for/)).toBeNull();
     expect(screen.queryByText(/Watch one short ad/)).toBeNull();
     expect(onWatchAd).not.toHaveBeenCalled();
   });
 
-  it('holds direct paywall, outcome, and compact shells in one phone-frame lane', async () => {
-    const { rerender } = render(
-      <PaywallModal visible onClose={jest.fn()} context="general" />,
-      { wrapper: Wrapper }
-    );
-
-    await screen.findByTestId('paywall-plan-monthly');
-    const directLane = StyleSheet.flatten(
-      screen.getByTestId('paywall-plans').props.contentContainerStyle
-    );
-    expect(directLane.width).toBe('100%');
-    expect(directLane.maxWidth).toBe(430);
-    expect(directLane.alignSelf).toBe('center');
-    expect(directLane.paddingHorizontal).toBe(24);
-    expect(directLane.paddingTop).toBe(64);
-    expect(directLane.paddingBottom).toBe(64);
-
-    const closeControl = StyleSheet.flatten(
-      screen.getByTestId('paywall-close').props.style
-    );
-    expect(closeControl.left).toBeUndefined();
-    expect(closeControl.right).toBe(16);
-    expect(closeControl.width).toBe(44);
-    expect(closeControl.minHeight).toBe(44);
-
-    const purchaseCta = StyleSheet.flatten(
-      screen.getByTestId('paywall-purchase-cta').props.style
-    );
-    expect(purchaseCta.width).toBe('100%');
-    expect(purchaseCta.alignSelf).toBe('stretch');
-
-    fireEvent.press(screen.getByText('Manage Menta Pro with Apple'));
-    const outcomeLane = StyleSheet.flatten(
-      screen.getByTestId('paywall-state-manage').props.contentContainerStyle
-    );
-    expect(outcomeLane.width).toBe('100%');
-    expect(outcomeLane.maxWidth).toBe(430);
-    expect(outcomeLane.alignSelf).toBe('center');
-    expect(outcomeLane.paddingHorizontal).toBe(24);
-
-    rerender(
-      <PaywallModal
-        visible
-        onClose={jest.fn()}
-        context="challenge"
-        variant="quota"
-        quotaContext="challenge"
-      />
-    );
-
-    expect(screen.getByText('You’ve reached the free limit')).toBeTruthy();
-    const compactLane = StyleSheet.flatten(
-      screen.getByTestId('paywall-compact').props.style
-    );
-    expect(compactLane.width).toBe('100%');
-    expect(compactLane.maxWidth).toBe(430);
-    expect(compactLane.alignSelf).toBe('center');
-    expect(compactLane.paddingHorizontal).toBe(24);
+  it('keeps the close action available through offer and purchase recovery', async () => {
+    const onClose = jest.fn();
+    render(<PaywallModal visible onClose={onClose} context="general" />, {
+      wrapper: Wrapper,
+    });
+    expect(screen.getByRole('button', { name: 'Close paywall' })).toBeTruthy();
+    await reviewWeeklyOffer();
+    fireEvent.press(screen.getByText('Subscribe to Pro'));
+    expect(await screen.findByText("Purchase didn't go through")).toBeTruthy();
+    fireEvent.press(screen.getByRole('button', { name: 'Close paywall' }));
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
-
-  it('offers plan choices as accessible full-width rows with stable geometry', async () => {
+  it('exposes mutually exclusive plan choices without starting checkout', async () => {
+    const { purchasePlan } = jest.requireMock('@/lib/paywall/revenuecat');
     render(<PaywallModal visible onClose={jest.fn()} context="general" />, {
       wrapper: Wrapper,
     });
-
-    const monthly = await screen.findByTestId('paywall-plan-monthly');
-    const unselected = StyleSheet.flatten(monthly.props.style);
-
-    expect(monthly.props.accessibilityRole).toBe('radio');
-    expect(monthly.props.accessibilityHint).toBe(
-      'Selects this plan. You will confirm the purchase with Apple next.'
-    );
-    expect(monthly.props.accessibilityState.checked).toBe(false);
-    expect(unselected.width).toBe('100%');
-    expect(unselected.minHeight).toBe(70);
-    expect(unselected.borderRadius).toBe(16);
-    expect(unselected.borderWidth).toBe(1);
-
-    fireEvent.press(monthly);
-
-    const revenueCat = jest.requireMock('@/lib/paywall/revenuecat') as {
-      purchasePlan: jest.Mock;
-    };
-    expect(revenueCat.purchasePlan).not.toHaveBeenCalled();
-
-    const selected = StyleSheet.flatten(
-      screen.getByTestId('paywall-plan-monthly').props.style
-    );
+    fireEvent.press(screen.getByText('See Pro plans'));
+    const weekly = await screen.findByRole('radio', { name: /^Weekly Pro/ });
+    const annual = screen.getByRole('radio', { name: /^Annual Pro/ });
+    expect(weekly.props.accessibilityState.checked).toBe(false);
+    expect(annual.props.accessibilityState.checked).toBe(false);
     expect(
-      screen.getByTestId('paywall-plan-monthly').props.accessibilityState
-        .checked
+      screen.getByRole('button', { name: 'Review my offer' })
+    ).toBeDisabled();
+    fireEvent.press(weekly);
+    expect(
+      screen.getByRole('radio', { name: /^Weekly Pro/ }).props
+        .accessibilityState.checked
     ).toBe(true);
     expect(
-      screen.getByTestId('paywall-plan-annual').props.accessibilityState.checked
+      screen.getByRole('radio', { name: /^Annual Pro/ }).props
+        .accessibilityState.checked
     ).toBe(false);
-    expect(selected.borderWidth).toBe(2);
-    expect(selected.borderColor).toBe('#B88CFF');
-    expect(selected.backgroundColor).toBe('rgba(184, 140, 255, 0.07)');
-    expect(selected.borderWidth + selected.paddingHorizontal).toBe(
-      unselected.borderWidth + unselected.paddingHorizontal
-    );
-    expect(selected.borderWidth + selected.paddingVertical).toBe(
-      unselected.borderWidth + unselected.paddingVertical
-    );
+    fireEvent.press(annual);
+    expect(
+      screen.getByRole('radio', { name: /^Weekly Pro/ }).props
+        .accessibilityState.checked
+    ).toBe(false);
+    expect(
+      screen.getByRole('radio', { name: /^Annual Pro/ }).props
+        .accessibilityState.checked
+    ).toBe(true);
+    expect(purchasePlan).not.toHaveBeenCalled();
   });
-
-  it('applies the equipped theme to the close control and selected plan semantics', async () => {
+  it('applies the equipped theme to the selected plan while preserving radio semantics', async () => {
     render(<PaywallModal visible onClose={jest.fn()} context="general" />, {
       wrapper: EmberWrapper,
     });
-
-    const monthly = await screen.findByTestId('paywall-plan-monthly');
-    const closeControl = StyleSheet.flatten(
-      screen.getByTestId('paywall-close').props.style
-    );
-
-    expect(closeControl.backgroundColor).toBe('rgba(231, 168, 109, 0.14)');
-    expect(closeControl.borderColor).toBe('rgba(231, 168, 109, 0.55)');
-
-    fireEvent.press(monthly);
-
-    const selectedPlan = StyleSheet.flatten(
-      screen.getByTestId('paywall-plan-monthly').props.style
-    );
-    const selectedIndicator = StyleSheet.flatten(
-      screen.getByTestId('paywall-plan-monthly-indicator').props.style
-    );
-    const selectedDot = StyleSheet.flatten(
-      screen.getByTestId('paywall-plan-monthly-indicator-dot').props.style
-    );
-
-    expect(selectedPlan.backgroundColor).toBe('rgba(231, 168, 109, 0.14)');
-    expect(selectedPlan.borderColor).toBe('rgba(231, 168, 109, 0.55)');
-    expect(selectedIndicator.borderColor).toBe('rgba(231, 168, 109, 0.55)');
-    expect(selectedDot.backgroundColor).toBe('#E7A86D');
+    fireEvent.press(screen.getByText('See Pro plans'));
+    fireEvent.press(await screen.findByRole('radio', { name: /^Weekly Pro/ }));
+    const selected = screen.getByRole('radio', { name: /^Weekly Pro/ });
+    expect(selected.props.accessibilityState.checked).toBe(true);
+    expect(
+      selected
+        .findAllByType(View)
+        .some(
+          node =>
+            StyleSheet.flatten(node.props.style)?.borderColor ===
+            'rgba(231, 168, 109, 0.55)'
+        )
+    ).toBe(true);
+    expect(screen.getByRole('button', { name: 'Close paywall' })).toBeTruthy();
   });
-
-  it('keeps a long localised price readable beside its plan name', async () => {
-    const { RevenueCatAPI } = jest.requireMock('@/lib/paywall/revenuecat') as {
-      RevenueCatAPI: { getOfferings: jest.Mock };
-    };
+  it('keeps a long localised price in the accessible option and exact checkout terms', async () => {
+    const { RevenueCatAPI } = jest.requireMock('@/lib/paywall/revenuecat');
     RevenueCatAPI.getOfferings.mockResolvedValueOnce({
       current: {
         availablePackages: [
           {
-            identifier: 'com.anekedigitalapps.lockedin.pro_monthly',
-            packageType: 'MONTHLY',
+            identifier: '$rc_weekly',
+            packageType: 'WEEKLY',
             product: {
               price: 1590000,
               currencyCode: 'IDR',
@@ -618,48 +625,51 @@ describe('PaywallModal', () => {
         ],
       },
     });
-
     render(<PaywallModal visible onClose={jest.fn()} context="general" />, {
       wrapper: Wrapper,
     });
-
-    const price = await screen.findByText('Rp1.590.000,00');
-    const priceStyle = StyleSheet.flatten(price.props.style);
-    const headline = StyleSheet.flatten(
-      screen.getByTestId('paywall-plan-monthly-headline').props.style
+    fireEvent.press(screen.getByText('See Pro plans'));
+    const option = await screen.findByRole('radio', { name: /^Weekly Pro/ });
+    expect(option.props.accessibilityLabel).toContain(
+      'Rp1.590.000,00 billed each week.'
     );
-
-    expect(priceStyle.flexShrink).toBe(1);
-    expect(headline.flexWrap).toBe('wrap');
-    expect(screen.getByText('Billed Rp1.590.000,00 monthly')).toBeTruthy();
+    fireEvent.press(option);
+    fireEvent.press(screen.getByText('Review my offer'));
+    expect(await screen.findByText('Rp1.590.000,00')).toBeTruthy();
+    expect(
+      screen.getAllByText(
+        'Rp1.590.000,00 billed each week. Renews automatically.'
+      )
+    ).not.toHaveLength(0);
   });
-
-  it('asks for a plan before offering checkout', async () => {
+  it('requires selection and review of exact terms before offering checkout', async () => {
+    const { purchasePlan } = jest.requireMock('@/lib/paywall/revenuecat');
     render(<PaywallModal visible onClose={jest.fn()} context="general" />, {
       wrapper: Wrapper,
     });
-
-    expect(await screen.findByText('Choose a plan to continue')).toBeTruthy();
-    expect(screen.queryByText(/Continue to .* checkout/)).toBeNull();
-
-    fireEvent.press(screen.getByTestId('paywall-plan-annual'));
-
-    expect(screen.getByText('Continue to annual checkout')).toBeTruthy();
-    expect(screen.queryByText('Choose a plan to continue')).toBeNull();
+    fireEvent.press(screen.getByText('See Pro plans'));
+    expect(
+      screen.getByRole('button', { name: 'Review my offer' })
+    ).toBeDisabled();
+    expect(screen.queryByText('Subscribe to Pro')).toBeNull();
+    fireEvent.press(await screen.findByRole('radio', { name: /^Annual Pro/ }));
+    expect(screen.queryByText('Subscribe to Pro')).toBeNull();
+    fireEvent.press(screen.getByText('Review my offer'));
+    expect(await screen.findByText('Your Pro plan.')).toBeTruthy();
+    expect(
+      screen.getAllByText('$59.99 billed each year. Renews automatically.')
+    ).not.toHaveLength(0);
+    expect(screen.getByText('Subscribe to Pro')).toBeTruthy();
+    expect(purchasePlan).not.toHaveBeenCalled();
   });
-
-  it('keeps the actual monthly price localised from RevenueCat', async () => {
-    const { RevenueCatAPI } = jest.requireMock('@/lib/paywall/revenuecat') as {
-      RevenueCatAPI: {
-        getOfferings: jest.Mock;
-      };
-    };
+  it('keeps the weekly price localised from RevenueCat', async () => {
+    const { RevenueCatAPI } = jest.requireMock('@/lib/paywall/revenuecat');
     RevenueCatAPI.getOfferings.mockResolvedValueOnce({
       current: {
         availablePackages: [
           {
-            identifier: 'com.anekedigitalapps.lockedin.pro_monthly',
-            packageType: 'MONTHLY',
+            identifier: '$rc_weekly',
+            packageType: 'WEEKLY',
             product: {
               price: 9.99,
               currencyCode: 'NZD',
@@ -669,15 +679,21 @@ describe('PaywallModal', () => {
         ],
       },
     });
-
     render(<PaywallModal visible onClose={jest.fn()} context="general" />, {
       wrapper: Wrapper,
     });
-
+    fireEvent.press(screen.getByText('See Pro plans'));
+    const option = await screen.findByRole('radio', { name: /^Weekly Pro/ });
+    expect(option.props.accessibilityLabel).toContain(
+      'NZ$9.99 billed each week.'
+    );
+    fireEvent.press(option);
+    fireEvent.press(screen.getByText('Review my offer'));
     expect(await screen.findByText('NZ$9.99')).toBeTruthy();
-    expect(screen.getByText('Billed NZ$9.99 monthly')).toBeTruthy();
+    expect(
+      screen.getAllByText('NZ$9.99 billed each week. Renews automatically.')
+    ).not.toHaveLength(0);
   });
-
   it('does not call a completed purchase failed while entitlement catches up', async () => {
     const revenueCat = jest.requireMock('@/lib/paywall/revenuecat') as {
       purchasePlan: jest.Mock;
@@ -692,8 +708,8 @@ describe('PaywallModal', () => {
       wrapper: Wrapper,
     });
 
-    fireEvent.press(await screen.findByTestId('paywall-plan-monthly'));
-    fireEvent.press(screen.getByText('Continue to monthly checkout'));
+    await reviewWeeklyOffer();
+    fireEvent.press(screen.getByText('Subscribe to Pro'));
 
     await waitFor(() => {
       expect(screen.getByText('Pro is taking longer to activate')).toBeTruthy();
@@ -739,8 +755,8 @@ describe('PaywallModal', () => {
       wrapper: Wrapper,
     });
 
-    fireEvent.press(await screen.findByTestId('paywall-plan-monthly'));
-    fireEvent.press(screen.getByText('Continue to monthly checkout'));
+    await reviewWeeklyOffer();
+    fireEvent.press(screen.getByText('Subscribe to Pro'));
     fireEvent.press(await screen.findByTestId('paywall-access-delayed-close'));
 
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -775,8 +791,8 @@ describe('PaywallModal', () => {
       { wrapper: Wrapper }
     );
 
-    fireEvent.press(await screen.findByTestId('paywall-plan-monthly'));
-    fireEvent.press(screen.getByText('Continue to monthly checkout'));
+    await reviewWeeklyOffer();
+    fireEvent.press(screen.getByText('Subscribe to Pro'));
     fireEvent.press(await screen.findByText('Check Pro access'));
 
     expect(await screen.findByText('Menta Pro is active')).toBeTruthy();
@@ -816,8 +832,8 @@ describe('PaywallModal', () => {
       { wrapper: Wrapper }
     );
 
-    fireEvent.press(await screen.findByTestId('paywall-plan-monthly'));
-    fireEvent.press(screen.getByText('Continue to monthly checkout'));
+    await reviewWeeklyOffer();
+    fireEvent.press(screen.getByText('Subscribe to Pro'));
     fireEvent.press(await screen.findByText('Check Pro access'));
 
     expect(
@@ -836,7 +852,6 @@ describe('PaywallModal', () => {
   });
 
   it('does not claim Apple failed when checkout has not returned yet', async () => {
-    jest.useFakeTimers();
     const revenueCat = jest.requireMock('@/lib/paywall/revenuecat') as {
       purchasePlan: jest.Mock;
     };
@@ -847,8 +862,9 @@ describe('PaywallModal', () => {
     });
 
     await act(async () => {});
-    fireEvent.press(screen.getByTestId('paywall-plan-monthly'));
-    fireEvent.press(screen.getByText('Continue to monthly checkout'));
+    await reviewWeeklyOffer();
+    jest.useFakeTimers();
+    fireEvent.press(screen.getByText('Subscribe to Pro'));
 
     act(() => {
       jest.advanceTimersByTime(30_000);
@@ -885,8 +901,8 @@ describe('PaywallModal', () => {
       { wrapper: Wrapper }
     );
 
-    fireEvent.press(await screen.findByTestId('paywall-plan-monthly'));
-    fireEvent.press(screen.getByText('Continue to monthly checkout'));
+    await reviewWeeklyOffer();
+    fireEvent.press(screen.getByText('Subscribe to Pro'));
 
     expect(await screen.findByText('Purchase cancelled')).toBeTruthy();
     expect(
@@ -919,8 +935,8 @@ describe('PaywallModal', () => {
       { wrapper: Wrapper }
     );
 
-    fireEvent.press(await screen.findByTestId('paywall-plan-monthly'));
-    fireEvent.press(screen.getByText('Continue to monthly checkout'));
+    await reviewWeeklyOffer();
+    fireEvent.press(screen.getByText('Subscribe to Pro'));
 
     expect(await screen.findByText('Menta Pro is active')).toBeTruthy();
     expect(screen.getByText('You can use your Pro features now.')).toBeTruthy();
@@ -928,7 +944,7 @@ describe('PaywallModal', () => {
       trackProductEvent: jest.Mock;
     };
     expect(trackProductEvent).toHaveBeenCalledWith('Subscription Started', {
-      plan: 'monthly',
+      plan: 'weekly',
     });
     expect(
       screen.getByTestId('paywall-confirmed-mascot', {
@@ -970,6 +986,7 @@ describe('PaywallModal', () => {
       { wrapper: Wrapper }
     );
 
+    fireEvent.press(screen.getByText('See Pro plans'));
     fireEvent.press(await screen.findByText('Restore purchases'));
 
     expect(await screen.findByText('Menta Pro is active again')).toBeTruthy();
@@ -1008,6 +1025,7 @@ describe('PaywallModal', () => {
       wrapper: Wrapper,
     });
 
+    fireEvent.press(screen.getByText('See Pro plans'));
     fireEvent.press(await screen.findByText('Restore purchases'));
 
     expect(await screen.findByTestId('paywall-state-restoring')).toBeTruthy();
@@ -1040,8 +1058,8 @@ describe('PaywallModal', () => {
       wrapper: Wrapper,
     });
 
-    fireEvent.press(await screen.findByTestId('paywall-plan-monthly'));
-    fireEvent.press(screen.getByText('Continue to monthly checkout'));
+    await reviewWeeklyOffer();
+    fireEvent.press(screen.getByText('Subscribe to Pro'));
 
     expect(await screen.findByText("Purchase didn't go through")).toBeTruthy();
     expect(
@@ -1064,6 +1082,7 @@ describe('PaywallModal', () => {
       wrapper: Wrapper,
     });
 
+    fireEvent.press(screen.getByText('See Pro plans'));
     fireEvent.press(await screen.findByText('Restore purchases'));
 
     expect(await screen.findByText('Could not restore purchases')).toBeTruthy();
@@ -1087,6 +1106,7 @@ describe('PaywallModal', () => {
       wrapper: Wrapper,
     });
 
+    fireEvent.press(screen.getByText('See Pro plans'));
     fireEvent.press(await screen.findByText('Restore purchases'));
 
     expect(
@@ -1110,6 +1130,7 @@ describe('PaywallModal', () => {
       wrapper: Wrapper,
     });
 
+    fireEvent.press(screen.getByText('See Pro plans'));
     fireEvent.press(await screen.findByText('Restore purchases'));
 
     expect(
@@ -1122,82 +1143,87 @@ describe('PaywallModal', () => {
   });
 
   it('shows an unavailable-plan state when RevenueCat has no current offering', async () => {
-    const { RevenueCatAPI } = jest.requireMock('@/lib/paywall/revenuecat') as {
-      RevenueCatAPI: { getOfferings: jest.Mock };
-    };
+    const { RevenueCatAPI } = jest.requireMock('@/lib/paywall/revenuecat');
     RevenueCatAPI.getOfferings.mockResolvedValueOnce(null);
-
     render(<PaywallModal visible onClose={jest.fn()} context="general" />, {
       wrapper: Wrapper,
     });
-
+    fireEvent.press(screen.getByText('See Pro plans'));
     expect(
-      await screen.findByText('Plans are temporarily unavailable')
+      await screen.findByText('Plans aren’t available right now')
     ).toBeTruthy();
     expect(screen.getByText('Try again')).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Review my offer' })
+    ).toBeDisabled();
   });
-
   it('does not expose a native checkout when purchases are unsupported', async () => {
-    const revenueCat = jest.requireMock('@/lib/paywall/revenuecat') as {
-      REVENUECAT_SUPPORTED: boolean;
-      purchasePlan: jest.Mock;
-    };
+    const revenueCat = jest.requireMock('@/lib/paywall/revenuecat');
     revenueCat.REVENUECAT_SUPPORTED = false;
-
     render(<PaywallModal visible onClose={jest.fn()} context="general" />, {
       wrapper: Wrapper,
     });
-
+    expect(screen.getByText('Menta Pro')).toBeTruthy();
+    fireEvent.press(screen.getByText('See Pro plans'));
     expect(
-      await screen.findByText('Purchases aren’t available on this device')
+      await screen.findByText('Plans aren’t available right now')
     ).toBeTruthy();
-    expect(screen.getByText('More room to follow through.')).toBeTruthy();
-    expect(screen.queryByText(/Continue to .* checkout/)).toBeNull();
+    expect(
+      screen.getByRole('button', { name: 'Review my offer' })
+    ).toBeDisabled();
+    expect(screen.queryByText('Subscribe to Pro')).toBeNull();
     expect(screen.queryByText(/native build|configured/i)).toBeNull();
     expect(revenueCat.purchasePlan).not.toHaveBeenCalled();
   });
-
-  it('shows plan-shaped skeletons while live App Store plans load', async () => {
-    const { RevenueCatAPI } = jest.requireMock('@/lib/paywall/revenuecat') as {
-      RevenueCatAPI: { getOfferings: jest.Mock };
-    };
+  it('announces loading and prevents checkout while live store plans load', async () => {
+    const { RevenueCatAPI } = jest.requireMock('@/lib/paywall/revenuecat');
     RevenueCatAPI.getOfferings.mockReturnValueOnce(new Promise(() => {}));
-
     render(<PaywallModal visible onClose={jest.fn()} context="general" />, {
       wrapper: Wrapper,
     });
-
-    expect(await screen.findByTestId('paywall-plan-loading')).toBeTruthy();
-    expect(screen.getByText('Loading Pro plans…')).toBeTruthy();
+    fireEvent.press(screen.getByText('See Pro plans'));
     expect(
-      screen.getByText('Prices are loaded from the App Store.')
+      await screen.findByRole('progressbar', {
+        name: 'Loading plans from the store',
+      })
     ).toBeTruthy();
-    expect(screen.queryByText('Monthly Pro')).toBeNull();
+    expect(screen.queryByRole('radio')).toBeNull();
+    expect(
+      screen.getByRole('button', { name: 'Review my offer' })
+    ).toBeDisabled();
+    expect(screen.queryByText('Subscribe to Pro')).toBeNull();
   });
-
   it('explains the Apple handoff before opening subscription management', async () => {
-    render(<PaywallModal visible onClose={jest.fn()} context="general" />, {
-      wrapper: Wrapper,
-    });
-
-    fireEvent.press(await screen.findByText('Manage Menta Pro with Apple'));
-
+    const { RevenueCatAPI } = jest.requireMock('@/lib/paywall/revenuecat');
+    render(
+      <PaywallModal
+        visible
+        initialView="active"
+        onClose={jest.fn()}
+        context="general"
+      />,
+      { wrapper: Wrapper }
+    );
+    fireEvent.press(await screen.findByText('Manage subscription'));
     expect(screen.getByTestId('paywall-state-manage')).toBeTruthy();
     expect(screen.getByText('Manage Menta Pro')).toBeTruthy();
     expect(screen.getByText('Continue in Apple Settings')).toBeTruthy();
+    expect(RevenueCatAPI.showManageSubscriptions).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByText('Continue in Apple Settings'));
+    await waitFor(() =>
+      expect(RevenueCatAPI.showManageSubscriptions).toHaveBeenCalledTimes(1)
+    );
   });
-
-  it('exposes legal, restore, and Apple management recovery paths', async () => {
+  it('exposes legal links and restore before the subscription decision', async () => {
     render(<PaywallModal visible onClose={jest.fn()} context="general" />, {
       wrapper: Wrapper,
     });
-
-    expect(await screen.findByText('Restore purchases')).toBeTruthy();
-    expect(screen.getByText('Terms of Use')).toBeTruthy();
-    expect(screen.getByText('Privacy Policy')).toBeTruthy();
-    expect(screen.getByText('Manage Menta Pro with Apple')).toBeTruthy();
+    await reviewWeeklyOffer();
+    expect(screen.getByText('Restore purchases')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Terms of Use' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Privacy Policy' })).toBeTruthy();
+    expect(screen.getByText('Subscribe to Pro')).toBeTruthy();
   });
-
   it.each(['default', 'insufficient', 'quota'] as const)(
     'keeps %s paywall variant in the full-screen shell',
     variant => {
@@ -1217,7 +1243,8 @@ describe('PaywallModal', () => {
       );
 
       expect(shellStyle.width).toBe('100%');
-      expect(shellStyle.height).toBe('100%');
+      expect(shellStyle.flex).toBe(1);
+      expect(shellStyle.minHeight).toBe(0);
       expect(shellStyle.borderRadius).toBe(0);
       expect(shellStyle.maxWidth).toBeUndefined();
     }

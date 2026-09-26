@@ -81,24 +81,6 @@ jest.mock('expo-image-picker', () => ({
   launchImageLibraryAsync: jest.fn(),
 }));
 
-jest.mock('@/constants/ThemeContext', () => {
-  const theme = {
-    colors: {
-      background: { primary: '#080909' },
-      status: { success: '#8DE7B7' },
-      text: { inverse: '#080909', tertiary: '#999999' },
-    },
-    spacing: { sm: 8, md: 12, lg: 16, xl: 24 },
-    typography: { sizes: { sm: 14, xs: 12 }, weights: { medium: '500' } },
-  };
-
-  return {
-    useTheme: () => theme,
-    useThemedStyles: (createStyles: (value: typeof theme) => unknown) =>
-      createStyles(theme),
-  };
-});
-
 jest.mock('@/store/auth-store', () => ({
   useAuthStore: () => mockAuthState,
 }));
@@ -491,7 +473,7 @@ describe('ReportIssueScreen account boundaries', () => {
       expect(screen.getByText('Share feedback')).toBeTruthy();
     });
     expect(screen.getByText('What should we know?')).toBeTruthy();
-    expect(screen.getByDisplayValue('Menta feedback')).toBeTruthy();
+    expect(screen.queryByTestId('report-title-field')).toBeNull();
     expect(screen.queryByTestId('report-expected-field')).toBeNull();
 
     fireEvent.changeText(

@@ -10,6 +10,12 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import JoinGroupScreen from '@/app/join-group';
 import { showRewardedAdDetailed } from '@/lib/ads';
+import { trackProductEvent } from '@/lib/posthog';
+
+jest.mock('@/lib/posthog', () => ({
+  ...jest.requireActual('@/lib/posthog'),
+  trackProductEvent: jest.fn(),
+}));
 
 const mockShowRewardedAdDetailed = showRewardedAdDetailed as jest.Mock;
 const mockClaimAdReward = jest.fn();
@@ -75,6 +81,7 @@ jest.mock('@/lib/hooks/useAdReward', () => ({
 }));
 
 jest.mock('@/lib/ads', () => ({
+  areVerifiedAdRewardsEnabled: jest.fn(() => true),
   showRewardedAdDetailed: jest.fn(),
 }));
 
@@ -127,7 +134,7 @@ jest.mock('@/store/selectors', () => ({
 jest.mock('@/lib/supabase', () => ({
   supabase: {
     auth: { getSession: jest.fn() },
-    functions: { invoke: mockJoinInvoke },
+    functions: { invoke: (...args: unknown[]) => mockJoinInvoke(...args) },
     rpc: jest.fn(),
   },
 }));
@@ -608,6 +615,74 @@ describe('join group sponsor reward', () => {
     expect(await screen.findByTestId('join-group-invite-loading')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Open group' })).toBeNull();
     expect(mockRouter.replace).not.toHaveBeenCalledWith('/groups/group-1');
+  });
+
+  it('does not publish a late join receipt or dismiss the next account’s invite', async () => {
+    const code = 'ABCDEFGHJKLMNPQRSTUVWXYZ23';
+    mockUser = { id: 'user-a' };
+    mockParams = { code };
+    mockGetJoinGroupQuote.mockResolvedValue({
+      cost: 0,
+      activeGroups: 0,
+      isPro: false,
+    });
+    mockPreviewGroupInvite
+      .mockResolvedValueOnce({
+        status: 'ACTIVE',
+        inviteCode: code,
+        groupId: 'group-1',
+        groupName: 'Account A group',
+        groupDescription: null,
+        inviterName: 'Mia',
+        privacy: 'private',
+        memberCount: 4,
+        sharedPromise: 'Walk after work.',
+        expiresAt: '2026-09-01T00:00:00.000Z',
+        isMember: false,
+      })
+      .mockReturnValueOnce(new Promise(() => {}));
+    let finishJoin!: (value: unknown) => void;
+    mockJoinInvoke.mockReturnValueOnce(
+      new Promise(resolve => {
+        finishJoin = resolve;
+      })
+    );
+    const rendered = renderScreen();
+    await screen.findByText(
+      'Joining costs 0 Momenta. Nothing is spent until you tap Join group.'
+    );
+    fireEvent.press(await screen.findByRole('button', { name: 'Join group' }));
+    await waitFor(() => expect(mockJoinInvoke).toHaveBeenCalledTimes(1));
+
+    mockUser = { id: 'user-b' };
+    mockPendingInvite = {
+      type: 'group',
+      code,
+      ownerUserId: 'user-b',
+      timestamp: 2,
+    };
+    rendered.rerender(<JoinGroupScreen />);
+    await act(async () => {
+      finishJoin({
+        data: {
+          success: true,
+          group_id: 'group-1',
+          group_name: 'Account A group',
+          cost: 0,
+        },
+        error: null,
+      });
+    });
+
+    expect(trackProductEvent).not.toHaveBeenCalledWith(
+      'Group Joined',
+      expect.anything()
+    );
+    expect(mockDismissPending).not.toHaveBeenCalledWith(
+      expect.objectContaining({ ownerUserId: 'user-b' })
+    );
+    expect(mockPendingInvite).toMatchObject({ ownerUserId: 'user-b' });
+    expect(screen.getByTestId('join-group-invite-loading')).toBeTruthy();
   });
 
   it('binds a promise invite found on this route to the current account', async () => {

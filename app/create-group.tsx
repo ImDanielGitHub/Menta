@@ -20,7 +20,9 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import PaywallModal from '@/components/paywall/PaywallModal';
+import { PaywallModal } from '@/components/paywall/PaywallModal';
+import { useRewardedMomentaAd } from '@/lib/hooks/use-rewarded-momenta-ad';
+import { useAdRewardAmount } from '@/lib/hooks/useAdReward';
 import {
   ArrowLeftIcon,
   CheckIcon,
@@ -32,6 +34,7 @@ import {
 import { MentaMascot } from '@/components/ui/MentaMascot';
 import {
   mentaColors,
+  mentaHeadingRoles,
   mentaLayout,
   mentaRadii,
   mentaSpacing,
@@ -51,7 +54,14 @@ import {
   useGroupStore,
 } from '@/store/group-store';
 import { useMomentaStore } from '@/store/momenta-store';
-import { AppInlineNotice, SkeletonLoader, SkeletonText } from '@/components/ui';
+import {
+  AppButton,
+  AppInlineNotice,
+  AppOptionCard,
+  AppStepProgress,
+  SkeletonLoader,
+  SkeletonText,
+} from '@/components/ui';
 import {
   FirstGroupCreatedReceipt,
   GroupTemplatePickerSheet,
@@ -134,11 +144,11 @@ const getSingleParam = (
 
 export default function CreateGroupScreen() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const params = useLocalSearchParams<GroupParams>();
   const selectedParamTemplate = React.useMemo(
-    () => resolveCommitmentTemplate(params.templateId),
-    [params.templateId]
+    () => resolveCommitmentTemplate(params.templateId, locale),
+    [locale, params.templateId]
   );
   const initialGroupName = getSingleParam(params.groupName);
   const qaState = getSingleParam(params.qaState);
@@ -185,6 +195,8 @@ export default function CreateGroupScreen() {
     state => state.groups.filter(group => group.kind !== 'promise').length
   );
   const balance = useMomentaStore(state => state.balance);
+  const { watch: watchRewardedAd } = useRewardedMomentaAd('group_create');
+  const adRewardAmount = useAdRewardAmount();
   const fetchBalance = useMomentaStore(state => state.fetchBalance);
   const { gateCreate } = useQuotaGate();
 
@@ -1609,21 +1621,11 @@ export default function CreateGroupScreen() {
                 total: steps.length,
               })}
             </Text>
-            <View
-              accessibilityElementsHidden
-              importantForAccessibility="no-hide-descendants"
-              style={styles.progressSegments}
-            >
-              {steps.map((step, index) => (
-                <View
-                  key={step.id}
-                  style={[
-                    styles.progressSegment,
-                    index <= progressIndex && styles.progressSegmentActive,
-                  ]}
-                />
-              ))}
-            </View>
+            <AppStepProgress
+              decorative
+              progress={(progressIndex + 1) / steps.length}
+              testID="create-group-progress"
+            />
           </View>
 
           <ScrollView
@@ -1924,8 +1926,7 @@ export default function CreateGroupScreen() {
               { paddingBottom: Math.max(insets.bottom, 28) },
             ]}
           >
-            <Pressable
-              accessibilityRole="button"
+            <AppButton
               accessibilityLabel={
                 isRestoringDraft
                   ? t('groups.create.restoring_draft')
@@ -1953,18 +1954,20 @@ export default function CreateGroupScreen() {
                               ? t('groups.create.try_again')
                               : primaryCta
               }
-              accessibilityState={{
-                disabled:
-                  isRestoringDraft ||
-                  isCreating ||
-                  isCheckingCreation ||
-                  promiseLinkSubmitting ||
-                  (!isStepValid &&
-                    !creationFailed &&
-                    !creationNeedsStatus &&
-                    !creationSafeToRetry),
-                busy: isCreating || isCheckingCreation || promiseLinkSubmitting,
-              }}
+              disabled={
+                isRestoringDraft ||
+                isCreating ||
+                isCheckingCreation ||
+                promiseLinkSubmitting ||
+                (!isStepValid &&
+                  !creationFailed &&
+                  !creationNeedsStatus &&
+                  !creationSafeToRetry)
+              }
+              fullWidth
+              loading={
+                isCreating || isCheckingCreation || promiseLinkSubmitting
+              }
               onPress={
                 createdGroup
                   ? hasPromiseAccountabilitySource
@@ -1984,32 +1987,10 @@ export default function CreateGroupScreen() {
                         ? handleRetryCreateGroup
                         : goNext
               }
-              disabled={
-                isRestoringDraft ||
-                isCreating ||
-                isCheckingCreation ||
-                promiseLinkSubmitting ||
-                (!isStepValid &&
-                  !creationFailed &&
-                  !creationNeedsStatus &&
-                  !creationSafeToRetry)
-              }
-              style={({ pressed }) => [
-                styles.primaryButton,
-                (isRestoringDraft ||
-                  isCreating ||
-                  isCheckingCreation ||
-                  promiseLinkSubmitting ||
-                  (!isStepValid &&
-                    !creationFailed &&
-                    !creationNeedsStatus &&
-                    !creationSafeToRetry)) &&
-                  styles.disabled,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={styles.primaryButtonText}>
-                {isRestoringDraft
+              preserveLabelPositionOnLoading
+              size="large"
+              title={
+                isRestoringDraft
                   ? t('groups.create.restoring_button')
                   : createdGroup
                     ? hasPromiseAccountabilitySource
@@ -2033,33 +2014,17 @@ export default function CreateGroupScreen() {
                             ? 'Finish creating group'
                             : creationFailed
                               ? t('groups.create.try_again')
-                              : primaryCta}
-              </Text>
-            </Pressable>
+                              : primaryCta
+              }
+              variant="accent"
+            />
 
             {!isCreating &&
             !isCheckingCreation &&
             !isRestoringDraft &&
             !promiseLinkSubmitting ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={
-                  createdGroup
-                    ? hasPromiseAccountabilitySource
-                      ? promiseLinkResult?.outcome === 'confirmed'
-                        ? t('groups.create.open_group')
-                        : t('groups.create.promise_link.return_to_promise')
-                      : createdGroup.linkedFirstPromise
-                        ? t('groups.create.go_today')
-                        : t('groups.create.open_group')
-                    : creationNeedsStatus
-                      ? 'Close for now'
-                      : creationSafeToRetry || creationFailed
-                        ? t('groups.create.review_group')
-                        : currentStep > 0
-                          ? t('groups.create.back')
-                          : t('groups.create.exit_setup')
-                }
+              <AppButton
+                fullWidth
                 onPress={
                   createdGroup
                     ? hasPromiseAccountabilitySource
@@ -2079,13 +2044,9 @@ export default function CreateGroupScreen() {
                             ? goBack
                             : handleCloseCreateGroup
                 }
-                style={({ pressed }) => [
-                  styles.secondaryButton,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text style={styles.secondaryButtonText}>
-                  {createdGroup
+                size="small"
+                title={
+                  createdGroup
                     ? hasPromiseAccountabilitySource
                       ? promiseLinkResult?.outcome === 'confirmed'
                         ? t('groups.create.open_group')
@@ -2099,9 +2060,10 @@ export default function CreateGroupScreen() {
                         ? t('groups.create.review_group')
                         : currentStep > 0
                           ? t('groups.create.back')
-                          : t('groups.create.exit_setup')}
-                </Text>
-              </Pressable>
+                          : t('groups.create.exit_setup')
+                }
+                variant="ghost"
+              />
             ) : (
               <View
                 style={styles.secondaryButton}
@@ -2125,6 +2087,11 @@ export default function CreateGroupScreen() {
         quotaLimit={quotaLimit}
         quotaContext="group"
         shortfall={Math.max((effectiveCreateCost ?? 0) - balance, 0)}
+        balance={balance}
+        requiredAmount={effectiveCreateCost ?? undefined}
+        onWatchAd={watchRewardedAd}
+        adRewardAmount={adRewardAmount}
+        onCheckProof={() => router.push('/review-queue' as never)}
       />
       <GroupTemplatePickerSheet
         visible={showGroupShapes && !createdGroup && !isRestoringDraft}
@@ -2155,9 +2122,8 @@ const FieldHeader: React.FC<{ label: string; count: string }> = ({
 };
 
 /**
- * One independent choice. Each option is its own bordered surface with the
- * selected state carried by the border and the check, so the two answers do not
- * read as a single list where only a faint tint tells them apart.
+ * One independent choice, in the shared onboarding choice language: its own
+ * raised row, with the violet edge, tint and check carrying the selection.
  */
 const ChoiceRow: React.FC<{
   title: string;
@@ -2166,37 +2132,16 @@ const ChoiceRow: React.FC<{
   selected: boolean;
   disabled?: boolean;
   onPress: () => void;
-}> = ({ title, body, icon, selected, disabled = false, onPress }) => {
-  const styles = useThemedStyles(createStyles);
-  const { colors } = useTheme();
-  return (
-    <Pressable
-      accessibilityRole="radio"
-      accessibilityLabel={title}
-      accessibilityHint={body}
-      accessibilityState={{ selected, disabled, checked: selected }}
-      disabled={disabled}
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.choiceRow,
-        selected && styles.choiceRowSelected,
-        disabled && styles.disabled,
-        pressed && styles.pressed,
-      ]}
-    >
-      {icon ? <View style={styles.rowIcon}>{icon}</View> : null}
-      <View style={styles.choiceCopy}>
-        <Text style={styles.choiceTitle}>{title}</Text>
-        <Text style={styles.choiceBody}>{body}</Text>
-      </View>
-      <View style={styles.trailingIcon}>
-        {selected ? (
-          <CheckIcon size={20} color={colors.accent.primary} />
-        ) : null}
-      </View>
-    </Pressable>
-  );
-};
+}> = ({ title, body, icon, selected, disabled = false, onPress }) => (
+  <AppOptionCard
+    description={body}
+    disabled={disabled}
+    icon={icon}
+    onPress={onPress}
+    selected={selected}
+    title={title}
+  />
+);
 
 const ReviewDetailRow: React.FC<{
   label: string;
@@ -2261,16 +2206,8 @@ const createStyles = (theme: ThemeContextType) =>
       gap: 2,
     },
     headerTitle: {
+      ...mentaTypography.control,
       color: theme.colors.text.primary,
-      fontFamily: mentaFonts.inter.semibold,
-      fontSize: 17,
-      lineHeight: 24,
-      letterSpacing: 0,
-    },
-    headerMeta: {
-      color: theme.colors.text.tertiary,
-      fontSize: theme.typography.sizes.xs,
-      letterSpacing: 0,
     },
     progressBlock: {
       width: '100%',
@@ -2284,20 +2221,6 @@ const createStyles = (theme: ThemeContextType) =>
     progressLabel: {
       ...mentaTypography.bodySmallMedium,
       color: theme.colors.text.secondary,
-    },
-    progressSegments: {
-      width: '100%',
-      flexDirection: 'row',
-      gap: theme.spacing.xs,
-    },
-    progressSegment: {
-      flex: 1,
-      height: 4,
-      borderRadius: 999,
-      backgroundColor: theme.colors.border.secondary,
-    },
-    progressSegmentActive: {
-      backgroundColor: theme.colors.accent.primary,
     },
     bodyScroll: {
       flex: 1,
@@ -2314,26 +2237,9 @@ const createStyles = (theme: ThemeContextType) =>
     copyBlock: {
       gap: theme.spacing.sm,
     },
-    stepLabel: {
-      color: theme.colors.accent.primary,
-      fontSize: theme.typography.sizes.xs,
-      fontWeight: theme.typography.weights.bold,
-      textTransform: 'uppercase',
-      letterSpacing: 0,
-    },
     stepTitle: {
+      ...mentaHeadingRoles.step,
       color: theme.colors.text.primary,
-      fontFamily: mentaFonts.newsreader.medium,
-      fontSize: 35,
-      fontWeight: '500',
-      lineHeight: 39,
-      letterSpacing: -0.7,
-    },
-    stepSubtitle: {
-      color: theme.colors.text.secondary,
-      fontSize: theme.typography.sizes.base,
-      lineHeight: 23,
-      letterSpacing: 0,
     },
     stage: {
       flex: 1,
@@ -2348,24 +2254,19 @@ const createStyles = (theme: ThemeContextType) =>
       height: 56,
       borderWidth: 1,
       borderColor: theme.colors.border.focus,
-      borderRadius: 14,
-      paddingHorizontal: 16,
+      borderRadius: mentaRadii.medium,
+      paddingHorizontal: mentaSpacing[4],
+      ...mentaTypography.body,
       color: theme.colors.text.primary,
-      fontFamily: mentaFonts.inter.regular,
-      fontSize: 16,
-      lineHeight: 22,
       backgroundColor: mentaColors.raised,
-      letterSpacing: 0,
     },
     inlineRowTitle: {
+      ...mentaTypography.bodySemibold,
       color: theme.colors.text.primary,
-      fontSize: theme.typography.sizes.base,
-      fontWeight: theme.typography.weights.semibold,
     },
     inlineRowMeta: {
+      ...mentaTypography.bodySmall,
       color: theme.colors.text.tertiary,
-      fontSize: theme.typography.sizes.sm,
-      lineHeight: 19,
     },
     nudgeRow: {
       minHeight: 58,
@@ -2435,116 +2336,23 @@ const createStyles = (theme: ThemeContextType) =>
       gap: theme.spacing.md,
     },
     fieldLabel: {
-      color: theme.colors.text.tertiary,
-      fontFamily: mentaFonts.inter.bold,
-      fontSize: 11,
-      lineHeight: 16,
-      textTransform: 'uppercase',
-      letterSpacing: 0.88,
+      ...mentaTypography.bodySmallMedium,
+      color: theme.colors.text.secondary,
     },
     fieldCount: {
+      ...mentaTypography.captionMedium,
       color: theme.colors.text.tertiary,
-      fontSize: theme.typography.sizes.xs,
-      fontWeight: theme.typography.weights.semibold,
-      letterSpacing: 0,
+      fontVariant: ['tabular-nums'],
     },
     fieldHelper: {
+      ...mentaTypography.caption,
       color: theme.colors.text.secondary,
-      fontFamily: mentaFonts.inter.regular,
-      fontSize: 13,
-      lineHeight: 19,
-      letterSpacing: 0,
-    },
-    tipCard: {
-      minHeight: 92,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.border.secondary,
-      borderRadius: theme.borderRadius.lg,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
-      paddingVertical: theme.spacing.md,
-      backgroundColor: mentaColors.raised,
-    },
-    tipIcon: {
-      width: 38,
-      height: 38,
-      borderRadius: theme.borderRadius.lg,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.border.secondary,
-      backgroundColor: theme.colors.accent.background,
-      flexShrink: 0,
-    },
-    tipCopy: {
-      flex: 1,
-      minWidth: 0,
-      gap: 4,
-    },
-    tipTitle: {
-      color: theme.colors.text.primary,
-      fontSize: theme.typography.sizes.base,
-      fontWeight: theme.typography.weights.bold,
-      letterSpacing: 0,
-    },
-    tipText: {
-      color: theme.colors.text.secondary,
-      fontSize: theme.typography.sizes.sm,
-      lineHeight: 20,
-      letterSpacing: 0,
     },
     choiceStack: {
       gap: mentaSpacing[3],
     },
-    choiceRow: {
-      minHeight: 92,
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      gap: mentaSpacing[4],
-      padding: mentaSpacing[5],
-      borderWidth: 1,
-      borderColor: mentaColors.border,
-      borderRadius: mentaRadii.large,
-      backgroundColor: mentaColors.surface,
-    },
-    choiceRowSelected: {
-      borderColor: theme.colors.accent.primary,
-      backgroundColor: theme.colors.accent.background,
-    },
     stepNote: {
       color: theme.colors.text.tertiary,
-      fontFamily: mentaFonts.inter.regular,
-      ...mentaTypeScale.bodySmall,
-    },
-    rowIcon: {
-      width: 24,
-      height: 24,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginTop: 2,
-    },
-    choiceCopy: {
-      flex: 1,
-      minWidth: 0,
-      gap: 5,
-      paddingRight: theme.spacing.xs,
-    },
-    trailingIcon: {
-      width: 22,
-      height: 22,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0,
-    },
-    choiceTitle: {
-      color: theme.colors.text.primary,
-      fontFamily: mentaFonts.inter.semibold,
-      ...mentaTypeScale.bodyLarge,
-    },
-    choiceBody: {
-      color: theme.colors.text.secondary,
       fontFamily: mentaFonts.inter.regular,
       ...mentaTypeScale.bodySmall,
     },
@@ -2594,22 +2402,6 @@ const createStyles = (theme: ThemeContextType) =>
       ...mentaTypeScale.body,
       maxWidth: mentaLayout.readingMeasure,
     },
-    nextStepCard: {
-      minHeight: 86,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.border.secondary,
-      borderRadius: theme.borderRadius.lg,
-      backgroundColor: mentaColors.raised,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
-      paddingVertical: theme.spacing.md,
-    },
-    reviewCopy: {
-      flex: 1,
-      gap: 3,
-    },
     footer: {
       width: '100%',
       alignSelf: 'center',
@@ -2621,42 +2413,14 @@ const createStyles = (theme: ThemeContextType) =>
     },
     secondaryButton: {
       width: '100%',
-      height: 44,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    secondaryButtonText: {
-      color: theme.colors.text.primary,
-      fontFamily: mentaFonts.inter.medium,
-      fontSize: 15,
-      lineHeight: 21,
-    },
-    primaryButton: {
-      width: '100%',
-      height: 56,
-      borderRadius: 16,
-      backgroundColor: theme.colors.accent.primary,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.lg,
-    },
-    primaryButtonText: {
-      color: theme.colors.onPrimary,
-      fontFamily: mentaFonts.inter.semibold,
-      fontSize: 17,
-      lineHeight: 24,
-      letterSpacing: 0,
+      height: mentaLayout.minimumTouchTarget,
     },
     disabled: {
       opacity: 0.38,
     },
     draftSaved: {
+      ...mentaTypography.caption,
       color: theme.colors.status.success,
-      fontFamily: mentaFonts.inter.regular,
-      fontSize: 13,
-      lineHeight: 18,
     },
     stateContent: {
       flex: 1,
@@ -2676,19 +2440,13 @@ const createStyles = (theme: ThemeContextType) =>
       gap: 8,
     },
     receiptTitle: {
+      ...mentaHeadingRoles.result,
       color: theme.colors.text.primary,
-      fontFamily: mentaFonts.newsreader.medium,
-      fontSize: 36,
-      fontWeight: '500',
-      lineHeight: 40,
-      letterSpacing: -0.72,
       textAlign: 'center',
     },
     receiptBody: {
+      ...mentaTypography.body,
       color: theme.colors.text.secondary,
-      fontFamily: mentaFonts.inter.regular,
-      fontSize: 15,
-      lineHeight: 22,
       textAlign: 'center',
     },
     failureContent: {
@@ -2697,7 +2455,7 @@ const createStyles = (theme: ThemeContextType) =>
     failureIcon: {
       width: 58,
       height: 58,
-      borderRadius: 20,
+      borderRadius: mentaRadii.large,
       borderWidth: 1,
       borderColor: mentaColors.danger,
       backgroundColor: mentaColors.dangerSoft,
@@ -2707,7 +2465,7 @@ const createStyles = (theme: ThemeContextType) =>
     recoveryIcon: {
       width: 58,
       height: 58,
-      borderRadius: 20,
+      borderRadius: mentaRadii.large,
       borderWidth: 1,
       borderColor: mentaColors.warning,
       backgroundColor: mentaColors.warningSoft,
@@ -2721,16 +2479,12 @@ const createStyles = (theme: ThemeContextType) =>
       marginTop: 22,
     },
     stateSupportingTitle: {
+      ...mentaTypography.bodySmall,
       color: theme.colors.text.primary,
-      fontFamily: mentaFonts.inter.regular,
-      fontSize: 14,
-      lineHeight: 20,
     },
     stateBody: {
+      ...mentaTypography.caption,
       color: theme.colors.text.secondary,
-      fontFamily: mentaFonts.inter.regular,
-      fontSize: 13,
-      lineHeight: 18,
     },
     creatingPreview: {
       alignItems: 'center',
@@ -2748,94 +2502,8 @@ const createStyles = (theme: ThemeContextType) =>
     skeletonHelper: {
       width: 218,
     },
-    statusSheet: {
-      padding: 0,
-      overflow: 'hidden',
-    },
-    statusSheetInner: {
-      gap: theme.spacing.md,
-      paddingHorizontal: theme.spacing.lg,
-      paddingTop: theme.spacing.md,
-      backgroundColor: mentaColors.surface,
-    },
-    statusSheetHeader: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      gap: theme.spacing.md,
-    },
-    statusSheetIcon: {
-      width: 42,
-      height: 42,
-      borderRadius: theme.borderRadius.lg,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.accent.primary,
-      backgroundColor: theme.colors.accent.background,
-    },
-    statusSheetIconError: {
-      borderColor: theme.colors.status.error,
-      backgroundColor: mentaColors.dangerSoft,
-    },
-    statusSheetCopy: {
-      flex: 1,
-      minWidth: 0,
-      gap: 4,
-    },
-    statusSheetTitle: {
-      color: theme.colors.text.primary,
-      fontSize: theme.typography.sizes['2xl'],
-      fontWeight: theme.typography.weights.bold,
-      lineHeight: 28,
-      letterSpacing: 0,
-    },
-    statusSheetText: {
-      color: theme.colors.text.secondary,
-      fontSize: theme.typography.sizes.sm,
-      lineHeight: 20,
-      letterSpacing: 0,
-    },
-    statusSheetActions: {
-      gap: theme.spacing.sm,
-    },
-    statusPrimaryButton: {
-      minHeight: 52,
-      borderRadius: theme.borderRadius.lg,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: theme.colors.accent.primary,
-    },
-    statusPrimaryButtonText: {
-      color: theme.colors.text.primary,
-      fontSize: theme.typography.sizes.base,
-      fontWeight: theme.typography.weights.bold,
-      letterSpacing: 0,
-    },
-    statusSecondaryButton: {
-      minHeight: 48,
-      borderRadius: theme.borderRadius.lg,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.border.primary,
-      backgroundColor: 'transparent',
-    },
-    statusSecondaryButtonText: {
-      color: theme.colors.text.primary,
-      fontSize: theme.typography.sizes.sm,
-      fontWeight: theme.typography.weights.bold,
-      letterSpacing: 0,
-    },
-    sheetGrabber: {
-      alignSelf: 'center',
-      width: 44,
-      height: 4,
-      borderRadius: 999,
-      backgroundColor: mentaColors.text.muted,
-      marginBottom: theme.spacing.md,
-    },
     pressed: {
       opacity: 0.75,
-      transform: [{ scale: 0.985 }],
+      transform: [{ scale: 0.98 }],
     },
   });

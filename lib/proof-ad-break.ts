@@ -12,6 +12,7 @@ import {
   type ProofAdBreakHint,
 } from '@/lib/proof-ad-break-contract';
 import { trackProductOperation } from '@/lib/posthog';
+import { useAuthStore } from '@/store/auth-store';
 
 export {
   decodeProofAdBreakHint,
@@ -30,6 +31,7 @@ export type ProofAdBreakAttempt = {
     | 'not_due'
     | 'claim_error'
     | 'in_flight'
+    | 'account_changed'
     | 'ad_unavailable';
 };
 
@@ -106,6 +108,22 @@ export const attemptProofAdBreak = async (
     };
   }
 
+  const appUserId = useAuthStore.getState().user?.id;
+  if (!appUserId) {
+    return {
+      attempted: false,
+      claimed: false,
+      shown: false,
+      reason: 'account_changed',
+    };
+  }
+  let accountChanged = false;
+  const unsubscribe = useAuthStore.subscribe(state => {
+    if (state.user?.id !== appUserId) accountChanged = true;
+  });
+  const isCurrentAccount = () =>
+    !accountChanged && useAuthStore.getState().user?.id === appUserId;
+
   proofAdBreakAttemptPromise = (async () => {
     if (AppState.currentState !== 'active') {
       trackProductOperation({
@@ -166,6 +184,17 @@ export const attemptProofAdBreak = async (
       };
     }
 
+    if (!isCurrentAccount() || AppState.currentState !== 'active') {
+      return {
+        attempted: false,
+        claimed: false,
+        shown: false,
+        reason: !isCurrentAccount()
+          ? ('account_changed' as const)
+          : ('background' as const),
+      };
+    }
+
     let claim;
     try {
       claim = await claimProofAdBreak(submissionId);
@@ -203,6 +232,17 @@ export const attemptProofAdBreak = async (
       };
     }
 
+    if (!isCurrentAccount() || AppState.currentState !== 'active') {
+      return {
+        attempted: false,
+        claimed: true,
+        shown: false,
+        reason: !isCurrentAccount()
+          ? ('account_changed' as const)
+          : ('background' as const),
+      };
+    }
+
     sentryBreadcrumb('proof_ad_break_claimed', {
       ordinal: claim.ordinal,
     });
@@ -219,7 +259,10 @@ export const attemptProofAdBreak = async (
     // navigation-safe and must never cause this ordinal to be presented again.
     let ad;
     try {
-      ad = await showInterstitialAdDetailed();
+      ad = await showInterstitialAdDetailed({
+        appUserId,
+        placement: 'proof_receipt_cadence',
+      });
     } catch (error) {
       trackProductOperation({
         area: 'ad_free',
@@ -235,6 +278,14 @@ export const attemptProofAdBreak = async (
         claimed: true,
         shown: false,
         reason: 'ad_unavailable' as const,
+      };
+    }
+    if (!isCurrentAccount()) {
+      return {
+        attempted: true,
+        claimed: true,
+        shown: false,
+        reason: 'account_changed' as const,
       };
     }
     trackProductOperation({
@@ -256,6 +307,7 @@ export const attemptProofAdBreak = async (
   try {
     return await proofAdBreakAttemptPromise;
   } finally {
+    unsubscribe();
     proofAdBreakAttemptPromise = null;
   }
 };

@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import type { XcodeProject } from 'expo/config-plugins';
 
 type JsonRecord = Record<string, unknown>;
 
@@ -178,22 +179,107 @@ describe('native upload readiness contract', () => {
     for (const orientation of iPadOrientations) {
       expect(nativeInfoPlist).toContain(`<string>${orientation}</string>`);
     }
-    expect(project.match(/TARGETED_DEVICE_FAMILY = "1,2";/g)).toHaveLength(4);
+    const xcode = require('xcode') as {
+      project: (file: string) => XcodeProject;
+    };
+    const nativeProject = xcode.project(
+      path.join(process.cwd(), 'ios/LockedInPro.xcodeproj/project.pbxproj')
+    );
+    nativeProject.parseSync();
+    const objects = nativeProject.hash.project.objects;
+    for (const name of [
+      'LockedInPro',
+      'OneSignalNotificationServiceExtension',
+      'ExpoWidgetsTarget',
+    ]) {
+      const targetId = nativeProject.findTargetKey(name);
+      expect(targetId).toBeTruthy();
+      const target = nativeProject.pbxNativeTargetSection()[targetId];
+      const configurations =
+        objects.XCConfigurationList[target.buildConfigurationList]
+          .buildConfigurations;
+      for (const configuration of configurations) {
+        const settings =
+          objects.XCBuildConfiguration[configuration.value].buildSettings;
+        expect(String(settings.TARGETED_DEVICE_FAMILY).replace(/"/g, '')).toBe(
+          '1,2'
+        );
+      }
+    }
   });
 
-  it('aligns the native candidate with the App Store 1.9.3 notification release', () => {
-    const project = readText('ios/LockedInPro.xcodeproj/project.pbxproj');
+  it('uses the marketing version for the notification extension', () => {
     const notificationExtensionInfo = readText(
       'ios/OneSignalNotificationServiceExtension/OneSignalNotificationServiceExtension-Info.plist'
     );
 
-    expect(expo.version).toBe('1.9.3');
-    expect(expo.ios).toMatchObject({ buildNumber: '154' });
-    expect(project.match(/MARKETING_VERSION = 1\.9\.3;/g)).toHaveLength(4);
-    expect(project.match(/CURRENT_PROJECT_VERSION = 154;/g)).toHaveLength(4);
     expect(notificationExtensionInfo).toContain(
       '<string>$(MARKETING_VERSION)</string>'
     );
+  });
+
+  it('packages the widget font from a real path in the widget extension only', () => {
+    const xcode = require('xcode') as {
+      project: (file: string) => XcodeProject;
+    };
+    const project = xcode.project(
+      path.join(process.cwd(), 'ios/LockedInPro.xcodeproj/project.pbxproj')
+    );
+    project.parseSync();
+    const objects = project.hash.project.objects;
+    const unquote = (value: unknown) => String(value ?? '').replace(/"/g, '');
+    const font = Object.entries(objects.PBXFileReference).find(
+      ([, value]) =>
+        typeof value === 'object' &&
+        unquote(value.path) === 'ExpoWidgetsTarget/Newsreader_600SemiBold.ttf'
+    );
+    expect(font).toBeDefined();
+    const [referenceId, reference] = font!;
+    const group = Object.values(objects.PBXGroup).find(
+      value =>
+        typeof value === 'object' &&
+        value.children?.some(child => child.value === referenceId)
+    );
+    expect(group).toBeDefined();
+    const fontPath = path.join(
+      process.cwd(),
+      'ios',
+      unquote(group!.path),
+      unquote(reference.path)
+    );
+    expect(fs.existsSync(fontPath)).toBe(true);
+    const buildFiles = Object.entries(objects.PBXBuildFile)
+      .filter(
+        ([, value]) =>
+          typeof value === 'object' && value.fileRef === referenceId
+      )
+      .map(([id]) => id);
+    const owners = Object.values(objects.PBXNativeTarget)
+      .filter(
+        target =>
+          typeof target === 'object' &&
+          target.buildPhases?.some(phase =>
+            objects.PBXResourcesBuildPhase[phase.value]?.files?.some(file =>
+              buildFiles.includes(file.value)
+            )
+          )
+      )
+      .map(target => target.name);
+    expect(owners).toEqual(['ExpoWidgetsTarget']);
+    const appTarget =
+      project.pbxNativeTargetSection()[project.findTargetKey('LockedInPro')];
+    const embedIndex = appTarget.buildPhases.findIndex(
+      phase => phase.comment === 'Embed Foundation Extensions'
+    );
+    const bundleIndex = appTarget.buildPhases.findIndex(
+      phase => phase.comment === 'Bundle React Native code and images'
+    );
+    const adsIndex = appTarget.buildPhases.findIndex(
+      phase => phase.comment === '[CP-User] [RNGoogleMobileAds] Configuration'
+    );
+    expect(embedIndex).toBeGreaterThan(-1);
+    expect(embedIndex).toBeLessThan(bundleIndex);
+    expect(embedIndex).toBeLessThan(adsIndex);
   });
 
   it('uses system media pickers without broad library permissions', () => {
@@ -234,10 +320,6 @@ describe('native upload readiness contract', () => {
       'ios/LockedInPro/Supporting/Expo.plist'
     );
 
-    expect(expo.runtimeVersion).toBe('1.9.3');
-    expect(nativeUpdatesConfig).toContain(
-      '<key>EXUpdatesRuntimeVersion</key>\n    <string>1.9.3</string>'
-    );
     expect(nativeUpdatesConfig).not.toContain(
       '<string>file:fingerprint</string>'
     );

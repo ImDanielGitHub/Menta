@@ -27,13 +27,15 @@ const unknownDecision = (): LegacyUpdateDecision => ({
 export const loadLegacyUpdatePolicy = ({
   currentVersion,
   platform,
+  forceRefresh = false,
 }: {
   currentVersion: string;
   platform: LegacyUpdatePlatform;
+  forceRefresh?: boolean;
 }): Promise<LegacyUpdateDecision> => {
   const cacheKey = `${platform}:${currentVersion}`;
   const cached = cachedPolicies.get(cacheKey);
-  if (cached && Date.now() - cached.cachedAt < POLICY_TTL_MS) {
+  if (!forceRefresh && cached && Date.now() - cached.cachedAt < POLICY_TTL_MS) {
     return Promise.resolve(cached.decision);
   }
 
@@ -61,17 +63,18 @@ export const loadLegacyUpdatePolicy = ({
               row: data as Tables<'app_update_policies'>,
             });
 
-      cachedPolicies.set(cacheKey, {
-        decision,
-        cachedAt: Date.now(),
-      });
+      if (decision.status !== 'authority_unknown') {
+        cachedPolicies.set(cacheKey, {
+          decision,
+          cachedAt: Date.now(),
+        });
+      } else {
+        cachedPolicies.delete(cacheKey);
+      }
       return decision;
     } catch {
       const decision = unknownDecision();
-      cachedPolicies.set(cacheKey, {
-        decision,
-        cachedAt: Date.now(),
-      });
+      cachedPolicies.delete(cacheKey);
       return decision;
     } finally {
       clearTimeout(timeout);

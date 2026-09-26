@@ -13,7 +13,7 @@ export const proofRecoveryFrCA = {
   'proofRecovery.pending.status': 'En attente de vérification',
   'proofRecovery.pending.not_counted': 'Ne compte pas encore',
   'proofRecovery.pending.action': 'Vérifier une autre preuve',
-  'proofRecovery.pending.more_waiting': '{count} autre en attente',
+  'proofRecovery.pending.more_waiting': '{count} autres en attente',
   'proofRecovery.pending.more_waiting.one': '{count} autre en attente',
   'proofRecovery.pending.more_waiting.other': '{count} autres en attente',
   'proofRecovery.queued.time.waiting': 'En attente d’envoi',
@@ -31,7 +31,7 @@ export const proofRecoveryFrCA = {
     'La dernière tentative n’a pas abouti.',
   'proofRecovery.queued.not_sent': 'Non envoyée',
   'proofRecovery.queued.more_waiting':
-    '+{count} autre preuve en attente d’envoi',
+    '+{count} autres preuves en attente d’envoi',
   'proofRecovery.queued.more_waiting.one':
     '+{count} autre preuve en attente d’envoi',
   'proofRecovery.queued.more_waiting.other':

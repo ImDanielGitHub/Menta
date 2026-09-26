@@ -15,10 +15,12 @@ import { useAppTextScale } from '@/components/ui/AppScaledText';
 import { useMotionPreferences } from '@/lib/motion/use-motion-preferences';
 import {
   mentaColors,
+  mentaDepth,
   mentaLayout,
   mentaRadii,
   mentaSpacing,
   mentaTypography,
+  resolveDepthColor,
 } from '@/constants/MentaDesignSystem';
 
 const scaleTypeMetric = (value: number, scale: number): number =>
@@ -56,8 +58,11 @@ export interface AppButtonProps {
   textStyle?: StyleProp<TextStyle>;
   textScale?: number;
   /**
-   * Opt-in tactile feedback. Ordinary buttons stay silent so selection,
-   * hold, and confirmed receipts remain the only haptic vocabulary.
+   * Tactile feedback. Filled primary actions give a light tap as the finger
+   * lands, matching the onboarding CTAs; every other variant stays silent.
+   * Pass `true` with a `hapticIntent` to emit that intent on press instead
+   * (for example a warning before a replacement), or `false` to silence a
+   * filled action whose result already has its own receipt haptic.
    */
   haptic?: boolean;
   hapticIntent?: HapticIntent;
@@ -82,7 +87,7 @@ export const AppButton: React.FC<AppButtonProps> = ({
   style,
   textStyle,
   textScale: requestedTextScale,
-  haptic = false,
+  haptic,
   hapticIntent = 'press',
   testID,
   accessibilityHint,
@@ -144,8 +149,8 @@ export const AppButton: React.FC<AppButtonProps> = ({
 
   const colorsByVariant = {
     primary: {
-      backgroundColor: theme.colors.interactive.primary,
-      borderColor: theme.colors.interactive.primary,
+      backgroundColor: theme.colors.accent.primary,
+      borderColor: theme.colors.accent.primary,
       textColor: theme.colors.onPrimary,
     },
     accent: {
@@ -187,15 +192,26 @@ export const AppButton: React.FC<AppButtonProps> = ({
 
   const palette = colorsByVariant[resolvedVariant];
   const customStyle = StyleSheet.flatten(style);
-  const isRaised = resolvedVariant === 'primary' || resolvedVariant === 'accent';
+  const isRaised =
+    resolvedVariant === 'primary' || resolvedVariant === 'accent';
+  const raisedFill = customStyle?.backgroundColor ?? palette.backgroundColor;
   const depthColor =
     customStyle?.borderBottomColor ??
-    (theme.colors.accent.primary === mentaColors.action
-      ? '#7750B6'
-      : theme.colors.border.primary);
+    resolveDepthColor(
+      typeof raisedFill === 'string' ? raisedFill : undefined,
+      theme.colors.border.primary
+    );
+  // Filled actions tap on touch-down unless the caller chose an intent or
+  // silenced them; an explicit intent fires once, on the committed press.
+  const tapsOnPressIn = isRaised && haptic === undefined;
   const resolvedLeftIcon = leftIcon ?? (iconPosition === 'left' ? icon : null);
   const resolvedRightIcon =
     rightIcon ?? (iconPosition === 'right' ? icon : null);
+
+  const handlePressIn = () => {
+    if (isDisabled || !tapsOnPressIn) return;
+    void emitHaptic({ type: 'press' });
+  };
 
   const handlePress = () => {
     if (isDisabled) return;
@@ -214,6 +230,7 @@ export const AppButton: React.FC<AppButtonProps> = ({
       accessibilityState={{ disabled: isDisabled, busy: loading }}
       disabled={isDisabled}
       onPress={handlePress}
+      onPressIn={handlePressIn}
       role="button"
       testID={testID}
       style={({ pressed }) => [
@@ -233,18 +250,28 @@ export const AppButton: React.FC<AppButtonProps> = ({
         },
         pressed &&
           !isDisabled &&
-          (motion.reduceMotion ? styles.pressedReduced : styles.pressed),
+          (motion.reduceMotion
+            ? styles.pressedReduced
+            : isRaised
+              ? styles.pressedRaised
+              : styles.pressed),
         style,
         isRaised && {
           // Unequal borders create wedges where a pill's curved sides meet
           // its lower edge. A hard shadow follows the complete rounded box.
+          // Normalise older onboarding overrides through the same primitive.
           borderBottomWidth: customStyle?.borderWidth ?? 1,
           borderBottomColor:
             customStyle?.borderColor ??
             customStyle?.backgroundColor ??
             palette.borderColor,
           boxShadow: [
-            { offsetX: 0, offsetY: 3, blurRadius: 0, color: depthColor },
+            {
+              offsetX: 0,
+              offsetY: mentaDepth.action,
+              blurRadius: 0,
+              color: depthColor,
+            },
           ],
         },
       ]}
@@ -344,6 +371,12 @@ const styles = StyleSheet.create({
   },
   pressedReduced: {
     opacity: 0.86,
+  },
+  // The filled CTA keeps its resting ledge and gives a firmer squeeze than
+  // secondary actions, so the one strong action per screen feels pressable.
+  pressedRaised: {
+    opacity: 0.92,
+    transform: [{ scale: 0.97 }],
   },
   content: {
     flexDirection: 'row',

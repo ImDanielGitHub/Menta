@@ -37,7 +37,12 @@ jest.mock('@/lib/hooks/useAdReward', () => ({
 }));
 
 jest.mock('@/lib/ads', () => ({
+  areVerifiedAdRewardsEnabled: jest.fn(() => true),
   showRewardedAdDetailed: jest.fn(),
+}));
+
+jest.mock('@/store/auth-store', () => ({
+  useAuthStore: { getState: () => ({ user: { id: 'paywall-user' } }) },
 }));
 
 jest.mock('@/store/momenta-store', () => ({
@@ -179,6 +184,10 @@ describe('PaywallHost', () => {
     fireEvent.press(await screen.findByText('Watch sponsor'));
 
     expect(await screen.findByText('earned:10')).toBeTruthy();
+    expect(mockShowRewardedAdDetailed).toHaveBeenCalledWith({
+      appUserId: 'paywall-user',
+      placement: 'paywall',
+    });
     expect(screen.queryByText('earned:999')).toBeNull();
     expect(mockClaimAdReward).toHaveBeenCalledTimes(1);
   });

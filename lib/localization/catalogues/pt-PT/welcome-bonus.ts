@@ -7,9 +7,9 @@ type WelcomeBonusKey = Extract<
 
 export const welcomeBonusPtPT = {
   'economy.welcome.accessibility':
-    'Tem {amount} Momenta. A Menta adicionou essa quantia quando a pessoa guardou sua primeira promessa.',
+    'Tem {amount} Momenta. A Menta adicionou-os quando guardou a sua primeira promessa.',
   'economy.welcome.heading': 'Tem {amount} Momenta',
   'economy.welcome.body':
-    'A Menta adicionou essa quantia quando a pessoa guardou sua primeira promessa. Use os Momenta na loja. Eles não têm valor em dinheiro.',
+    'A Menta adicionou-os quando guardou a sua primeira promessa. Use os Momenta na loja. Não têm valor em dinheiro.',
   'economy.welcome.close': 'Fechar',
 } as const satisfies Pick<EnglishCatalogue, WelcomeBonusKey>;

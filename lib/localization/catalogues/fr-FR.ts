@@ -1,4 +1,5 @@
 import type { CompleteCatalogue } from '@/lib/localization/en-NZ';
+import { widgetsfr } from '@/lib/localization/catalogues/shared/widgets-fr';
 import { accountabilityFr } from '@/lib/localization/catalogues/shared/accountability-fr';
 import { foundationFrFR } from '@/lib/localization/catalogues/fr-FR/foundation';
 import { languageFrFR } from '@/lib/localization/catalogues/fr-FR/language';
@@ -20,8 +21,11 @@ import { fullEventsFrFR } from '@/lib/localization/catalogues/fr-FR/full-events'
 import { fullCommerceFrFR } from '@/lib/localization/catalogues/fr-FR/full-commerce';
 import { fullDomainFeedbackFrFR } from '@/lib/localization/catalogues/fr-FR/full-domain-feedback';
 import { sourceGateFrFR } from '@/lib/localization/catalogues/fr-FR/source-gate';
+import { momentaTopUpFrFR } from '@/lib/localization/catalogues/fr-FR/momenta-top-up';
 
 export const frFR = {
+  ...momentaTopUpFrFR,
+  ...widgetsfr,
   ...foundationFrFR,
   ...languageFrFR,
   ...notificationsFrFR,
