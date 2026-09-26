@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Share, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   fireEvent,
@@ -19,6 +19,10 @@ const mockRouter = {
 const mockFetchGroupDetails = jest.fn();
 const mockShareGroup = jest.fn();
 const mockRotateGroupInviteCode = jest.fn();
+const mockAuth = { user: { id: 'account-1' } };
+const mockTrackInvite = jest.fn();
+const mockClipboard = jest.fn();
+jest.mock('expo-clipboard', () => ({ setStringAsync: () => mockClipboard() }));
 const mockGroupStoreState = {
   fetchGroupDetails: mockFetchGroupDetails,
   rotateGroupInviteCode: mockRotateGroupInviteCode,
@@ -40,7 +44,14 @@ jest.mock('@/store/group-store', () => ({
 }));
 
 jest.mock('@/lib/meta-ads', () => ({
-  trackMetaAdsInviteFriend: jest.fn(),
+  trackMetaAdsInviteFriend: () => mockTrackInvite(),
+}));
+
+jest.mock('@/store/auth-store', () => ({
+  useAuthStore: Object.assign(
+    (selector: (state: typeof mockAuth) => unknown) => selector(mockAuth),
+    { getState: () => mockAuth }
+  ),
 }));
 
 jest.mock('@/components/group/GroupInviteQRCode', () => {
@@ -70,12 +81,68 @@ const wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 describe('Group invite visual hierarchy', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAuth.user = { id: 'account-1' };
+    mockClipboard.mockResolvedValue(true);
     mockFetchGroupDetails.mockImplementation(() => new Promise(() => {}));
     mockShareGroup.mockImplementation(() => new Promise(() => {}));
     mockRotateGroupInviteCode.mockResolvedValue({
       code: 'NEWCODE',
       previousCodeInvalidated: true,
     });
+  });
+
+  it.each([
+    [Share.dismissedAction, false],
+    [Share.sharedAction, true],
+  ])(
+    'only attributes an accepted share handoff (%s)',
+    async (action, attributed) => {
+      mockFetchGroupDetails.mockResolvedValue({ name: 'Morning walk group' });
+      mockShareGroup.mockResolvedValue({
+        code: 'MILES8',
+        shareUrl: 'https://menta.quest/join/MILES8',
+      });
+      jest.spyOn(Share, 'share').mockResolvedValue({ action });
+      render(<GroupInviteScreen />, { wrapper });
+      fireEvent.press(
+        await screen.findByRole('button', { name: 'Share invite' })
+      );
+      await waitFor(() => expect(Share.share).toHaveBeenCalled());
+      expect(mockTrackInvite).toHaveBeenCalledTimes(attributed ? 1 : 0);
+    }
+  );
+
+  it('does not attribute a late share to the next account', async () => {
+    mockFetchGroupDetails.mockResolvedValue({ name: 'Morning walk group' });
+    mockShareGroup.mockResolvedValue({
+      code: 'MILES8',
+      shareUrl: 'https://menta.quest/join/MILES8',
+    });
+    jest.spyOn(Share, 'share').mockImplementation(async () => {
+      mockAuth.user = { id: 'account-2' };
+      return { action: Share.sharedAction };
+    });
+    render(<GroupInviteScreen />, { wrapper });
+    fireEvent.press(
+      await screen.findByRole('button', { name: 'Share invite' })
+    );
+    await waitFor(() => expect(Share.share).toHaveBeenCalled());
+    expect(mockTrackInvite).not.toHaveBeenCalled();
+  });
+
+  it('does not claim a group invitation was copied when the clipboard rejects it', async () => {
+    mockFetchGroupDetails.mockResolvedValue({ name: 'Morning walk group' });
+    mockShareGroup.mockResolvedValue({
+      code: 'MILES8',
+      shareUrl: 'https://menta.quest/join/MILES8',
+    });
+    mockClipboard.mockResolvedValue(false);
+    render(<GroupInviteScreen />, { wrapper });
+    fireEvent.press(
+      await screen.findByRole('button', { name: 'Copy invite link' })
+    );
+    await waitFor(() => expect(mockClipboard).toHaveBeenCalled());
+    expect(mockTrackInvite).not.toHaveBeenCalled();
   });
 
   it('keeps the QR useful on compact phones and lets large phones use more width', () => {

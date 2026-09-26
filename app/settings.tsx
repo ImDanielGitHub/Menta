@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Linking, StyleSheet, Text, View } from 'react-native';
+import { Linking, Platform, StyleSheet, Text, View } from 'react-native';
 import { Stack, usePathname, useRouter } from 'expo-router';
 import { AppInlineNotice } from '@/components/ui';
 import { AppButton } from '@/components/ui/AppButton';
@@ -32,6 +32,7 @@ import {
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
+import { IPAD_MAX_CONTENT_WIDTH } from '@/constants/responsive-layout';
 import {
   AccountDeletionNotCompletedError,
   deleteMentaAccount,
@@ -56,6 +57,11 @@ import {
   setAdvancedDiagnosticsCollectionEnabled,
 } from '@/lib/sentry';
 import { trackProductOperation } from '@/lib/posthog';
+import {
+  showToast,
+  toastManager,
+  type ToastProps,
+} from '@/components/ui/Toast';
 import {
   ACCOUNT_DELETE_CONFIRM_WORD,
   ACCOUNT_DELETE_DESCRIPTION,
@@ -85,7 +91,10 @@ import {
   showAdsPrivacyOptions,
   type AdsPrivacyOptionsRequirement,
 } from '@/lib/ads';
-import { openStoreWriteReview } from '@/lib/store-review';
+import {
+  getStoreWriteReviewUrl,
+  openStoreWriteReview,
+} from '@/lib/store-review';
 import { getLanguageOption, useTranslation } from '@/lib/localization';
 import {
   downloadAvailableOtaUpdate,
@@ -105,6 +114,15 @@ type SettingsNotice = {
   description: string;
 } | null;
 
+const showUpdateNotice = (
+  notice: NonNullable<SettingsNotice>,
+  action?: ToastProps['action']
+) =>
+  showToast[notice.tone](notice.title, notice.description, {
+    duration: action ? 12000 : 6000,
+    action,
+  });
+
 type SettingsAccountState =
   | 'loading'
   | 'ready'
@@ -114,12 +132,7 @@ type SettingsAccountState =
   | 'session-unavailable';
 
 type DeletionSheetState =
-  | 'preflight'
-  | 'confirm'
-  | 'deleting'
-  | 'failed'
-  | 'unknown'
-  | 'confirmed';
+  'preflight' | 'confirm' | 'deleting' | 'failed' | 'unknown' | 'confirmed';
 
 export default function SettingsScreen() {
   const replayReleaseEnabled = isSentryReplayReleaseEnabled();
@@ -127,6 +140,7 @@ export default function SettingsScreen() {
   const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
   const phoneLayout = usePhoneLayout();
+  const isIPad = Platform.OS === 'ios' && Platform.isPad;
   const router = useRouter();
   const pathname = usePathname();
   const isTabDestination = pathname === '/settings-tab';
@@ -165,7 +179,6 @@ export default function SettingsScreen() {
     useState(false);
   const [advancedDiagnosticsSheetVisible, setAdvancedDiagnosticsSheetVisible] =
     useState(false);
-  const [hasProAccess, setHasProAccess] = useState(false);
   const accountRequestRef = useRef(0);
   const deletionPreflightRequestRef = useRef(0);
   const deletionAttemptRef = useRef(0);
@@ -210,12 +223,10 @@ export default function SettingsScreen() {
       if (!isCurrentAccountRequest()) return;
 
       if (!profile || profile.id !== accountId) {
-        setHasProAccess(false);
         setAccountState('profile-missing');
         return;
       }
 
-      setHasProAccess(profile.is_pro === true);
       setAccountState('ready');
     } catch {
       if (!isCurrentAccountRequest()) return;
@@ -332,7 +343,7 @@ export default function SettingsScreen() {
         setAdvancedDiagnosticsSaving(false);
       }
     },
-    [advancedDiagnosticsSaving, replayReleaseEnabled]
+    [advancedDiagnosticsSaving, replayReleaseEnabled, t]
   );
 
   const openAdPrivacyOptions = useCallback(async () => {
@@ -374,7 +385,7 @@ export default function SettingsScreen() {
     } finally {
       setAdPrivacyOptionsBusy(false);
     }
-  }, [adPrivacyOptionsBusy]);
+  }, [adPrivacyOptionsBusy, t]);
 
   const recoverAccountRoute = useCallback(() => {
     if (
@@ -401,42 +412,40 @@ export default function SettingsScreen() {
     [accountState, recoverAccountRoute, router]
   );
 
-  const openPro = useCallback(() => {
-    openPaywall({
-      context: 'general',
-      initialView: hasProAccess ? 'active' : 'plans',
+  const restartForUpdate = useCallback(async () => {
+    if (restartingForUpdate) return;
+    setRestartingForUpdate(true);
+    showUpdateNotice({
+      tone: 'info',
+      title: t('fullAuth.settings.restarting_menta'),
+      description: t(
+        'fullAuth.settings.the_downloaded_update_will_open_automatically'
+      ),
     });
-  }, [hasProAccess]);
+    try {
+      await restartIntoDownloadedOta();
+    } catch {
+      setRestartingForUpdate(false);
+      showUpdateNotice({
+        tone: 'error',
+        title: t('fullAuth.settings.menta_could_not_restart'),
+        description: t(
+          'fullAuth.settings.close_and_reopen_menta_to_apply_the_downloaded_u'
+        ),
+      });
+    }
+  }, [restartingForUpdate, t]);
 
   const checkForUpdates = useCallback(async () => {
     if (checkingForUpdate || restartingForUpdate) return;
 
     if (otaUpdateReady) {
-      setRestartingForUpdate(true);
-      setSettingsNotice({
-        tone: 'info',
-        title: t('fullAuth.settings.restarting_menta'),
-        description: t(
-          'fullAuth.settings.the_downloaded_update_will_open_automatically'
-        ),
-      });
-      try {
-        await restartIntoDownloadedOta();
-      } catch {
-        setRestartingForUpdate(false);
-        setSettingsNotice({
-          tone: 'error',
-          title: t('fullAuth.settings.menta_could_not_restart'),
-          description: t(
-            'fullAuth.settings.close_and_reopen_menta_to_apply_the_downloaded_u'
-          ),
-        });
-      }
+      await restartForUpdate();
       return;
     }
 
     setCheckingForUpdate(true);
-    setSettingsNotice({
+    const checkingNoticeId = showUpdateNotice({
       tone: 'info',
       title: t('fullAuth.settings.checking_for_updates'),
       description: t(
@@ -447,15 +456,21 @@ export default function SettingsScreen() {
       const result = await downloadAvailableOtaUpdate();
       if (result === 'ready') {
         setOtaUpdateReady(true);
-        setSettingsNotice({
-          tone: 'success',
-          title: t('fullAuth.settings.menta_update_ready'),
-          description: t(
-            'fullAuth.settings.press_restart_to_apply_the_downloaded_update'
-          ),
-        });
+        showUpdateNotice(
+          {
+            tone: 'success',
+            title: t('fullAuth.settings.menta_update_ready'),
+            description: t(
+              'fullAuth.settings.press_restart_to_apply_the_downloaded_update'
+            ),
+          },
+          {
+            label: t('shared.update.ready.restart'),
+            onPress: () => void restartForUpdate(),
+          }
+        );
       } else if (result === 'current') {
-        setSettingsNotice({
+        showUpdateNotice({
           tone: 'success',
           title: t('fullAuth.settings.menta_is_up_to_date'),
           description: t(
@@ -463,7 +478,7 @@ export default function SettingsScreen() {
           ),
         });
       } else {
-        setSettingsNotice({
+        showUpdateNotice({
           tone: 'info',
           title: t('fullAuth.settings.update_checks_are_unavailable'),
           description: t(
@@ -472,15 +487,22 @@ export default function SettingsScreen() {
         });
       }
     } catch {
-      setSettingsNotice({
+      showUpdateNotice({
         tone: 'error',
         title: t('fullAuth.settings.menta_could_not_check_for_updates'),
         description: t('fullAuth.settings.check_your_connection_and_try_again'),
       });
     } finally {
+      toastManager.dismiss(checkingNoticeId);
       setCheckingForUpdate(false);
     }
-  }, [checkingForUpdate, otaUpdateReady, restartingForUpdate]);
+  }, [
+    checkingForUpdate,
+    otaUpdateReady,
+    restartForUpdate,
+    restartingForUpdate,
+    t,
+  ]);
 
   const openExternalLink = useCallback(
     async (url: string, label: string) => {
@@ -776,6 +798,7 @@ export default function SettingsScreen() {
     recoverAccountRoute,
     router,
     deletionPreflight,
+    t,
     user?.id,
   ]);
 
@@ -798,7 +821,7 @@ export default function SettingsScreen() {
         ),
       });
     }
-  }, [logout, router, signOutStatus]);
+  }, [logout, router, signOutStatus, t]);
 
   const openSignOutSheet = useCallback(() => {
     setSignOutStatus('confirm');
@@ -849,6 +872,7 @@ export default function SettingsScreen() {
     return (
       <View style={styles.route}>
         <SettingsLoadingSkeleton
+          isIPad={isIPad}
           isTabDestination={isTabDestination}
           onSignOut={canSignOut ? openSignOutSheet : undefined}
         />
@@ -900,6 +924,7 @@ export default function SettingsScreen() {
         contentContainerStyle={[
           styles.content,
           { paddingHorizontal: phoneLayout.screenInset },
+          isIPad ? styles.iPadContent : null,
         ]}
         style={styles.screen}
       >
@@ -1055,25 +1080,6 @@ export default function SettingsScreen() {
               title={t('fullAuth.settings.notifications')}
             />
 
-            <SettingsSectionLabel>
-              {t('fullAuth.settings.membership')}
-            </SettingsSectionLabel>
-            <SettingsDirectRow
-              icon={<InfoIcon size={18} color={theme.colors.text.secondary} />}
-              accessibilityHint={t(
-                'fullAuth.settings.opens_menta_pro_plans_purchase_restore_or_your_a'
-              )}
-              onPress={openPro}
-              subtitle={
-                hasProAccess
-                  ? t(
-                      'fullAuth.settings.active_view_or_manage_your_subscription'
-                    )
-                  : t('fullAuth.settings.plans_benefits_and_restore_purchases')
-              }
-              testID="settings-open-pro"
-              title={t('fullAuth.settings.menta_pro')}
-            />
             <SettingsDirectRow
               busy={checkingForUpdate || restartingForUpdate}
               disabled={checkingForUpdate || restartingForUpdate}
@@ -1226,18 +1232,22 @@ export default function SettingsScreen() {
               title={t('fullAuth.settings.feedback_and_support')}
             />
 
-            <SettingsDirectRow
-              icon={<StarIcon size={18} color={theme.colors.text.secondary} />}
-              onPress={() => {
-                void openStoreWriteReview();
-              }}
-              showDivider={false}
-              subtitle={t(
-                'fullAuth.settings.share_your_experience_and_help_others_discover_m'
-              )}
-              testID="settings-write-review"
-              title={t('fullAuth.settings.leave_a_review')}
-            />
+            {getStoreWriteReviewUrl() && (
+              <SettingsDirectRow
+                icon={
+                  <StarIcon size={18} color={theme.colors.text.secondary} />
+                }
+                onPress={() => {
+                  void openStoreWriteReview();
+                }}
+                showDivider={false}
+                subtitle={t(
+                  'fullAuth.settings.share_your_experience_and_help_others_discover_m'
+                )}
+                testID="settings-write-review"
+                title={t('fullAuth.settings.leave_a_review')}
+              />
+            )}
 
             <SettingsSectionLabel>
               {t('fullAuth.settings.account_control')}
@@ -1277,7 +1287,14 @@ export default function SettingsScreen() {
             },
           ]}
         >
-          <View style={styles.fixedFooterLane}>{settingsFooter}</View>
+          <View
+            style={[
+              styles.fixedFooterLane,
+              isIPad ? styles.iPadFixedFooterLane : null,
+            ]}
+          >
+            {settingsFooter}
+          </View>
         </View>
       ) : null}
 
@@ -1748,6 +1765,11 @@ const createStyles = (_theme: ReturnType<typeof useTheme>) =>
       paddingBottom: mentaSpacing[12],
       paddingTop: mentaSpacing[6],
     },
+    iPadContent: {
+      alignSelf: 'center',
+      maxWidth: IPAD_MAX_CONTENT_WIDTH,
+      width: '100%',
+    },
     header: {
       gap: mentaSpacing[2],
       marginBottom: mentaSpacing[2],
@@ -1769,6 +1791,9 @@ const createStyles = (_theme: ReturnType<typeof useTheme>) =>
       gap: mentaSpacing[2],
       maxWidth: mentaLayout.taskLane,
       width: '100%',
+    },
+    iPadFixedFooterLane: {
+      maxWidth: IPAD_MAX_CONTENT_WIDTH,
     },
     stateTitle: {
       color: mentaColors.text.primary,
@@ -1836,9 +1861,11 @@ const settingsSheetStyles = StyleSheet.create({
 });
 
 const SettingsLoadingSkeleton = ({
+  isIPad,
   isTabDestination,
   onSignOut,
 }: {
+  isIPad: boolean;
   isTabDestination: boolean;
   onSignOut?: () => void;
 }) => {
@@ -1851,6 +1878,7 @@ const SettingsLoadingSkeleton = ({
         style={[
           settingsSkeletonStyles.lane,
           { paddingHorizontal: phoneLayout.screenInset },
+          isIPad ? settingsSkeletonStyles.iPadLane : null,
         ]}
       >
         <View
@@ -1953,6 +1981,9 @@ const settingsSkeletonStyles = StyleSheet.create({
     flex: 1,
     maxWidth: mentaLayout.workingFrameMax,
     width: '100%',
+  },
+  iPadLane: {
+    maxWidth: IPAD_MAX_CONTENT_WIDTH,
   },
   header: {
     alignItems: 'center',

@@ -1,4 +1,5 @@
 import type { CompleteCatalogue } from '@/lib/localization/en-NZ';
+import { widgetsptPT } from '@/lib/localization/catalogues/shared/widgets-ptPT';
 import {
   accountabilityDeltaPt,
   accountabilityDeltaPtPT,
@@ -24,8 +25,11 @@ import { fullCommercePtPT } from '@/lib/localization/catalogues/pt-PT/full-comme
 import { fullDomainFeedbackPtPT } from '@/lib/localization/catalogues/pt-PT/full-domain-feedback';
 import { completionPtPT } from '@/lib/localization/catalogues/pt-PT/completion';
 import { sourceGatePtPT } from '@/lib/localization/catalogues/pt-PT/source-gate';
+import { momentaTopUpPtPT } from '@/lib/localization/catalogues/pt-PT/momenta-top-up';
 
 export const ptPT = {
+  ...momentaTopUpPtPT,
+  ...widgetsptPT,
   ...foundationPtPT,
   ...languagePtPT,
   ...notificationsPtPT,

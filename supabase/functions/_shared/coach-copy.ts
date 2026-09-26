@@ -1,4 +1,4 @@
-export const COACH_COPY_CATALOG_VERSION = 1;
+export const COACH_COPY_CATALOG_VERSION = 2;
 
 export type CoachKind = 'routine' | 'save';
 
@@ -51,50 +51,43 @@ export const pickCatalogIndex = (
   return fnv1a(key) % length;
 };
 
-const hourPhrase = (hours: number): string =>
-  `${Math.max(0, hours)} ${hours === 1 ? 'hour' : 'hours'}`;
-
 const promiseCountPhrase = (count: number): string =>
   `${Math.max(1, count)} ${count === 1 ? 'promise' : 'promises'}`;
 
 type CopyVariant = (tokens: CoachCopyTokens) => { title: string; body: string };
 
+// Queue copy must stay useful after a deferral. The old proof_due_label is
+// only a reminder preference. Actual dated push copy is rendered at dispatch.
 const ROUTINE_VARIANTS: readonly CopyVariant[] = [
-  tokens => ({
+  _tokens => ({
     title: 'Proof is due.',
-    body: `Add proof by ${tokens.proof_due_label} to finish today’s check-in.`,
+    body: 'Open Menta to check your proof window and add your proof.',
   }),
-  tokens => ({
+  _tokens => ({
     title: 'Today still counts.',
-    body:
-      tokens.hours_remaining > 0
-        ? `${hourPhrase(tokens.hours_remaining)} left for today’s proof.`
-        : 'Add today’s proof before the day ends.',
+    body: 'Open Menta to see your next check-in.',
   }),
   tokens => ({
     title: 'Log today’s proof.',
     body:
       tokens.open_promise_count > 1
-        ? `${promiseCountPhrase(tokens.open_promise_count)} still need proof. Start with one.`
-        : 'Add proof to finish today.',
+        ? `${promiseCountPhrase(tokens.open_promise_count)} need a check-in. Open Menta to choose one.`
+        : 'Open Menta to add your proof.',
   }),
 ];
 
 const SAVE_VARIANTS: readonly CopyVariant[] = [
-  tokens => ({
+  _tokens => ({
     title: 'There’s still time today.',
-    body: `Today’s proof stays open until ${tokens.proof_due_label}.`,
+    body: 'Open Menta to check the current proof deadline.',
   }),
   _tokens => ({
     title: 'Today’s proof is still open.',
-    body: 'If you completed your promise, add the proof before the day ends.',
+    body: 'If you completed your promise, open Menta to add the proof.',
   }),
-  tokens => ({
+  _tokens => ({
     title: 'Choose the next small step.',
-    body:
-      tokens.hours_remaining > 0
-        ? `${hourPhrase(tokens.hours_remaining)} left for today’s proof.`
-        : 'Today’s proof remains open until the day ends.',
+    body: 'Open Menta to see the remaining proof window.',
   }),
 ];
 
@@ -126,7 +119,7 @@ export const renderCoachCopy = (args: {
     streak_length: Math.max(0, Math.floor(args.tokens.streak_length)),
     hours_remaining: Math.max(0, Math.floor(args.tokens.hours_remaining)),
     freeze_remaining: Math.max(0, Math.floor(args.tokens.freeze_remaining)),
-    proof_due_label: args.tokens.proof_due_label.trim() || '8:00 PM',
+    proof_due_label: args.tokens.proof_due_label.trim(),
     open_promise_count: Math.max(1, Math.floor(args.tokens.open_promise_count)),
   };
   const rendered = catalog[variantIndex](tokens);

@@ -36,9 +36,9 @@ export const sourceGateEsMX = {
   'sourceGate.momenta.cooldown':
     'Espera dos minutos antes de ver otro patrocinador.',
   'sourceGate.momenta.rewardUnknown':
-    'Menta no pudo agregar esta recompensa. Actualiza tu cartera antes de volver a intentarlo.',
+    'Menta no pudo agregar esta recompensa. Actualiza tu billetera antes de volver a intentarlo.',
   'sourceGate.momenta.rewardReceiptUnknown':
-    'Menta no pudo verificar el comprobante de la recompensa. Actualiza tu cartera antes de ver otro patrocinador.',
+    'Menta no pudo verificar el comprobante de la recompensa. Actualiza tu billetera antes de ver otro patrocinador.',
   'sourceGate.momenta.rewardAccountChanged':
     'La cuenta cambió antes de confirmar la recompensa.',
   'sourceGate.momenta.loginRequired': 'Se requiere iniciar sesión',

@@ -1,5 +1,6 @@
 import {
   resolveAdaptiveLayout,
+  resolveIPadBottomTabContentWidth,
   resolveAdaptiveScreenMaxWidth,
   shouldUseBoundedIPadSheet,
   shouldUseIPadNavigationRail,
@@ -134,5 +135,16 @@ describe('adaptive window layout', () => {
     expect(layout.gutter).toBe(0);
     expect(layout.usableWidth).toBe(1000);
     expect(layout.laneWidth).toBeUndefined();
+  });
+
+  it('does not alter phone or compact iPad tab geometry', () => {
+    expect(resolveIPadBottomTabContentWidth(430, false)).toBeUndefined();
+    expect(resolveIPadBottomTabContentWidth(599, true)).toBeUndefined();
+  });
+
+  it('keeps regular iPad tab destinations in one intentional reach zone', () => {
+    expect(resolveIPadBottomTabContentWidth(600, true)).toBe(520);
+    expect(resolveIPadBottomTabContentWidth(1024, true)).toBe(720);
+    expect(resolveIPadBottomTabContentWidth(1366, true)).toBe(720);
   });
 });

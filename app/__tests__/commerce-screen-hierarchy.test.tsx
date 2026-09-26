@@ -1,9 +1,10 @@
 import React from 'react';
 import { RefreshControl } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   act,
   fireEvent,
-  render,
+  render as renderWithProviders,
   screen,
   waitFor,
 } from '@testing-library/react-native';
@@ -14,6 +15,18 @@ import ShopScreen from '@/app/shop';
 import { showRewardedAdDetailed } from '@/lib/ads';
 import { getInventoryEmptyCopy } from '@/lib/economy/contract';
 
+const render = (ui: React.ReactElement) =>
+  renderWithProviders(
+    <SafeAreaProvider
+      initialMetrics={{
+        frame: { x: 0, y: 0, width: 430, height: 932 },
+        insets: { top: 0, right: 0, bottom: 0, left: 0 },
+      }}
+    >
+      {ui}
+    </SafeAreaProvider>
+  );
+
 const mockRouter = {
   navigate: jest.fn(),
   push: jest.fn(),
@@ -22,6 +35,7 @@ const mockRouter = {
 
 const mockAuthState = {
   isAuthenticated: true,
+  hasCompletedOnboarding: true,
   user: { id: 'user-1' },
 };
 
@@ -32,6 +46,7 @@ const mockMomentaState = {
   balance: 0,
   claimAdReward: jest.fn().mockResolvedValue({ earned: true, amount: 10 }),
   equipItem: jest.fn().mockResolvedValue(undefined),
+  equippedItems: {},
   fetchBalance: jest.fn().mockResolvedValue(undefined),
   fetchEquippedItems: jest.fn().mockResolvedValue(undefined),
   fetchOwnedItems: jest.fn().mockResolvedValue(undefined),
@@ -59,10 +74,16 @@ let mockSafeMode = false;
 jest.mock('expo-router', () => ({
   Stack: { Screen: () => null },
   useRouter: () => mockRouter,
+  usePathname: () => '/momenta',
+}));
+
+jest.mock('expo-router/react-navigation', () => ({
+  useIsFocused: () => true,
 }));
 
 jest.mock('@/store/auth-store', () => ({
-  useAuthStore: () => mockAuthState,
+  useAuthStore: (selector?: (state: typeof mockAuthState) => unknown) =>
+    selector ? selector(mockAuthState) : mockAuthState,
 }));
 
 jest.mock('@/store/momenta-store', () => {
@@ -96,6 +117,7 @@ jest.mock('@/components/ui/AppShell', () => {
   const ReactModule = require('react') as typeof import('react');
   const { View } = require('react-native') as typeof import('react-native');
   return {
+    ...jest.requireActual('@/components/ui/AppShell'),
     AppScreen: ({ children }: { children: React.ReactNode }) =>
       ReactModule.createElement(View, null, children),
   };
@@ -259,41 +281,49 @@ jest.mock('@/components/shop/ShopPrimitives', () => {
 });
 
 jest.mock('@/components/momenta/TransactionHistory', () => {
-  const ReactModule = require('react') as typeof import('react');
-  const { Pressable, Text, View } =
-    require('react-native') as typeof import('react-native');
+  const mockModule = (() => {
+    const ReactModule = require('react') as typeof import('react');
+    const { Pressable, Text, View } =
+      require('react-native') as typeof import('react-native');
+    return {
+      __esModule: true,
+      default: ({
+        error,
+        onRefresh,
+        title,
+      }: {
+        error?: string | null;
+        onRefresh?: () => void;
+        title: string;
+      }) =>
+        ReactModule.createElement(
+          View,
+          null,
+          ReactModule.createElement(Text, null, title),
+          error
+            ? ReactModule.createElement(
+                ReactModule.Fragment,
+                null,
+                ReactModule.createElement(
+                  Text,
+                  null,
+                  'Wallet activity did not load'
+                ),
+                ReactModule.createElement(
+                  Pressable,
+                  { accessibilityRole: 'button', onPress: onRefresh },
+                  ReactModule.createElement(Text, null, 'Check again')
+                )
+              )
+            : null
+        ),
+    };
+  })();
+  const mockExport = mockModule?.__esModule ? mockModule.default : mockModule;
   return {
     __esModule: true,
-    default: ({
-      error,
-      onRefresh,
-      title,
-    }: {
-      error?: string | null;
-      onRefresh?: () => void;
-      title: string;
-    }) =>
-      ReactModule.createElement(
-        View,
-        null,
-        ReactModule.createElement(Text, null, title),
-        error
-          ? ReactModule.createElement(
-              ReactModule.Fragment,
-              null,
-              ReactModule.createElement(
-                Text,
-                null,
-                'Wallet activity did not load'
-              ),
-              ReactModule.createElement(
-                Pressable,
-                { accessibilityRole: 'button', onPress: onRefresh },
-                ReactModule.createElement(Text, null, 'Check again')
-              )
-            )
-          : null
-      ),
+    default: mockExport,
+    TransactionHistory: mockExport,
   };
 });
 
@@ -358,37 +388,49 @@ jest.mock('@/components/momenta/MomentaActionNoticeSheet', () => {
   };
 });
 
-jest.mock('@/components/paywall/PaywallModal', () => ({
-  __esModule: true,
-  default: () => null,
-}));
+jest.mock('@/components/paywall/PaywallModal', () => {
+  const mockModule = (() => ({
+    __esModule: true,
+    default: () => null,
+  }))();
+  const mockExport = mockModule?.__esModule ? mockModule.default : mockModule;
+  return { __esModule: true, default: mockExport, PaywallModal: mockExport };
+});
 
 jest.mock('@/components/ui/SimpleBottomSheet', () => {
-  const ReactModule = require('react') as typeof import('react');
-  const { View } = require('react-native') as typeof import('react-native');
+  const mockModule = (() => {
+    const ReactModule = require('react') as typeof import('react');
+    const { View } = require('react-native') as typeof import('react-native');
+    return {
+      __esModule: true,
+      default: ({
+        children,
+        testID,
+        scrollableBody,
+        footer,
+        visible,
+      }: {
+        children: React.ReactNode;
+        testID?: string;
+        scrollableBody?: React.ReactNode;
+        footer?: React.ReactNode;
+        visible: boolean;
+      }) =>
+        visible
+          ? ReactModule.createElement(
+              View,
+              { testID },
+              scrollableBody ?? children,
+              footer
+            )
+          : null,
+    };
+  })();
+  const mockExport = mockModule?.__esModule ? mockModule.default : mockModule;
   return {
     __esModule: true,
-    default: ({
-      children,
-      testID,
-      scrollableBody,
-      footer,
-      visible,
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-      scrollableBody?: React.ReactNode;
-      footer?: React.ReactNode;
-      visible: boolean;
-    }) =>
-      visible
-        ? ReactModule.createElement(
-            View,
-            { testID },
-            scrollableBody ?? children,
-            footer
-          )
-        : null,
+    default: mockExport,
+    SimpleBottomSheet: mockExport,
   };
 });
 
@@ -417,6 +459,7 @@ jest.mock('@/lib/hooks/useAdReward', () => ({
 }));
 
 jest.mock('@/lib/ads', () => ({
+  areVerifiedAdRewardsEnabled: () => true,
   isAdUnavailableReason: () => false,
   showRewardedAdDetailed: jest.fn(),
 }));
@@ -485,8 +528,13 @@ describe('commerce screen hierarchy', () => {
     render(<ShopScreen />);
 
     expect(await screen.findByRole('header', { name: 'Shop' })).toBeTruthy();
-    expect(screen.getByText('Momenta balance')).toBeTruthy();
-    expect(screen.getByText('20 Momenta')).toBeTruthy();
+    expect(
+      await screen.findByLabelText(
+        'Momenta balance: 20. Opens your wallet.',
+        {},
+        { timeout: 5000 }
+      )
+    ).toBeTruthy();
     expect(screen.queryByTestId('shop-filters')).toBeNull();
     expect(screen.getByText('12-hour Extension')).toBeTruthy();
     expect(screen.getByText('30 Momenta short')).toBeTruthy();
@@ -551,7 +599,9 @@ describe('commerce screen hierarchy', () => {
 
     expect(await screen.findByTestId('shop-empty-state')).toBeTruthy();
     expect(screen.getByRole('header', { name: 'Shop' })).toBeTruthy();
-    expect(screen.getByText('0 Momenta')).toBeTruthy();
+    expect(
+      screen.getByLabelText('Momenta balance: 0. Opens your wallet.')
+    ).toBeTruthy();
     expect(screen.getByText('No items are available right now')).toBeTruthy();
     expect(screen.getByText('Check again')).toBeTruthy();
     expect(screen.queryByText('Support shelf')).toBeNull();
@@ -578,7 +628,7 @@ describe('commerce screen hierarchy', () => {
     expect(
       (await screen.findAllByText('Balance and items unavailable')).length
     ).toBeGreaterThanOrEqual(1);
-    expect(screen.queryByText('Momenta balance')).toBeNull();
+    expect(screen.queryByTestId('shop-balance-chip')).toBeNull();
     expect(screen.getByTestId('shop-section-boosts')).toBeTruthy();
   });
 
@@ -622,11 +672,11 @@ describe('commerce screen hierarchy', () => {
       expect(screen.getByText('12-hour Extension')).toBeTruthy()
     );
     expect(screen.getByText('Your items')).toBeTruthy();
-    expect(screen.getAllByText('Items')).toHaveLength(2);
+    expect(screen.getAllByText('Items')).toHaveLength(1);
     expect(
       screen.getByTestId('momenta-section-nav-items').props.accessibilityState
     ).toEqual({ selected: true });
-    expect(screen.getByText('Boosts')).toBeTruthy();
+    expect(screen.getByText('Boosts 1')).toBeTruthy();
     expect(screen.getByText('All 1')).toBeTruthy();
     expect(screen.getByText('2 available')).toBeTruthy();
     expect(screen.getByText('Choose')).toBeTruthy();
@@ -720,11 +770,11 @@ describe('commerce screen hierarchy', () => {
     render(<MomentaScreen />);
 
     expect(await screen.findByRole('header', { name: 'Momenta' })).toBeTruthy();
-    expect(screen.getByText('Balance')).toBeTruthy();
+    expect(await screen.findByText('Balance')).toBeTruthy();
     expect(screen.getByText('0')).toBeTruthy();
     expect(
       screen.getByText(
-        'Your first promise and group are free. Use Momenta for extra promises, groups, freezes and shop items. It has no cash value.'
+        'Creating your first promise and group is free. Your first join is free too. Use Momenta for extra promises, groups, freezes and shop items. It has no cash value.'
       )
     ).toBeTruthy();
     expect(screen.getByText('Activity')).toBeTruthy();
@@ -788,7 +838,7 @@ describe('commerce screen hierarchy', () => {
     expect(screen.queryByText('Buy reserve pack')).toBeNull();
     expect(screen.getByText('Invite someone')).toBeTruthy();
     expect(
-      await screen.findByText(
+      await screen.findAllByText(
         '50 each when a new member joins and makes their first promise'
       )
     ).toBeTruthy();
@@ -803,7 +853,7 @@ describe('commerce screen hierarchy', () => {
   });
 
   it('does not promise referral rewards when the programme is paused', async () => {
-    mockReferralState.getReferralProgramStatus.mockResolvedValueOnce({
+    mockReferralState.getReferralProgramStatus.mockResolvedValue({
       programmeEnabled: false,
       rewardAmount: 50,
       inviterAnnualCap: 10,
@@ -855,8 +905,7 @@ describe('commerce screen hierarchy', () => {
 
   it('closes earning options and shows one checking sheet while the authoritative claim is pending', async () => {
     let resolveClaim:
-      | ((value: { earned: true; amount: 10 }) => void)
-      | undefined;
+      ((value: { earned: true; amount: 10 }) => void) | undefined;
     const pendingClaim = new Promise<{ earned: true; amount: 10 }>(resolve => {
       resolveClaim = resolve;
     });

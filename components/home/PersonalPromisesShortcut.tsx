@@ -1,11 +1,13 @@
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { TodayPressable } from '@/components/today/TodayPressable';
 import { ChevronRightIcon, TargetIcon } from '@/components/ui/icons';
 import { AppScaledText as Text } from '@/components/ui/AppScaledText';
 import {
   mentaColors,
   mentaLayout,
+  mentaRadii,
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
@@ -54,18 +56,20 @@ export const PersonalPromisesShortcut = ({
   const { colors } = useTheme();
 
   return (
-    <Pressable
+    <TodayPressable
       accessibilityLabel={t('navigation.personal.accessibility', { detail })}
-      accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [styles.row, pressed ? styles.rowPressed : null]}
+      pressedStyle={styles.rowPressed}
+      style={styles.row}
       testID="today-personal-promises"
     >
-      <TargetIcon
-        color={colors.accent.primary}
-        size={20}
-        testID="today-personal-promises-icon"
-      />
+      <View style={styles.tile}>
+        <TargetIcon
+          color={colors.accent.primary}
+          size={20}
+          testID="today-personal-promises-icon"
+        />
+      </View>
       <View style={styles.copy}>
         <Text style={styles.title} textScale={textScale}>
           {t('navigation.personal.title')}
@@ -75,7 +79,7 @@ export const PersonalPromisesShortcut = ({
         </Text>
       </View>
       <ChevronRightIcon color={mentaColors.text.secondary} size={18} />
-    </Pressable>
+    </TodayPressable>
   );
 };
 
@@ -83,19 +87,29 @@ const styles = StyleSheet.create({
   row: {
     alignItems: 'center',
     alignSelf: 'center',
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    backgroundColor: mentaColors.surface,
+    borderColor: mentaColors.border,
+    borderRadius: mentaRadii.large,
+    borderWidth: 1,
     flexDirection: 'row',
-    gap: mentaSpacing[3],
+    gap: mentaSpacing[4],
     maxWidth: mentaLayout.taskLane,
-    minHeight: 68,
+    minHeight: 76,
+    paddingHorizontal: mentaSpacing[4],
     paddingVertical: mentaSpacing[3],
     width: '100%',
   },
-  rowPressed: {
+  tile: {
+    alignItems: 'center',
     backgroundColor: mentaColors.actionSoft,
+    borderRadius: mentaRadii.medium,
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
+  },
+  rowPressed: {
+    backgroundColor: mentaColors.raised,
+    borderColor: mentaColors.actionBorder,
   },
   copy: {
     flex: 1,

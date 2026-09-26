@@ -1,5 +1,10 @@
-import { commitmentTemplates } from '@/lib/commitments/templates';
+import {
+  getCommitmentTemplates,
+  resolveCommitmentTemplate,
+} from '@/lib/commitments/templates';
 import { getTemplatePickerState } from '@/lib/commitments/template-picker-state';
+
+const commitmentTemplates = getCommitmentTemplates('en-NZ');
 
 describe('getTemplatePickerState', () => {
   it('keeps every supplied starter template available to the expanded picker', () => {
@@ -37,5 +42,16 @@ describe('getTemplatePickerState', () => {
           template.submissionText.trim().length > 0
       )
     ).toBe(true);
+  });
+
+  it("writes starter templates in the person's app language", () => {
+    const spanish = resolveCommitmentTemplate('move_daily', 'es-ES');
+    const english = resolveCommitmentTemplate('move_daily', 'en-NZ');
+
+    expect(spanish?.title).toBe('Muévete cada día');
+    expect(spanish?.description).not.toBe(english?.description);
+    expect(getCommitmentTemplates('pt-PT')).toHaveLength(
+      commitmentTemplates.length
+    );
   });
 });

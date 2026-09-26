@@ -288,6 +288,48 @@ export const fullCommerceDeDE = {
   'commerce.shop.appearance.fortnightFrame': 'Zweiwochen-Rahmen',
   'commerce.shop.appearance.monthFrame': 'Monatsrahmen',
   'commerce.shop.appearance.seasonFrame': 'Saisonrahmen',
+  'commerce.shop.appearance.emberDescription':
+    'Buttons und Akzente in warmem Bernstein.',
+  'commerce.shop.appearance.glacierDescription':
+    'Buttons und Akzente in eisigem Cyan.',
+  'commerce.shop.appearance.auroraDescription':
+    'Buttons und Akzente in Nordlicht-Mint.',
+  'commerce.shop.appearance.irisDescription':
+    'Buttons und Akzente in kühlem Indigo.',
+  'commerce.shop.appearance.cobaltDescription':
+    'Buttons und Akzente in elektrischem Blau.',
+  'commerce.shop.appearance.jadeDescription':
+    'Buttons und Akzente in Smaragdgrün.',
+  'commerce.shop.appearance.orchidDescription':
+    'Buttons und Akzente in kühlem Magenta.',
+  'commerce.shop.appearance.horizonDescription':
+    'Buttons und Akzente in Himmelblau.',
+  'commerce.shop.appearance.graphiteDescription':
+    'Buttons und Akzente in kühlem Silber.',
+  'commerce.shop.appearance.neonDescription':
+    'Buttons und Akzente in Cyan und Limette.',
+  'commerce.shop.appearance.tidepoolDescription':
+    'Buttons und Akzente in tiefem Petrol.',
+  'commerce.shop.appearance.goldFrameDescription':
+    'Ein warmgoldener Ring um dein Profilfoto.',
+  'commerce.shop.appearance.violetFrameDescription':
+    'Ein Ring von Gold zu Violett um dein Profilfoto.',
+  'commerce.shop.appearance.iceFrameDescription':
+    'Ein gletschercyanfarbener Ring um dein Profilfoto.',
+  'commerce.shop.appearance.neonFrameDescription':
+    'Ein Ring in Cyan, Limette und Magenta um dein Profilfoto.',
+  'commerce.shop.appearance.obsidianFrameDescription':
+    'Ein schiefergrauer Ring um dein Profilfoto.',
+  'commerce.shop.appearance.sparkFrameDescription':
+    'Ein mintgrüner Ring um dein Profilfoto.',
+  'commerce.shop.appearance.weekFrameDescription':
+    'Ein Ring von Mint zu Indigo um dein Profilfoto.',
+  'commerce.shop.appearance.fortnightFrameDescription':
+    'Ein dickerer indigoblauer Ring um dein Profilfoto.',
+  'commerce.shop.appearance.monthFrameDescription':
+    'Ein Ring in Polarlichtblau um dein Profilfoto.',
+  'commerce.shop.appearance.seasonFrameDescription':
+    'Ein Ring in Mint, Indigo und Orchidee um dein Profilfoto.',
   'commerce.shop.automaticProtection': 'Automatischer Serien-Schutz',
   'commerce.shop.automaticProtectionDetail':
     'Menta verwendet ihn nach einem berechtigten verpassten Tag automatisch.',
@@ -834,7 +876,7 @@ export const fullCommerceDeDE = {
   'commerce.economy.createCost': '{amount} Momenta',
   'commerce.economy.quotaActiveTitle': 'Kostenloses Versprechen-Limit erreicht',
   'commerce.economy.quotaActiveMessage':
-    'Kostenlose Konten können 2 aktive Versprechen gleichzeitig halten. Schließe eines ab oder verlasse es, oder starte Pro, bevor du ein weiteres erstellst.',
+    'Kostenlose Konten können {limit} aktive Versprechen gleichzeitig halten. Schließe eines ab oder verlasse es, oder starte Pro, bevor du ein weiteres erstellst.',
   'commerce.economy.quotaMonthlyTitle':
     'Monatliches Limit zum Erstellen erreicht',
   'commerce.economy.quotaMonthlyMessage':
@@ -855,6 +897,62 @@ export const fullCommerceDeDE = {
   'commerce.wallet.refreshingBalance': 'Guthaben wird aktualisiert…',
   'commerce.wallet.rewardClaimInProgress':
     'Menta prüft noch deine vorherige Belohnung.',
+  'commerce.shop.balanceChipAccessibility':
+    'Momenta-Guthaben: {amount}. Öffnet deine Wallet.',
+  'commerce.shop.tagNew': 'Neu',
+  'commerce.shop.quantity': '×{count}',
+  'commerce.shop.seeAllItems': 'Alle ansehen',
+  'commerce.shop.cardAccessibility': '{name}. {price}. {status}.',
+  'commerce.shop.ownedTileAccessibility': '{name}. {state}.',
+  'commerce.shop.itemActionAccessibility': '{action}: {name}',
+  'commerce.shop.detailSummaryAccessibility':
+    '{kind}. {name}. {status}. {price}.',
+  'commerce.shop.buying': 'Wird gekauft …',
+  'commerce.shop.topUpBubble':
+    'Dir fehlen {amount} Momenta für {name}. So kannst du sie verdienen.',
+  'commerce.shop.refreshCountIfStale':
+    '{message} Aktualisiere deine Gegenstände, falls die verfügbare Anzahl noch nicht stimmt.',
+  'commerce.shop.checkStatusIfStale':
+    '{message} Prüfe den Status, falls Guthaben oder Gegenstände nicht sofort aktualisiert werden.',
+  'commerce.shop.inYourItems':
+    '{name} ist bei deinen Gegenständen. Dein Guthaben wurde aktualisiert.',
+  'commerce.celebrate.added': '{name} hinzugefügt.',
+  'commerce.celebrate.gain': '+{count}',
+  'commerce.celebrate.youHave': 'Du hast jetzt',
+  'commerce.celebrate.styleNotActive':
+    'Er gehört dir. Menta konnte ihn noch nicht aktivieren. Tippe auf „Diesen Stil verwenden“, um ihn anzuwenden.',
+  'commerce.wallet.earnOptionAccessibility': '{title}. {meta}. {value}.',
+  'commerce.freeze.remaining': 'Noch {count} Serien-Schutz',
+  'commerce.freeze.remaining.one': 'Noch {count} Serien-Schutz',
+  'commerce.freeze.remaining.other': 'Noch {count} Serien-Schutz',
+  'commerce.freeze.getAnother': 'Weiteren Serien-Schutz holen',
+  'commerce.freeze.getFirst': 'Serien-Schutz holen',
+  'commerce.freeze.protectedTitle':
+    'Dein Serien-Schutz hat deine {count}-Tage-Serie geschützt.',
+  'commerce.firstMiss.open': 'Hol dir deinen kostenlosen Serien-Schutz',
+  'commerce.firstMiss.accessibility': 'Dein erster verpasster Tag',
+  'commerce.firstMiss.titleOffer': 'Einen Tag verpasst? Mach einfach weiter.',
+  'commerce.firstMiss.titleConfirmed': 'Dein verpasster Tag ist abgedeckt.',
+  'commerce.firstMiss.bodyConfirmedStreak':
+    'Dein kostenloser Serien-Schutz hat deine {count}-Tage-Serie geschützt. Füge heute einen Nachweis hinzu, um sie fortzusetzen.',
+  'commerce.firstMiss.bodyConfirmed':
+    'Dein kostenloser Serien-Schutz hat den verpassten Tag abgedeckt. Füge heute einen Nachweis hinzu, um deine Serie aufzubauen.',
+  'commerce.firstMiss.noteConfirmed':
+    'Der Schutz deckt nur den verpassten Tag ab. Er zählt nicht als erledigter Nachweis.',
+  'commerce.firstMiss.backToToday': 'Zurück zu Heute',
+  'commerce.firstMiss.errorUnconfirmed':
+    'Der Schutz konnte nicht bestätigt werden. Versuch es noch einmal.',
+  'commerce.firstMiss.errorUnavailable':
+    'Dieses Angebot für den ersten Tag ist nicht mehr verfügbar. Du kannst heute trotzdem einen Nachweis hinzufügen.',
+  'commerce.firstMiss.bubble':
+    '{weekday} ist durchgerutscht. Das passiert allen.',
+  'commerce.firstMiss.decisionTitle': 'Deine Serie von {count} Tagen behalten?',
+  'commerce.firstMiss.decisionBody':
+    'Dein erster verpasster Tag geht auf uns. Ein kostenloser Serien-Schutz deckt {weekday} ab, und deine Serie bleibt bei {count}.',
+  'commerce.firstMiss.decisionBodyNoCount':
+    'Dein erster verpasster Tag geht auf uns. Ein kostenloser Serien-Schutz deckt {weekday} ab.',
+  'commerce.firstMiss.keep': 'Serie kostenlos behalten',
+  'commerce.firstMiss.startOver': 'Bei Tag 1 neu anfangen',
 } as const;
 
 export type FullCommerceKey = keyof typeof fullCommerceDeDE;

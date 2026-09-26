@@ -5,6 +5,9 @@ import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import TodayScreen from '@/app/(tabs)/index';
 import { TAB_BAR_PEEK_CLEARANCE } from '@/components/ui/ScreenWrapper';
 import { mentaTypography } from '@/constants/MentaDesignSystem';
+import { readTodaySnapshotCache } from '@/lib/today-snapshot-cache';
+import { notificationService } from '@/lib/services/notification-service';
+import { supabase } from '@/lib/supabase';
 
 const mockPush = jest.fn();
 const mockStoreReviewRequestHost = jest.fn();
@@ -122,7 +125,9 @@ jest.mock('@/components/loop/build-daily-loop-facts', () => ({
     pendingReviews: [],
     timezone: 'Pacific/Auckland',
   }),
-  buildReadyServerFacts: jest.fn(),
+  buildReadyServerFacts: jest.requireActual(
+    '@/components/loop/build-daily-loop-facts'
+  ).buildReadyServerFacts,
   markServerFactsFailed: jest.fn((facts: unknown) => facts),
   markServerFactsRefreshing: jest.fn((facts: unknown) => facts),
   normalizeObligationProofStatus: jest.fn(),
@@ -145,13 +150,31 @@ jest.mock('@/components/loop/today-copy', () => ({
 }));
 
 jest.mock('@/lib/loop', () => ({
-  buildLoopDayContext: () => ({ localDay: '2026-08-11' }),
+  buildLoopDayContext: () => ({
+    localDay: '2026-08-11',
+    timezone: 'Pacific/Auckland',
+  }),
   decodeGroupRiskSnapshot: jest.fn(),
   selectDailyLoopState: () => 'loading',
 }));
 
 jest.mock('@/lib/proof-drafts', () => ({
   loadProofDrafts: jest.fn(() => Promise.resolve([])),
+}));
+
+jest.mock('@/lib/today-snapshot-cache', () => ({
+  readTodaySnapshotCache: jest.fn(() => Promise.resolve(null)),
+  writeTodaySnapshotCache: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('@/lib/loop/read-accepted-receipt', () => ({
+  readAcceptedReceipt: jest.fn(() => Promise.resolve(null)),
+}));
+
+jest.mock('@/lib/services/notification-service', () => ({
+  notificationService: {
+    getUserPreferences: jest.fn(() => Promise.resolve(null)),
+  },
 }));
 
 jest.mock('@/lib/services/proof-submission-service', () => ({
@@ -177,6 +200,10 @@ describe('Today tab title typography', () => {
       screenInset: 24,
       textScale: 1.4,
     };
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('renders Today with the canonical section-heading role used by Groups', () => {
@@ -293,5 +320,61 @@ describe('Today tab title typography', () => {
     expect(
       mockStoreReviewRequestHost.mock.calls.every(([ready]) => !ready)
     ).toBe(true);
+  });
+
+  it('finishes pull-to-refresh while optional reminder preferences are stalled', async () => {
+    jest.useFakeTimers();
+    mockUser = { id: 'today-user' };
+    jest.mocked(supabase.rpc).mockResolvedValueOnce({
+      data: { obligations: [], reviews: [], group_risks: [], recent_media: [] },
+      error: null,
+    } as Awaited<ReturnType<typeof supabase.rpc>>);
+    jest
+      .mocked(notificationService.getUserPreferences)
+      .mockImplementationOnce(() => new Promise(() => {}));
+    render(<TodayScreen />);
+
+    act(() => mockRefreshControl?.props.onRefresh());
+    expect(mockRefreshControl?.props.refreshing).toBe(true);
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(0);
+    });
+
+    expect(mockRefreshControl?.props.refreshing).toBe(false);
+    expect(mockStoreReviewRequestHost).toHaveBeenLastCalledWith(true);
+    // Let the optional read's own deadline settle; it must not restart loading.
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(4_000);
+    });
+    expect(mockRefreshControl?.props.refreshing).toBe(false);
+    expect(mockStoreReviewRequestHost).toHaveBeenLastCalledWith(true);
+  });
+
+  it('recovers pull-to-refresh through the live server when cached storage stalls', async () => {
+    jest.useFakeTimers();
+    mockUser = { id: 'today-user' };
+    jest
+      .mocked(readTodaySnapshotCache)
+      .mockImplementationOnce(() => new Promise(() => {}));
+    jest.mocked(supabase.rpc).mockResolvedValueOnce({
+      data: { obligations: [], reviews: [], group_risks: [], recent_media: [] },
+      error: null,
+    } as Awaited<ReturnType<typeof supabase.rpc>>);
+    render(<TodayScreen />);
+
+    act(() => mockRefreshControl?.props.onRefresh());
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(1_999);
+    });
+    expect(mockRefreshControl?.props.refreshing).toBe(true);
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(1);
+    });
+
+    expect(supabase.rpc).toHaveBeenCalledWith('get_today_home_v1', {
+      p_timezone: 'Pacific/Auckland',
+    });
+    expect(mockRefreshControl?.props.refreshing).toBe(false);
+    expect(mockStoreReviewRequestHost).toHaveBeenLastCalledWith(true);
   });
 });

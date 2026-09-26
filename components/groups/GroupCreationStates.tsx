@@ -16,9 +16,7 @@ import { useTranslation } from '@/lib/localization';
 const groupShapes: readonly {
   id: CommitmentTemplateId;
   titleKey:
-    | 'groups.create.walking'
-    | 'groups.create.study'
-    | 'groups.create.creative';
+    'groups.create.walking' | 'groups.create.study' | 'groups.create.creative';
   descriptionKey:
     | 'groups.create.walking_detail'
     | 'groups.create.study_detail'
@@ -56,55 +54,58 @@ export const GroupTemplatePickerSheet = ({
       visible={visible}
       onClose={onClose}
       testID="group-template-picker-sheet"
-    >
-      <View style={styles.sheet}>
-        <Text style={styles.title}>{t('groups.create.choose_start')}</Text>
-        <Text style={styles.description}>
-          {t('groups.create.choose_start_detail')}
-        </Text>
-        <View style={styles.rows}>
-          {groupShapes.map(shape => (
-            <Pressable
-              key={shape.id}
-              accessibilityRole="button"
-              accessibilityLabel={
-                shape.id === 'move_daily'
-                  ? t('groups.create.walking')
-                  : shape.id === 'study_block'
-                    ? t('groups.create.study')
-                    : t('groups.create.creative')
-              }
-              onPress={() => onSelect(shape.id)}
-              style={({ pressed }) => [styles.row, pressed && styles.pressed]}
-            >
-              <View style={styles.rowCopy}>
-                <Text style={styles.rowTitle}>
-                  {shape.id === 'move_daily'
+      scrollableBody={
+        <View style={styles.sheet}>
+          <Text style={styles.title}>{t('groups.create.choose_start')}</Text>
+          <Text style={styles.description}>
+            {t('groups.create.choose_start_detail')}
+          </Text>
+          <View style={styles.rows}>
+            {groupShapes.map(shape => (
+              <Pressable
+                key={shape.id}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  shape.id === 'move_daily'
                     ? t('groups.create.walking')
                     : shape.id === 'study_block'
                       ? t('groups.create.study')
-                      : t('groups.create.creative')}
-                </Text>
-                <Text style={styles.rowDescription}>
-                  {shape.id === 'move_daily'
-                    ? t('groups.create.walking_detail')
-                    : shape.id === 'study_block'
-                      ? t('groups.create.study_detail')
-                      : t('groups.create.creative_detail')}
-                </Text>
-              </View>
-              <ChevronRightIcon color={mentaColors.text.muted} size={18} />
-            </Pressable>
-          ))}
+                      : t('groups.create.creative')
+                }
+                onPress={() => onSelect(shape.id)}
+                style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+              >
+                <View style={styles.rowCopy}>
+                  <Text style={styles.rowTitle}>
+                    {shape.id === 'move_daily'
+                      ? t('groups.create.walking')
+                      : shape.id === 'study_block'
+                        ? t('groups.create.study')
+                        : t('groups.create.creative')}
+                  </Text>
+                  <Text style={styles.rowDescription}>
+                    {shape.id === 'move_daily'
+                      ? t('groups.create.walking_detail')
+                      : shape.id === 'study_block'
+                        ? t('groups.create.study_detail')
+                        : t('groups.create.creative_detail')}
+                  </Text>
+                </View>
+                <ChevronRightIcon color={mentaColors.text.muted} size={18} />
+              </Pressable>
+            ))}
+          </View>
         </View>
+      }
+      footer={
         <AppButton
           title={t('groups.create.blank_group')}
           onPress={onClose}
           fullWidth
           variant="ghost"
         />
-      </View>
-    </SimpleBottomSheet>
+      }
+    />
   );
 };
 

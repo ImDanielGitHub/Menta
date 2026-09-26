@@ -37,7 +37,7 @@ export const groupsHomePtPT = {
   'groupsHome.invites.check_again': 'Verificar novamente',
   'groupsHome.invites.join_code': 'Entrar com código',
   'groupsHome.invites.personal_promise': 'Fazer uma promessa pessoal',
-  'groupsHome.groupAction.title': 'Para seus grupos',
+  'groupsHome.groupAction.title': 'Para os seus grupos',
   'groupsHome.groupAction.waiting': '{count} a aguardar',
   'groupsHome.groupAction.waiting.one': '{count} a aguardar',
   'groupsHome.groupAction.waiting.other': '{count} a aguardar',
@@ -53,5 +53,6 @@ export const groupsHomePtPT = {
     'Abra o grupo para ver o que ainda está pendente.',
   'groupsHome.groupAction.open_action': 'Abrir',
   'groupsHome.groupAction.empty_title': 'Nenhuma análise pendente',
-  'groupsHome.groupAction.empty_detail': 'Ninguém aguarda sua análise agora.',
+  'groupsHome.groupAction.empty_detail':
+    'Ninguém aguarda a sua análise neste momento.',
 } as const satisfies Pick<EnglishCatalogue, GroupsHomeKey>;

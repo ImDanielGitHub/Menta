@@ -1,5 +1,6 @@
 import React, { type ReactNode } from 'react';
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -10,13 +11,23 @@ import ProfileScreen from '@/app/(tabs)/profile';
 import { ThemeProvider } from '@/constants/ThemeContext';
 import { getMyProfile } from '@/lib/profile-api';
 import { RevenueCatAPI } from '@/lib/paywall/revenuecat';
+import { openPaywall } from '@/lib/paywall/manager';
 import { showGlobalToast } from '@/lib/toast-provider';
 import { readProfileFollowThroughDays } from '@/lib/profile/follow-through';
+import { buildProfileMonth, readProfileMonth } from '@/lib/profile/month';
+import type { UserChallenge } from '@/store/challenge-store';
 
 const mockRouter = {
   push: jest.fn(),
   replace: jest.fn(),
 };
+let mockPaywallAllowed = true;
+
+jest.mock('@/lib/paywall/manager', () => ({ openPaywall: jest.fn() }));
+jest.mock('@/lib/paywall/use-paywall-allowed', () => ({
+  usePaywallAllowed: () => mockPaywallAllowed,
+}));
+jest.mock('@/lib/posthog', () => ({ trackProductEvent: jest.fn() }));
 
 const mockSafeAreaInsets = {
   bottom: 0,
@@ -47,7 +58,7 @@ const mockChallengeState = {
       status: 'active' as const,
       userId: 'user-1',
     },
-  ],
+  ] as UserChallenge[],
 };
 
 const mockGroupState = {
@@ -71,15 +82,19 @@ jest.mock('react-native-safe-area-context', () => ({
 }));
 
 jest.mock('@/store/auth-store', () => ({
-  useAuthStore: () => mockAuthState,
+  useAuthStore: (selector: (state: typeof mockAuthState) => unknown) =>
+    selector(mockAuthState),
 }));
 
 jest.mock('@/store/challenge-store', () => ({
-  useChallengeStore: () => mockChallengeState,
+  useChallengeStore: (
+    selector: (state: typeof mockChallengeState) => unknown
+  ) => selector(mockChallengeState),
 }));
 
 jest.mock('@/store/group-store', () => ({
-  useGroupStore: () => mockGroupState,
+  useGroupStore: (selector: (state: typeof mockGroupState) => unknown) =>
+    selector(mockGroupState),
 }));
 
 jest.mock('@/store/invite-store', () => ({
@@ -101,6 +116,18 @@ jest.mock('@/lib/toast-provider', () => ({
 
 jest.mock('@/lib/profile/follow-through', () => ({
   readProfileFollowThroughDays: jest.fn(),
+}));
+
+jest.mock('@/lib/profile/month', () => ({
+  ...jest.requireActual('@/lib/profile/month'),
+  readProfileMonth: jest.fn(),
+}));
+
+const mockReferralProgramme = jest.fn();
+jest.mock('@/store/referral-store', () => ({
+  useReferralStore: (
+    selector: (state: { getReferralProgramStatus: () => unknown }) => unknown
+  ) => selector({ getReferralProgramStatus: mockReferralProgramme }),
 }));
 
 jest.mock('@/components/ui/icons', () => {
@@ -138,10 +165,23 @@ jest.mock('@/components/ui/AppButton', () => {
   const { Pressable, Text } =
     require('react-native') as typeof import('react-native');
   return {
-    AppButton: ({ onPress, title }: { onPress: () => void; title: string }) =>
+    AppButton: ({
+      onPress,
+      title,
+      disabled,
+    }: {
+      onPress: () => void;
+      title: string;
+      disabled?: boolean;
+    }) =>
       ReactModule.createElement(
         Pressable,
-        { onPress, testID: `button-${title}` },
+        {
+          onPress,
+          disabled,
+          accessibilityState: { disabled },
+          testID: `button-${title}`,
+        },
         ReactModule.createElement(Text, null, title)
       ),
   };
@@ -202,16 +242,29 @@ jest.mock('@/components/settings/SettingsDirectRow', () => {
       testID,
       title,
       value,
+      accessibilityLabel,
+      disabled,
+      busy,
     }: {
       onPress?: () => void;
       subtitle?: string;
       testID?: string;
       title: string;
       value?: string;
+      accessibilityLabel?: string;
+      disabled?: boolean;
+      busy?: boolean;
     }) =>
       ReactModule.createElement(
         Pressable,
-        { onPress, testID: testID ?? `profile-row-${title}` },
+        {
+          onPress,
+          disabled,
+          accessibilityLabel,
+          accessibilityRole: 'button',
+          accessibilityState: { disabled, busy },
+          testID: testID ?? `profile-row-${title}`,
+        },
         ReactModule.createElement(Text, null, title),
         subtitle ? ReactModule.createElement(Text, null, subtitle) : null,
         value ? ReactModule.createElement(Text, null, value) : null
@@ -244,6 +297,25 @@ const mockedIsPro = RevenueCatAPI.isPro as jest.MockedFunction<
 const mockedShowGlobalToast = showGlobalToast as jest.MockedFunction<
   typeof showGlobalToast
 >;
+const mockedReadProfileMonth = readProfileMonth as jest.MockedFunction<
+  typeof readProfileMonth
+>;
+// September 2026: kept 1–8, missed 9–10, kept 11–22, frozen 23, today 24.
+const september = buildProfileMonth({
+  today: '2026-09-24',
+  daysKept: 96,
+  locale: 'en-NZ',
+  rows: Array.from({ length: 30 }, (_, index) => {
+    const day = index + 1;
+    return {
+      local_day: `2026-09-${day.toString().padStart(2, '0')}`,
+      approved_proofs:
+        day < 24 && day !== 9 && day !== 10 && day !== 23 ? 1 : 0,
+      outcome:
+        day === 9 || day === 10 ? 'missed' : day === 23 ? 'protected' : null,
+    };
+  }),
+});
 const mockedReadProfileFollowThroughDays =
   readProfileFollowThroughDays as jest.MockedFunction<
     typeof readProfileFollowThroughDays
@@ -252,6 +324,7 @@ const mockedReadProfileFollowThroughDays =
 describe('ProfileScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPaywallAllowed = true;
     mockAuthState.isAuthenticated = true;
     mockAuthState.user = {
       avatarUrl: undefined,
@@ -274,6 +347,14 @@ describe('ProfileScreen', () => {
     mockGroupState.fetchUserGroups.mockResolvedValue(undefined);
     mockedGetMyProfile.mockResolvedValue(profile);
     mockedIsPro.mockResolvedValue(false);
+    mockedReadProfileMonth.mockResolvedValue(september);
+    mockReferralProgramme.mockResolvedValue({
+      programmeEnabled: true,
+      rewardAmount: 100,
+      inviterAnnualCap: 10,
+      inviterRewardsThisYear: 0,
+      inviterCapResetsAt: '2027-01-01T00:00:00.000Z',
+    });
     mockedReadProfileFollowThroughDays.mockResolvedValue(
       Array.from({ length: 7 }, (_, index) => ({
         approvedProofs: index === 5 ? 2 : 0,
@@ -295,39 +376,60 @@ describe('ProfileScreen', () => {
 
     render(<ProfileScreen />);
 
-    expect(screen.getByTestId('profile-screen')).toBeTruthy();
+    expect(screen.getByTestId('profile-loading')).toBeTruthy();
     await waitFor(() => expect(mockedGetMyProfile).toHaveBeenCalledTimes(1));
   });
 
-  it('renders a profile-owned You hierarchy with progress and rewards', async () => {
+  it('puts the Menta invite first, then streaks and this month', async () => {
     render(<ProfileScreen />);
 
-    await waitFor(() =>
-      expect(screen.getByTestId('profile-screen')).toBeTruthy()
-    );
+    await screen.findByTestId('profile-screen');
 
     expect(screen.getByText('You')).toBeTruthy();
     expect(screen.getByText('Mia Aroha')).toBeTruthy();
-    expect(screen.getByText('Your rhythm')).toBeTruthy();
-    expect(screen.getByText('This week')).toBeTruthy();
-    expect(screen.getByText('Progress and rewards')).toBeTruthy();
+    expect(screen.getByText('Keeping promises since August')).toBeTruthy();
+    expect(screen.getByText('Bring a friend to Menta')).toBeTruthy();
+    expect(
+      await screen.findByText(
+        'You each get 100 Momenta when they make their first promise.'
+      )
+    ).toBeTruthy();
+    expect(screen.getByTestId('profile-stats')).toHaveProp(
+      'accessibilityLabel',
+      '5 day streak. Best streak 5 days. 96 days kept.'
+    );
+    expect(screen.getByText('20 kept · 1 frozen · 2 missed')).toBeTruthy();
+    expect(screen.getByTestId('profile-month-2026-09-24-today')).toBeTruthy();
+    expect(screen.getByTestId('profile-month-2026-09-23-frozen')).toBeTruthy();
+    expect(screen.getByText('1 active')).toBeTruthy();
     expect(screen.getByText('42')).toBeTruthy();
-    expect(screen.getByText('Wallet, shop and items')).toBeTruthy();
-    expect(screen.getByText('Invite friends')).toBeTruthy();
-    expect(screen.getByText('Current reward terms and your link')).toBeTruthy();
-    expect(screen.getByTestId('profile-rhythm-panel')).toBeTruthy();
-    expect(screen.getByTestId('profile-follow-through-plot')).toBeTruthy();
-    fireEvent.press(screen.getByLabelText('Proof history'));
-    expect(mockRouter.push).toHaveBeenCalledWith('/solo-challenges');
+
+    fireEvent.press(screen.getByTestId('profile-invite-card'));
+    expect(mockRouter.push).toHaveBeenCalledWith('/share-invite');
 
     fireEvent.press(screen.getByTestId('profile-row-Personal promises'));
     expect(mockRouter.push).toHaveBeenCalledWith('/solo-challenges');
 
     fireEvent.press(screen.getByTestId('profile-row-Momenta'));
     expect(mockRouter.push).toHaveBeenCalledWith('/momenta');
+  });
 
-    fireEvent.press(screen.getByTestId('profile-invite-someone'));
-    expect(mockRouter.push).toHaveBeenCalledWith('/share-invite');
+  it('drops the reward promise when referral rewards are paused', async () => {
+    mockReferralProgramme.mockResolvedValue({
+      programmeEnabled: false,
+      rewardAmount: 100,
+      inviterAnnualCap: 10,
+      inviterRewardsThisYear: 0,
+      inviterCapResetsAt: '2027-01-01T00:00:00.000Z',
+    });
+
+    render(<ProfileScreen />);
+
+    await screen.findByTestId('profile-invite-card');
+    expect(
+      screen.getByText('Promises stick better when a friend is in on it.')
+    ).toBeTruthy();
+    expect(screen.queryByText(/100 Momenta/)).toBeNull();
   });
 
   it('does not duplicate settings, subscription or account controls in You', async () => {
@@ -338,13 +440,14 @@ describe('ProfileScreen', () => {
     expect(screen.queryByText('Settings')).toBeNull();
     expect(screen.queryByText('Notifications')).toBeNull();
     expect(screen.queryByText('Sign out')).toBeNull();
-    expect(screen.queryByTestId('profile-open-pro')).toBeNull();
+    expect(screen.getAllByTestId('profile-open-pro')).toHaveLength(1);
     expect(screen.queryByTestId('profile-open-inventory')).toBeNull();
   });
 
   it('keeps profile editing available in the first-promise journey', async () => {
     mockChallengeState.userChallenges = [];
     mockGroupState.groups = [];
+    mockedReadProfileFollowThroughDays.mockResolvedValue([]);
 
     render(<ProfileScreen />);
 
@@ -357,6 +460,7 @@ describe('ProfileScreen', () => {
   it('turns an empty account into a focused first-promise journey', async () => {
     mockChallengeState.userChallenges = [];
     mockGroupState.groups = [];
+    mockedReadProfileFollowThroughDays.mockResolvedValue([]);
 
     render(<ProfileScreen />);
 
@@ -374,6 +478,97 @@ describe('ProfileScreen', () => {
 
     fireEvent.press(screen.getByTestId('button-Create a promise'));
     expect(mockRouter.push).toHaveBeenCalledWith('/create-challenge');
+  });
+
+  it('does not show first-use for the next account while its progress is still loading', async () => {
+    mockChallengeState.userChallenges = [];
+    mockedReadProfileFollowThroughDays.mockResolvedValueOnce([]);
+    const rendered = render(<ProfileScreen />);
+    await screen.findByTestId('profile-first-use');
+
+    let finishProgress!: (
+      days: Awaited<ReturnType<typeof readProfileFollowThroughDays>>
+    ) => void;
+    mockedReadProfileFollowThroughDays.mockReturnValueOnce(
+      new Promise(resolve => {
+        finishProgress = resolve;
+      })
+    );
+    mockAuthState.user = {
+      ...mockAuthState.user,
+      id: 'user-2',
+      username: 'ben',
+    };
+    mockedGetMyProfile.mockResolvedValueOnce({
+      ...profile,
+      id: 'user-2',
+      username: 'ben',
+      display_name: 'Ben Aroha',
+    });
+    rendered.rerender(<ProfileScreen />);
+
+    await screen.findByText('Ben Aroha');
+    expect(screen.queryByTestId('profile-first-use')).toBeNull();
+    expect(screen.queryByTestId('profile-rhythm-empty')).toBeNull();
+    await act(async () => {
+      finishProgress([
+        {
+          approvedProofs: 1,
+          localDay: '2026-09-01',
+          longLabel: 'Tuesday',
+          outcome: null,
+          shortLabel: '1',
+        },
+      ]);
+    });
+    expect(await screen.findByTestId('profile-stats')).toBeTruthy();
+    expect(screen.queryByTestId('profile-first-use')).toBeNull();
+  });
+
+  it('shows a zero streak with a live promise as day 1, not a bare 0', async () => {
+    mockChallengeState.userChallenges[0].currentStreak = 0;
+
+    render(<ProfileScreen />);
+
+    expect(await screen.findByText('Day 1')).toBeTruthy();
+    expect(screen.getByText('starts today')).toBeTruthy();
+    expect(screen.queryByTestId('profile-first-use')).toBeNull();
+  });
+
+  it('keeps real history available when memberships are no longer present', async () => {
+    mockChallengeState.userChallenges = [];
+
+    render(<ProfileScreen />);
+
+    expect(await screen.findByTestId('profile-month')).toBeTruthy();
+    expect(screen.queryByTestId('profile-first-use')).toBeNull();
+  });
+
+  it('lets someone review old promises when they have no active commitment', async () => {
+    mockChallengeState.userChallenges[0].status = 'completed';
+    mockChallengeState.userChallenges[0].currentStreak = 0;
+
+    render(<ProfileScreen />);
+
+    await screen.findByTestId('profile-stats');
+    expect(screen.queryByText('Day 1')).toBeNull();
+    fireEvent.press(screen.getByTestId('profile-row-Personal promises'));
+    expect(mockRouter.push).toHaveBeenCalledWith('/solo-challenges');
+    expect(screen.queryByTestId('profile-first-use')).toBeNull();
+  });
+
+  it('does not present failed progress loading as an empty rhythm', async () => {
+    mockChallengeState.userChallenges[0].currentStreak = 0;
+    mockedReadProfileFollowThroughDays.mockRejectedValueOnce(
+      new Error('offline')
+    );
+
+    render(<ProfileScreen />);
+
+    await screen.findByText('Mia Aroha');
+    expect(
+      screen.getAllByText('Your progress may be out of date').length
+    ).toBeGreaterThan(0);
   });
 
   it('keeps profile refresh failure local while You actions remain available', async () => {
@@ -407,28 +602,30 @@ describe('ProfileScreen', () => {
     expect(screen.queryByText('Sign out')).toBeNull();
   });
 
-  it('keeps a failed Pro read quiet because subscription management belongs to Settings', async () => {
+  it('offers an access retry when Pro status cannot be confirmed', async () => {
     mockedIsPro.mockRejectedValueOnce(new Error('store unavailable'));
 
     render(<ProfileScreen />);
 
     await screen.findByTestId('profile-screen');
 
-    expect(screen.getByText('@mia · Member')).toBeTruthy();
-    expect(screen.queryByText('Menta Pro is unavailable')).toBeNull();
-    expect(screen.queryByTestId('profile-open-pro')).toBeNull();
+    fireEvent.press(await screen.findByLabelText('Check Pro access'));
+    await screen.findByLabelText('See Pro plans');
+    expect(mockedIsPro).toHaveBeenCalledTimes(2);
+    expect(openPaywall).not.toHaveBeenCalled();
   });
 
-  it('shows confirmed Pro status as identity metadata without a settings row', async () => {
+  it('opens active Pro management from You', async () => {
     mockedIsPro.mockResolvedValueOnce(true);
 
     render(<ProfileScreen />);
 
-    expect(await screen.findByText('@mia · Menta Pro')).toBeTruthy();
-    expect(screen.queryByTestId('profile-open-pro')).toBeNull();
-    expect(
-      screen.queryByText('Manage access or restore a purchase')
-    ).toBeNull();
+    fireEvent.press(await screen.findByLabelText('Manage subscription'));
+    expect(openPaywall).toHaveBeenCalledWith({
+      context: 'general',
+      initialView: 'active',
+      onProConfirmed: expect.any(Function),
+    });
   });
 
   it('shows free membership truthfully after the server check', async () => {
@@ -436,8 +633,29 @@ describe('ProfileScreen', () => {
 
     render(<ProfileScreen />);
 
-    expect(await screen.findByText('@mia · Member')).toBeTruthy();
+    fireEvent.press(await screen.findByLabelText('See Pro plans'));
     expect(screen.queryByText('Active')).toBeNull();
+    expect(openPaywall).toHaveBeenCalledWith({
+      context: 'general',
+      initialView: 'plans',
+      onProConfirmed: expect.any(Function),
+    });
+  });
+
+  it('keeps Pro out of the unfinished onboarding invitation flow', async () => {
+    mockPaywallAllowed = false;
+    render(<ProfileScreen />);
+    await screen.findByTestId('profile-screen');
+    expect(screen.queryByTestId('profile-open-pro')).toBeNull();
+    mockPaywallAllowed = true;
+  });
+
+  it('waits for entitlement confirmation before opening purchase plans', async () => {
+    mockedIsPro.mockImplementationOnce(() => new Promise(() => undefined));
+    render(<ProfileScreen />);
+    await screen.findByTestId('profile-screen');
+    fireEvent.press(screen.getByLabelText('Checking Pro access'));
+    expect(openPaywall).not.toHaveBeenCalled();
   });
 
   it('uses the equipped Ember accent for profile actions', async () => {

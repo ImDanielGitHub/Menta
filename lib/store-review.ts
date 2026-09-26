@@ -7,10 +7,16 @@ import { Linking, Platform } from 'react-native';
 import { isE2EMode } from '@/lib/e2e';
 import { trackProductEvent } from '@/lib/posthog';
 
-export const APP_STORE_NUMERIC_ID = '6747362646';
-export const ANDROID_PACKAGE_NAME = 'com.anekedigitalapps.lockedinpro';
-export const APP_STORE_WRITE_REVIEW_URL = `https://apps.apple.com/app/id${APP_STORE_NUMERIC_ID}?action=write-review`;
-export const PLAY_STORE_WRITE_REVIEW_URL = `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}&showAllReviews=true`;
+export const APP_STORE_NUMERIC_ID =
+  process.env.EXPO_PUBLIC_IOS_STORE_ID?.trim() ?? '';
+export const ANDROID_PACKAGE_NAME =
+  process.env.EXPO_PUBLIC_ANDROID_STORE_PACKAGE?.trim() ?? '';
+export const APP_STORE_WRITE_REVIEW_URL = APP_STORE_NUMERIC_ID
+  ? `https://apps.apple.com/app/id${APP_STORE_NUMERIC_ID}?action=write-review`
+  : '';
+export const PLAY_STORE_WRITE_REVIEW_URL = ANDROID_PACKAGE_NAME
+  ? `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}&showAllReviews=true`
+  : '';
 
 const ACCEPTED_PROOF_COUNT_KEY = '@menta/store-review:accepted-proof-count:v3';
 const REVIEW_ELIGIBLE_KEY = '@menta/store-review:eligible:v3';
@@ -196,8 +202,8 @@ const getEligibilityOutcome = async (
 };
 
 /**
- * Issue one system-controlled request after Today settles. This is never called
- * from a button. `requested` means the API call completed; Apple does not expose
+ * Issue one system-controlled request after Today settles or the person answers
+ * the activation check-in. `requested` means the API call completed; Apple does not expose
  * whether the system actually displayed its sheet.
  */
 export const requestEligibleSystemStoreReview = async (
@@ -349,8 +355,8 @@ export const getStoreReviewDebugState = async (
 });
 
 export const getStoreWriteReviewUrl = (): string | null => {
-  if (Platform.OS === 'ios') return APP_STORE_WRITE_REVIEW_URL;
-  if (Platform.OS === 'android') return PLAY_STORE_WRITE_REVIEW_URL;
+  if (Platform.OS === 'ios') return APP_STORE_WRITE_REVIEW_URL || null;
+  if (Platform.OS === 'android') return PLAY_STORE_WRITE_REVIEW_URL || null;
   return null;
 };
 

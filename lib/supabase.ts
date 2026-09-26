@@ -193,30 +193,28 @@ function createInstrumentedFetch(baseUrl: string) {
             request_type: requestType,
           },
         });
-        // Emit a lightweight performance event for very slow calls (downsampled)
+        // Sampling belongs to Sentry's beforeSend policy. Sampling here as well
+        // multiplies the rates and hides almost every slow request.
         if (isSupabaseCall && durationMs > 2000) {
-          const slowSampleRate = __DEV__ ? 1.0 : 0.05; // keep 5% in prod
-          if (Math.random() < slowSampleRate) {
-            Sentry.withScope?.((scope: any) => {
-              scope.setTag?.('supabase', 'true');
-              scope.setTag?.('supabase.service', service);
-              scope.setTag?.('supabase.resource', String(resource || ''));
-              scope.setTag?.('supabase.operation', String(operation || ''));
-              scope.setExtra?.('duration_ms', durationMs);
-              scope.setExtra?.('method', method);
-              scope.setExtra?.('target', telemetryTarget);
-              scope.setFingerprint?.([
-                'supabase',
-                'slow_request',
-                service,
-                String(resource || ''),
-                String(operation || ''),
-              ]);
-              Sentry.captureMessage?.('slow_supabase_request', {
-                level: 'info' as any,
-              } as any);
-            });
-          }
+          Sentry.withScope?.((scope: any) => {
+            scope.setTag?.('supabase', 'true');
+            scope.setTag?.('supabase.service', service);
+            scope.setTag?.('supabase.resource', String(resource || ''));
+            scope.setTag?.('supabase.operation', String(operation || ''));
+            scope.setExtra?.('duration_ms', durationMs);
+            scope.setExtra?.('method', method);
+            scope.setExtra?.('target', telemetryTarget);
+            scope.setFingerprint?.([
+              'supabase',
+              'slow_request',
+              service,
+              String(resource || ''),
+              String(operation || ''),
+            ]);
+            Sentry.captureMessage?.('slow_supabase_request', {
+              level: 'info' as any,
+            } as any);
+          });
         }
         // Detect cases where Supabase unexpectedly returns HTML instead of JSON (common root cause of JSON parse errors)
         try {
@@ -246,41 +244,31 @@ function createInstrumentedFetch(baseUrl: string) {
           }
         } catch {}
 
-        // Flag non-2xx responses for visibility (sampled and enriched)
+        // Enrich non-2xx responses; beforeSend owns sampling and status filters.
         if (isSupabaseCall && !(response as any)?.ok) {
           const status = Number((response as any)?.status ?? 0);
-          let sampleRate = 0.05; // default
-          if (status >= 500)
-            sampleRate = 1.0; // keep all server errors
-          else if (status === 404)
-            sampleRate = 0.0; // drop not founds
-          else if (status === 401 || status === 403)
-            sampleRate = 0.01; // rare sample auth
-          else if (status === 429) sampleRate = 0.05; // light sample rate limits
-          if (__DEV__ || Math.random() < sampleRate) {
-            Sentry.withScope?.((scope: any) => {
-              scope.setTag?.('supabase', 'true');
-              scope.setTag?.('supabase.service', service);
-              scope.setTag?.('supabase.resource', String(resource || ''));
-              scope.setTag?.('supabase.operation', String(operation || ''));
-              if (!Number.isNaN(status))
-                scope.setTag?.('http_status', String(status));
-              scope.setExtra?.('duration_ms', durationMs);
-              scope.setExtra?.('method', method);
-              scope.setExtra?.('target', telemetryTarget);
-              scope.setFingerprint?.([
-                'supabase',
-                'request_error',
-                String(status || 'unknown'),
-                service,
-                String(operation || ''),
-                String(resource || 'unknown'),
-              ]);
-              Sentry.captureMessage?.('supabase_request_error', {
-                level: 'warning' as any,
-              } as any);
-            });
-          }
+          Sentry.withScope?.((scope: any) => {
+            scope.setTag?.('supabase', 'true');
+            scope.setTag?.('supabase.service', service);
+            scope.setTag?.('supabase.resource', String(resource || ''));
+            scope.setTag?.('supabase.operation', String(operation || ''));
+            if (!Number.isNaN(status))
+              scope.setTag?.('http_status', String(status));
+            scope.setExtra?.('duration_ms', durationMs);
+            scope.setExtra?.('method', method);
+            scope.setExtra?.('target', telemetryTarget);
+            scope.setFingerprint?.([
+              'supabase',
+              'request_error',
+              String(status || 'unknown'),
+              service,
+              String(operation || ''),
+              String(resource || 'unknown'),
+            ]);
+            Sentry.captureMessage?.('supabase_request_error', {
+              level: 'warning' as any,
+            } as any);
+          });
         }
       } catch {}
       return response as Response;
@@ -301,7 +289,7 @@ function createInstrumentedFetch(baseUrl: string) {
           span?.setAttribute?.('http.response.status_code', status);
           span?.setAttribute?.('supabase.request_type', requestType);
           if (typeof status === 'number') {
-            span?.setStatus?.(status >= 400 ? 'error' : 'ok');
+            span?.setStatus?.({ code: status >= 400 ? 2 : 1 });
           }
         } catch {}
         return response;
@@ -326,7 +314,7 @@ function createInstrumentedFetch(baseUrl: string) {
               span?.setAttribute?.('http.response.status_code', status);
               span?.setAttribute?.('supabase.request_type', requestType);
               if (typeof status === 'number') {
-                span?.setStatus?.(status >= 400 ? 'error' : 'ok');
+                span?.setStatus?.({ code: status >= 400 ? 2 : 1 });
               }
             } catch {}
             return response;

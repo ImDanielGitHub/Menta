@@ -11,7 +11,7 @@ export const todayStatesEsES = {
   'today.state.protected.title': 'Racha protegida',
   'today.state.protected.count_continues': ' La racha continúa con {count}.',
   'today.state.protected.freeze_detail':
-    'Un protector de racha cubrió el día perdido del {weekday}. El día se conserva en tu historial.{countCopy}',
+    'Una congelación de racha cubrió el día perdido del {weekday}. El día se conserva en tu historial.{countCopy}',
   'today.state.protected.detail':
     '{weekday} quedó protegido. El día se conserva en tu historial.{countCopy}',
   'today.state.loading.title': 'Cargando Hoy.',
@@ -33,22 +33,7 @@ export const todayStatesEsES = {
   'today.state.load_failed.detail':
     'Comprueba la conexión y vuelve a intentarlo.',
   'today.state.streak.unavailable': 'No disponible',
-  'today.state.streak.missed_title':
-    'Has perdido un día. Vuelve a empezar hoy.',
-  'today.state.streak.weekday_missed_title':
-    'Faltaste el {weekday}. Vuelve a empezar hoy.',
-  'today.state.streak.previous_detail':
-    'La última racha terminó en {count} porque la prueba del {weekday} no llegó a tiempo. Tu historial sigue aquí.',
-  'today.state.streak.missed_detail':
-    'El {weekday} quedó registrado como perdido. Tu historial sigue aquí.',
-  'today.state.streak.return_action': 'Volver durante un día',
-  'today.state.streak.history_action': 'Ver historial de {count} días',
   'today.state.streak.history': 'Ver historial',
-  'today.state.streak.previous_label': 'Racha anterior',
-  'today.state.streak.new_label': 'Nueva racha',
-  'today.state.streak.starts_today': 'Empieza hoy',
-  'today.state.streak.supporting_note':
-    'Un día basta para volver a empezar. Menta no borrará la racha anterior.',
   'today.state.returning.away_days':
     'No has hecho ningún seguimiento durante {count}.',
   'today.state.returning.away': 'Llevas un tiempo sin entrar.',
@@ -62,10 +47,6 @@ export const todayStatesEsES = {
     'Tu historial se conserva. Tú eliges el siguiente paso.',
   'today.state.returning.supporting_note':
     'Haz una promesa más pequeña o abre el historial y retoma la última.',
-  'today.state.no_promises.title': 'Aún no hay nada pendiente.',
-  'today.state.no_promises.detail':
-    'Haz una promesa y Menta te mostrará cada día lo que necesita tu atención.',
-  'today.state.no_promises.join_group': 'Unirme a un grupo existente',
   'today.state.proof_due.text_detail':
     'Añade la nota que acordaste. Solo podéis verla tú y quien la revisa.',
   'today.state.proof_due.text_action': 'Añadir nota como prueba',
@@ -140,4 +121,16 @@ export const todayStatesEsES = {
     'Vuelve cuando venza una promesa o alguien envíe una prueba.',
   'today.state.all_clear.review_status':
     'No hay ninguna prueba esperando tu revisión.',
+  'today.state.streak.day_one_title': 'Hoy es el día 1.',
+  'today.state.streak.day_one_detail':
+    'Añade la prueba de hoy para empezar una nueva racha.',
+  'today.state.streak.bubble_run_ended':
+    'Se perdió el {weekday}, así que terminó la racha de {count} días. Queda guardada en tu historial.',
+  'today.state.streak.bubble_missed':
+    'Se perdió el {weekday}. Tu historial está guardado.',
+  'today.state.streak.see_run': 'Ver la racha de {count} días',
+  'today.state.no_promises.title': 'Empieza con una promesa.',
+  'today.state.no_promises.detail':
+    'Elige algo pequeño, muestra una foto rápida cada día y, si quieres, invita a alguien a revisarla.',
+  'today.state.no_promises.join_group': 'Tengo un código de invitación',
 } as const satisfies Pick<EnglishCatalogue, TodayStateKey>;

@@ -9,7 +9,13 @@ import { router } from 'expo-router';
 import ThemeContext, { ThemeContextType } from '@/constants/ThemeContext';
 import { AppButton } from './AppButton';
 import { AppCard } from './AppCard';
-import { mentaLayout } from '@/constants/MentaDesignSystem';
+import {
+  mentaColors,
+  mentaLayout,
+  mentaRadii,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { mentaFonts } from '@/lib/menta-fonts';
 import { AlertTriangleIcon } from '@/components/ui/icons';
 import { captureError } from '@/lib/sentry';
 import { useTranslation } from '@/lib/localization/use-translation';
@@ -342,25 +348,23 @@ const createStyles = (
       justifyContent: 'center',
       width: level === 'component' ? 36 : 48,
       height: level === 'component' ? 36 : 48,
-      borderRadius: level === 'component' ? 12 : 16,
+      borderRadius:
+        level === 'component' ? mentaRadii.medium : mentaRadii.large,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: 'rgba(217, 106, 106, 0.46)',
-      backgroundColor: 'rgba(217, 106, 106, 0.12)',
+      borderColor: mentaColors.danger,
+      backgroundColor: mentaColors.dangerSoft,
     },
+    // A page-level failure is a real state change, so it earns the serif
+    // section heading; an inline component failure stays a utility row.
     title: {
+      ...(level === 'component'
+        ? mentaTypography.bodySemibold
+        : mentaTypography.title),
       color: theme.colors.text.primary,
-      fontSize:
-        level === 'component'
-          ? theme.typography.sizes.lg
-          : theme.typography.sizes['2xl'],
-      fontWeight: theme.typography.weights.bold,
-      letterSpacing: 0,
-      lineHeight: level === 'component' ? 24 : 32,
     },
     message: {
+      ...mentaTypography.bodySmall,
       color: theme.colors.text.secondary,
-      fontSize: theme.typography.sizes.sm,
-      lineHeight: 21,
     },
     debugBox: {
       gap: 6,
@@ -371,21 +375,18 @@ const createStyles = (
       backgroundColor: theme.colors.background.secondary,
     },
     debugLabel: {
+      ...mentaTypography.captionMedium,
       color: theme.colors.text.secondary,
-      fontSize: theme.typography.sizes.xs,
-      fontWeight: theme.typography.weights.semibold,
-      letterSpacing: 0,
     },
     debugText: {
+      ...mentaTypography.micro,
       color: theme.colors.text.tertiary,
-      fontFamily: 'Courier',
-      fontSize: 11,
-      lineHeight: 16,
+      fontFamily: mentaFonts.technical,
     },
     errorId: {
+      ...mentaTypography.micro,
       color: theme.colors.text.tertiary,
-      fontFamily: 'Courier',
-      fontSize: 11,
+      fontFamily: mentaFonts.technical,
     },
     actions: {
       gap: theme.spacing.sm,

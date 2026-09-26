@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import JoinRedirectScreen from '@/app/join';
@@ -18,6 +18,13 @@ let mockParams: Record<string, string | string[] | undefined> = {};
 jest.mock('expo-router', () => ({
   useRouter: () => mockRouter,
   useLocalSearchParams: () => mockParams,
+  Redirect: ({ href }: { href: unknown }) => {
+    const React = require('react');
+    React.useEffect(() => {
+      mockRouter.replace(href);
+    }, [href]);
+    return null;
+  },
 }));
 
 jest.mock('react-native-safe-area-context', () => {
@@ -46,15 +53,9 @@ const renderJoinRedirect = () =>
 
 describe('JoinRedirectScreen', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
     jest.clearAllMocks();
     mockParams = {};
     useInviteStore.setState({ pending: null });
-  });
-
-  afterEach(() => {
-    jest.runOnlyPendingTimers();
-    jest.useRealTimers();
   });
 
   it('opens group invites in the non-consuming preview handoff', () => {
@@ -62,14 +63,7 @@ describe('JoinRedirectScreen', () => {
 
     renderJoinRedirect();
 
-    expect(screen.getByText('Opening group invite')).toBeTruthy();
-    expect(screen.getByText('Group invite found')).toBeTruthy();
-    expect(screen.getByText('ABC123')).toBeTruthy();
     expect(useInviteStore.getState().pending).toBeNull();
-
-    act(() => {
-      jest.advanceTimersByTime(500);
-    });
 
     expect(mockRouter.replace).toHaveBeenCalledWith({
       pathname: '/join-group',
@@ -82,7 +76,10 @@ describe('JoinRedirectScreen', () => {
 
     renderJoinRedirect();
 
-    expect(screen.getByText('Group invite found')).toBeTruthy();
+    expect(mockRouter.replace).toHaveBeenCalledWith({
+      pathname: '/join-group',
+      params: { code: 'ABC123' },
+    });
     expect(useInviteStore.getState().pending).toBeNull();
   });
 
@@ -91,16 +88,7 @@ describe('JoinRedirectScreen', () => {
 
     renderJoinRedirect();
 
-    expect(screen.getByText('Promise invite saved')).toBeTruthy();
-    expect(screen.getByText('FIT2026')).toBeTruthy();
-    expect(useInviteStore.getState().pending).toMatchObject({
-      type: 'challenge',
-      code: 'FIT2026',
-    });
-
-    act(() => {
-      jest.advanceTimersByTime(700);
-    });
+    expect(useInviteStore.getState().pending).toBeNull();
 
     expect(mockRouter.replace).toHaveBeenCalledWith({
       pathname: '/join-promise',

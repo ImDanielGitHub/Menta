@@ -48,8 +48,20 @@ const decodeGroupLink = (
   return { groupId, groupKind };
 };
 
+const hasEnded = (endDate: unknown, now: Date): boolean => {
+  if (typeof endDate !== 'string' || !endDate.trim()) return false;
+  const endsAt = Date.parse(endDate);
+  return Number.isFinite(endsAt) && endsAt < now.getTime();
+};
+
+/**
+ * Promises someone could still bring another person into. The server can
+ * leave an ended promise marked active until its expiry job runs, so the end
+ * date is checked here too, matching what Today already hides.
+ */
 export const decodeAccountabilityPickerPromises = (
-  value: unknown
+  value: unknown,
+  now: Date = new Date()
 ): AccountabilityPickerPromise[] => {
   if (!Array.isArray(value)) return [];
 
@@ -64,7 +76,8 @@ export const decodeAccountabilityPickerPromises = (
       !challenge.title.trim() ||
       challenge.status !== 'active' ||
       challenge.completion_status !== 'active' ||
-      challenge.is_expired === true
+      challenge.is_expired === true ||
+      hasEnded(challenge.end_date, now)
     ) {
       return [];
     }

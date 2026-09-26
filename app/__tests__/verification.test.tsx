@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { captureError } from '@/lib/sentry';
 
 const mockRouter = {
   back: jest.fn(),
@@ -313,9 +314,13 @@ jest.mock('@/lib/motion/haptics', () => ({
   emitHaptic: (...args: unknown[]) => mockEmitHaptic(...args),
 }));
 
-jest.mock('@/lib/motion/use-motion-preferences', () => ({
-  useMotionPreferences: () => ({ reduceMotion: false }),
-}));
+jest.mock('@/lib/motion/use-motion-preferences', () => {
+  const actual = jest.requireActual('@/lib/motion/use-motion-preferences');
+  return {
+    ...actual,
+    useMotionPreferences: () => actual.createMotionPreferences(false),
+  };
+});
 
 jest.mock('@/lib/store-review', () => ({
   queuePositiveOutcomeReview: (...args: unknown[]) =>
@@ -503,14 +508,14 @@ describe('ChallengeVerificationScreen durable proof receipts', () => {
       )
     ).toBeTruthy();
 
-    fireEvent.press(getByText('Close receipt'));
+    fireEvent.press(getByText('Done'));
 
     expect(mockAttemptProofAdBreak).toHaveBeenCalledWith('submission-123');
     expect(mockGetProofAdBreakHint).not.toHaveBeenCalled();
     expect(mockRouter.back).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps a malformed optional ad hint out of the proof receipt', async () => {
+  it('keeps a malformed optional ad hint out of the receipt while letting the server decide cadence on exit', async () => {
     mockGetProofAdBreakHint.mockResolvedValue(null);
     mockSubmitChallengeProof.mockResolvedValue({
       success: true,
@@ -536,10 +541,44 @@ describe('ChallengeVerificationScreen durable proof receipts', () => {
     );
     expect(queryByText('Ad break next')).toBeNull();
 
-    fireEvent.press(getByText('Close receipt'));
+    fireEvent.press(getByText('Done'));
 
-    expect(mockAttemptProofAdBreak).not.toHaveBeenCalled();
+    expect(mockAttemptProofAdBreak).toHaveBeenCalledWith('submission-123');
     expect(mockRouter.back).toHaveBeenCalledTimes(1);
+  });
+
+  it('attempts the ad claim once when Done is tapped before the optional hint resolves', async () => {
+    let resolveHint!: (hint: { due: boolean; ordinal: number }) => void;
+    mockGetProofAdBreakHint.mockReturnValueOnce(
+      new Promise(resolve => {
+        resolveHint = resolve;
+      })
+    );
+    mockSubmitChallengeProof.mockResolvedValue({
+      success: true,
+      clientEventId: 'client-event-123',
+      submissionId: 'submission-123',
+      receiptStatus: 'accepted',
+      inputAccepted: true,
+      isCorrection: false,
+      draft: acceptedDraft,
+      milestone: null,
+      freezeUsed: false,
+      freezesRemaining: 0,
+    });
+    const { getByPlaceholderText, getByTestId, getByText, queryByText } =
+      render(<ChallengeVerificationScreen />);
+    fireEvent.changeText(getByPlaceholderText(proofPlaceholder), proofText);
+    fireEvent.press(getByTestId('text-proof-hold-to-send-tap-alternative'));
+    await waitFor(() => expect(getByText('accepted')).toBeTruthy());
+
+    fireEvent.press(getByText('Done'));
+    expect(mockAttemptProofAdBreak).toHaveBeenCalledWith('submission-123');
+    expect(mockRouter.back).toHaveBeenCalledTimes(1);
+    resolveHint({ due: true, ordinal: 2 });
+    await waitFor(() => expect(queryByText('Ad break next')).toBeNull());
+    fireEvent.press(getByText('Done'));
+    expect(mockAttemptProofAdBreak).toHaveBeenCalledTimes(1);
   });
 
   it('does not request cadence metadata for a correction receipt', async () => {
@@ -598,6 +637,20 @@ describe('ChallengeVerificationScreen durable proof receipts', () => {
     fireEvent.press(getByTestId('text-proof-hold-to-send-tap-alternative'));
 
     await waitFor(() => expect(getByText('unknown-result')).toBeTruthy());
+    expect(captureError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Proof submission failed: UNKNOWN_RESULT',
+      }),
+      {
+        context: 'proof_submission',
+        code: 'UNKNOWN_RESULT',
+        proof_type: 'text',
+      }
+    );
+    const report = (captureError as jest.Mock).mock.calls[0];
+    expect(report[0]).not.toHaveProperty('draft');
+    expect(report[0]).not.toHaveProperty('cause');
+    expect(JSON.stringify(report)).not.toContain(proofText);
     expect(mockEmitConfirmedSuccess).not.toHaveBeenCalled();
     expect(queryByText('Share proof receipt')).toBeNull();
 
@@ -633,6 +686,7 @@ describe('ChallengeVerificationScreen durable proof receipts', () => {
     );
     expect(getByText('View promise')).toBeTruthy();
     expect(queryByText('Try again')).toBeNull();
+    expect(captureError).not.toHaveBeenCalled();
 
     fireEvent.press(getByText('View promise'));
     expect(mockRouter.replace).toHaveBeenCalledWith(

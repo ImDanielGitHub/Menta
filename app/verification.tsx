@@ -73,6 +73,7 @@ import {
   getProofSubmissionOutcome,
 } from '@/lib/product-analytics';
 import { trackProductEvent } from '@/lib/posthog';
+import { captureError } from '@/lib/sentry';
 
 import { backOrReplace } from '@/lib/navigation/safe-back';
 import {
@@ -82,6 +83,31 @@ import {
 import { useTranslation } from '@/lib/localization';
 type VerificationType = ProofMediaType;
 type ScreenMode = 'capture' | 'receipt';
+
+const EXPECTED_PROOF_FAILURES = new Set([
+  'ACCOUNT_CHANGED',
+  'MISSING_SESSION',
+  'NOT_AUTHENTICATED',
+  'NOT_JOINED',
+  'CHALLENGE_NOT_FOUND',
+  'CHALLENGE_INACTIVE',
+  'DAILY_SUBMISSION_EXISTS',
+  'DEADLINE_PASSED',
+  'SUBMISSION_WINDOW_CLOSED',
+  'AUTH_CANCELLED',
+]);
+const DIAGNOSTIC_PROOF_FAILURES = new Set([
+  'UNKNOWN_RESULT',
+  'INVALID_SUBMIT_RECEIPT',
+  'RECEIPT_RECONCILIATION_REQUIRED',
+  'LOCAL_MEDIA_MISSING',
+  'MEDIA_UPLOAD_DEFERRED',
+  'CLIENT_EVENT_ID_REUSED',
+  'IDEMPOTENCY_KEY_REUSED',
+  'SUBMIT_FAILED',
+  'DRAFT_NOT_FOUND',
+  'RESUME_FAILED',
+]);
 
 type SubmissionInput = {
   clientEventId: string;
@@ -347,6 +373,11 @@ export default function ChallengeVerificationScreen() {
       proofAdBreakSubmissionId.length > 0;
 
     if (hasConfirmedDirectInsertion) {
+      // Keep the confirmed send identity before optional metadata resolves.
+      // The server claim decides cadence even when someone closes immediately.
+      pendingProofAdBreakRef.current = {
+        submissionId: proofAdBreakSubmissionId,
+      };
       proofAdBreakHintRequestRef.current = proofAdBreakSubmissionId;
       const hintPromise = result.proofAdBreakHint
         ? Promise.resolve(result.proofAdBreakHint)
@@ -364,9 +395,6 @@ export default function ChallengeVerificationScreen() {
           return;
         }
 
-        pendingProofAdBreakRef.current = {
-          submissionId: proofAdBreakSubmissionId,
-        };
         setProofAdBreakHint(hint);
       });
     }
@@ -397,6 +425,22 @@ export default function ChallengeVerificationScreen() {
   const applySubmissionError = useCallback(
     (error: unknown) => {
       if (!mountedRef.current) return;
+
+      const failureCode =
+        error instanceof ProofSubmissionError ? error.code : null;
+      if (!failureCode || !EXPECTED_PROOF_FAILURES.has(failureCode)) {
+        const diagnosticCode =
+          failureCode && DIAGNOSTIC_PROOF_FAILURES.has(failureCode)
+            ? failureCode
+            : 'UNEXPECTED_ERROR';
+        // Service errors may carry private notes, media paths and whole drafts.
+        // Report a bounded classification, never the original error payload.
+        captureError(new Error(`Proof submission failed: ${diagnosticCode}`), {
+          context: 'proof_submission',
+          code: diagnosticCode,
+          proof_type: verificationType ?? activeDraft?.proofType ?? 'photo',
+        });
+      }
 
       proofAdBreakHintRequestRef.current = null;
       pendingProofAdBreakRef.current = null;

@@ -6,9 +6,12 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppOptionCard } from '@/components/ui/AppChoice';
 import { AppInlineNotice } from '@/components/ui/AppFeedback';
 import { MentaMascot } from '@/components/ui/MentaMascot';
+import { MentaNarrator } from '@/components/onboarding/MentaNarrator';
+import { CoinsIcon, EyeOffIcon, ListIcon } from '@/components/ui/icons';
 import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import {
   mentaColors,
+  mentaRadii,
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
@@ -28,7 +31,7 @@ type Props = {
   offers: ProOffer[];
   loading: boolean;
   unavailable: boolean;
-  context: PaywallContext;
+  context: PaywallContext | 'onboarding';
   onPurchase: (plan: ProOffer['plan']) => void;
   onClose: () => void;
   onRetry: () => void;
@@ -119,44 +122,54 @@ export function ProOfferJourney({
         ) : null}
         {page === 'benefits' ? (
           <>
-            <MentaMascot state="pro-active" size="xl" style={styles.mascot} />
-            <Text style={styles.title} accessibilityRole="header">
+            <MentaMascot state="pro-crown" size="hero" style={styles.mascot} />
+            <Text
+              style={[styles.title, styles.centred]}
+              accessibilityRole="header"
+            >
               {t('commerce.proJourney.title')}
             </Text>
-            <Text style={styles.body}>{t('commerce.proJourney.subtitle')}</Text>
-            <View style={styles.benefit}>
-              <Text style={styles.heading}>
-                {t('commerce.proJourney.capacity')}
-              </Text>
-              <Text style={styles.body}>
-                {t('commerce.proJourney.capacityDetail')}
-              </Text>
-            </View>
-            <View style={styles.benefit}>
-              <Text style={styles.heading}>
-                {t('commerce.proJourney.momenta')}
-              </Text>
-              <Text style={styles.body}>
-                {t('commerce.proJourney.momentaDetail')}
-              </Text>
-            </View>
-            <View style={styles.benefit}>
-              <Text style={styles.heading}>{t('commerce.proJourney.ads')}</Text>
-              <Text style={styles.body}>
-                {t('commerce.proJourney.adsDetail')}
-              </Text>
+            <Text style={[styles.lead, styles.centred]}>
+              {context === 'onboarding'
+                ? t('onboarding.paywall.required')
+                : t('commerce.proJourney.subtitle')}
+            </Text>
+            <View style={styles.benefits}>
+              <Benefit
+                icon={<CoinsIcon size={18} color={mentaColors.canvas} />}
+                filled
+                title={t('commerce.proJourney.momenta')}
+                detail={t('commerce.proJourney.momentaDetail')}
+              />
+              <Benefit
+                icon={<ListIcon size={18} color={mentaColors.action} />}
+                title={t('commerce.proJourney.capacity')}
+                detail={
+                  context === 'onboarding'
+                    ? t('onboarding.paywall.capacity')
+                    : t('commerce.proJourney.capacityDetail')
+                }
+              />
+              <Benefit
+                icon={<EyeOffIcon size={18} color={mentaColors.action} />}
+                title={t('commerce.proJourney.ads')}
+                detail={t('commerce.proJourney.adsDetail')}
+              />
             </View>
           </>
         ) : page === 'plans' ? (
           <>
-            <Text style={styles.title} accessibilityRole="header">
+            <Text style={styles.srOnly} accessibilityRole="header">
               {t('commerce.proJourney.choose')}
             </Text>
-            <Text style={styles.body}>
-              {t('commerce.proJourney.sameFeatures')}
-            </Text>
+            <MentaNarrator
+              state="pro-crown"
+              message={t('commerce.proJourney.planQuestion')}
+              testID="pro-plan-narrator"
+            />
             {loading ? (
               <View
+                accessible
                 accessibilityLabel={t('commerce.proJourney.loading')}
                 accessibilityRole="progressbar"
                 style={styles.options}
@@ -185,21 +198,9 @@ export function ProOfferJourney({
                     )}
                     selected={selected === item.plan}
                     description={terms(item)}
+                    trailing={item.introPrice ?? item.price}
                     onPress={() => setSelected(item.plan)}
                   >
-                    <Text style={styles.price}>
-                      {item.introPrice ?? item.price}
-                      <Text style={styles.body}>
-                        {' '}
-                        {t(
-                          item.plan === 'annual'
-                            ? 'commerce.proJourney.perYear'
-                            : item.introPrice
-                              ? 'commerce.proJourney.firstWeek'
-                              : 'commerce.proJourney.perWeek'
-                        )}
-                      </Text>
-                    </Text>
                     <Text style={styles.detail}>
                       {t(
                         item.plan === 'annual'
@@ -221,55 +222,61 @@ export function ProOfferJourney({
         ) : offer ? (
           <>
             <MentaMascot
-              state={offer.introPrice ? 'momenta-gift' : 'pro-active'}
-              size="lg"
+              state={offer.introPrice ? 'momenta-gift' : 'pro-crown'}
+              size="xl"
               style={styles.mascot}
             />
-            <Text style={styles.title} accessibilityRole="header">
+            <Text
+              style={[styles.title, styles.centred]}
+              accessibilityRole="header"
+            >
               {t(
                 offer.introPrice
                   ? 'commerce.proJourney.introTitle'
                   : 'commerce.proJourney.confirmTitle'
               )}
             </Text>
-            <Text style={styles.body}>
-              {t('commerce.proJourney.allIncluded')}
+            <Text style={[styles.lead, styles.centred]}>
+              {context === 'challenge'
+                ? t('commerce.proJourney.backToPromise')
+                : context === 'group'
+                  ? t('commerce.proJourney.backToGroup')
+                  : t('commerce.proJourney.allIncluded')}
             </Text>
             <View style={styles.receipt}>
-              <Text style={styles.heading}>
-                {t('commerce.proJourney.today')}
-              </Text>
-              <Text style={styles.price}>
-                {offer.introPrice ?? offer.price}
-              </Text>
-              <Text style={styles.body}>
-                {t(
+              <ReceiptRow
+                label={t('commerce.proJourney.today')}
+                value={offer.introPrice ?? offer.price}
+                strong
+              />
+              <ReceiptRow
+                label={t('commerce.proJourney.momentaRow')}
+                value={
                   offer.plan === 'annual'
-                    ? 'commerce.proJourney.yearAccess'
-                    : 'commerce.proJourney.weekAccess'
-                )}
-              </Text>
+                    ? t('commerce.proJourney.momentaYear', {
+                        amount:
+                          ECONOMY_CONTRACT_V1.pro.annualCredits.toLocaleString(),
+                      })
+                    : t('commerce.proJourney.momentaWeek', {
+                        amount:
+                          ECONOMY_CONTRACT_V1.pro.weeklyCredits.toLocaleString(),
+                      })
+                }
+                accent
+              />
+              <ReceiptRow
+                label={t('commerce.proJourney.cancelRow')}
+                value={t('commerce.proJourney.cancelAnytime')}
+                last
+              />
             </View>
             <View style={styles.benefit}>
               <Text style={styles.heading}>
                 {t('commerce.proJourney.renewal')}
               </Text>
               <Text style={styles.body}>{terms(offer)}</Text>
+              <Text style={styles.body}>{t('commerce.proJourney.cancel')}</Text>
             </View>
-            <Text style={styles.body}>{t('commerce.proJourney.cancel')}</Text>
-            <Text style={styles.detail}>
-              {t(
-                offer.plan === 'annual'
-                  ? 'commerce.proJourney.annualCredits'
-                  : 'commerce.proJourney.weeklyCredits',
-                {
-                  amount: (offer.plan === 'annual'
-                    ? ECONOMY_CONTRACT_V1.pro.annualCredits
-                    : ECONOMY_CONTRACT_V1.pro.weeklyCredits
-                  ).toLocaleString(),
-                }
-              )}
-            </Text>
           </>
         ) : null}
         {page === 'offer' ? (
@@ -304,7 +311,11 @@ export function ProOfferJourney({
         />
         {page === 'benefits' ? (
           <AppButton
-            title={t('commerce.proJourney.stayFree')}
+            title={
+              context === 'onboarding'
+                ? t('commerce.proJourney.back')
+                : t('commerce.proJourney.stayFree')
+            }
             variant="ghost"
             onPress={onClose}
           />
@@ -317,6 +328,63 @@ export function ProOfferJourney({
           />
         ) : null}
       </View>
+    </View>
+  );
+}
+
+function Benefit({
+  icon,
+  title,
+  detail,
+  filled = false,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  detail: string;
+  filled?: boolean;
+}) {
+  return (
+    <View style={styles.benefitRow}>
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        style={[styles.benefitIcon, filled && styles.benefitIconFilled]}
+      >
+        {icon}
+      </View>
+      <View style={styles.benefitCopy}>
+        <Text style={styles.heading}>{title}</Text>
+        <Text style={styles.detail}>{detail}</Text>
+      </View>
+    </View>
+  );
+}
+
+function ReceiptRow({
+  label,
+  value,
+  strong = false,
+  accent = false,
+  last = false,
+}: {
+  label: string;
+  value: string;
+  strong?: boolean;
+  accent?: boolean;
+  last?: boolean;
+}) {
+  return (
+    <View style={[styles.receiptRow, last && styles.receiptRowLast]}>
+      <Text style={styles.receiptLabel}>{label}</Text>
+      <Text
+        style={[
+          styles.receiptValue,
+          strong && styles.receiptValueStrong,
+          accent && styles.receiptValueAccent,
+        ]}
+      >
+        {value}
+      </Text>
     </View>
   );
 }
@@ -340,6 +408,50 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   mascot: { alignSelf: 'center' },
+  centred: { textAlign: 'center' },
+  lead: { ...mentaTypography.lead, color: mentaColors.text.secondary },
+  srOnly: { position: 'absolute', width: 1, height: 1, opacity: 0 },
+  benefits: { gap: mentaSpacing[5], paddingTop: mentaSpacing[3] },
+  benefitRow: { flexDirection: 'row', gap: mentaSpacing[4] },
+  benefitIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: mentaRadii.round,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: mentaColors.actionSoft,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: mentaColors.actionBorder,
+  },
+  benefitIconFilled: {
+    backgroundColor: mentaColors.action,
+    borderColor: mentaColors.action,
+  },
+  benefitCopy: { flex: 1, minWidth: 0, gap: mentaSpacing[1] },
+  receiptRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: mentaSpacing[3],
+    minHeight: 56,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderColor: mentaColors.border,
+  },
+  receiptRowLast: { borderBottomWidth: StyleSheet.hairlineWidth },
+  receiptLabel: { ...mentaTypography.body, color: mentaColors.text.secondary },
+  receiptValue: {
+    ...mentaTypography.bodyMedium,
+    color: mentaColors.text.primary,
+    flexShrink: 1,
+    textAlign: 'right',
+  },
+  receiptValueStrong: {
+    ...mentaTypography.control,
+    fontFamily: mentaTypography.labelBold.fontFamily,
+    fontSize: 20,
+    lineHeight: 26,
+  },
+  receiptValueAccent: { color: mentaColors.action },
   secondaryActions: { gap: mentaSpacing[2] },
   title: { ...mentaTypography.paywallHero, color: mentaColors.text.primary },
   heading: { ...mentaTypography.bodySemibold, color: mentaColors.text.primary },
@@ -353,13 +465,7 @@ const styles = StyleSheet.create({
     borderTopColor: mentaColors.border,
   },
   options: { gap: mentaSpacing[5] },
-  receipt: {
-    paddingVertical: mentaSpacing[5],
-    gap: mentaSpacing[2],
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: mentaColors.border,
-  },
+  receipt: { marginTop: mentaSpacing[2] },
   footer: {
     flexShrink: 0,
     paddingHorizontal: mentaSpacing[6],

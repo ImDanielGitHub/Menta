@@ -187,10 +187,7 @@ const sanitizeTelemetryUrl = (value: string): string => {
 };
 
 const getSafeUpdateChannel = ():
-  | 'production'
-  | 'development'
-  | 'preview'
-  | 'unknown' => {
+  'production' | 'development' | 'preview' | 'unknown' => {
   const channel = String(Updates.channel ?? '').toLowerCase();
   if (channel === 'production') return 'production';
   if (channel === 'development') return 'development';
@@ -201,6 +198,115 @@ const getSafeUpdateChannel = ():
 const sanitizeSentryEvent = (event: SentryRecord): SentryRecord => {
   const sanitized = sanitizeSentryData(event);
   sanitized.user = undefined;
+
+  // The privacy scrubber is for application data, not Sentry's wire schema.
+  // Filtering event/debug IDs or truncating frames makes a captured crash
+  // impossible to identify or symbolicate. Preserve only validated SDK IDs.
+  const preserveDiagnosticIds = (
+    source: SentryRecord,
+    target: SentryRecord,
+    keys: string[]
+  ) => {
+    for (const key of keys) {
+      const value = source[key];
+      if (
+        typeof value === 'string' &&
+        /^(?:[a-f0-9]{16}|[a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/i.test(
+          value
+        )
+      ) {
+        target[key] = value;
+      }
+    }
+  };
+  preserveDiagnosticIds(event, sanitized, ['event_id']);
+
+  const sanitizeStacktrace = (value: unknown): unknown => {
+    if (!value || typeof value !== 'object') return undefined;
+    const source = value as SentryRecord;
+    const frames = Array.isArray(source.frames) ? source.frames : [];
+    return {
+      frames: frames.slice(-100).map((frame: SentryRecord) => {
+        const safe: SentryRecord = {};
+        // Exclude locals, source context and arbitrary frame data. These
+        // fields alone retain JS/native symbolication and stack ordering.
+        for (const key of [
+          'filename',
+          'abs_path',
+          'function',
+          'module',
+          'package',
+          'lineno',
+          'colno',
+          'in_app',
+          'platform',
+          'instruction_addr',
+          'image_addr',
+          'symbol_addr',
+          'addr_mode',
+        ]) {
+          const entry = frame[key];
+          if (typeof entry === 'string') safe[key] = sanitizeString(entry);
+          else if (typeof entry === 'number' || typeof entry === 'boolean') {
+            safe[key] = entry;
+          }
+        }
+        return safe;
+      }),
+    };
+  };
+  const exceptions = event.exception as SentryRecord | undefined;
+  const diagnosticThreadId = (value: unknown): number | string | undefined =>
+    typeof value === 'number' ||
+    (typeof value === 'string' && /^\d+$/.test(value))
+      ? value
+      : undefined;
+  if (Array.isArray(exceptions?.values)) {
+    sanitized.exception = {
+      values: exceptions.values.slice(-10).map((exception: SentryRecord) => ({
+        ...sanitizeSentryData(exception),
+        thread_id: diagnosticThreadId(exception.thread_id),
+        stacktrace: sanitizeStacktrace(exception.stacktrace),
+        raw_stacktrace: sanitizeStacktrace(exception.raw_stacktrace),
+      })),
+    };
+  }
+  if (event.stacktrace)
+    sanitized.stacktrace = sanitizeStacktrace(event.stacktrace);
+  const threads = event.threads as SentryRecord | undefined;
+  if (Array.isArray(threads?.values)) {
+    sanitized.threads = {
+      values: threads.values.slice(0, 100).map((thread: SentryRecord) => ({
+        ...sanitizeSentryData(thread),
+        id: diagnosticThreadId(thread.id),
+        stacktrace: sanitizeStacktrace(thread.stacktrace),
+        raw_stacktrace: sanitizeStacktrace(thread.raw_stacktrace),
+      })),
+    };
+  }
+  const debugMeta = event.debug_meta as SentryRecord | undefined;
+  if (Array.isArray(debugMeta?.images)) {
+    sanitized.debug_meta = {
+      images: debugMeta.images.slice(0, 100).map((source: SentryRecord) => {
+        const safe = sanitizeSentryData(source);
+        preserveDiagnosticIds(source, safe, ['debug_id', 'code_id']);
+        return safe;
+      }),
+    };
+  }
+  const trace = (event.contexts as SentryRecord | undefined)?.trace;
+  if (trace && typeof trace === 'object') {
+    const safeTrace = sanitizeSentryData(trace as SentryRecord);
+    preserveDiagnosticIds(trace as SentryRecord, safeTrace, [
+      'trace_id',
+      'span_id',
+      'parent_span_id',
+    ]);
+    sanitized.contexts = {
+      ...(sanitized.contexts as SentryRecord),
+      trace: safeTrace,
+    };
+  }
 
   if (sanitized.request && typeof sanitized.request === 'object') {
     const request = sanitized.request as SentryRecord;
@@ -272,7 +378,7 @@ const normalizeError = (
             supabase: 'true',
             supabase_error_code: code ?? 'unknown',
           },
-          fingerprint: ['supabase', code ?? 'unknown', 'object-error'],
+          fingerprint: ['{{ default }}', 'supabase', code ?? 'unknown'],
           wasObject: true,
         };
       }
@@ -315,6 +421,8 @@ const shouldDropEvent = (event: SentryRecord): boolean => {
   }
 
   if (message === 'slow_supabase_request') {
+    // The fetch adapter submits every candidate. Apply the 2% production
+    // sample exactly once here, alongside the other transport filters.
     return !__DEV__ && Math.random() >= 0.02;
   }
 
@@ -367,7 +475,7 @@ const prepareEvent = (event: SentryRecord, hint?: SentryRecord) => {
           normalized_from_object: true,
           errorCode: code,
         };
-        event.fingerprint = ['supabase', code, 'object-error'];
+        event.fingerprint = ['{{ default }}', 'supabase', code];
       } else {
         event.tags = {
           ...(event.tags as SentryRecord),
@@ -499,6 +607,13 @@ export const initSentry = () => {
     Sentry.setTag?.('runtime.version', runtimeVersion);
     Sentry.setTag?.('update.source', updateSource);
     Sentry.setTag?.('update.channel', updateChannel);
+    Sentry.setTag?.('diagnostics.version', '2');
+    Sentry.addBreadcrumb({
+      category: 'app.lifecycle',
+      message: 'crash_reporting_ready',
+      level: 'info',
+      data: { runtimeVersion, updateSource, updateChannel },
+    });
     Sentry.setTag?.(
       'advanced_diagnostics',
       advancedDiagnosticsCollectionEnabled ? 'enabled' : 'disabled'
@@ -520,13 +635,16 @@ export const initSentry = () => {
 };
 
 /**
- * Load the device-local advanced-diagnostics preference, then start Sentry.
- * Crash reporting still starts as early as AsyncStorage allows. Replay sample
- * rates are fixed in the native layer at init, so this order is required for
- * returning opted-in devices to record masked sessions.
+ * Start basic crash reporting before reading optional diagnostics consent.
+ * If replay is approved in a future release, its native sample rates must
+ * instead be initialised after the device-local preference is loaded.
  */
 export const bootstrapSentry = (): Promise<void> => {
   if (bootstrapPromise) return bootstrapPromise;
+
+  // Basic crash capture must not wait on storage. Replay remains release-gated;
+  // if that gate is ever opened, retain the consent-before-init ordering.
+  if (!isSentryReplayReleaseEnabled()) initSentry();
 
   bootstrapPromise = (async () => {
     try {

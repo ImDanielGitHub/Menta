@@ -46,6 +46,7 @@ import {
 } from '@/lib/motion/haptics';
 import { backOrReplace } from '@/lib/navigation/safe-back';
 import { useGroupStore } from '@/store/group-store';
+import { useAuthStore } from '@/store/auth-store';
 import { useTranslation } from '@/lib/localization';
 
 type InviteParams = {
@@ -85,6 +86,7 @@ export default function GroupInviteScreen() {
   const groupId = singleParam(params.groupId);
   const paramGroupName = singleParam(params.groupName);
   const qaState = singleParam(params.qaState);
+  const userId = useAuthStore(state => state.user?.id);
   const fetchGroupDetails = useGroupStore(state => state.fetchGroupDetails);
   const shareGroup = useGroupStore(state => state.shareGroup);
   const rotateGroupInviteCode = useGroupStore(
@@ -102,6 +104,15 @@ export default function GroupInviteScreen() {
   const [error, setError] = React.useState<string | null>(null);
   const [notice, setNotice] = React.useState<InviteNotice | null>(null);
   const replaceInFlightRef = React.useRef(false);
+  const sharingRef = React.useRef(false);
+  const mountedRef = React.useRef(true);
+  const previewOwnerRef = React.useRef<string | undefined>(undefined);
+  React.useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
   const qrSize = getInviteQrSize(width);
   const sheetQrSize = Math.min(176, Math.max(148, width - 214));
 
@@ -114,24 +125,39 @@ export default function GroupInviteScreen() {
 
     setIsLoading(true);
     setError(null);
+    setPreview(null);
+    previewOwnerRef.current = undefined;
     try {
       const [group, invite] = await Promise.all([
         fetchGroupDetails(groupId),
         shareGroup(groupId, paramGroupName?.trim() || 'your group'),
       ]);
+      if (!mountedRef.current || useAuthStore.getState().user?.id !== userId)
+        return;
       const resolvedName =
         group.name?.trim() || paramGroupName?.trim() || 'your group';
       setGroupName(resolvedName);
+      previewOwnerRef.current = userId;
       setPreview(invite);
       if (__DEV__ && qaState === 'replaced') {
         setScreenState('replaced');
       }
     } catch {
-      setError(t('groups.invite.load_error'));
+      if (mountedRef.current && useAuthStore.getState().user?.id === userId)
+        setError(t('groups.invite.load_error'));
     } finally {
-      setIsLoading(false);
+      if (mountedRef.current && useAuthStore.getState().user?.id === userId)
+        setIsLoading(false);
     }
-  }, [fetchGroupDetails, groupId, paramGroupName, qaState, shareGroup, t]);
+  }, [
+    fetchGroupDetails,
+    groupId,
+    paramGroupName,
+    qaState,
+    shareGroup,
+    t,
+    userId,
+  ]);
 
   React.useEffect(() => {
     void loadInvite();
@@ -156,12 +182,23 @@ export default function GroupInviteScreen() {
 
   const copyValue = React.useCallback(
     async (kind: 'link' | 'code') => {
-      if (!preview) return;
+      const ownerUserId = useAuthStore.getState().user?.id;
+      if (!preview || !ownerUserId || previewOwnerRef.current !== ownerUserId)
+        return;
       setError(null);
       try {
-        await Clipboard.setStringAsync(
+        const copied = await Clipboard.setStringAsync(
           kind === 'link' ? preview.shareUrl : preview.code
         );
+        if (
+          !mountedRef.current ||
+          useAuthStore.getState().user?.id !== ownerUserId
+        )
+          return;
+        if (!copied) {
+          setError(t('groups.invite.copy_error'));
+          return;
+        }
         const description =
           kind === 'link'
             ? t('groups.invite.link_copied')
@@ -175,18 +212,30 @@ export default function GroupInviteScreen() {
         AccessibilityInfo.announceForAccessibility?.(description);
         trackMetaAdsInviteFriend();
       } catch {
-        setError(t('groups.invite.copy_error'));
+        if (
+          mountedRef.current &&
+          useAuthStore.getState().user?.id === ownerUserId
+        )
+          setError(t('groups.invite.copy_error'));
       }
     },
     [preview, t]
   );
 
   const shareInvite = React.useCallback(async () => {
-    if (!preview) return;
+    const ownerUserId = useAuthStore.getState().user?.id;
+    if (
+      !preview ||
+      !ownerUserId ||
+      previewOwnerRef.current !== ownerUserId ||
+      sharingRef.current
+    )
+      return;
+    sharingRef.current = true;
     setNotice(null);
     setError(null);
     try {
-      await Share.share({
+      const result = await Share.share({
         title: t('groups.invite.share_title', { group: groupName }),
         message: buildInviteShareMessage({
           kind: 'group',
@@ -194,14 +243,25 @@ export default function GroupInviteScreen() {
           title: groupName,
         }),
       });
-      trackMetaAdsInviteFriend();
+      if (
+        !mountedRef.current ||
+        useAuthStore.getState().user?.id !== ownerUserId
+      )
+        return;
+      if (result.action === Share.sharedAction) trackMetaAdsInviteFriend();
       setNotice({
         title: t('groups.invite.share_returned'),
         description: t('groups.invite.share_closed'),
         tone: 'info',
       });
     } catch {
-      setError(t('groups.invite.share_error'));
+      if (
+        mountedRef.current &&
+        useAuthStore.getState().user?.id === ownerUserId
+      )
+        setError(t('groups.invite.share_error'));
+    } finally {
+      sharingRef.current = false;
     }
   }, [groupName, preview, t]);
 

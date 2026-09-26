@@ -5,1012 +5,1019 @@ import type { EnglishCatalogue } from '@/lib/localization/en-NZ';
 type FullAuthAccountKey = Extract<keyof EnglishCatalogue, `fullAuth.${string}`>;
 
 export const fullAuthAccountEsES = {
+  'fullAuth.tabs_profile.build_your_rhythm': 'Crea tu ritmo',
+  'fullAuth.tabs_profile.rhythm_next_check_in':
+    'Un registro cada vez. Abre Hoy para ver tu siguiente paso. Las pruebas pendientes de revisión aparecerán aquí cuando se acepten.',
+  'fullAuth.tabs_profile.rhythm_choose_next_promise':
+    'Elige algo que puedas cumplir. Tus pruebas aceptadas irán mostrando tu progreso aquí.',
+  'fullAuth.tabs_profile.rhythm_open_today': 'Ir a Hoy',
+  'fullAuth.tabs_profile.rhythm_view_promises': 'Ver tus promesas',
   'fullAuth.shared.try_again': 'Vuelve a intentarlo',
-  'fullAuth.support.untitled_report': 'sin título informe',
-  'fullAuth.onboarding.promise_setup_step_one': 'promesa Ajustes · 1 de 2',
-  'fullAuth.onboarding.promise_setup_step_two': 'promesa Ajustes · 2 de 2',
+  'fullAuth.support.untitled_report': 'Informe sin título',
+  'fullAuth.onboarding.promise_setup_step_one': 'Configurar promesa · 1 de 2',
+  'fullAuth.onboarding.promise_setup_step_two': 'Configurar promesa · 2 de 2',
   'fullAuth.component_onboarding_paperauthreset.your_account_email':
-    'Tu cuenta correo electrónico',
-  'fullAuth.shared.back_to_you': 'Volver a tú',
-  'fullAuth.shared.promise': 'promesa',
-  'fullAuth.shared.terms': 'términos',
+    'el correo de tu cuenta',
+  'fullAuth.shared.back_to_you': 'Volver a Perfil',
+  'fullAuth.shared.promise': 'Promesa',
+  'fullAuth.shared.terms': 'Términos',
   'fullAuth.shared.back_to_settings': 'Volver a ajustes',
-  'fullAuth.shared.other_sign_in_options': 'otra inicio de sesión opciones',
-  'fullAuth.shared.retry_profile': 'reintentar perfil',
-  'fullAuth.shared.refresh_progress': 'actualizar progreso',
-  'fullAuth.shared.check_connection_again': 'comprobar conexión de nuevo',
+  'fullAuth.shared.other_sign_in_options': 'Otras formas de iniciar sesión',
+  'fullAuth.shared.retry_profile': 'Reintentar perfil',
+  'fullAuth.shared.refresh_progress': 'Actualizar progreso',
+  'fullAuth.shared.check_connection_again': 'Comprobar conexión de nuevo',
   'fullAuth.shared.sign_in': 'Iniciar sesión',
-  'fullAuth.support.feedback': 'comentarios',
-  'fullAuth.support.promise_report': 'promesa informe',
-  'fullAuth.support.group_report': 'grupo informe',
-  'fullAuth.support.proof_report': 'prueba informe',
-  'fullAuth.support.app_issue': 'aplicación problema',
+  'fullAuth.support.feedback': 'Comentarios',
+  'fullAuth.support.promise_report': 'Informe de promesa',
+  'fullAuth.support.group_report': 'Informe de grupo',
+  'fullAuth.support.proof_report': 'Informe de prueba',
+  'fullAuth.support.app_issue': 'Problema con la app',
   'fullAuth.support.checking_saved_proof':
-    'comprobando guardado prueba en este teléfono.',
+    'Comprobando las pruebas guardadas en este teléfono.',
   'fullAuth.support.saved_proof_count_unavailable':
-    'guardado-prueba cantidad no disponible.',
+    'No se puede consultar cuántas pruebas hay guardadas.',
   'fullAuth.support.no_proof_waiting':
-    'no prueba es esperando en este teléfono.',
+    'No hay ninguna prueba pendiente en este teléfono.',
   'fullAuth.support.proof_count_saved':
-    '{count} {proofLabel} guardado en este teléfono.',
-  'fullAuth.support.proof_is': 'prueba es',
-  'fullAuth.support.proofs_are': 'pruebas son',
+    '{count} {proofLabel} guardada(s) en este teléfono.',
+  'fullAuth.support.proof_is': 'prueba',
+  'fullAuth.support.proofs_are': 'pruebas',
   'fullAuth.support.saved_proof_waiting_to_be_sent':
-    '{count} {proofLabel} guardado en este teléfono y todavía esperando a estar enviado.',
-  'fullAuth.email_auth.create_account': 'crear cuenta',
+    '{count} {proofLabel} guardada(s) en este teléfono y pendiente(s) de enviar.',
+  'fullAuth.email_auth.create_account': 'Crear cuenta',
   'fullAuth.email_auth.sign_in': 'Iniciar sesión',
   'fullAuth.email_auth.already_have_account': '¿Ya tienes una cuenta?',
   'fullAuth.email_auth.new_to_menta': '¿Eres nuevo en Menta?',
   'fullAuth.email_auth.offline_reconnect':
-    'estás sin conexión. reconectar y Vuelve a intentarlo.',
+    'No tienes conexión. Vuelve a conectarte e inténtalo de nuevo.',
   'fullAuth.email_auth.too_many_attempts':
-    'demasiado muchos intentos. espera una momento, después Vuelve a intentarlo.',
+    'Demasiados intentos. Espera un momento y vuelve a intentarlo.',
   'fullAuth.email_auth.could_not_sign_in':
-    'No se ha podido Iniciar sesión. comprobar Tu correo electrónico y contraseña, después Vuelve a intentarlo.',
+    'No se ha podido iniciar sesión. Revisa tu correo y tu contraseña, y vuelve a intentarlo.',
   'fullAuth.email_auth.could_not_create_account':
-    'No se ha podido crear Tu cuenta. Comprueba tu conexión, después Vuelve a intentarlo.',
-  'fullAuth.email_auth.enter_password': 'introducir Tu contraseña.',
-  'fullAuth.email_auth.create_password': 'crear una contraseña.',
-  'fullAuth.email_auth.confirm_your_password': 'confirmar Tu contraseña.',
+    'No se ha podido crear tu cuenta. Comprueba tu conexión y vuelve a intentarlo.',
+  'fullAuth.email_auth.enter_password': 'Introduce tu contraseña.',
+  'fullAuth.email_auth.create_password': 'Crea una contraseña.',
+  'fullAuth.email_auth.confirm_your_password': 'Confirma tu contraseña.',
   'fullAuth.email_auth.password_minimum': 'Usa al menos {length} caracteres.',
-  'fullAuth.email_auth.password_mismatch': 'contraseñcomo hacer no coincidir.',
-  'fullAuth.email_auth.choose_username': 'elegir una nombre de usuario.',
+  'fullAuth.email_auth.password_mismatch': 'Las contraseñas no coinciden.',
+  'fullAuth.email_auth.choose_username': 'Elige un nombre de usuario.',
   'fullAuth.email_auth.minimum_three_characters': 'Usa al menos 3 caracteres.',
   'fullAuth.email_auth.username_characters_only':
-    'usar letras, números, o guiones bajos solo.',
+    'Usa solo letras, números o guiones bajos.',
   'fullAuth.email_auth.account_email':
-    'introducir tu Menta cuenta correo electrónico.',
-  'fullAuth.email_auth.valid_email':
-    'introducir una válido correo electrónico dirección.',
+    'Introduce el correo de tu cuenta de Menta.',
+  'fullAuth.email_auth.valid_email': 'Introduce un correo electrónico válido.',
   'fullAuth.email_auth.passwords_need_to_match':
-    'contraseñcomo necesita a coincidir.',
+    'Las contraseñas deben coincidir.',
   'fullAuth.password_recovery.confirm_new_password':
-    'confirmar tu nuevo contraseña.',
+    'Confirma tu nueva contraseña.',
   'fullAuth.password_recovery.passwords_mismatch':
-    'el contraseñcomo hacer no coincidir.',
+    'Las contraseñas no coinciden.',
   'fullAuth.password_recovery.minimum_password_length':
     'Usa al menos {length} caracteres.',
   'fullAuth.password_recovery.could_not_change_now':
-    'No hemos podido cambiar Tu contraseña correcta ahora.',
+    'No hemos podido cambiar tu contraseña en este momento.',
   'fullAuth.password_recovery.sign_in_with_new_password_draft':
-    'Iniciar sesión con tu nuevo contraseña, después Vuelve a tu borrador.',
+    'Inicia sesión con tu nueva contraseña y vuelve a tu borrador.',
   'fullAuth.password_recovery.sign_in_with_new_password':
-    'tú puede ahora Iniciar sesión con tu nuevo contraseña.',
+    'Ya puedes iniciar sesión con tu nueva contraseña.',
   'fullAuth.language_settings.system_accessibility':
-    'usar teléfono idioma. {systemSubtitle}',
+    'Usar el idioma del teléfono. {systemSubtitle}',
   'fullAuth.forgot_password.enter_email_tied_to_account':
-    'introducir el correo electrónico asociado a tu Menta cuenta.',
+    'Introduce el correo vinculado a tu cuenta de Menta.',
   'fullAuth.forgot_password.enter_valid_email':
-    'introducir una válido correo electrónico dirección.',
+    'Introduce un correo electrónico válido.',
   'fullAuth.forgot_password.could_not_send_reset_email':
-    'No se ha podido enviar el restablecer correo electrónico. Comprueba tu conexión y Vuelve a intentarlo.',
+    'No se ha podido enviar el correo para restablecer la contraseña. Comprueba tu conexión y vuelve a intentarlo.',
   'fullAuth.password_recovery_callback.checking_secure_reset_link':
-    'comprobando tu seguro restablecer enlace…',
+    'Comprobando tu enlace seguro para restablecer la contraseña…',
   'fullAuth.password_recovery_callback.reset_link_verified':
-    'restablecer enlace verificado.',
-  'fullAuth.report_issue.send_feedback': 'enviar comentarios',
-  'fullAuth.report_issue.send_report': 'enviar informe',
-  'fullAuth.support.start_a_new_report': 'empezar una nuevo informe',
-  'fullAuth.support.report_an_issue': 'informe un problema',
+    'Enlace verificado.',
+  'fullAuth.report_issue.send_feedback': 'Enviar comentarios',
+  'fullAuth.report_issue.send_report': 'Enviar informe',
+  'fullAuth.support.start_a_new_report': 'Empezar un informe nuevo',
+  'fullAuth.support.report_an_issue': 'Informar de un problema',
   'fullAuth.notification_settings.daily_proof_reminders_and_promise_ending_updates':
-    'diario prueba recordatorios y promesa-final actualizaciones.',
+    'Recordatorios diarios de prueba y avisos cuando termina una promesa.',
   'fullAuth.notification_settings.saved_but_notifications_are_off_on_this_phone':
-    'guardado, pero notificaciones son desactivadas en este teléfono.',
+    'Guardado, pero las notificaciones están desactivadas en este teléfono.',
   'fullAuth.notification_settings.occasional_updates_to_email_unsubscribe_here':
-    'ocasionales actualizaciones a {email}. cancelar la suscripción aquí a cualquier tiempo.',
+    'Novedades ocasionales en {email}. Puedes darte de baja aquí cuando quieras.',
   'fullAuth.notification_settings.a_confirmed_account_email_is_required':
-    'una confirmado cuenta correo electrónico es obligatorio.',
+    'Hace falta un correo de cuenta confirmado.',
   'fullAuth.onboarding.menta_mascot_holding_your_first_promise':
-    'mascota de Menta sujetando tu primera promesa',
-  'fullAuth.onboarding.menta_mascot_waving_hello':
-    'mascota de Menta saludando hola',
+    'La mascota de Menta sostiene tu primera promesa',
+  'fullAuth.onboarding.menta_mascot_waving_hello': 'La mascota de Menta saluda',
   'fullAuth.onboarding.your_saved_draft_is_back_on_this_phone':
-    'tu guardado borrador es atrás en este teléfono.',
+    'Tu borrador guardado vuelve a estar en este teléfono.',
   'fullAuth.onboarding.saved_privately_on_this_phone_as_you_type':
-    'guardado de forma privada en este teléfono como tú tipo.',
+    'Se guarda de forma privada en este teléfono mientras escribes.',
   'fullAuth.account_deleted.apple_instructions_did_not_open':
-    'Apple instrucciones se no abrir',
+    'No se han abierto las instrucciones de Apple',
   'fullAuth.account_deleted.checking_account_deletion':
-    'comprobando cuenta Eliminación',
+    'Comprobando la eliminación de la cuenta',
   'fullAuth.account_deleted.go_to_sign_in': 'Ir a Iniciar sesión',
   'fullAuth.account_deleted.if_you_used_sign_in_with_apple_remove_menta_from':
-    'si tú usado Iniciar sesión con Apple, Eliminar Menta de el aplicaciones conectado a tu cuenta de Apple. Abre los ajustes del iPhone, toca tu nombre, después Iniciar sesión con Apple.',
+    'Si usaste Iniciar sesión con Apple, quita Menta de las apps conectadas a tu cuenta de Apple. Abre Ajustes en el iPhone, toca tu nombre y luego Iniciar sesión con Apple.',
   'fullAuth.account_deleted.open_apple_support_and_search_for_manage_your_ap':
-    "abrir Apple asistencia y buscar para 'gestionar tu aplicaciones con Iniciar sesión con Apple'.",
-  'fullAuth.account_deleted.remove_apple_access': 'Eliminar Apple acceso',
+    'Abre el Soporte de Apple y busca «Gestionar tus apps con Iniciar sesión con Apple».',
+  'fullAuth.account_deleted.remove_apple_access': 'Quitar el acceso de Apple',
   'fullAuth.account_deleted.see_apple_instructions':
     'Ver las instrucciones de Apple',
   'fullAuth.account_deleted.sign_in_with_apple_access_was_also_removed':
-    'Iniciar sesión con Apple acceso fue también Eliminard.',
+    'También se ha quitado el acceso de Iniciar sesión con Apple.',
   'fullAuth.account_deleted.your_account_was_deleted':
-    'Tu cuenta fue eliminado',
+    'Tu cuenta se ha eliminado',
   'fullAuth.account_deleted.your_menta_account_and_its_data_were_deleted_men':
-    'tu Menta cuenta y tus datos fueron eliminado. Menta también borró este de la cuenta guardado datos de este teléfono.',
+    'Tu cuenta de Menta y sus datos se han eliminado. Menta también ha borrado de este teléfono los datos guardados de esta cuenta.',
   'fullAuth.auth_required.events': 'Eventos',
   'fullAuth.auth_required.groups': 'Grupos',
-  'fullAuth.auth_required.keep_browsing': 'conservar navegación',
+  'fullAuth.auth_required.keep_browsing': 'Seguir explorando',
   'fullAuth.auth_required.menta': 'Menta',
   'fullAuth.auth_required.menta_records_the_review_under_your_account':
-    'Menta registra el revisión en Tu cuenta.',
+    'Menta registra la revisión en tu cuenta.',
   'fullAuth.auth_required.menta_saves_this_proof_with_the_right_promise_an':
-    'Menta guarda este prueba con el correcta promesa y cuenta.',
+    'Menta guarda esta prueba con la promesa y la cuenta correctas.',
   'fullAuth.auth_required.momenta': 'Momenta',
-  'fullAuth.auth_required.proof': 'prueba',
+  'fullAuth.auth_required.proof': 'Prueba',
   'fullAuth.auth_required.reviews': 'Revisiones',
   'fullAuth.auth_required.sign_in': 'Iniciar sesión',
   'fullAuth.auth_required.sign_in_to_add_proof':
-    'Inicia sesión en añadir prueba',
+    'Inicia sesión para añadir la prueba',
   'fullAuth.auth_required.sign_in_to_complete_this_action_and_return_here_':
-    'Inicia sesión en completar este acción y volver aquí después.',
-  'fullAuth.auth_required.sign_in_to_continue': 'Inicia sesión en continuar',
+    'Inicia sesión para completar esta acción y volver aquí después.',
+  'fullAuth.auth_required.sign_in_to_continue': 'Inicia sesión para continuar',
   'fullAuth.auth_required.sign_in_to_continue_with_this_event':
-    'Inicia sesión en continuar con este evento',
+    'Inicia sesión para continuar con este evento',
   'fullAuth.auth_required.sign_in_to_join_this_group':
-    'Inicia sesión en unirse este grupo',
+    'Inicia sesión para unirte a este grupo',
   'fullAuth.auth_required.sign_in_to_review_proof':
-    'Inicia sesión en revisión prueba',
+    'Inicia sesión para revisar la prueba',
   'fullAuth.auth_required.sign_in_to_use_momenta':
-    'Inicia sesión en usar Momenta',
+    'Inicia sesión para usar Momenta',
   'fullAuth.auth_required.your_balance_purchases_and_items_stay_with_your_':
-    'tu saldo, compras y artículos mantenerse con Tu cuenta.',
+    'Tu saldo, tus compras y tus artículos se quedan en tu cuenta.',
   'fullAuth.auth_required.your_invitation_and_group_activity_stay_with_you':
-    'tu invitación y grupo actividad mantenerse con Tu cuenta.',
+    'Tu invitación y la actividad del grupo se quedan en tu cuenta.',
   'fullAuth.auth_required.your_place_check_in_and_event_photos_are_saved_t':
-    'tu sitio, comprobar-in y evento fotos son guardado a Tu cuenta.',
+    'Tu plaza, tu registro de asistencia y las fotos del evento se guardan en tu cuenta.',
   'fullAuth.auth_required.your_promises_proof_groups_and_reviews_stay_with':
-    'Tu promesas, prueba, Grupos y Revisiones mantenerse con tu Menta cuenta.',
+    'Tus promesas, pruebas, grupos y revisiones se quedan en tu cuenta de Menta.',
   'fullAuth.component_onboarding_mentasurface.hide_password':
-    'ocultar contraseña',
+    'Ocultar contraseña',
   'fullAuth.component_onboarding_mentasurface.menta': 'Menta',
-  'fullAuth.component_onboarding_mentasurface.setup': 'Ajustes',
+  'fullAuth.component_onboarding_mentasurface.setup': 'Configuración',
   'fullAuth.component_onboarding_mentasurface.show_password':
-    'mostrar contraseña',
-  'fullAuth.component_onboarding_paperauthform.after_this': 'después este',
+    'Mostrar contraseña',
+  'fullAuth.component_onboarding_paperauthform.after_this': 'Después',
   'fullAuth.component_onboarding_paperauthform.characters': '+ caracteres',
   'fullAuth.component_onboarding_paperauthform.check_the_details':
-    'Comprueba los detalles',
+    'Revisa los datos',
   'fullAuth.component_onboarding_paperauthform.confirm_password':
-    'confirmar contraseña',
+    'Confirmar contraseña',
   'fullAuth.component_onboarding_paperauthform.create_your_account':
-    'crear Tu cuenta',
+    'Crea tu cuenta',
   'fullAuth.component_onboarding_paperauthform.creating_your_account':
-    'creando Tu cuenta',
+    'Creando tu cuenta',
   'fullAuth.component_onboarding_paperauthform.daniel': 'Daniel',
-  'fullAuth.component_onboarding_paperauthform.email': 'correo electrónico',
+  'fullAuth.component_onboarding_paperauthform.email': 'Correo electrónico',
   'fullAuth.component_onboarding_paperauthform.forgot_your_password':
-    'olvidado Tu contraseña?',
-  'fullAuth.component_onboarding_paperauthform.password': 'contraseña',
+    '¿Has olvidado tu contraseña?',
+  'fullAuth.component_onboarding_paperauthform.password': 'Contraseña',
   'fullAuth.component_onboarding_paperauthform.sign_in_with_email':
-    'Iniciar sesión con correo electrónico',
+    'Iniciar sesión con correo',
   'fullAuth.component_onboarding_paperauthform.signing_you_in':
     'Iniciando tu sesión',
-  'fullAuth.component_onboarding_paperauthform.username': 'nombre de usuario',
+  'fullAuth.component_onboarding_paperauthform.username': 'Nombre de usuario',
   'fullAuth.component_onboarding_paperauthform.you_example_com':
-    'you@example.com',
+    'tu@ejemplo.com',
   'fullAuth.component_onboarding_paperauthform.you_will_return_to_your_first_promise':
-    'tú podrá Vuelve a tu primera promesa.',
+    'Volverás a tu primera promesa.',
   'fullAuth.component_onboarding_paperauthform.your_promise_stays_on_this_phone_until_the_accou':
-    'Tu promesa sigue en este teléfono hasta el cuenta es listo.',
+    'Tu promesa se queda en este teléfono hasta que la cuenta esté lista.',
   'fullAuth.component_onboarding_paperauthform.your_promise_stays_on_this_phone_while_we_create':
-    'Tu promesa sigue en este teléfono mientras nosotros crear el cuenta.',
+    'Tu promesa se queda en este teléfono mientras creamos la cuenta.',
   'fullAuth.component_onboarding_paperauthform.your_promise_stays_on_this_phone_while_you_sign_':
-    'Tu promesa sigue en este teléfono mientras tú Iniciar sesión.',
+    'Tu promesa se queda en este teléfono mientras inicias sesión.',
   'fullAuth.component_onboarding_paperauthmethods.choose_how_to_sign_in_your_promise_stays_on_this':
-    'Elige cómo a Iniciar sesión. Tu promesa sigue en este teléfono hasta inicio de sesión termina.',
+    'Elige cómo iniciar sesión. Tu promesa se queda en este teléfono hasta que termines.',
   'fullAuth.component_onboarding_paperauthmethods.choose_how_you_want_to_sign_in':
-    'Elige cómo tú querer a Iniciar sesión.',
+    'Elige cómo quieres iniciar sesión.',
   'fullAuth.component_onboarding_paperauthmethods.continue_with_apple':
-    'continuar con Apple',
+    'Continuar con Apple',
   'fullAuth.component_onboarding_paperauthmethods.continue_with_email':
-    'continuar con correo electrónico',
+    'Continuar con correo',
   'fullAuth.component_onboarding_paperauthmethods.continue_with_google':
-    'continuar con Google',
+    'Continuar con Google',
   'fullAuth.component_onboarding_paperauthmethods.save_your_promise':
-    'guardar Tu promesa',
+    'Guarda tu promesa',
   'fullAuth.component_onboarding_paperauthmethods.see_how_menta_works':
     'Descubre cómo funciona Menta',
   'fullAuth.component_onboarding_paperauthmethods.sign_in_to_menta':
     'Inicia sesión en Menta',
   'fullAuth.component_onboarding_paperauthmethods.we_could_not_sign_you_in':
-    'No hemos podido sesión tú en',
+    'No hemos podido iniciar tu sesión',
   'fullAuth.component_onboarding_paperauthreset.back_to_sign_in':
-    'Volver a Iniciar sesión',
+    'Volver a iniciar sesión',
   'fullAuth.component_onboarding_paperauthreset.check_your_email':
-    'comprobar Tu correo electrónico.',
+    'Revisa tu correo.',
   'fullAuth.component_onboarding_paperauthreset.daniel_example_com':
     'daniel@example.com',
-  'fullAuth.component_onboarding_paperauthreset.email': 'correo electrónico',
+  'fullAuth.component_onboarding_paperauthreset.email': 'Correo electrónico',
   'fullAuth.component_onboarding_paperauthreset.email_sent_to':
-    'correo electrónico enviado a',
+    'Correo enviado a',
   'fullAuth.component_onboarding_paperauthreset.link_valid_for_60_minutes':
-    'enlace válido para 60 minutos',
-  'fullAuth.component_onboarding_paperauthreset.reset_for': 'restablecer para',
+    'Enlace válido durante 60 minutos',
+  'fullAuth.component_onboarding_paperauthreset.reset_for': 'Restablecer para',
   'fullAuth.component_onboarding_paperauthreset.reset_your_password':
-    'restablecer Tu contraseña',
+    'Restablece tu contraseña',
   'fullAuth.component_onboarding_paperauthreset.send_another_link':
-    'enviar otro enlace',
+    'Enviar otro enlace',
   'fullAuth.component_onboarding_paperauthreset.send_another_link_in_countdown':
-    'Envía otro enlace dentro de {countdown}',
+    'Enviar otro enlace en {countdown}',
   'fullAuth.component_onboarding_paperauthreset.send_reset_link':
-    'enviar restablecer enlace',
+    'Enviar enlace para restablecer',
   'fullAuth.component_onboarding_paperauthreset.sending_your_reset_link':
-    'enviando tu restablecer enlace',
+    'Enviando tu enlace para restablecer',
   'fullAuth.component_onboarding_paperauthreset.use_the_latest_link':
-    'usar el más reciente enlace.',
+    'Usa el enlace más reciente.',
   'fullAuth.component_onboarding_paperauthreset.use_the_link_we_just_sent_you_can_request_anothe':
-    'usar el enlace nosotros solo enviado. tú puede solicitar otro cuando el temporizador termina.',
+    'Usa el enlace que acabamos de enviarte. Podrás pedir otro cuando termine el temporizador.',
   'fullAuth.component_onboarding_paperauthreset.we_could_not_send_another_link':
     'No hemos podido enviar otro enlace',
   'fullAuth.component_onboarding_paperauthreset.we_could_not_send_the_reset_link':
-    'No hemos podido enviar el restablecer enlace',
+    'No hemos podido enviar el enlace para restablecer',
   'fullAuth.component_onboarding_paperauthreset.we_ll_email_you_a_secure_link_your_saved_promise':
-    'Te enviaremos correo electrónico tú una seguro enlace. tu guardado promesa podrá mantenerse en este teléfono.',
+    'Te enviaremos un enlace seguro por correo. Tu promesa guardada seguirá en este teléfono.',
   'fullAuth.component_onboarding_paperauthreset.we_re_sending_a_secure_link_to_the_address_below':
-    'Estamos enviando una seguro enlace a el dirección abajo.',
+    'Estamos enviando un enlace seguro a esta dirección.',
   'fullAuth.component_onboarding_paperauthreset.we_sent_a_secure_reset_link_your_saved_promise_i':
-    'nosotros enviado una seguro restablecer enlace. tu guardado promesa es todavía esperando aquí.',
+    'Te hemos enviado un enlace seguro para restablecer la contraseña. Tu promesa guardada sigue aquí.',
   'fullAuth.component_onboarding_paperauthsurface.before_you_use_the_account_you_ll_review_and_acc':
-    'antes tú usar el cuenta, Vas a revisión y aceptar de Menta actual cuenta y comunidad documentos.',
+    'Antes de usar la cuenta, revisarás y aceptarás los documentos actuales de la cuenta y de la comunidad de Menta.',
   'fullAuth.component_onboarding_paperauthsurface.choose_sign_in_method':
-    'elegir inicio de sesión método',
+    'Elige cómo iniciar sesión',
   'fullAuth.component_onboarding_paperauthsurface.community_standards':
-    'comunidad normas',
+    'Normas de la comunidad',
   'fullAuth.component_onboarding_paperauthsurface.community_standards_did_not_open':
-    'comunidad normas se no abrir',
+    'No se han abierto las Normas de la comunidad',
   'fullAuth.component_onboarding_paperauthsurface.hide_password':
-    'ocultar contraseña',
+    'Ocultar contraseña',
   'fullAuth.component_onboarding_paperauthsurface.keep_local_draft':
-    'conservar Borrador local',
+    'Mantener el borrador local',
   'fullAuth.component_onboarding_paperauthsurface.menta': 'Menta',
   'fullAuth.component_onboarding_paperauthsurface.menta_authentication':
     'Autenticación de Menta',
   'fullAuth.component_onboarding_paperauthsurface.menta_mascot':
-    'mascota de Menta',
+    'Mascota de Menta',
   'fullAuth.component_onboarding_paperauthsurface.privacy_policy':
-    'privacidad política',
+    'Política de privacidad',
   'fullAuth.component_onboarding_paperauthsurface.privacy_policy_did_not_open':
-    'privacidad política se no abrir',
-  'fullAuth.component_onboarding_paperauthsurface.returning_to': 'volviendo a',
+    'No se ha abierto la Política de privacidad',
+  'fullAuth.component_onboarding_paperauthsurface.returning_to': 'Volviendo a',
   'fullAuth.component_onboarding_paperauthsurface.show_password':
-    'mostrar contraseña',
+    'Mostrar contraseña',
   'fullAuth.component_onboarding_paperauthsurface.terms_did_not_open':
-    'términos se no abrir',
+    'No se han abierto los Términos',
   'fullAuth.component_onboarding_paperauthsurface.terms_of_use':
-    'términos de usar',
+    'Términos de uso',
   'fullAuth.component_onboarding_paperauthsurface.the_provider_sheet_was_closed_before_an_account_':
-    'el proveedor hoja fue cerrada antes un cuenta fue devuelta. nada fue creado o cambiado.',
+    'La ventana del proveedor se cerró antes de devolver una cuenta. No se ha creado ni cambiado nada.',
   'fullAuth.component_onboarding_paperauthsurface.title_message':
     '{title} {message}',
   'fullAuth.component_onboarding_paperauthsurface.try_again_or_visit_menta_quest_community_standar':
-    'Vuelve a intentarlo, o visita menta.comunidad/comunidad-normas en tu navegador.',
+    'Vuelve a intentarlo o visita menta.quest/community-standards en tu navegador.',
   'fullAuth.component_onboarding_paperauthsurface.try_again_or_visit_menta_quest_privacy_in_your_b':
-    'Vuelve a intentarlo, o visita menta.comunidad/privacidad en tu navegador.',
+    'Vuelve a intentarlo o visita menta.quest/privacy en tu navegador.',
   'fullAuth.component_onboarding_paperauthsurface.try_again_or_visit_menta_quest_terms_in_your_bro':
-    'Vuelve a intentarlo, o visita menta.comunidad/términos en tu navegador.',
+    'Vuelve a intentarlo o visita menta.quest/terms en tu navegador.',
   'fullAuth.component_onboarding_paperauthsurface.you_can_try_again_or_keep_working_without_signin':
-    'tú puede Vuelve a intentarlo o conservar trabajando sin iniciando sesión en hasta Menta necesita a guardar lo.',
+    'Puedes volver a intentarlo o seguir sin iniciar sesión hasta que Menta necesite guardarla.',
   'fullAuth.component_onboarding_paperauthsurface.you_re_still_signed_out':
-    'estás todavía iniciada fuera.',
+    'Todavía no has iniciado sesión.',
   'fullAuth.component_onboarding_paperauthsurface.your_local_promise_is_still_here':
-    'tu local promesa es todavía aquí',
-  'fullAuth.component_settings_settingssignoutsheet.cancel': 'cancelar',
+    'Tu promesa local sigue aquí',
+  'fullAuth.component_settings_settingssignoutsheet.cancel': 'Cancelar',
   'fullAuth.component_settings_settingssignoutsheet.check_the_connection_then_try_again':
-    'Comprueba los conexión, después Vuelve a intentarlo.',
-  'fullAuth.component_settings_settingssignoutsheet.sign_out': 'sesión fuera',
+    'Comprueba la conexión y vuelve a intentarlo.',
+  'fullAuth.component_settings_settingssignoutsheet.sign_out': 'Cerrar sesión',
   'fullAuth.component_settings_settingssignoutsheet.sign_out_did_not_finish':
-    'sesión-fuera se no terminar',
+    'No se ha podido cerrar la sesión',
   'fullAuth.component_settings_settingssignoutsheet.try_sign_out_again':
-    'intenta sesión fuera de nuevo',
+    'Volver a cerrar sesión',
   'fullAuth.component_support_offlinesupportnotice.you_can_still_read_the_last_saved_screen_proof_a':
-    'tú puede todavía leer el última guardado pantalla. prueba y informe borradores mantenerse en este teléfono hasta Menta se reconecta.',
+    'Aún puedes leer la última pantalla guardada. Los borradores de pruebas e informes se quedan en este teléfono hasta que Menta se vuelva a conectar.',
   'fullAuth.component_support_offlinesupportnotice.you_re_offline':
     'estás sin conexión',
   'fullAuth.component_support_supportsurface.title_subtitle':
     '{title}. {subtitle}',
   'fullAuth.component_support_supportsurface.title_subtitle_detail':
     '{title}. {subtitle} {detail}',
-  'fullAuth.edit_profile.account_required': 'cuenta obligatorio',
-  'fullAuth.edit_profile.back_to_you': 'Volver a tú',
-  'fullAuth.edit_profile.cannot_edit_here': 'no puede editar aquí',
-  'fullAuth.edit_profile.change_photo': 'cambiar foto',
-  'fullAuth.edit_profile.choose_a_different_photo':
-    'elegir una diferente foto.',
-  'fullAuth.edit_profile.choose_a_profile_photo': 'elegir una perfil foto',
-  'fullAuth.edit_profile.details': 'detalles',
-  'fullAuth.edit_profile.display_name': 'mostrar nombre',
-  'fullAuth.edit_profile.edit_again': 'editar de nuevo',
-  'fullAuth.edit_profile.edit_profile': 'editar perfil',
-  'fullAuth.edit_profile.email': 'correo electrónico',
-  'fullAuth.edit_profile.how_it_will_look_on_you':
-    'cómo lo podrá aspecto en tú',
-  'fullAuth.edit_profile.loading_your_profile': 'cargando Tu perfil',
-  'fullAuth.edit_profile.name': 'nombre',
+  'fullAuth.edit_profile.account_required': 'Necesitas una cuenta',
+  'fullAuth.edit_profile.back_to_you': 'Volver a Perfil',
+  'fullAuth.edit_profile.cannot_edit_here': 'No se puede editar aquí',
+  'fullAuth.edit_profile.change_photo': 'Cambiar foto',
+  'fullAuth.edit_profile.choose_a_different_photo': 'Elige otra foto.',
+  'fullAuth.edit_profile.choose_a_profile_photo': 'Elige una foto de perfil',
+  'fullAuth.edit_profile.details': 'Datos',
+  'fullAuth.edit_profile.display_name': 'Nombre visible',
+  'fullAuth.edit_profile.edit_again': 'Editar de nuevo',
+  'fullAuth.edit_profile.edit_profile': 'Editar perfil',
+  'fullAuth.edit_profile.email': 'Correo electrónico',
+  'fullAuth.edit_profile.how_it_will_look_on_you': 'Cómo se verá en tu perfil',
+  'fullAuth.edit_profile.loading_your_profile': 'Cargando tu perfil',
+  'fullAuth.edit_profile.name': 'Nombre',
   'fullAuth.edit_profile.no_changes_have_been_made_try_loading_your_accou':
-    'no cambios tiene sido hecho. intenta cargando Tu cuenta de nuevo.',
-  'fullAuth.edit_profile.no_photo_selected': 'no foto seleccionada',
+    'No se ha hecho ningún cambio. Vuelve a cargar tu cuenta.',
+  'fullAuth.edit_profile.no_photo_selected': 'No has elegido ninguna foto',
   'fullAuth.edit_profile.nothing_changes_until_you_choose_one':
-    'nada cambios hasta tú elegir una.',
+    'No cambia nada hasta que elijas una.',
   'fullAuth.edit_profile.photo_not_changed_photoerror':
-    'foto no cambiado. {photoError}',
-  'fullAuth.edit_profile.photo_visibility': 'foto visibilidad',
-  'fullAuth.edit_profile.photo_will_be_removed': 'foto podrá estar Eliminard',
-  'fullAuth.edit_profile.profile_unavailable': 'perfil no disponible',
-  'fullAuth.edit_profile.profile_updated': 'perfil actualizado',
-  'fullAuth.edit_profile.remove_photo': 'Eliminar foto',
-  'fullAuth.edit_profile.save_changes': 'guardar cambios',
-  'fullAuth.edit_profile.saving_changes': 'guardando cambios',
-  'fullAuth.edit_profile.saving_your_changes': 'guardando tu cambios',
-  'fullAuth.edit_profile.selected_not_saved': 'seleccionada, no guardado',
+    'La foto no ha cambiado. {photoError}',
+  'fullAuth.edit_profile.photo_visibility': 'Visibilidad de la foto',
+  'fullAuth.edit_profile.photo_will_be_removed': 'Se quitará la foto',
+  'fullAuth.edit_profile.profile_unavailable': 'Perfil no disponible',
+  'fullAuth.edit_profile.profile_updated': 'Perfil actualizado',
+  'fullAuth.edit_profile.remove_photo': 'Quitar foto',
+  'fullAuth.edit_profile.save_changes': 'Guardar cambios',
+  'fullAuth.edit_profile.saving_changes': 'Guardando cambios',
+  'fullAuth.edit_profile.saving_your_changes': 'Guardando tus cambios',
+  'fullAuth.edit_profile.selected_not_saved': 'Elegida, sin guardar',
   'fullAuth.edit_profile.selected_profile_photo_in_its_final_circular_cro':
-    'seleccionada perfil foto en tus final circular recorte',
-  'fullAuth.edit_profile.sign_in_again': 'Iniciar sesión de nuevo',
+    'Foto de perfil elegida con su recorte circular final',
+  'fullAuth.edit_profile.sign_in_again': 'Volver a iniciar sesión',
   'fullAuth.edit_profile.sign_in_again_before_editing_this_profile':
-    'Iniciar sesión de nuevo antes editando este perfil.',
+    'Vuelve a iniciar sesión antes de editar este perfil.',
   'fullAuth.edit_profile.this_is_how_the_photo_will_look_on_you_it_will_n':
-    'este es cómo el foto podrá aspecto en tú. lo podrá no cambiar hasta tú guardar.',
+    'Así se verá la foto en tu perfil. No cambiará hasta que guardes.',
   'fullAuth.edit_profile.try_again': 'Vuelve a intentarlo',
-  'fullAuth.edit_profile.try_saving_again': 'intenta guardando de nuevo',
-  'fullAuth.edit_profile.username': 'nombre de usuario',
+  'fullAuth.edit_profile.try_saving_again': 'Volver a guardar',
+  'fullAuth.edit_profile.username': 'Nombre de usuario',
   'fullAuth.edit_profile.usernames_can_t_be_changed_yet':
-    'nombres de usuario No se puede estar cambiado aún.',
+    'Todavía no se puede cambiar el nombre de usuario.',
   'fullAuth.edit_profile.value': '@{value}',
   'fullAuth.edit_profile.you_can_keep_reviewing_the_preview_while_menta_s':
-    'tú puede conservar revisando el vista previa mientras Menta guarda.',
+    'Puedes seguir revisando la vista previa mientras Menta guarda.',
   'fullAuth.edit_profile.you_cannot_change_your_sign_in_email_here':
-    'tú no puede cambiar tu inicio de sesión correo electrónico aquí.',
+    'Aquí no puedes cambiar el correo con el que inicias sesión.',
   'fullAuth.edit_profile.your_current_photo_stays_until_you_save_changes':
-    'tu actual foto sigue hasta tú guardar cambios.',
+    'Tu foto actual se mantiene hasta que guardes los cambios.',
   'fullAuth.edit_profile.your_details_will_appear_when_this_check_finishe':
-    'tu detalles podrá aparecer cuando este comprobar termina.',
-  'fullAuth.edit_profile.your_edits_are_still_here':
-    'tu cambios son todavía aquí',
+    'Tus datos aparecerán cuando termine esta comprobación.',
+  'fullAuth.edit_profile.your_edits_are_still_here': 'Tus cambios siguen aquí',
   'fullAuth.edit_profile.your_profile_has_not_changed':
-    'Tu perfil ha no cambiado.',
+    'Tu perfil no ha cambiado.',
   'fullAuth.edit_profile.your_profile_has_not_changed_try_saving_again':
-    'Tu perfil ha no cambiado. intenta guardando de nuevo.',
+    'Tu perfil no ha cambiado. Vuelve a guardar.',
   'fullAuth.edit_profile.your_saved_name_and_photo_now_appear_across_ment':
-    'tu guardado nombre y foto ahora aparecer en todo Menta.',
-  'fullAuth.email_auth.confirm_password': 'confirmar contraseña',
-  'fullAuth.email_auth.couldn_t_create_account': 'No se ha podido crear cuenta',
-  'fullAuth.email_auth.couldn_t_sign_you_in': 'No se ha podido sesión tú en',
+    'Tu nombre y tu foto guardados ya aparecen en todo Menta.',
+  'fullAuth.email_auth.confirm_password': 'Confirmar contraseña',
+  'fullAuth.email_auth.couldn_t_create_account':
+    'No se ha podido crear la cuenta',
+  'fullAuth.email_auth.couldn_t_sign_you_in':
+    'No se ha podido iniciar tu sesión',
   'fullAuth.email_auth.create_an_account_to_save_this_promise_to_menta':
-    'crear un cuenta a guardar este promesa a Menta.',
+    'Crea una cuenta para guardar esta promesa en Menta.',
   'fullAuth.email_auth.create_your_account': 'crear Tu cuenta',
   'fullAuth.email_auth.daniel': 'daniel',
-  'fullAuth.email_auth.email': 'correo electrónico',
-  'fullAuth.email_auth.forgot_your_password': 'olvidado Tu contraseña?',
+  'fullAuth.email_auth.email': 'Correo electrónico',
+  'fullAuth.email_auth.forgot_your_password': '¿Has olvidado tu contraseña?',
   'fullAuth.email_auth.menta': 'Menta',
   'fullAuth.email_auth.other_people_may_see_this_with_your_group_activi':
-    'otra personas puede ver este con tu grupo actividad y evento fotos.',
-  'fullAuth.email_auth.password': 'contraseña',
+    'Otras personas pueden verlo junto a tu actividad en grupos y tus fotos de eventos.',
+  'fullAuth.email_auth.password': 'Contraseña',
   'fullAuth.email_auth.sign_in_to_save_this_promise_to_your_menta_accou':
-    'Inicia sesión en guardar este promesa a tu Menta cuenta.',
-  'fullAuth.email_auth.sign_in_with_email':
-    'Iniciar sesión con correo electrónico',
-  'fullAuth.email_auth.use_6_or_more_characters': 'usar 6 o más caracteres.',
+    'Inicia sesión para guardar esta promesa en tu cuenta de Menta.',
+  'fullAuth.email_auth.sign_in_with_email': 'Iniciar sesión con correo',
+  'fullAuth.email_auth.use_6_or_more_characters': 'Usa 6 caracteres o más.',
   'fullAuth.email_auth.use_an_email_you_can_access_if_you_ever_need_to_':
-    'usar un correo electrónico tú puede acceso si tú alguna vez necesita a recuperar Tu cuenta.',
-  'fullAuth.email_auth.username': 'nombre de usuario',
-  'fullAuth.email_auth.you_example_com': 'you@example.com',
-  'fullAuth.legal_acceptance.agree_and_continue': 'aceptar y continuar',
-  'fullAuth.legal_acceptance.back': 'atrás',
-  'fullAuth.legal_acceptance.before_you': 'antes tú',
+    'Usa un correo al que tengas acceso por si alguna vez necesitas recuperar tu cuenta.',
+  'fullAuth.email_auth.username': 'Nombre de usuario',
+  'fullAuth.email_auth.you_example_com': 'tu@ejemplo.com',
+  'fullAuth.legal_acceptance.agree_and_continue': 'Aceptar y continuar',
+  'fullAuth.legal_acceptance.back': 'Atrás',
+  'fullAuth.legal_acceptance.before_you': 'Antes de',
   'fullAuth.legal_acceptance.checking_the_current_legal_documents':
-    'comprobando el actual legal documentos',
+    'Comprobando los documentos legales actuales',
   'fullAuth.legal_acceptance.continue': 'continuar.',
   'fullAuth.legal_acceptance.couldn_t_check_your_agreement':
-    'No se ha podido Comprueba tu acuerdo',
+    'No se ha podido comprobar tu aceptación',
   'fullAuth.legal_acceptance.create': 'crear.',
   'fullAuth.legal_acceptance.i_agree_to_menta_s_terms_of_use_and_community_st':
-    'I aceptar a de Menta términos de usar y comunidad normas, y reconocer el privacidad política.',
-  'fullAuth.legal_acceptance.leave_legal_review': 'dejar legal revisión',
+    'Acepto los Términos de uso y las Normas de la comunidad de Menta, y reconozco la Política de privacidad.',
+  'fullAuth.legal_acceptance.leave_legal_review': 'Salir de la revisión legal',
   'fullAuth.legal_acceptance.menta': 'Menta',
   'fullAuth.legal_acceptance.menta_mascot_beside_your_account_confirmation':
-    'mascota de Menta junto a Tu cuenta Confirmación',
+    'Mascota de Menta junto a la confirmación de tu cuenta',
   'fullAuth.legal_acceptance.try_again': 'Vuelve a intentarlo',
   'fullAuth.legal_acceptance.you_can_go_back_without_agreeing_your_account_an':
-    'tú puede ir atrás sin aceptando. Tu cuenta y existente promesas mantenerse disponible.',
+    'Puedes volver atrás sin aceptar. Tu cuenta y tus promesas actuales siguen disponibles.',
   'fullAuth.login.menta': 'Menta',
   'fullAuth.notification_settings.a_test_is_already_on_the_way':
-    'una prueba es ya en el forma',
+    'Ya hay una notificación de prueba en camino',
   'fullAuth.notification_settings.allow_notifications':
-    'permitir notificaciones',
+    'Permitir notificaciones',
   'fullAuth.notification_settings.allow_notifications_first':
-    'permitir notificaciones primera',
+    'Permite primero las notificaciones',
   'fullAuth.notification_settings.back_to_settings': 'Volver a ajustes',
   'fullAuth.notification_settings.check_again_before_turning_on_proof_reminders':
-    'comprobar de nuevo antes activando en prueba recordatorios.',
+    'Vuelve a comprobarlo antes de activar los recordatorios de prueba.',
   'fullAuth.notification_settings.check_notification_permission':
-    'comprobar notificación permiso',
+    'Comprobar el permiso de notificaciones',
   'fullAuth.notification_settings.check_notification_permission_and_try_the_test_a':
-    'comprobar notificación permiso y intenta el prueba de nuevo en una momento.',
-  'fullAuth.notification_settings.choice_saved': 'opción guardado',
+    'Comprueba el permiso de notificaciones y vuelve a enviar la prueba en un momento.',
+  'fullAuth.notification_settings.choice_saved': 'Opción guardada',
   'fullAuth.notification_settings.choose_daily_proof_reminders_and_updates_when_a_':
-    'elegir diario prueba recordatorios y actualizaciones cuando una promesa es final.',
+    'Elige recordatorios diarios de prueba y avisos cuando una promesa esté por terminar.',
   'fullAuth.notification_settings.choose_notifications_for_menta_then_return_here':
-    'elegir notificaciones para Menta, después volver aquí.',
+    'Elige Notificaciones para Menta y vuelve aquí.',
   'fullAuth.notification_settings.choose_the_notifications_you_want_from_menta':
-    'elegir el notificaciones tú querer de Menta.',
+    'Elige qué notificaciones quieres recibir de Menta.',
   'fullAuth.notification_settings.choose_the_notifications_you_want_from_menta_bel':
-    'elegir el notificaciones tú querer de Menta abajo.',
+    'Elige abajo qué notificaciones quieres recibir de Menta.',
   'fullAuth.notification_settings.choose_which_group_and_progress_updates_menta_ma':
-    'elegir que grupo y progreso actualizaciones Menta puede enviar.',
+    'Elige qué novedades de grupos y de progreso puede enviarte Menta.',
   'fullAuth.notification_settings.confirmed_milestones_momenta_and_streak_changes':
-    'confirmado hitos, Momenta y racha cambios.',
+    'Hitos confirmados, Momenta y cambios en tus rachas.',
   'fullAuth.notification_settings.could_not_check_phone_notifications':
-    'No se ha podido comprobar teléfono notificaciones',
+    'No se han podido comprobar las notificaciones del teléfono',
   'fullAuth.notification_settings.could_not_load_notification_settings':
-    'No se ha podido cargar notificación ajustes.',
+    'No se han podido cargar los ajustes de notificaciones.',
   'fullAuth.notification_settings.could_not_load_notification_settings_2':
-    'No se ha podido cargar notificación ajustes',
+    'No se han podido cargar los ajustes de notificaciones',
   'fullAuth.notification_settings.could_not_open_phone_settings':
-    'No se ha podido abrir teléfono ajustes',
+    'No se han podido abrir los ajustes del teléfono',
   'fullAuth.notification_settings.could_not_save_your_choice':
-    'No se ha podido Guarda tu opción',
-  'fullAuth.notification_settings.delivery_and_timing': 'entrega y momento',
+    'No se ha podido guardar tu opción',
+  'fullAuth.notification_settings.delivery_and_timing': 'Entrega y horario',
   'fullAuth.notification_settings.email_choice_did_not_change':
-    'correo electrónico opción se no cambiar',
-  'fullAuth.notification_settings.email_updates':
-    'correo electrónico actualizaciones',
+    'La opción de correo no ha cambiado',
+  'fullAuth.notification_settings.email_updates': 'Novedades por correo',
   'fullAuth.notification_settings.email_updates_are_off':
-    'correo electrónico actualizaciones son desactivadas',
+    'Las novedades por correo están desactivadas',
   'fullAuth.notification_settings.email_updates_are_on':
-    'correo electrónico actualizaciones son en',
+    'Las novedades por correo están activadas',
   'fullAuth.notification_settings.email_updates_are_still_off':
-    'correo electrónico actualizaciones son todavía desactivadas',
+    'Las novedades por correo siguen desactivadas',
   'fullAuth.notification_settings.email_updates_are_unavailable':
-    'correo electrónico actualizaciones son no disponible',
+    'Las novedades por correo no están disponibles',
   'fullAuth.notification_settings.if_it_does_not_save_menta_will_put_your_previous':
-    'si lo hace no guardar, Menta podrá poner tu anterior opción atrás.',
+    'Si no se guarda, Menta restaurará tu opción anterior.',
   'fullAuth.notification_settings.it_should_arrive_shortly_tap_it_to_return_to_not':
-    'lo debería llegar en breve. toca lo a Vuelve a notificación ajustes.',
+    'Debería llegar enseguida. Tócala para volver a Ajustes de notificaciones.',
   'fullAuth.notification_settings.keep_notifications_off':
-    'conservar notificaciones desactivadas',
+    'Mantener las notificaciones desactivadas',
   'fullAuth.notification_settings.loading_notification_settings':
-    'cargando notificación ajustes',
+    'Cargando ajustes de notificaciones',
   'fullAuth.notification_settings.loading_your_notification_settings':
-    'cargando tu notificación ajustes.',
+    'Cargando tus ajustes de notificaciones.',
   'fullAuth.notification_settings.menta_can_resume_notifications_after_this_time':
-    'Menta puede reanudar notificaciones después este tiempo.',
+    'Menta puede reanudar las notificaciones después de esta hora.',
   'fullAuth.notification_settings.menta_could_not_connect_this_email_safely_so_you':
-    'Menta No se ha podido conectar este correo electrónico de forma segura, comoí que tu consentimiento fue no restantes activadas.',
+    'Menta no ha podido conectar este correo de forma segura, así que tu consentimiento no se ha dejado activado.',
   'fullAuth.notification_settings.menta_could_not_finish_notification_registration':
-    'Menta No se ha podido terminar notificación registro. Vuelve a intentarlo en una momento.',
+    'Menta no ha podido terminar de registrar las notificaciones. Vuelve a intentarlo en un momento.',
   'fullAuth.notification_settings.menta_does_not_send_notifications_during_these_h':
-    'Menta hace no enviar notificaciones durante estos horas. ellos puede llegar después.',
+    'Menta no envía notificaciones durante estas horas. Puede que lleguen después.',
   'fullAuth.notification_settings.menta_does_not_send_notifications_during_this_lo':
-    'Menta hace no enviar notificaciones durante este hora local ventana.',
+    'Menta no envía notificaciones durante esta franja de hora local.',
   'fullAuth.notification_settings.menta_is_checking_this_phone_and_your_active_pro':
-    'Menta es comprobando este teléfono y tu activa promesas.',
+    'Menta está comprobando este teléfono y tus promesas activas.',
   'fullAuth.notification_settings.menta_is_checking_this_phone_before_it_queues_th':
-    'Menta es comprobando este teléfono antes lo colas el prueba.',
+    'Menta está comprobando este teléfono antes de programar la prueba.',
   'fullAuth.notification_settings.menta_is_finishing_notification_setup_for_this_p':
-    'Menta es terminando notificación Ajustes para este teléfono.',
+    'Menta está terminando de configurar las notificaciones en este teléfono.',
   'fullAuth.notification_settings.menta_may_remind_you_while_proof_is_due_or_a_pro':
-    'Menta puede recordar tú mientras prueba es pendiente o una promesa es final, y podrá espera durante silencio horas.',
+    'Menta puede recordártelo cuando toque enviar una prueba o una promesa esté por terminar, y esperará durante las horas de silencio.',
   'fullAuth.notification_settings.menta_may_send_occasional_product_news_to_your_a':
-    'Menta puede enviar ocasionales novedades del producto a Tu cuenta correo electrónico. tú puede activar este desactivadas aquí a cualquier tiempo.',
+    'Menta puede enviar novedades ocasionales del producto al correo de tu cuenta. Puedes desactivarlo aquí cuando quieras.',
   'fullAuth.notification_settings.menta_needs_a_confirmed_account_email_before_thi':
-    'Menta necesita una confirmado cuenta correo electrónico antes este opción puede cambiar.',
-  'fullAuth.notification_settings.menta_product_news':
-    'Menta novedades del producto',
+    'Menta necesita un correo de cuenta confirmado para poder cambiar esta opción.',
+  'fullAuth.notification_settings.menta_product_news': 'Novedades de Menta',
   'fullAuth.notification_settings.menta_removed_this_email_from_product_update_del':
-    'Menta Eliminard este correo electrónico de product-actualización entrega.',
+    'Menta ha quitado este correo de la lista de novedades del producto.',
   'fullAuth.notification_settings.menta_will_not_send_proof_or_promise_ending_remi':
-    'Menta podrá no enviar prueba o promesa-final recordatorios a menos que tú activar los en de nuevo.',
+    'Menta no enviará recordatorios de prueba ni avisos de fin de promesa a menos que vuelvas a activarlos.',
   'fullAuth.notification_settings.menta_will_use_this_choice_for_future_notificati':
-    'Menta podrá usar este opción para futuro notificaciones.',
+    'Menta usará esta opción para las próximas notificaciones.',
   'fullAuth.notification_settings.new_proof_to_review_review_outcomes_check_ins_an':
-    'nuevo prueba a revisión, revisión resultados, comprobar-ins y grupo cambios.',
+    'Pruebas nuevas por revisar, resultados de revisiones, registros de asistencia y cambios en los grupos.',
   'fullAuth.notification_settings.no_notification_was_queued':
-    'no notificación fue en cola.',
+    'No se ha programado ninguna notificación.',
   'fullAuth.notification_settings.nothing_was_sent_try_again_in_a_moment':
-    'nada fue enviado. Vuelve a intentarlo en una momento.',
+    'No se ha enviado nada. Vuelve a intentarlo en un momento.',
   'fullAuth.notification_settings.notification_setup_did_not_finish':
-    'notificación Ajustes se no terminar',
-  'fullAuth.notification_settings.notifications': 'notificaciones',
+    'No se ha terminado de configurar las notificaciones',
+  'fullAuth.notification_settings.notifications': 'Notificaciones',
   'fullAuth.notification_settings.promise_context_title':
     'Recordatorios de promesas',
   'fullAuth.notification_settings.promise_context_body':
     'Esta hora de recordatorio se aplica a todas las promesas activas. Los horarios siguen {timeZone}.',
   'fullAuth.notification_settings.back_to_promise': 'Volver a la promesa',
   'fullAuth.notification_settings.notifications_are_off':
-    'notificaciones son desactivadas',
+    'Las notificaciones están desactivadas',
   'fullAuth.notification_settings.notifications_are_still_off':
-    'notificaciones son todavía desactivadas',
+    'Las notificaciones siguen desactivadas',
   'fullAuth.notification_settings.notifications_off':
-    'notificaciones desactivadas',
+    'Notificaciones desactivadas',
   'fullAuth.notification_settings.old_reminders_may_still_be_on_this_phone':
-    'antiguo recordatorios puede todavía estar en este teléfono',
+    'Puede que sigan quedando recordatorios antiguos en este teléfono',
   'fullAuth.notification_settings.open_phone_settings':
-    'abrir teléfono ajustes',
+    'Abrir ajustes del teléfono',
   'fullAuth.notification_settings.open_your_phone_settings_choose_menta_then_notif':
-    'Abre tus teléfono ajustes, elegir Menta, después notificaciones a permitir recordatorios.',
+    'Abre los ajustes del teléfono, elige Menta y luego Notificaciones para permitir los recordatorios.',
   'fullAuth.notification_settings.open_your_phone_settings_choose_menta_then_notif_2':
-    'Abre tus teléfono ajustes, elegir Menta, después notificaciones, y permitir notificaciones.',
+    'Abre los ajustes del teléfono, elige Menta, luego Notificaciones, y permite las notificaciones.',
   'fullAuth.notification_settings.opening_phone_settings':
-    'abriendo teléfono ajustes',
+    'Abriendo los ajustes del teléfono',
   'fullAuth.notification_settings.optional_menta_product_news_this_is_separate_fro':
-    'opcional Menta novedades del producto. este es separada de cuenta y prueba notificaciones.',
-  'fullAuth.notification_settings.people_and_progress': 'personas y progreso',
-  'fullAuth.notification_settings.phone_controls': 'teléfono controles',
+    'Novedades opcionales de Menta. Son independientes de las notificaciones de la cuenta y de las pruebas.',
+  'fullAuth.notification_settings.people_and_progress': 'Personas y progreso',
+  'fullAuth.notification_settings.phone_controls': 'Controles del teléfono',
   'fullAuth.notification_settings.phone_notification_check_failed':
-    'teléfono notificación comprobar fallido',
+    'No se han podido comprobar las notificaciones del teléfono',
   'fullAuth.notification_settings.phone_notification_settings':
-    'teléfono notificación ajustes',
+    'Ajustes de notificaciones del teléfono',
   'fullAuth.notification_settings.preferred_time_formattedremindertime_a_proof_dea':
-    'preferido tiempo: {formattedReminderTime}. una prueba fecha límite o silencio horas puede cambiar el actual tiempo.',
+    'Hora preferida: {formattedReminderTime}. El plazo de una prueba o las horas de silencio pueden cambiar la hora real.',
   'fullAuth.notification_settings.preferred_time_formattedremindertime_notificatio':
-    'preferido tiempo: {formattedReminderTime}. notificaciones son desactivadas en este teléfono.',
+    'Hora preferida: {formattedReminderTime}. Las notificaciones están desactivadas en este teléfono.',
   'fullAuth.notification_settings.preparing_a_test_notification':
-    'preparando una prueba notificación',
+    'Preparando una notificación de prueba',
   'fullAuth.notification_settings.preparing_proof_reminders':
-    'preparando prueba recordatorios',
-  'fullAuth.notification_settings.promise_reminders': 'promesa recordatorios',
-  'fullAuth.notification_settings.proof_reminders': 'prueba recordatorios',
+    'Preparando los recordatorios de prueba',
+  'fullAuth.notification_settings.promise_reminders':
+    'Recordatorios de promesas',
+  'fullAuth.notification_settings.proof_reminders': 'Recordatorios de prueba',
   'fullAuth.notification_settings.proof_reminders_are_off':
-    'prueba recordatorios son desactivadas',
+    'Los recordatorios de prueba están desactivados',
   'fullAuth.notification_settings.proof_reminders_are_ready':
-    'prueba recordatorios son listo',
+    'Los recordatorios de prueba están listos',
   'fullAuth.notification_settings.proof_reminders_are_ready_on_this_phone':
-    'prueba recordatorios son listo en este teléfono',
+    'Los recordatorios de prueba están listos en este teléfono',
   'fullAuth.notification_settings.proof_reminders_saved':
-    'prueba recordatorios guardado',
-  'fullAuth.notification_settings.quiet_hours': 'silencio horas',
+    'Recordatorios de prueba guardados',
+  'fullAuth.notification_settings.quiet_hours': 'Horas de silencio',
   'fullAuth.notification_settings.quiet_hours_and_delivery':
-    'silencio horas y entrega',
-  'fullAuth.notification_settings.quiet_hours_end': 'silencio horas terminar',
+    'Horas de silencio y entrega',
+  'fullAuth.notification_settings.quiet_hours_end':
+    'Fin de las horas de silencio',
   'fullAuth.notification_settings.quiet_hours_formattedquiethours':
-    'silencio horas {formattedQuietHours}',
+    'Horas de silencio {formattedQuietHours}',
   'fullAuth.notification_settings.quiet_hours_not_saved':
-    'silencio horas no guardado',
-  'fullAuth.notification_settings.quiet_hours_saved': 'silencio horas guardado',
-  'fullAuth.notification_settings.quiet_hours_start': 'silencio horas empezar',
+    'No se han guardado las horas de silencio',
+  'fullAuth.notification_settings.quiet_hours_saved':
+    'Horas de silencio guardadas',
+  'fullAuth.notification_settings.quiet_hours_start':
+    'Inicio de las horas de silencio',
   'fullAuth.notification_settings.reload_your_saved_notification_choices':
-    'recargar tu guardado notificación opciones',
+    'Volver a cargar tus opciones de notificación guardadas',
   'fullAuth.notification_settings.reminder_setup_did_not_finish':
-    'recordatorio Ajustes se no terminar',
-  'fullAuth.notification_settings.reminder_time': 'recordatorio tiempo',
+    'No se ha terminado de configurar el recordatorio',
+  'fullAuth.notification_settings.reminder_time': 'Hora del recordatorio',
   'fullAuth.notification_settings.reminder_time_did_not_update_on_this_phone':
-    'recordatorio tiempo se no actualización en este teléfono',
+    'La hora del recordatorio no se ha actualizado en este teléfono',
   'fullAuth.notification_settings.reviews_and_group_activity':
-    'Revisiones y grupo actividad',
-  'fullAuth.notification_settings.save_quiet_hours': 'guardar silencio horas',
+    'Revisiones y actividad del grupo',
+  'fullAuth.notification_settings.save_quiet_hours':
+    'Guardar horas de silencio',
   'fullAuth.notification_settings.saving_quiet_hours':
-    'guardando silencio horas',
-  'fullAuth.notification_settings.saving_your_choice': 'guardando tu opción',
-  'fullAuth.notification_settings.saving_your_choice_2': 'guardando tu opción…',
+    'Guardando las horas de silencio',
+  'fullAuth.notification_settings.saving_your_choice': 'Guardando tu opción',
+  'fullAuth.notification_settings.saving_your_choice_2': 'Guardando tu opción…',
   'fullAuth.notification_settings.saving_your_email_choice':
-    'guardando Tu correo electrónico opción…',
+    'Guardando tu opción de correo…',
   'fullAuth.notification_settings.send_one_real_notification_to_this_signed_in_pho':
-    'enviar una real notificación a este iniciada-in teléfono.',
+    'Envía una notificación real a este teléfono con la sesión iniciada.',
   'fullAuth.notification_settings.send_test_notification':
-    'enviar prueba notificación',
+    'Enviar notificación de prueba',
   'fullAuth.notification_settings.set_quiet_hours_email_and_phone_notification_opt':
-    'establecer silencio horas, correo electrónico y teléfono notificación opciones.',
-  'fullAuth.notification_settings.sign_in_again': 'Iniciar sesión de nuevo',
+    'Configura las horas de silencio y las notificaciones por correo y en el teléfono.',
+  'fullAuth.notification_settings.sign_in_again': 'Volver a iniciar sesión',
   'fullAuth.notification_settings.sign_in_again_to_send_a_test':
-    'Iniciar sesión de nuevo a enviar una prueba',
+    'Vuelve a iniciar sesión para enviar una prueba',
   'fullAuth.notification_settings.sounds_previews_focus_and_scheduled_delivery':
-    'suena, pRevisiones, concentración y Horariod entrega.',
+    'Sonidos, vistas previas, Concentración y entrega programada.',
   'fullAuth.notification_settings.sounds_previews_focus_and_scheduled_delivery_are':
-    'suena, pRevisiones, concentración y Horariod entrega son propiedad por tu teléfono.',
-  'fullAuth.notification_settings.streaks_and_momenta': 'rachas y Momenta',
+    'Los sonidos, las vistas previas, Concentración y la entrega programada dependen de tu teléfono.',
+  'fullAuth.notification_settings.streaks_and_momenta': 'Rachas y Momenta',
   'fullAuth.notification_settings.test_notification_queued':
-    'prueba notificación en cola',
+    'Notificación de prueba programada',
   'fullAuth.notification_settings.test_notification_was_not_queued':
-    'prueba notificación fue no en cola',
-  'fullAuth.notification_settings.test_notifications': 'prueba notificaciones',
+    'No se ha programado la notificación de prueba',
+  'fullAuth.notification_settings.test_notifications':
+    'Notificaciones de prueba',
   'fullAuth.notification_settings.the_range_can_cross_midnight':
-    'el intervalo puede cross medianoche.',
+    'La franja puede pasar de medianoche.',
   'fullAuth.notification_settings.there_are_no_active_promises_to_schedule_yet_men':
-    'ahí son no activa promesas a Horario aún. Menta podrá usar este opción cuando tú empezar una.',
+    'Todavía no hay promesas activas que programar. Menta usará esta opción cuando empieces una.',
   'fullAuth.notification_settings.this_phone_is_not_ready_yet':
-    'este teléfono es no listo aún',
+    'Este teléfono aún no está listo',
   'fullAuth.notification_settings.this_phone_is_ready_for_menta_notifications':
-    'este teléfono es listo para Menta notificaciones',
+    'Este teléfono está listo para las notificaciones de Menta',
   'fullAuth.notification_settings.this_phone_may_show_a_reminder_at_your_preferred':
-    'este teléfono puede mostrar una recordatorio a tu preferido tiempo para activa promesas.',
+    'Este teléfono puede mostrar un recordatorio a tu hora preferida para las promesas activas.',
   'fullAuth.notification_settings.this_phone_must_allow_menta_notifications_before':
-    'este teléfono debe permitir Menta notificaciones antes una prueba puede estar enviado.',
+    'Este teléfono tiene que permitir las notificaciones de Menta para poder enviar una prueba.',
   'fullAuth.notification_settings.this_phone_will_not_show_menta_notifications_unt':
-    'este teléfono podrá no mostrar Menta notificaciones hasta tú activar los en.',
-  'fullAuth.notification_settings.to_turn_them_on': 'a activar los en',
+    'Este teléfono no mostrará notificaciones de Menta hasta que las actives.',
+  'fullAuth.notification_settings.to_turn_them_on': 'Para activarlas',
   'fullAuth.notification_settings.try_again': 'Vuelve a intentarlo',
   'fullAuth.notification_settings.try_again_before_relying_on_notifications_from_t':
-    'Vuelve a intentarlo antes depender en notificaciones de este teléfono.',
+    'Vuelve a intentarlo antes de contar con las notificaciones de este teléfono.',
   'fullAuth.notification_settings.try_again_before_turning_on_reminders_for_this_p':
-    'Vuelve a intentarlo antes activando en recordatorios para este teléfono.',
+    'Vuelve a intentarlo antes de activar los recordatorios en este teléfono.',
   'fullAuth.notification_settings.turning_off_email_updates':
-    'activando desactivadas correo electrónico actualizaciones',
+    'Desactivando las novedades por correo',
   'fullAuth.notification_settings.turning_on_email_updates':
-    'activando en correo electrónico actualizaciones',
+    'Activando las novedades por correo',
   'fullAuth.notification_settings.wait_one_minute_before_requesting_another_test':
-    'espera una minuto antes solicitando otro prueba.',
+    'Espera un minuto antes de pedir otra prueba.',
   'fullAuth.notification_settings.your_choice_is_saved_but_an_old_reminder_may_sti':
-    'tu opción es guardado, pero un antiguo recordatorio puede todavía aparecer. Vuelve a intentarlo.',
+    'Tu opción se ha guardado, pero puede que aún aparezca un recordatorio antiguo. Vuelve a intentarlo.',
   'fullAuth.notification_settings.your_choice_is_saved_but_proof_reminders_are_not':
-    'tu opción es guardado, pero prueba recordatorios son no listo aún. Vuelve a intentarlo.',
+    'Tu opción se ha guardado, pero los recordatorios de prueba aún no están listos. Vuelve a intentarlo.',
   'fullAuth.notification_settings.your_choice_is_saved_but_proof_reminders_are_not_2':
-    'tu opción es guardado, pero prueba recordatorios son no listo en este teléfono. Vuelve a intentarlo.',
+    'Tu opción se ha guardado, pero los recordatorios de prueba no están listos en este teléfono. Vuelve a intentarlo.',
   'fullAuth.notification_settings.your_choices_are_saved_but_this_phone_cannot_sho':
-    'tu opciones son guardado, pero este teléfono no puede mostrar Menta notificaciones hasta tú permitir los.',
+    'Tus opciones se han guardado, pero este teléfono no puede mostrar notificaciones de Menta hasta que las permitas.',
   'fullAuth.notification_settings.your_current_choice_remains_authoritative_until_':
-    'tu actual opción permanece autorizada hasta este guarda.',
+    'Tu opción actual sigue vigente hasta que se guarde esta.',
   'fullAuth.notification_settings.your_current_quiet_hours_stay_in_place_until_thi':
-    'tu actual silencio horas mantenerse en sitio hasta este guarda.',
+    'Tus horas de silencio actuales se mantienen hasta que se guarde el cambio.',
   'fullAuth.notification_settings.your_menta_opt_out_is_saved_provider_removal_wil':
-    'tu Menta opt-fuera es guardado. proveedor eliminación podrá reintentar cuando este cuenta siguiente se conecta.',
+    'Tu baja en Menta se ha guardado. La baja con el proveedor se volverá a intentar la próxima vez que esta cuenta se conecte.',
   'fullAuth.notification_settings.your_phone_did_not_return_a_notification_setting':
-    'tu teléfono se no volver una notificación ajuste. no permiso cambiado.',
+    'Tu teléfono no ha devuelto ningún ajuste de notificaciones. No ha cambiado ningún permiso.',
   'fullAuth.notification_settings.your_phone_now_allows_notifications':
-    'tu teléfono ahora permite notificaciones',
+    'Tu teléfono ya permite notificaciones',
   'fullAuth.notification_settings.your_preferred_time_is_saved_but_this_phone_may_':
-    'tu preferido tiempo es guardado, pero este teléfono puede todavía usar el antiguo tiempo. Vuelve a intentarlo.',
+    'Tu hora preferida se ha guardado, pero puede que este teléfono siga usando la anterior. Vuelve a intentarlo.',
   'fullAuth.notification_settings.your_previous_email_choice_is_still_active':
-    'tu anterior correo electrónico opción es todavía activa.',
+    'Tu opción de correo anterior sigue activa.',
   'fullAuth.notification_settings.your_previous_notification_choice_is_still_activ':
-    'tu anterior notificación opción es todavía activa.',
+    'Tu opción de notificaciones anterior sigue activa.',
   'fullAuth.notification_settings.your_previous_quiet_hours_remain_active':
-    'tu anterior silencio horas permanecer activa.',
+    'Tus horas de silencio anteriores siguen activas.',
   'fullAuth.notification_settings.your_promises_still_work_menta_will_not_ask_agai':
-    'Tu promesas todavía funciona. Menta podrá no pedir de nuevo aquí.',
+    'Tus promesas siguen funcionando. Menta no volverá a preguntar aquí.',
   'fullAuth.notification_settings.your_promises_still_work_this_phone_will_not_sho':
-    'Tu promesas todavía funciona. este teléfono podrá no mostrar prueba, revisión o grupo notificaciones.',
+    'Tus promesas siguen funcionando. Este teléfono no mostrará notificaciones de pruebas, revisiones ni grupos.',
   'fullAuth.notification_settings.your_proof_reminder_choice_is_unchanged_your_pho':
-    'tu prueba recordatorio opción es sin cambios. tu teléfono podrá pedir siguiente.',
-  'fullAuth.onboarding.32_character_code': '32-carácter código',
-  'fullAuth.onboarding.accountability': 'Responsabilidad compartida',
+    'Tu opción de recordatorios de prueba no ha cambiado. Tu teléfono te preguntará a continuación.',
+  'fullAuth.onboarding.32_character_code': 'Código de 32 caracteres',
+  'fullAuth.onboarding.accountability': 'Compromiso compartido',
   'fullAuth.onboarding.activation_needs_attention':
-    'La activación requiere atención',
-  'fullAuth.onboarding.add_code_and_create': 'añadir código y crear',
+    'La activación necesita atención',
+  'fullAuth.onboarding.add_code_and_create': 'Añadir código y crear',
   'fullAuth.onboarding.add_it_now_or_create_your_promise_without_one_gr':
-    'añadir lo ahora, o crear Tu promesa sin una. grupo Invitars funciona por separado.',
-  'fullAuth.onboarding.add_referral_code': 'añadir referencia código',
-  'fullAuth.onboarding.after_it_s_created_menta_adds':
-    'después Es creado, Menta añade',
+    'Añádelo ahora o crea tu promesa sin código. Las invitaciones a grupos funcionan aparte.',
+  'fullAuth.onboarding.add_referral_code': 'Añadir código de invitación',
+  'fullAuth.onboarding.after_it_s_created_menta_adds': 'Cuando la guardes',
   'fullAuth.onboarding.agree_and_choose_sign_in':
-    'aceptar y elegir inicio de sesión',
-  'fullAuth.onboarding.agree_and_continue': 'aceptar y continuar',
-  'fullAuth.onboarding.back': 'atrás',
+    'Aceptar y elegir cómo iniciar sesión',
+  'fullAuth.onboarding.agree_and_continue': 'Aceptar y continuar',
+  'fullAuth.onboarding.back': 'Atrás',
   'fullAuth.onboarding.back_to_backlabel': 'Volver a {backLabel}',
   'fullAuth.onboarding.choose_a_length_you_can_genuinely_follow_through':
-    'elegir una Duración tú puede de verdad seguir hasta el final en.',
+    'Elige una duración que de verdad puedas cumplir.',
   'fullAuth.onboarding.choose_how_you_want_to_continue_your_draft_stays':
-    'Elige cómo tú querer a continuar. tu borrador sigue en este teléfono.',
-  'fullAuth.onboarding.choose_length': 'elegir Duración',
-  'fullAuth.onboarding.choose_proof': 'elegir prueba',
+    'Elige cómo quieres continuar. Tu borrador se queda en este teléfono.',
+  'fullAuth.onboarding.choose_length': 'Elegir duración',
+  'fullAuth.onboarding.choose_proof': 'Elegir prueba',
   'fullAuth.onboarding.choose_the_proof_you_will_add_and_who_you_want_b':
-    'elegir el prueba tú podrá añadir y quién tú querer junto a tú.',
+    'Elige qué prueba añadirás y a quién quieres a tu lado.',
   'fullAuth.onboarding.choose_what_you_ll_add_when_it_s_done_you_can_in':
-    'elegir qué Vas a añadir cuando Es hecho. tú puede Invitar personas a revisión lo después tú guardar.',
+    'Elige qué añadirás cuando lo hayas hecho.',
   'fullAuth.onboarding.complete_this_promise_and_add_a_proofname_as_pro':
-    'completar este promesa y añadir una {proofName} como prueba.',
+    'Cumple esta promesa y añade {proofName} como prueba.',
   'fullAuth.onboarding.confirm_the_required_documents':
-    'confirmar el obligatorio documentos.',
-  'fullAuth.onboarding.confirming_code': 'confirmando código…',
-  'fullAuth.onboarding.continue_to_referral': 'continuar a referencia',
-  'fullAuth.onboarding.continue_to_save': 'continuar a guardar',
-  'fullAuth.onboarding.continue_with_apple': 'continuar con Apple',
-  'fullAuth.onboarding.continue_with_email': 'continuar con correo electrónico',
-  'fullAuth.onboarding.continue_with_google': 'continuar con Google',
+    'Confirma los documentos necesarios.',
+  'fullAuth.onboarding.confirming_code': 'Confirmando el código…',
+  'fullAuth.onboarding.continue_to_referral':
+    'Continuar al código de invitación',
+  'fullAuth.onboarding.continue_to_save': 'Continuar para guardar',
+  'fullAuth.onboarding.continue_with_apple': 'Continuar con Apple',
+  'fullAuth.onboarding.continue_with_email': 'Continuar con correo',
+  'fullAuth.onboarding.continue_with_google': 'Continuar con Google',
   'fullAuth.onboarding.could_not_finish_setup':
-    'No se ha podido terminar Ajustes',
-  'fullAuth.onboarding.create_a_group': 'crear una grupo',
-  'fullAuth.onboarding.review_promise_invite': 'revisión promesa Invitar',
+    'No se ha podido terminar la configuración',
+  'fullAuth.onboarding.create_a_group': 'Crear un grupo',
+  'fullAuth.onboarding.review_promise_invite':
+    'Revisar invitación a la promesa',
   'fullAuth.onboarding.promise_invite_held':
-    'Tu promesa Invitar es todavía reservada. revisión lo siguiente; unirse permanece una separada acción.',
-  'fullAuth.onboarding.review_group_invite': 'revisión grupo Invitar',
+    'Tu invitación a la promesa sigue guardada. Revísala a continuación; unirte es un paso aparte.',
+  'fullAuth.onboarding.review_group_invite': 'Revisar invitación al grupo',
   'fullAuth.onboarding.group_invite_held':
-    'tu grupo Invitar es todavía reservada. revisión lo siguiente; unirse permanece una separada acción.',
-  'fullAuth.onboarding.open_event': 'abrir evento',
+    'Tu invitación al grupo sigue guardada. Revísala a continuación; unirte es un paso aparte.',
+  'fullAuth.onboarding.open_event': 'Abrir evento',
   'fullAuth.onboarding.event_held':
-    'tu evento es todavía reservada. abrir lo siguiente; este promesa recibo hace no afirmar participación.',
+    'Tu evento sigue guardado. Ábrelo a continuación; este comprobante de la promesa no confirma tu participación.',
   'fullAuth.onboarding.create_my_group': 'Invitar a alguien',
   'fullAuth.onboarding.create_my_group_detail':
-    'Tu promesa está guardada y sigue siendo privada. Elige cómo puede ayudarte otra persona y decide a quién invitar.',
+    'Guárdala primero en privado y luego elige a quién invitar.',
   'fullAuth.onboarding.create_it_first_menta_will_then_add':
-    'crear lo primera. Menta podrá después añadir',
-  'fullAuth.onboarding.create_without_a_code': 'crear sin una código',
+    'Las promesas suelen costar Momenta. Tu primera promesa corre de nuestra cuenta. Cuando la guardes, te daremos',
+  'fullAuth.onboarding.create_without_a_code': 'Crear sin código',
   'fullAuth.onboarding.creating_your_first_promise':
-    'creando tu primera promesa',
+    'Creando tu primera promesa',
   'fullAuth.onboarding.creating_your_first_promise_2':
-    'creando tu primera promesa…',
-  'fullAuth.onboarding.days': 'dícomo',
+    'Creando tu primera promesa…',
+  'fullAuth.onboarding.days': 'días',
   'fullAuth.onboarding.decide_what_finished_will_look_like':
-    'decidir qué terminado podrá aspecto como.',
+    'Decide cómo sabrás que lo has terminado.',
   'fullAuth.onboarding.do_you_have_a_referral_code':
-    'hacer tú tiene una referencia código?',
-  'fullAuth.onboarding.edit': 'editar',
-  'fullAuth.onboarding.every_day': 'cada día',
-  'fullAuth.onboarding.every_day_2': '· cada día ·',
-  'fullAuth.promise.frequency.once_a_week': 'una vez una semana',
-  'fullAuth.onboarding.first_promise': 'primera promesa',
+    '¿Tienes un código de invitación?',
+  'fullAuth.onboarding.edit': 'Editar',
+  'fullAuth.onboarding.every_day': 'Cada día',
+  'fullAuth.onboarding.every_day_2': '· Cada día ·',
+  'fullAuth.promise.frequency.once_a_week': 'Una vez a la semana',
+  'fullAuth.onboarding.first_promise': 'Primera promesa',
   'fullAuth.onboarding.first_promise_firstpromisecost_momenta_after_cre':
-    'primera promesa, {firstPromiseCost} Momenta. después creación, {welcomeBonus} Momenta de bienvenida para más adelante opciones.',
-  'fullAuth.onboarding.free': 'Gratis.',
+    'Primera promesa, {firstPromiseCost} Momenta. Después de crearla, {welcomeBonus} Momenta de bienvenida para lo que elijas más adelante.',
+  'fullAuth.onboarding.free': 'gratis.',
   'fullAuth.onboarding.how_long_do_you_want_to_keep_this_promise':
-    'cómo tiempo hacer tú querer a conservar este promesa?',
-  'fullAuth.onboarding.how_will_you_prove_it': 'cómo podrá tú demostrar lo?',
+    '¿Durante cuánto tiempo quieres cumplir esta promesa?',
+  'fullAuth.onboarding.how_will_you_prove_it':
+    '¿Cómo demostrarás que lo hiciste?',
   'fullAuth.onboarding.i_agree_to_menta_s_terms_of_use_and_community_st':
-    'I aceptar a de Menta términos de usar y comunidad normas, y reconocer el privacidad política.',
+    'Acepto los Términos de uso y las Normas de la comunidad de Menta, y reconozco la Política de privacidad.',
   'fullAuth.onboarding.invite': 'Invitar',
   'fullAuth.onboarding.invite_people_after_this_promise_is_saved_member':
-    'Invitar personas después este promesa es guardado. miembros puede revisión tu prueba.',
-  'fullAuth.onboarding.just_me': 'solo mí',
+    'Invita a personas cuando hayas guardado esta promesa. Los miembros pueden revisar tu prueba.',
+  'fullAuth.onboarding.just_me': 'Solo yo',
   'fullAuth.onboarding.keep_it_specific_enough_that_you_will_know_when_':
-    'conservar lo específico suficiente esa tú podrá saber cuando lo es terminado.',
+    'Que sea lo bastante concreta para saber cuándo la has terminado.',
   'fullAuth.onboarding.legal_confirmation_did_not_finish':
-    'legal Confirmación se no terminar.',
+    'La confirmación legal no se ha completado.',
   'fullAuth.onboarding.legal_review_was_not_completed':
-    'legal revisión fue no completado.',
+    'La revisión legal no se ha completado.',
   'fullAuth.onboarding.length': 'Duración',
   'fullAuth.onboarding.local_draft': 'Borrador local',
   'fullAuth.onboarding.menta': 'Menta',
   'fullAuth.onboarding.menta_confirms_the_first_deadline_when_you_save':
-    'Menta confirma el primera fecha límite cuando tú guardar.',
+    'Menta confirma el primer plazo cuando guardas.',
   'fullAuth.onboarding.menta_confirms_your_first_deadline_when_the_prom':
-    'Menta confirma tu primera fecha límite cuando el promesa es creado.',
+    'Menta confirma tu primer plazo cuando se crea la promesa.',
   'fullAuth.onboarding.menta_is_confirming_your_promise_and_momenta_bal':
-    'Menta es confirmando Tu promesa y Momenta saldo.',
+    'Menta está confirmando tu promesa y tu saldo de Momenta.',
   'fullAuth.onboarding.menta_mascot_offering_you_a_bag_of_momenta_token':
-    'mascota de Menta ofreciendo tú una bolsa de Momenta fichas',
+    'La mascota de Menta te ofrece una bolsa de fichas de Momenta',
   'fullAuth.onboarding.menta_mascot_waving_you_toward_saving_this_promi':
-    'mascota de Menta saludando tú para guardando este promesa',
+    'La mascota de Menta te anima a guardar esta promesa',
   'fullAuth.onboarding.menta_saved_the_promise_and_confirmed_your_accou':
-    'Menta guardado el promesa y confirmado Tu cuenta de el mismo servidor recibo.',
+    'Menta ha guardado la promesa y ha confirmado tu cuenta con el mismo comprobante del servidor.',
   'fullAuth.onboarding.message_your_draft_is_still_here':
-    '{message} tu borrador es todavía aquí.',
+    '{message} Tu borrador sigue aquí.',
   'fullAuth.onboarding.momenta': 'Momenta',
   'fullAuth.onboarding.momenta_for_extra_promises_groups_freezes_and_it':
-    'Momenta para adicional promesas, Grupos, Gratiszes y artículos.',
-  'fullAuth.onboarding.momenta_for_later_choices':
-    'Momenta para más adelante opciones.',
-  'fullAuth.onboarding.my_promise': 'mi promesa',
-  'fullAuth.onboarding.next_due': 'siguiente pendiente',
-  'fullAuth.onboarding.note': 'nota',
-  'fullAuth.onboarding.opening_email': 'abriendo correo electrónico…',
-  'fullAuth.onboarding.photo': 'foto',
-  'fullAuth.onboarding.preview_my_promise': 'vista previa mi promesa',
-  'fullAuth.onboarding.promise_length': 'promesa Duración',
+    'Momenta para promesas extra, grupos, congelaciones de racha y artículos.',
+  'fullAuth.onboarding.momenta_for_later_choices': 'Momenta para empezar.',
+  'fullAuth.onboarding.my_promise': 'Mi promesa',
+  'fullAuth.onboarding.next_due': 'Próximo plazo',
+  'fullAuth.onboarding.note': 'Nota',
+  'fullAuth.onboarding.opening_email': 'Abriendo el correo…',
+  'fullAuth.onboarding.photo': 'Foto',
+  'fullAuth.onboarding.preview_my_promise': 'Ver mi promesa',
+  'fullAuth.onboarding.promise_length': 'Duración de la promesa',
   'fullAuth.onboarding.promise_saved_and_confirmed':
-    'promesa guardado y confirmado',
-  'fullAuth.onboarding.proof': 'prueba',
-  'fullAuth.onboarding.proof_and_support': 'prueba y asistencia',
-  'fullAuth.onboarding.proof_cadence': 'prueba frecuencia',
+    'Promesa guardada y confirmada',
+  'fullAuth.onboarding.proof': 'Prueba',
+  'fullAuth.onboarding.proof_and_support': 'PRUEBA Y APOYO',
+  'fullAuth.onboarding.proof_cadence': 'Frecuencia de la prueba',
   'fullAuth.onboarding.providername_sign_in_did_not_finish':
-    '{providerName} inicio de sesión se no terminar.',
+    'No se ha completado el inicio de sesión con {providerName}.',
   'fullAuth.onboarding.read_the_current_account_and_community_documents':
-    'leer el actual cuenta y comunidad documentos antes tú crear Tu promesa.',
-  'fullAuth.onboarding.record_a_short_clip': 'grabar una corto vídeo.',
-  'fullAuth.onboarding.referral_code': 'referencia código',
+    'Lee los documentos actuales de la cuenta y de la comunidad antes de crear tu promesa.',
+  'fullAuth.onboarding.record_a_short_clip': 'Graba un vídeo corto.',
+  'fullAuth.onboarding.referral_code': 'Código de invitación',
   'fullAuth.onboarding.reopen_onboarding_before_continuing_with_email':
-    'volver a abrir primeros pasos antes continuando con correo electrónico.',
-  'fullAuth.onboarding.restored_from_this_phone': 'restaurado de este teléfono',
-  'fullAuth.onboarding.return_to_draft': 'Vuelve a borrador',
-  'fullAuth.onboarding.review_menta_s_terms': 'revisión de Menta términos',
-  'fullAuth.onboarding.review_your_promise': 'revisión Tu promesa',
+    'Vuelve a abrir la introducción antes de continuar con el correo.',
+  'fullAuth.onboarding.restored_from_this_phone': 'Recuperado de este teléfono',
+  'fullAuth.onboarding.return_to_draft': 'Volver al borrador',
+  'fullAuth.onboarding.review_menta_s_terms': 'Revisar los términos de Menta',
+  'fullAuth.onboarding.review_your_promise': 'Revisa tu promesa',
   'fullAuth.onboarding.save_this_promise_to_menta':
-    'guardar este promesa a Menta.',
-  'fullAuth.onboarding.save_your_promise': 'guardar Tu promesa',
-  'fullAuth.onboarding.schedule': 'Horario',
-  'fullAuth.onboarding.schedule_every_day': 'Horario, cada día',
-  'fullAuth.onboarding.show_another_example': 'mostrar otro ejemplo',
+    'Guarda esta promesa en Menta.',
+  'fullAuth.onboarding.save_your_promise': 'Guarda tu promesa',
+  'fullAuth.onboarding.schedule': 'Frecuencia',
+  'fullAuth.onboarding.schedule_every_day': 'Frecuencia: cada día',
+  'fullAuth.onboarding.show_another_example': 'Ver otro ejemplo',
   'fullAuth.onboarding.sign_in_to_save_my_promise':
-    'Inicia sesión en guardar mi promesa',
+    'Inicia sesión para guardar mi promesa',
   'fullAuth.onboarding.start_privately_you_can_invite_people_later':
-    'empezar de forma privada. tú puede Invitar personas más adelante.',
+    'Mantenla en privado. Puedes invitar a alguien más adelante.',
   'fullAuth.onboarding.start_with_one_thing_that_matters_today':
-    'empezar con una cosa esa importa hoy.',
+    'Empieza con algo que te importe hoy.',
   'fullAuth.onboarding.stay_here_and_try_again_so_menta_can_keep_this_p':
-    'mantenerse aquí y Vuelve a intentarlo comoí que Menta puede conservar este promesa en este teléfono.',
+    'Quédate aquí y vuelve a intentarlo para que Menta pueda conservar esta promesa en este teléfono.',
   'fullAuth.onboarding.stay_here_and_try_email_sign_in_again_so_menta_c':
-    'mantenerse aquí y intenta correo electrónico inicio de sesión de nuevo comoí que Menta puede conservar este promesa en este teléfono.',
-  'fullAuth.onboarding.take_one_photo': 'hacer una foto.',
+    'Quédate aquí y vuelve a intentar iniciar sesión con el correo para que Menta pueda conservar esta promesa en este teléfono.',
+  'fullAuth.onboarding.take_one_photo': 'Haz una foto.',
   'fullAuth.onboarding.this_choice_sets_your_next_step_it_does_not_add_':
-    'este opción establece tu siguiente paso. lo hace no añadir nadie o crear una grupo aún.',
-  'fullAuth.onboarding.use_duration_days': 'usar {duration} dícomo',
-  'fullAuth.onboarding.video': 'vídeo',
+    'Elige cómo empezar. No se añade a nadie hasta que envíes una invitación.',
+  'fullAuth.onboarding.use_duration_days': 'Usar {duration} días',
+  'fullAuth.onboarding.video': 'Vídeo',
   'fullAuth.onboarding.welcome_momenta': 'Momenta de bienvenida',
-  'fullAuth.onboarding.what_s_one_thing_you_want_to_do':
-    "qué's una cosa tú querer a hacer?",
+  'fullAuth.onboarding.what_s_one_thing_you_want_to_do': '¿Qué quieres hacer?',
   'fullAuth.onboarding.who_will_hold_you_accountable':
-    'quién podrá mantener pulsado tú responsable?',
-  'fullAuth.onboarding.write_what_happened': 'Escribe lo que ha ocurrido.',
+    '¿Quién te ayudará a cumplirla?',
+  'fullAuth.onboarding.write_what_happened': 'Escribe lo que ha pasado.',
   'fullAuth.onboarding.you_can_review_these_choices_before_menta_saves_':
-    'tú puede revisión estos opciones antes Menta guarda nada.',
-  'fullAuth.onboarding.your_account_changed': 'Tu cuenta cambiado.',
+    'Puedes revisar estas opciones antes de que Menta guarde nada.',
+  'fullAuth.onboarding.your_account_changed': 'Tu cuenta ha cambiado.',
   'fullAuth.onboarding.your_draft_could_not_be_saved_yet':
-    'tu borrador No se ha podido estar guardado aún.',
+    'Tu borrador aún no se ha podido guardar.',
   'fullAuth.onboarding.your_draft_is_private_on_this_phone_sign_in_to_k':
-    'tu borrador es privada en este teléfono. Inicia sesión en conservar lo.',
+    'Tu borrador es privado en este teléfono. Inicia sesión para conservarlo.',
   'fullAuth.onboarding.your_draft_is_still_private_on_this_phone':
-    'tu borrador es todavía privada en este teléfono.',
-  'fullAuth.onboarding.your_first_promise': 'tu primera promesa',
+    'Tu borrador sigue siendo privado en este teléfono.',
+  'fullAuth.onboarding.your_first_promise': 'TU PRIMERA PROMESA',
   'fullAuth.onboarding.for_promise': 'Para «{promise}»',
   'fullAuth.onboarding.check_ins': '{count} registros',
-  'fullAuth.onboarding.your_first_promise_2': 'tu primera promesa',
-  'fullAuth.onboarding.your_first_promise_is': 'tu primera promesa es',
+  'fullAuth.onboarding.your_first_promise_2': 'Tu primera promesa',
+  'fullAuth.onboarding.your_first_promise_is': 'Tu primera promesa es',
   'fullAuth.onboarding.your_promise': 'Tu promesa',
-  'fullAuth.onboarding.your_promise_2': 'Tu promesa',
-  'fullAuth.onboarding.your_promise_is_ready': 'Tu promesa es listo.',
+  'fullAuth.onboarding.your_promise_2': 'TU PROMESA',
+  'fullAuth.onboarding.your_promise_is_ready': 'Tu promesa está lista.',
   'fullAuth.onboarding.your_promise_is_safe_confirm_the_documents_below':
-    'Tu promesa es seguro. confirmar el documentos abajo antes tú crear lo.',
+    'Tu promesa está a salvo. Confirma los documentos de abajo antes de crearla.',
   'fullAuth.onboarding.your_promise_is_safe_try_again_before_continuing':
-    'Tu promesa es seguro. Vuelve a intentarlo antes de continuar.',
+    'Tu promesa está a salvo. Vuelve a intentarlo antes de continuar.',
   'fullAuth.onboarding.your_promise_is_still_safe_review_the_current_do':
-    'Tu promesa es todavía seguro. revisión el actual documentos cuando tú son listo a continuar.',
-  'fullAuth.password_recovery.change_my_password': 'cambiar mi contraseña',
+    'Tu promesa sigue a salvo. Revisa los documentos actuales cuando quieras continuar.',
+  'fullAuth.password_recovery.change_my_password': 'Cambiar mi contraseña',
   'fullAuth.password_recovery.choose_a_new_password':
-    'elegir una nuevo contraseña',
-  'fullAuth.password_recovery.close': 'cerrar',
+    'Elige una contraseña nueva',
+  'fullAuth.password_recovery.close': 'Cerrar',
   'fullAuth.password_recovery.close_password_reset':
-    'cerrar contraseña restablecer',
-  'fullAuth.password_recovery.confirm_password': 'confirmar contraseña',
+    'Cerrar el restablecimiento de contraseña',
+  'fullAuth.password_recovery.confirm_password': 'Confirmar contraseña',
   'fullAuth.password_recovery.couldn_t_change_your_password':
-    'No se ha podido cambiar Tu contraseña',
+    'No se ha podido cambiar tu contraseña',
   'fullAuth.password_recovery.enter_new_password':
-    'introducir nuevo contraseña',
+    'Introduce la contraseña nueva',
   'fullAuth.password_recovery.menta': 'Menta',
-  'fullAuth.password_recovery.new_password': 'nuevo contraseña',
+  'fullAuth.password_recovery.new_password': 'Contraseña nueva',
   'fullAuth.password_recovery.or_more_characters_both_entries_must_match':
-    'o más caracteres. ambos entradas debe coincidir.',
+    'caracteres o más. Las dos contraseñas deben coincidir.',
   'fullAuth.password_recovery.other_signed_in_devices_may_ask_for_the_new_pass':
-    'otra iniciada-in dispositivos puede pedir para el nuevo contraseña.',
-  'fullAuth.password_recovery.password_changed': 'contraseña cambiado',
+    'Puede que otros dispositivos con la sesión iniciada te pidan la contraseña nueva.',
+  'fullAuth.password_recovery.password_changed': 'Contraseña cambiada',
   'fullAuth.password_recovery.re_enter_new_password':
-    'Re-enter nuevo contraseña',
-  'fullAuth.password_recovery.request_a_new_link': 'solicitar una nuevo enlace',
+    'Vuelve a introducir la contraseña nueva',
+  'fullAuth.password_recovery.request_a_new_link': 'Pedir un enlace nuevo',
   'fullAuth.password_recovery.request_a_new_link_your_draft_is_still_on_this_p':
-    'solicitar una nuevo enlace. tu borrador es todavía en este teléfono.',
-  'fullAuth.password_recovery.return_to': 'Vuelve a',
+    'Pide un enlace nuevo. Tu borrador sigue en este teléfono.',
+  'fullAuth.password_recovery.return_to': 'Volver a',
   'fullAuth.password_recovery.sign_in': 'Iniciar sesión',
-  'fullAuth.password_recovery.sign_in_instead': 'Iniciar sesión en tu lugar',
+  'fullAuth.password_recovery.sign_in_instead': 'Iniciar sesión',
   'fullAuth.password_recovery.this_reset_link_has_expired':
-    'este restablecer enlace ha caducado.',
-  'fullAuth.password_recovery.use': 'usar',
+    'Este enlace para restablecer la contraseña ha caducado.',
+  'fullAuth.password_recovery.use': 'Usa',
   'fullAuth.password_recovery.your_password_has_been_changed':
-    'Tu contraseña ha sido cambiado.',
-  'fullAuth.report_issue.1_open_2_tap_3_notice': '1. abrir… 2. toca… 3. aviso…',
-  'fullAuth.report_issue.add_a_screenshot': 'añadir una captura de pantalla',
-  'fullAuth.report_issue.add_more_detail': 'añadir más detalle',
-  'fullAuth.report_issue.add_the_basics': 'añadir el conceptos básicos',
+    'Tu contraseña se ha cambiado.',
+  'fullAuth.report_issue.1_open_2_tap_3_notice':
+    '1. Abre… 2. Toca… 3. Veo que…',
+  'fullAuth.report_issue.add_a_screenshot': 'Añadir una captura de pantalla',
+  'fullAuth.report_issue.add_more_detail': 'Añadir más detalles',
+  'fullAuth.report_issue.add_the_basics': 'Añade lo básico',
   'fullAuth.report_issue.attach_a_jpeg_png_or_webp_screenshot':
-    'adjuntar una JPEG, PNG, o WebP captura de pantalla.',
-  'fullAuth.report_issue.back_to_support': 'Volver a asistencia',
+    'Adjunta una captura de pantalla en JPEG, PNG o WebP.',
+  'fullAuth.report_issue.back_to_support': 'Volver a ayuda',
   'fullAuth.report_issue.choose_a_screenshot_smaller_than_8_mb':
-    'elegir una captura de pantalla más pequeño que 8 MB.',
-  'fullAuth.report_issue.choose_an_image': 'elegir un imagen',
-  'fullAuth.report_issue.choose_another_report': 'elegir otro informe',
-  'fullAuth.report_issue.choose_screenshot': 'elegir captura de pantalla',
+    'Elige una captura de pantalla de menos de 8 MB.',
+  'fullAuth.report_issue.choose_an_image': 'Elige una imagen',
+  'fullAuth.report_issue.choose_another_report': 'Elige otro informe',
+  'fullAuth.report_issue.choose_screenshot': 'Elegir captura de pantalla',
   'fullAuth.report_issue.could_not_find_this_saved_report':
-    'No se ha podido buscar este guardado informe',
+    'No se ha encontrado este informe guardado',
   'fullAuth.report_issue.crash_reference': 'Referencia del fallo',
   'fullAuth.report_issue.expected_result_optional':
-    'esperado resultado, opcional',
+    'Resultado esperado, opcional',
   'fullAuth.report_issue.expected_result_optional_2':
-    'esperado resultado (opcional)',
-  'fullAuth.report_issue.feedback_received': 'comentarios recibido',
-  'fullAuth.report_issue.feedback_required': 'comentarios, obligatorio',
+    'Resultado esperado (opcional)',
+  'fullAuth.report_issue.feedback_received': 'Comentarios recibidos',
+  'fullAuth.report_issue.feedback_required': 'Comentarios, obligatorio',
   'fullAuth.report_issue.give_the_report_a_short_title_and_explain_what_h':
-    'dar el informe una corto título y explicar Qué ha ocurrido.',
-  'fullAuth.report_issue.inappropriate': 'Inapropiado',
+    'Ponle un título corto al informe y explica qué ha pasado.',
+  'fullAuth.report_issue.inappropriate': 'inapropiado',
   'fullAuth.report_issue.it_is_not_saved_under_this_account_nothing_was_c':
-    'lo es no guardado en este cuenta. nada fue cambiado.',
+    'No está guardado en esta cuenta. No se ha cambiado nada.',
   'fullAuth.report_issue.keep_this_screen_open_while_you_write_or_copy_th':
-    'conservar este pantalla abrir mientras tú escribir, o copia el texto antes saliendo.',
+    'Mantén esta pantalla abierta mientras escribes o copia el texto antes de salir.',
   'fullAuth.report_issue.last_step': 'Último paso',
   'fullAuth.report_issue.menta_could_not_open_your_photo_library_try_agai':
-    'Menta No se ha podido Abre tus foto biblioteca. Vuelve a intentarlo.',
+    'Menta no ha podido abrir tu fototeca. Vuelve a intentarlo.',
   'fullAuth.report_issue.menta_could_not_preserve_this_report_locally_kee':
-    'Menta No se ha podido conservar este informe locally. conservar este pantalla abrir; nada fue entregado a asistencia.',
+    'Menta no ha podido conservar este informe en el teléfono. Mantén esta pantalla abierta; no se ha enviado nada al equipo de ayuda.',
   'fullAuth.report_issue.menta_does_not_add_device_diagnostics_to_this_re':
-    'Menta hace no añadir dispositivo diagnósticos a este informe.',
+    'Menta no añade diagnósticos del dispositivo a este informe.',
   'fullAuth.report_issue.menta_includes_the_item_or_screen_you_reported':
-    'Menta incluye el artículo o pantalla tú informado.',
-  'fullAuth.report_issue.not_sent': 'not-enviado',
-  'fullAuth.report_issue.open': 'abrir',
+    'Menta incluye el elemento o la pantalla que has informado.',
+  'fullAuth.report_issue.not_sent': 'no enviado',
+  'fullAuth.report_issue.open': 'abierto',
   'fullAuth.report_issue.preparing_private_report_draft':
-    'preparando privada informe borrador',
+    'Preparando el borrador privado del informe',
   'fullAuth.report_issue.proof_upload_gets_stuck':
-    'prueba subir obtiene atascado',
+    'La subida de la prueba se queda atascada',
   'fullAuth.report_issue.reference': 'Referencia',
-  'fullAuth.report_issue.remove': 'Eliminar',
-  'fullAuth.report_issue.replace_screenshot': 'reemplazar captura de pantalla',
-  'fullAuth.report_issue.report_an_issue': 'informe un problema',
-  'fullAuth.report_issue.report_not_sent': 'informe no enviado',
-  'fullAuth.report_issue.report_received': 'informe recibido',
-  'fullAuth.report_issue.retry_sending_report': 'reintentar enviando informe',
-  'fullAuth.report_issue.return_to_support': 'Vuelve a asistencia',
-  'fullAuth.report_issue.review_feedback': 'revisión comentarios',
-  'fullAuth.report_issue.review_report': 'revisión informe',
+  'fullAuth.report_issue.remove': 'Quitar',
+  'fullAuth.report_issue.replace_screenshot': 'Cambiar captura de pantalla',
+  'fullAuth.report_issue.report_an_issue': 'Informar de un problema',
+  'fullAuth.report_issue.report_not_sent': 'Informe no enviado',
+  'fullAuth.report_issue.report_received': 'Informe recibido',
+  'fullAuth.report_issue.retry_sending_report': 'Volver a enviar el informe',
+  'fullAuth.report_issue.return_to_support': 'Volver a ayuda',
+  'fullAuth.report_issue.review_feedback': 'Revisar comentarios',
+  'fullAuth.report_issue.review_report': 'Revisar informe',
   'fullAuth.report_issue.screenshot_did_not_open':
-    'captura de pantalla se no abrir',
+    'No se ha abierto la captura de pantalla',
   'fullAuth.report_issue.screenshot_is_too_large':
-    'captura de pantalla es demasiado grande',
-  'fullAuth.report_issue.screenshot_optional': 'captura de pantalla (opcional)',
+    'La captura de pantalla es demasiado grande',
+  'fullAuth.report_issue.screenshot_optional': 'Captura de pantalla (opcional)',
   'fullAuth.report_issue.selected_support_screenshot':
-    'seleccionada asistencia captura de pantalla',
-  'fullAuth.report_issue.server_confirmed': 'servidor-confirmado',
-  'fullAuth.report_issue.share_feedback': 'compartir comentarios',
-  'fullAuth.report_issue.short_title': 'corto título',
-  'fullAuth.report_issue.short_title_required': 'corto título, obligatorio',
+    'Captura de pantalla elegida para el equipo de ayuda',
+  'fullAuth.report_issue.server_confirmed': 'confirmado por el servidor',
+  'fullAuth.report_issue.share_feedback': 'Enviar comentarios',
+  'fullAuth.report_issue.short_title': 'Título corto',
+  'fullAuth.report_issue.short_title_required': 'Título corto, obligatorio',
   'fullAuth.report_issue.sign_in_again_before_sending_this_private_report':
-    'Iniciar sesión de nuevo antes enviando este privada informe. nada fue enviado.',
-  'fullAuth.report_issue.sign_in_required': 'Iniciar sesión obligatorio',
+    'Vuelve a iniciar sesión antes de enviar este informe privado. No se ha enviado nada.',
+  'fullAuth.report_issue.sign_in_required': 'Tienes que iniciar sesión',
   'fullAuth.report_issue.status': 'Estado',
   'fullAuth.report_issue.steps_to_reproduce_optional':
-    'pasos a reproducir, opcional',
+    'Pasos para reproducirlo, opcional',
   'fullAuth.report_issue.steps_to_reproduce_optional_2':
-    'pasos a reproducir (opcional)',
-  'fullAuth.report_issue.support_reference': 'asistencia Referencia ·',
+    'Pasos para reproducirlo (opcional)',
+  'fullAuth.report_issue.support_reference': 'Referencia de ayuda ·',
   'fullAuth.report_issue.this_comes_from_where_you_opened':
-    '. este llega de donde tú abierto',
+    '. Viene de donde lo abriste',
   'fullAuth.report_issue.this_report_is_not_being_saved':
-    'este informe es no siendo guardado',
+    'Este informe no se está guardando',
   'fullAuth.report_issue.type': 'tipo:',
   'fullAuth.report_issue.we_ll_show_a_support_reference_only_after_the_re':
-    'Te enviaremos mostrar una asistencia Referencia solo después el informe llega. si el primera intento es poco claro, Vuelve a intentarlo usa el mismo informe comoí que lo podrá no crear una duplicado.',
+    'Solo mostraremos una referencia de ayuda cuando llegue el informe. Si no está claro si el primer intento ha funcionado, Vuelve a intentarlo usa el mismo informe, así que no se creará un duplicado.',
   'fullAuth.report_issue.what_did_you_expect_menta_to_do':
-    'qué se tú esperar Menta a hacer?',
-  'fullAuth.report_issue.what_happened': 'Qué ha ocurrido',
-  'fullAuth.report_issue.what_happened_required':
-    'Qué ha ocurrido, obligatorio',
-  'fullAuth.report_issue.what_i_would_change': 'qué I podría cambiar',
+    '¿Qué esperabas que hiciera Menta?',
+  'fullAuth.report_issue.what_happened': 'Qué pasó',
+  'fullAuth.report_issue.what_happened_required': 'Qué pasó, obligatorio',
+  'fullAuth.report_issue.what_i_would_change': 'Lo que cambiaría',
   'fullAuth.report_issue.what_were_you_doing_and_what_did_menta_show':
-    'qué fueron tú haciendo, y qué se Menta mostrar?',
+    '¿Qué estabas haciendo y qué mostró Menta?',
   'fullAuth.report_issue.what_would_you_like_the_menta_team_to_know':
-    'qué podría tú como el Menta equipo a saber?',
+    '¿Qué te gustaría contarle al equipo de Menta?',
   'fullAuth.report_issue.will_help_support_find_the_error':
-    'podrá ayuda asistencia buscar el error.',
+    'ayudará al equipo de ayuda a encontrar el error.',
   'fullAuth.report_issue.your_draft_stays_on_this_phone_until_you_send_it':
-    'tu borrador sigue en este teléfono hasta tú enviar lo.',
-  'fullAuth.report_issue.your_feedback': 'tu comentarios',
+    'Tu borrador se queda en este teléfono hasta que lo envíes.',
+  'fullAuth.report_issue.your_feedback': 'Tus comentarios',
   'fullAuth.report_issue.your_screenshot_will_be_sent_with_the_report_onl':
-    'tu captura de pantalla podrá estar enviado con el informe. solo autorizado asistencia personal puede abrir lo.',
+    'Tu captura de pantalla se enviará con el informe. Solo el personal de ayuda autorizado puede abrirla.',
   'fullAuth.settings.a_compatible_update_is_downloaded_and_ready':
-    'una compatible actualización es descargado y listo.',
-  'fullAuth.settings.account_control': 'cuenta control',
-  'fullAuth.settings.account_was_not_deleted': 'cuenta fue no eliminado',
+    'Hay una actualización compatible descargada y lista.',
+  'fullAuth.settings.account_control': 'Control de la cuenta',
+  'fullAuth.settings.account_was_not_deleted': 'La cuenta no se ha eliminado',
   'fullAuth.settings.active_view_or_manage_your_subscription':
-    'activa. ver o gestionar tu suscripción.',
+    'Activa. Consulta o gestiona tu suscripción.',
   'fullAuth.settings.ad_measurement': 'Medición de anuncios',
-  'fullAuth.settings.ad_privacy_choices': 'anuncio privacidad opciones',
+  'fullAuth.settings.ad_privacy_choices': 'Opciones de privacidad de anuncios',
   'fullAuth.settings.ad_privacy_choices_did_not_open':
-    'anuncio privacidad opciones se no abrir',
+    'No se han abierto las opciones de privacidad de anuncios',
   'fullAuth.settings.advanced_diagnostics': 'Diagnóstico avanzado',
   'fullAuth.settings.advanced_diagnostics_are_off':
-    'Diagnóstico avanzado son desactivadas',
+    'El diagnóstico avanzado está desactivado',
   'fullAuth.settings.advanced_diagnostics_are_on':
-    'Diagnóstico avanzado son en',
+    'El diagnóstico avanzado está activado',
   'fullAuth.settings.advanced_diagnostics_are_still_off_check_your_co':
-    'Diagnóstico avanzado son todavía desactivadas. Comprueba tu conexión y Vuelve a intentarlo.',
+    'El diagnóstico avanzado sigue desactivado. Comprueba tu conexión y vuelve a intentarlo.',
   'fullAuth.settings.ask_for_help_share_feedback_or_check_a_saved_rep':
-    'pedir para ayuda, compartir comentarios o comprobar una guardado informe.',
-  'fullAuth.settings.back_to_you': 'Volver a tú',
+    'Pide ayuda, envía comentarios o consulta un informe guardado.',
+  'fullAuth.settings.back_to_you': 'Volver a Perfil',
   'fullAuth.settings.before_you_delete_your_account':
-    'antes tú eliminar Tu cuenta',
-  'fullAuth.settings.check_for_updates': 'comprobar para actualizaciones',
+    'Antes de eliminar tu cuenta',
+  'fullAuth.settings.check_for_updates': 'Buscar actualizaciones',
   'fullAuth.settings.check_your_connection_and_try_again':
-    'Comprueba tu conexión y Vuelve a intentarlo.',
-  'fullAuth.settings.checking_for_updates': 'comprobando para actualizaciones',
-  'fullAuth.settings.checking_your_account': 'comprobando Tu cuenta',
+    'Comprueba tu conexión y vuelve a intentarlo.',
+  'fullAuth.settings.checking_for_updates': 'Buscando actualizaciones',
+  'fullAuth.settings.checking_your_account': 'Comprobando tu cuenta',
   'fullAuth.settings.checks_the_current_connection_and_known_account_':
-    'comprobaciones el actual conexión y conocido cuenta detalles de nuevo.',
+    'Vuelve a comprobar la conexión actual y los datos conocidos de la cuenta.',
   'fullAuth.settings.close_and_reopen_menta_to_apply_the_downloaded_u':
-    'cerrar y volver a abrir Menta a aplicar el descargado actualización.',
-  'fullAuth.settings.community_standards': 'comunidad normas',
+    'Cierra y vuelve a abrir Menta para aplicar la actualización descargada.',
+  'fullAuth.settings.community_standards': 'Normas de la comunidad',
   'fullAuth.settings.confirmation': 'Confirmación',
   'fullAuth.settings.connect_before_deleting_your_account':
-    'conectar antes eliminando Tu cuenta',
+    'Conéctate antes de eliminar tu cuenta',
   'fullAuth.settings.connect_to_check_this_phone':
-    'conectar a comprobar este teléfono.',
-  'fullAuth.settings.contact_support': 'contactar asistencia',
-  'fullAuth.settings.continue_to_sign_in': 'continuar a Iniciar sesión',
+    'Conéctate para comprobar este teléfono.',
+  'fullAuth.settings.contact_support': 'Contactar con ayuda',
+  'fullAuth.settings.continue_to_sign_in': 'Continuar para iniciar sesión',
   'fullAuth.settings.could_not_check_your_account':
-    'No se ha podido comprobar Tu cuenta',
+    'No se ha podido comprobar tu cuenta',
   'fullAuth.settings.could_not_load_your_profile':
-    'No se ha podido cargar Tu perfil.',
+    'No se ha podido cargar tu perfil.',
   'fullAuth.settings.deletion_checking_body':
     'Menta está comprobando la propiedad de los grupos y Menta Pro. No se ha eliminado nada.',
   'fullAuth.settings.deletion_check_unknown_body':
@@ -1034,276 +1041,275 @@ export const fullAuthAccountEsES = {
   'fullAuth.settings.deletion_subscription_inactive':
     'No hay ningún acceso activo a Menta Pro.',
   'fullAuth.settings.menta_pro_subscription': 'Suscripción a Menta Pro',
-  'fullAuth.settings.delete_account': 'eliminar cuenta',
+  'fullAuth.settings.delete_account': 'Eliminar cuenta',
   'fullAuth.settings.delete_account_will_be_available_when_this_check':
-    'eliminar cuenta podrá estar disponible cuando este comprobar termina.',
-  'fullAuth.settings.deletion_result_unknown':
-    'Resultado de eliminación desconocido',
+    'Podrás eliminar la cuenta cuando termine esta comprobación.',
+  'fullAuth.settings.deletion_result_unknown': 'No se sabe si se ha eliminado',
   'fullAuth.settings.do_not_send_another_request_yet_check_whether_yo':
-    'hacer no enviar otro solicitar aún. comprobar si tú puede todavía Iniciar sesión, o contactar asistencia.',
+    'No envíes otra solicitud todavía. Comprueba si aún puedes iniciar sesión o contacta con el equipo de ayuda.',
   'fullAuth.settings.download_the_latest_compatible_menta_update':
-    'descargar el más reciente compatible Menta actualización.',
+    'Descarga la última actualización compatible de Menta.',
   'fullAuth.settings.extra_performance_measurements_start_now':
-    'adicional rendimiento mediciones empezar ahora.',
+    'Las mediciones de rendimiento adicionales empiezan ahora.',
   'fullAuth.settings.extra_performance_measurements_start_now_masked_':
-    'adicional rendimiento mediciones empezar ahora. oculto diagnóstico grabación empieza en que cumple los requisitos pantallas; volver a abrir Menta a aplicar todo Sentry grabación ajustes.',
-  'fullAuth.settings.feedback_and_support': 'comentarios y asistencia',
+    'Las mediciones de rendimiento adicionales empiezan ahora. La grabación de diagnóstico con datos ocultos empieza en las pantallas compatibles; vuelve a abrir Menta para aplicar todos los ajustes de grabación de Sentry.',
+  'fullAuth.settings.feedback_and_support': 'Comentarios y ayuda',
   'fullAuth.settings.for_your_privacy_account_settings_stay_hidden_un':
-    'para tu privacidad, cuenta ajustes mantenerse oculto hasta tú Iniciar sesión de nuevo.',
-  'fullAuth.settings.help_and_feedback': 'ayuda y comentarios',
+    'Por tu privacidad, los ajustes de la cuenta se ocultan hasta que vuelvas a iniciar sesión.',
+  'fullAuth.settings.help_and_feedback': 'Ayuda y comentarios',
   'fullAuth.settings.how_menta_handles_your_data':
-    'cómo Menta gestiona tu datos.',
-  'fullAuth.settings.keep_current_setting': 'conservar actual ajuste',
-  'fullAuth.settings.keep_my_account': 'conservar mi cuenta',
-  'fullAuth.settings.label_did_not_open': '{label} se no abrir',
-  'fullAuth.settings.leave_a_review': 'dejar una revisión',
+    'Cómo trata Menta tus datos.',
+  'fullAuth.settings.keep_current_setting': 'Mantener el ajuste actual',
+  'fullAuth.settings.keep_my_account': 'Conservar mi cuenta',
+  'fullAuth.settings.label_did_not_open': 'No se ha abierto {label}',
+  'fullAuth.settings.leave_a_review': 'Escribir una reseña',
   'fullAuth.settings.leave_this_device_your_menta_account_stays_activ':
-    'dejar este dispositivo. tu Menta cuenta sigue activa.',
+    'Salir en este dispositivo. Tu cuenta de Menta sigue activa.',
   'fullAuth.settings.loading_account_specific_settings':
-    'cargando account-específico ajustes',
+    'Cargando los ajustes de la cuenta',
   'fullAuth.settings.measure_whether_meta_ads_helped_someone_use_ment':
-    'medir si metadatos anuncios ayudado alguien usar Menta.',
+    'Mide si los anuncios de Meta ayudaron a alguien a usar Menta.',
   'fullAuth.settings.membership': 'Membresía',
   'fullAuth.settings.menta_cannot_check_whether_you_still_own_a_group':
-    'Menta no puede comprobar si tú todavía propio una grupo. revisión tu Grupos antes eliminando el cuenta. eliminando Menta hace no cancelar Menta Pro, comoí que gestionar el suscripción con Apple primera.',
+    'Menta no puede comprobar si todavía eres propietario de algún grupo. Revisa tus grupos antes de eliminar la cuenta. Eliminar Menta no cancela Menta Pro, así que gestiona antes la suscripción con Apple.',
   'fullAuth.settings.menta_could_not_check_for_updates':
-    'Menta No se ha podido comprobar para actualizaciones',
+    'Menta no ha podido buscar actualizaciones',
   'fullAuth.settings.menta_could_not_delete_the_account_check_your_co':
-    'Menta No se ha podido eliminar el cuenta. Comprueba tu conexión, después Vuelve a intentarlo.',
+    'Menta no ha podido eliminar la cuenta. Comprueba tu conexión y vuelve a intentarlo.',
   'fullAuth.settings.menta_could_not_end_this_session_your_account_an':
-    'Menta No se ha podido terminar este Sesión. Tu cuenta y local ver son sin cambios.',
-  'fullAuth.settings.menta_could_not_restart':
-    'Menta No se ha podido reiniciar',
+    'Menta no ha podido cerrar esta sesión. Tu cuenta y la vista local no han cambiado.',
+  'fullAuth.settings.menta_could_not_restart': 'Menta no ha podido reiniciarse',
   'fullAuth.settings.menta_is_checking_for_the_latest_compatible_upda':
-    'Menta es comprobando para el más reciente compatible actualización.',
-  'fullAuth.settings.menta_is_up_to_date': 'Menta es arriba a fecha',
+    'Menta está buscando la última actualización compatible.',
+  'fullAuth.settings.menta_is_up_to_date': 'Menta está actualizada',
   'fullAuth.settings.menta_pro': 'Menta Pro',
-  'fullAuth.settings.menta_update_ready': 'Menta actualización listo',
+  'fullAuth.settings.menta_update_ready': 'Actualización de Menta lista',
   'fullAuth.settings.menta_will_continue_using_its_current_safe_versi':
-    'Menta podrá continuar usando tus actual seguro versión.',
-  'fullAuth.settings.needs_attention': 'Requiere atención',
-  'fullAuth.settings.nothing_has_been_deleted': 'nada ha sido eliminado',
+    'Menta seguirá usando su versión segura actual.',
+  'fullAuth.settings.needs_attention': 'Necesita atención',
+  'fullAuth.settings.nothing_has_been_deleted': 'No se ha eliminado nada',
   'fullAuth.settings.nothing_was_deleted_reconnect_then_try_again':
-    'nada fue eliminado. reconectar, después Vuelve a intentarlo.',
-  'fullAuth.settings.notifications': 'notificaciones',
-  'fullAuth.settings.offline': 'sin conexión',
-  'fullAuth.settings.open_when_connected': 'abrir cuando conectado.',
+    'No se ha eliminado nada. Vuelve a conectarte e inténtalo de nuevo.',
+  'fullAuth.settings.notifications': 'Notificaciones',
+  'fullAuth.settings.offline': 'Sin conexión',
+  'fullAuth.settings.open_when_connected': 'Se abre cuando haya conexión.',
   'fullAuth.settings.opens_menta_pro_plans_purchase_restore_or_your_a':
-    'abre Menta Pro planes, compra restaurar, o tu activa plan.',
+    'Abre los planes de Menta Pro, la restauración de compras o tu plan activo.',
   'fullAuth.settings.opens_sign_in_for_this_account':
-    'abre inicio de sesión para este cuenta.',
+    'Abre el inicio de sesión de esta cuenta.',
   'fullAuth.settings.optional_performance_measurements':
-    'opcional rendimiento mediciones.',
+    'Mediciones de rendimiento opcionales.',
   'fullAuth.settings.optional_performance_measurements_and_masked_dia':
-    'opcional rendimiento mediciones y oculto diagnóstico grabación.',
+    'Mediciones de rendimiento opcionales y grabación de diagnóstico con datos ocultos.',
   'fullAuth.settings.ordinary_crash_reports_stay_on':
-    'normal fallo informes mantenerse en.',
+    'Los informes de fallos habituales siguen activados.',
   'fullAuth.settings.ordinary_crash_reports_stay_on_when_advanced_dia':
-    'normal fallo informes mantenerse en cuando Diagnóstico avanzado son desactivadas.',
+    'Los informes de fallos habituales siguen activados aunque el diagnóstico avanzado esté desactivado.',
   'fullAuth.settings.other_settings_are_still_available_try_loading_t':
-    'otra ajustes son todavía disponible. intenta cargando el perfil de nuevo cuando el conexión es listo.',
+    'Los demás ajustes siguen disponibles. Vuelve a cargar el perfil cuando haya conexión.',
   'fullAuth.settings.permanently_delete_your_account_and_menta_data':
-    'permanentemente eliminar Tu cuenta y Menta datos.',
+    'Elimina para siempre tu cuenta y tus datos de Menta.',
   'fullAuth.settings.plans_benefits_and_restore_purchases':
-    'planes, ventajas y Restaurar compras.',
+    'Planes, ventajas y restaurar compras.',
   'fullAuth.settings.preferences': 'Preferencias',
   'fullAuth.settings.press_restart_to_apply_the_downloaded_update':
-    'pulsa reiniciar a aplicar el descargado actualización.',
-  'fullAuth.settings.privacy_and_legal': 'privacidad y legal',
-  'fullAuth.settings.privacy_policy': 'privacidad política',
-  'fullAuth.settings.profile_details': 'perfil detalles',
+    'Pulsa Reiniciar para aplicar la actualización descargada.',
+  'fullAuth.settings.privacy_and_legal': 'Privacidad y aspectos legales',
+  'fullAuth.settings.privacy_policy': 'Política de privacidad',
+  'fullAuth.settings.profile_details': 'Datos del perfil',
   'fullAuth.settings.proof_reminders_reviews_and_group_updates':
-    'prueba recordatorios, Revisiones y grupo actualizaciones.',
-  'fullAuth.settings.read_menta_s_terms': 'leer de Menta términos.',
+    'Recordatorios de prueba, revisiones y novedades de los grupos.',
+  'fullAuth.settings.read_menta_s_terms': 'Lee los términos de Menta.',
   'fullAuth.settings.reopen_menta_to_stop_diagnostic_recording_ordina':
-    'volver a abrir Menta a detener diagnóstico grabación. normal fallo informes mantenerse en.',
+    'Vuelve a abrir Menta para detener la grabación de diagnóstico. Los informes de fallos habituales siguen activados.',
   'fullAuth.settings.restarting_menta': 'Reiniciando Menta',
   'fullAuth.settings.review_choices_used_for_sponsor_videos':
-    'revisión opciones usado para patrocinador vídeos.',
+    'Revisa las opciones que se usan para los vídeos de patrocinadores.',
   'fullAuth.settings.review_deletion_confirmation':
-    'revisión Eliminación Confirmación',
+    'Revisar la confirmación de eliminación',
   'fullAuth.settings.review_the_current_terms_and_when_you_accepted_t':
-    'revisión el actual términos y cuando tú aceptado los.',
+    'Consulta los términos actuales y cuándo los aceptaste.',
   'fullAuth.settings.rules_for_promises_proof_and_groups':
-    'normas para promesas, prueba y Grupos.',
+    'Normas para promesas, pruebas y grupos.',
   'fullAuth.settings.session': 'Sesión',
-  'fullAuth.settings.settings': 'ajustes',
+  'fullAuth.settings.settings': 'Ajustes',
   'fullAuth.settings.share_your_experience_and_help_others_discover_m':
-    'compartir tu experiencia y ayuda otros descubrir Menta.',
-  'fullAuth.settings.sign_in_again': 'Iniciar sesión de nuevo',
+    'Comparte tu experiencia y ayuda a otras personas a descubrir Menta.',
+  'fullAuth.settings.sign_in_again': 'Volver a iniciar sesión',
   'fullAuth.settings.sign_in_again_before_deleting_your_account':
-    'Iniciar sesión de nuevo antes eliminando Tu cuenta.',
+    'Vuelve a iniciar sesión antes de eliminar tu cuenta.',
   'fullAuth.settings.sign_in_again_to_see_settings':
-    'Iniciar sesión de nuevo a ver ajustes.',
-  'fullAuth.settings.sign_in_needed': 'inicio de sesión necesario',
-  'fullAuth.settings.sign_out': 'sesión fuera',
+    'Vuelve a iniciar sesión para ver los ajustes.',
+  'fullAuth.settings.sign_in_needed': 'Tienes que iniciar sesión',
+  'fullAuth.settings.sign_out': 'Cerrar sesión',
   'fullAuth.settings.small_performance_impact':
-    'Impacto leve en el rendimiento',
+    'Poco impacto en el rendimiento',
   'fullAuth.settings.some_destinations_need_a_connection':
-    'algunos destinos necesita una conexión.',
-  'fullAuth.settings.terms_of_use': 'términos de usar',
-  'fullAuth.settings.terms_you_accepted': 'términos tú aceptado',
+    'Algunos destinos necesitan conexión.',
+  'fullAuth.settings.terms_of_use': 'Términos de uso',
+  'fullAuth.settings.terms_you_accepted': 'Términos que aceptaste',
   'fullAuth.settings.the_downloaded_update_will_open_automatically':
-    'el descargado actualización podrá abrir automáticamente.',
+    'La actualización descargada se abrirá automáticamente.',
   'fullAuth.settings.the_next_screen_asks_you_to_type_delete_before_m':
-    'el siguiente pantalla pide tú a tipo eliminar antes Menta envía el solicitar.',
+    'En la siguiente pantalla tendrás que escribir DELETE antes de que Menta envíe la solicitud.',
   'fullAuth.settings.this_can_use_a_small_amount_of_extra_processing_':
-    'este puede usar una leve cantidad de adicional procesando, batería y móvil datos mientras Menta es abrir. grabación empieza solo en que cumple los requisitos pantallas. volver a abrir Menta después activando lo desactivadas a detener Sentry grabación.',
+    'Puede consumir un poco más de procesador, batería y datos móviles mientras Menta está abierta. La grabación solo empieza en las pantallas compatibles. Vuelve a abrir Menta después de desactivarlo para detener la grabación de Sentry.',
   'fullAuth.settings.this_device_has_the_latest_compatible_update':
-    'este dispositivo ha el más reciente compatible actualización.',
-  'fullAuth.settings.to_confirm': 'a confirmar',
+    'Este dispositivo tiene la última actualización compatible.',
+  'fullAuth.settings.to_confirm': 'para confirmar',
   'fullAuth.settings.tries_to_load_the_signed_in_profile_again':
-    'intenta a cargar el iniciada-in perfil de nuevo.',
+    'Vuelve a cargar el perfil con la sesión iniciada.',
   'fullAuth.settings.try_again_in_a_moment_or_open_the_link_from_the_':
-    'Vuelve a intentarlo en una momento, o Abre los enlace de el aplicación tienda ficha.',
+    'Vuelve a intentarlo en un momento o abre el enlace desde la ficha de la App Store.',
   'fullAuth.settings.try_again_later_optional_ads_stay_unavailable_un':
-    'Vuelve a intentarlo más adelante. opcional anuncios mantenerse no disponible hasta tú revisión estos opciones.',
-  'fullAuth.settings.try_connection_again': 'intenta conexión de nuevo',
-  'fullAuth.settings.try_loading_profile_again':
-    'intenta cargando perfil de nuevo',
+    'Vuelve a intentarlo más tarde. Los anuncios opcionales no estarán disponibles hasta que revises estas opciones.',
+  'fullAuth.settings.try_connection_again': 'Volver a comprobar la conexión',
+  'fullAuth.settings.try_loading_profile_again': 'Volver a cargar el perfil',
   'fullAuth.settings.try_loading_your_name_and_profile_photo_again':
-    'intenta cargando tu nombre y perfil foto de nuevo.',
+    'Vuelve a cargar tu nombre y tu foto de perfil.',
   'fullAuth.settings.try_the_account_check_again_before_you_delete_an':
-    'intenta el cuenta comprobar de nuevo antes tú eliminar nada.',
+    'Vuelve a comprobar la cuenta antes de eliminar nada.',
   'fullAuth.settings.turn_off_advanced_diagnostics':
-    'activar desactivadas Diagnóstico avanzado',
+    'Desactivar el diagnóstico avanzado',
   'fullAuth.settings.turn_on_advanced_diagnostics':
-    'activar en Diagnóstico avanzado',
-  'fullAuth.settings.type': 'tipo',
+    'Activar el diagnóstico avanzado',
+  'fullAuth.settings.type': 'Escribe',
   'fullAuth.settings.type_delete_to_confirm_account_deletion':
-    'tipo eliminar a confirmar cuenta Eliminación',
+    'Escribe DELETE para confirmar la eliminación de la cuenta',
   'fullAuth.settings.update_checks_are_unavailable':
-    'actualización comprobaciones son no disponible',
+    'No se pueden buscar actualizaciones',
   'fullAuth.settings.while_enabled_this_can_use_a_small_amount_of_ext':
-    'mientras activadas, este puede usar una leve cantidad de adicional procesando, batería y móvil datos mientras Menta es abrir.',
-  'fullAuth.settings.you_are_still_signed_in': 'tú son todavía iniciada en',
+    'Mientras esté activado, puede consumir un poco más de procesador, batería y datos móviles cuando Menta está abierta.',
+  'fullAuth.settings.you_are_still_signed_in': 'Sigues con la sesión iniciada',
   'fullAuth.settings.your_account_stays_open_until_menta_confirms_the':
-    'Tu cuenta sigue abrir hasta Menta confirma el Eliminación.',
-  'fullAuth.settings.your_account_was_deleted': 'Tu cuenta fue eliminado.',
-  'fullAuth.settings.your_choice_was_not_saved': 'tu opción fue no guardado',
+    'Tu cuenta sigue abierta hasta que Menta confirme la eliminación.',
+  'fullAuth.settings.your_account_was_deleted': 'Tu cuenta se ha eliminado.',
+  'fullAuth.settings.your_choice_was_not_saved': 'No se ha guardado tu opción',
   'fullAuth.settings.your_saved_settings_are_still_here':
-    'tu guardado ajustes son todavía aquí.',
+    'Tus ajustes guardados siguen aquí.',
   'fullAuth.settings.your_support_drafts_for_this_account_were_remove':
-    'tu asistencia borradores para este cuenta fueron Eliminard.',
+    'Se han quitado tus borradores de ayuda de esta cuenta.',
   'fullAuth.support.change_menta_permissions_on_this_phone':
-    'cambiar Menta permisos en este teléfono',
-  'fullAuth.support.check_app_and_connection':
-    'comprobar aplicación y conexión',
+    'Cambiar los permisos de Menta en este teléfono',
+  'fullAuth.support.check_app_and_connection': 'Comprobar la app y la conexión',
   'fullAuth.support.check_the_apple_account_used_for_the_original_pu':
-    'Comprueba los cuenta de Apple usado para el original compra. si Apple muestra una carga, informe el problema antes comprando de nuevo.',
+    'Comprueba la cuenta de Apple que usaste para la compra original. Si Apple muestra un cargo, informa del problema antes de volver a comprar.',
   'fullAuth.support.checking_private_report_drafts':
-    'comprobando privada informe borradores',
-  'fullAuth.support.checking_purchases': 'comprobando compras',
+    'Comprobando los borradores de informes privados',
+  'fullAuth.support.checking_purchases': 'Comprobando compras',
   'fullAuth.support.choose_what_you_need_you_can_review_everything_b':
-    'elegir qué tú necesita. tú puede revisión todo antes enviando.',
-  'fullAuth.support.connection_available': 'conexión disponible',
+    'Elige lo que necesitas. Puedes revisarlo todo antes de enviarlo.',
+  'fullAuth.support.connection_available': 'Conexión disponible',
   'fullAuth.support.connection_check_did_not_finish':
-    'conexión comprobar se no terminar',
+    'No se ha terminado de comprobar la conexión',
   'fullAuth.support.could_not_check_earlier_purchases':
-    'No se ha podido comprobar anterior compras',
+    'No se han podido comprobar las compras anteriores',
   'fullAuth.support.do_not_buy_it_again_while_this_check_continues':
-    'hacer no comprar lo de nuevo mientras este comprobar continues.',
+    'No vuelvas a comprarlo mientras sigue esta comprobación.',
   'fullAuth.support.find_an_earlier_menta_pro_purchase':
-    'buscar un anterior Menta Pro compra',
-  'fullAuth.support.hide_more_help': 'ocultar más ayuda',
+    'Buscar una compra anterior de Menta Pro',
+  'fullAuth.support.hide_more_help': 'Ocultar más ayuda',
   'fullAuth.support.looking_for_an_earlier_menta_pro_purchase':
-    'Looking para un anterior Menta Pro compra',
-  'fullAuth.support.menta_appears_offline': 'Menta appears sin conexión',
-  'fullAuth.support.menta_pro_is_active_again': 'Menta Pro es activa de nuevo',
+    'Buscando una compra anterior de Menta Pro',
+  'fullAuth.support.menta_appears_offline':
+    'Parece que Menta no tiene conexión',
+  'fullAuth.support.menta_pro_is_active_again':
+    'Menta Pro vuelve a estar activo',
   'fullAuth.support.menta_pro_is_still_being_checked':
-    'Menta Pro es todavía siendo checked',
-  'fullAuth.support.more_help': 'más ayuda',
+    'Todavía se está comprobando Menta Pro',
+  'fullAuth.support.more_help': 'Más ayuda',
   'fullAuth.support.no_matching_purchase_was_found':
-    'no matching compra fue found',
+    'No se ha encontrado ninguna compra que coincida',
   'fullAuth.support.nothing_was_purchased_or_changed_check_the_conne':
-    'nada fue purchased o cambiado. Comprueba los conexión y Vuelve a intentarlo.',
-  'fullAuth.support.open_phone_settings': 'abrir teléfono ajustes',
+    'No se ha comprado ni cambiado nada. Comprueba la conexión y vuelve a intentarlo.',
+  'fullAuth.support.open_phone_settings': 'Abrir ajustes del teléfono',
   'fullAuth.support.opens_a_separate_support_report':
-    'abre una separada asistencia informe.',
+    'Abre un informe de ayuda aparte.',
   'fullAuth.support.opens_sign_in_before_starting_a_private_report':
-    'abre inicio de sesión antes iniciando una privada informe.',
-  'fullAuth.support.other_help': 'otra ayuda',
+    'Abre el inicio de sesión antes de empezar un informe privado.',
+  'fullAuth.support.other_help': 'Otra ayuda',
   'fullAuth.support.restore_purchases': 'Restaurar compras',
   'fullAuth.support.saved_on_this_phone_and_still_waiting_to_be_sent':
-    'guardado en este teléfono y todavía esperando a estar enviado.',
-  'fullAuth.support.saved_reports': 'guardado informes',
+    'guardado(s) en este teléfono y pendiente(s) de enviar.',
+  'fullAuth.support.saved_reports': 'Informes guardados',
   'fullAuth.support.see_app_version_connection_and_saved_proof':
-    'ver aplicación versión, conexión y guardado prueba',
-  'fullAuth.support.share_feedback': 'compartir comentarios',
-  'fullAuth.support.sign_in_required': 'Iniciar sesión obligatorio',
+    'Ver la versión de la app, la conexión y las pruebas guardadas',
+  'fullAuth.support.share_feedback': 'Enviar comentarios',
+  'fullAuth.support.sign_in_required': 'Tienes que iniciar sesión',
   'fullAuth.support.sign_in_to_report_an_issue':
-    'Inicia sesión en informe un problema',
-  'fullAuth.support.support': 'asistencia',
+    'Inicia sesión para informar de un problema',
+  'fullAuth.support.support': 'Ayuda',
   'fullAuth.support.support_drafts_stay_private_to_the_account_that_':
-    'asistencia borradores mantenerse privada a el cuenta esa creado los. Iniciar sesión antes iniciando una nuevo informe.',
+    'Los borradores de ayuda son privados de la cuenta que los creó. Inicia sesión antes de empezar un informe nuevo.',
   'fullAuth.support.this_does_not_start_a_new_purchase_or_charge_thi':
-    'este hace no empezar una nuevo compra o carga este cuenta.',
+    'No inicia una compra nueva ni hace ningún cargo a esta cuenta.',
   'fullAuth.support.version_appversion_savedcopy_nothing_changed_try':
-    'versión {appVersion}. {savedCopy} nada cambiado. intenta el comprobar de nuevo cuando tu conexión improves.',
+    'Versión {appVersion}. {savedCopy} No ha cambiado nada. Vuelve a comprobarlo cuando mejore tu conexión.',
   'fullAuth.support.version_appversion_savedcopy_saved_proof_stays_o':
-    'versión {appVersion}. {savedCopy} guardado prueba sigue en este teléfono hasta Menta confirma lo fue enviado.',
+    'Versión {appVersion}. {savedCopy} Las pruebas guardadas se quedan en este teléfono hasta que Menta confirme que se han enviado.',
   'fullAuth.support.your_earlier_purchase_is_active_on_this_account':
-    'tu anterior compra es activa en este cuenta.',
-  'fullAuth.system_settings.back_to_support': 'Volver a asistencia',
+    'Tu compra anterior está activa en esta cuenta.',
+  'fullAuth.system_settings.back_to_support': 'Volver a ayuda',
   'fullAuth.system_settings.change_notification_camera_photo_or_ad_measureme':
-    'cambiar notificación, camera, foto, o Medición de anuncios permisos en tu teléfono ajustes. Menta no puede cambiar o confirmar los de este pantalla.',
+    'Cambia los permisos de notificaciones, cámara, fotos o medición de anuncios en los ajustes del teléfono. Menta no puede cambiarlos ni confirmarlos desde esta pantalla.',
   'fullAuth.system_settings.nothing_changed_in_menta_open_your_phone_setting':
-    'nada cambiado en Menta. Abre tus teléfono ajustes manually, después Vuelve a el aplicación.',
-  'fullAuth.system_settings.open_phone_settings': 'abrir teléfono ajustes',
+    'No ha cambiado nada en Menta. Abre los ajustes del teléfono manualmente y vuelve a la app.',
+  'fullAuth.system_settings.open_phone_settings': 'Abrir ajustes del teléfono',
   'fullAuth.system_settings.opening_phone_settings_does_not_confirm_that_a_p':
-    'abriendo teléfono ajustes hace no confirmar esa una permiso cambiado.',
-  'fullAuth.system_settings.phone_settings': 'teléfono ajustes',
+    'Abrir los ajustes del teléfono no confirma que haya cambiado un permiso.',
+  'fullAuth.system_settings.phone_settings': 'Ajustes del teléfono',
   'fullAuth.system_settings.phone_settings_could_not_open':
-    'teléfono ajustes No se ha podido abrir',
-  'fullAuth.system_settings.return_when_you_re_done':
-    'volver cuando estás hecho',
-  'fullAuth.tabs_profile.active_and_past_promises': 'activa y past promesas',
-  'fullAuth.tabs_profile.active_promises': 'activa promesas',
+    'No se han podido abrir los ajustes del teléfono',
+  'fullAuth.system_settings.return_when_you_re_done': 'Vuelve cuando termines',
+  'fullAuth.tabs_profile.active_and_past_promises':
+    'Promesas activas y pasadas',
+  'fullAuth.tabs_profile.active_promises': 'Promesas activas',
   'fullAuth.tabs_profile.activepromisecount_active_promises_currentstreak':
-    '{activePromiseCount} activa promesas, {currentStreak} día racha, {length} Grupos',
-  'fullAuth.tabs_profile.change_profile_photo': 'cambiar perfil foto',
+    '{activePromiseCount} promesas activas, racha de {currentStreak} días, {length} grupos',
+  'fullAuth.tabs_profile.change_profile_photo': 'Cambiar foto de perfil',
   'fullAuth.tabs_profile.choose_one_thing_to_follow_through_on_it_will_ap':
-    'elegir una cosa a seguir hasta el final en. lo podrá aparecer en hoy con el prueba tú elegir.',
-  'fullAuth.tabs_profile.create_a_promise': 'crear una promesa',
+    'Elige una cosa que quieras cumplir. Aparecerá en Hoy con la prueba que elijas.',
+  'fullAuth.tabs_profile.create_a_promise': 'Crear una promesa',
   'fullAuth.tabs_profile.current_reward_terms_and_your_link':
-    'actual recompensa términos y tu enlace',
-  'fullAuth.tabs_profile.day_streak': 'día racha',
-  'fullAuth.tabs_profile.edit_profile': 'editar perfil',
+    'Condiciones actuales de la recompensa y tu enlace',
+  'fullAuth.tabs_profile.day_streak': 'Días de racha',
+  'fullAuth.tabs_profile.edit_profile': 'Editar perfil',
   'fullAuth.tabs_profile.for_your_privacy_menta_hides_the_previous_accoun':
-    'para tu privacidad, Menta oculta el anterior cuenta cuando el Sesión termina.',
+    'Por tu privacidad, Menta oculta la cuenta anterior cuando termina la sesión.',
   'fullAuth.tabs_profile.groups': 'Grupos',
-  'fullAuth.tabs_profile.invite': 'Invitar',
+  'fullAuth.tabs_profile.invite': 'invitar',
   'fullAuth.tabs_profile.invite_friends': 'Invitar amigos',
-  'fullAuth.tabs_profile.loading_your_profile': 'cargando Tu perfil',
-  'fullAuth.tabs_profile.make_your_first_promise': 'Make tu primera promesa',
+  'fullAuth.tabs_profile.loading_your_profile': 'Cargando tu perfil',
+  'fullAuth.tabs_profile.make_your_first_promise': 'Haz tu primera promesa',
   'fullAuth.tabs_profile.menta_kept_the_last_details_saved_for_this_accou':
-    'Menta kept el última detalles guardado para este cuenta. tú puede todavía editar Tu perfil y usar otra perfil acciones.',
+    'Menta ha conservado los últimos datos guardados de esta cuenta. Aún puedes editar tu perfil y usar las demás opciones del perfil.',
   'fullAuth.tabs_profile.momenta': 'Momenta',
-  'fullAuth.tabs_profile.no_promises_yet': 'no promesas aún',
+  'fullAuth.tabs_profile.no_promises_yet': 'Aún no hay promesas',
   'fullAuth.tabs_profile.open_saved_type_invite':
-    'abrir guardado {type} Invitar',
+    'Abrir invitación guardada: {type}',
   'fullAuth.tabs_profile.open_the_invite_to_review_it_before_joining':
-    'Abre los Invitar a revisión lo antes unirse.',
+    'Abre la invitación para revisarla antes de unirte.',
   'fullAuth.tabs_profile.opens_your_invite_link_and_the_current_reward_te':
-    'abre tu Invitar enlace y el actual recompensa términos.',
+    'Abre tu enlace de invitación y las condiciones actuales de la recompensa.',
   'fullAuth.tabs_profile.personal_promises': 'Promesas personales',
   'fullAuth.tabs_profile.profile_details_may_be_out_of_date':
-    'perfil detalles puede estar fuera de fecha',
-  'fullAuth.tabs_profile.progress_and_rewards': 'progreso y rewards',
+    'Puede que los datos del perfil no estén actualizados',
+  'fullAuth.tabs_profile.progress_and_rewards': 'Progreso y recompensas',
   'fullAuth.tabs_profile.progress_starts_with_proof':
-    'progreso empieza con prueba',
-  'fullAuth.tabs_profile.saved': 'guardado',
-  'fullAuth.tabs_profile.sign_in_again': 'Iniciar sesión de nuevo',
-  'fullAuth.tabs_profile.sign_in_to_see_you': 'Inicia sesión en ver tú',
+    'El progreso empieza con una prueba',
+  'fullAuth.tabs_profile.saved': 'Guardado',
+  'fullAuth.tabs_profile.sign_in_again': 'Volver a iniciar sesión',
+  'fullAuth.tabs_profile.sign_in_to_see_you':
+    'Inicia sesión para ver tu perfil',
   'fullAuth.tabs_profile.streaks_and_progress_appear_after_you_send_proof':
-    'rachas y progreso aparecer después tú enviar prueba para un activa promesa.',
+    'Las rachas y el progreso aparecen cuando envías una prueba de una promesa activa.',
   'fullAuth.tabs_profile.the_last_saved_promise_and_group_counts_are_stil':
-    'el última guardado promesa y grupo counts son todavía mostrado. otra perfil acciones permanecer disponible.',
-  'fullAuth.tabs_profile.wallet_shop_and_items': 'cartera, tienda y artículos',
-  'fullAuth.tabs_profile.you': 'tú',
+    'Se siguen mostrando los últimos recuentos guardados de promesas y grupos. Las demás opciones del perfil siguen disponibles.',
+  'fullAuth.tabs_profile.wallet_shop_and_items': 'Cartera, tienda y artículos',
+  'fullAuth.tabs_profile.you': 'Perfil',
   'fullAuth.tabs_profile.your_progress_may_be_out_of_date':
-    'tu progreso puede estar fuera de fecha',
-  'fullAuth.tabs_profile.your_rhythm': 'tu rhythm',
+    'Puede que tu progreso no esté actualizado',
+  'fullAuth.tabs_profile.your_rhythm': 'Tu ritmo',
   'fullAuth.source.example.walk': 'Camina 20 minutos después del trabajo',
   'fullAuth.source.example.application':
     'Envía la solicitud antes de las 17:00',
@@ -1530,4 +1536,29 @@ export const fullAuthAccountEsES = {
   'fullAuth.residual.report.category_proof': 'Prueba',
   'fullAuth.residual.report.category_member': 'Miembro',
   'fullAuth.residual.report.category_app_issue': 'Problema de la aplicación',
+  'fullAuth.tabs_profile.since': 'Cumpliendo promesas desde {month}',
+  'fullAuth.tabs_profile.stat_day_streak': 'días de racha',
+  'fullAuth.tabs_profile.stat_best_streak': 'mejor racha',
+  'fullAuth.tabs_profile.stat_days_kept': 'días cumplidos',
+  'fullAuth.tabs_profile.stat_day_one': 'Día 1',
+  'fullAuth.tabs_profile.stat_starts_today': 'empieza hoy',
+  'fullAuth.tabs_profile.stats_accessibility':
+    '{current}. Mejor racha: {best} días. {kept} días cumplidos.',
+  'fullAuth.tabs_profile.month_kept': '{count} cumplidos',
+  'fullAuth.tabs_profile.month_frozen': '{count} protegidos',
+  'fullAuth.tabs_profile.month_missed': '{count} perdidos',
+  'fullAuth.tabs_profile.month_empty': 'Aquí se irán llenando tus días',
+  'fullAuth.tabs_profile.day_kept': '{day}: cumplido',
+  'fullAuth.tabs_profile.day_frozen':
+    '{day}: cubierto por una congelación de racha',
+  'fullAuth.tabs_profile.day_missed': '{day}: perdido',
+  'fullAuth.tabs_profile.day_today': '{day}: hoy',
+  'fullAuth.tabs_profile.invite_title': 'Trae a alguien a Menta',
+  'fullAuth.tabs_profile.invite_reward':
+    'Cada uno recibe {amount} Momenta cuando haga su primera promesa.',
+  'fullAuth.tabs_profile.invite_body':
+    'Las promesas se cumplen mejor con alguien al lado.',
+  'fullAuth.tabs_profile.invite_action': 'Invitar a alguien',
+  'fullAuth.tabs_profile.active_count': '{count} activas',
+  'fullAuth.tabs_profile.invite_accessibility': '{title}. {body}',
 } as const satisfies Pick<EnglishCatalogue, FullAuthAccountKey>;

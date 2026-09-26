@@ -184,14 +184,25 @@ describe('TodayStateCard', () => {
       <TodayStateCard
         onPrimaryPress={jest.fn()}
         presentation={presentation}
-        progress={{ streakCount: 6, dayNumber: 4, totalDays: 14 }}
+        promiseReceipt={{
+          title: null,
+          meta: null,
+          approved: false,
+          facts: [
+            { label: 'Today', value: 'Proof due', tone: 'action' },
+            { label: 'Progress', value: 'Day 4 of 14' },
+            { label: 'Streak', value: '6 days' },
+          ],
+        }}
       />
     );
 
     expect(getByText('6 days')).toBeTruthy();
     expect(getByText('Day 4 of 14')).toBeTruthy();
     expect(
-      getByLabelText('Current streak 6 days. Promise progress Day 4 of 14.')
+      getByLabelText(
+        'Today’s promise. Today: Proof due. Progress: Day 4 of 14. Streak: 6 days'
+      )
     ).toBeTruthy();
   });
 
@@ -236,7 +247,10 @@ describe('TodayStateCard', () => {
 
     expect(getByTestId(`today-state-${state}`)).toBeTruthy();
     expect(getByText(presentation.title)).toBeTruthy();
-    if (presentation.mascot && presentation.layout !== 'accountability') {
+    if (
+      presentation.mascot &&
+      (presentation.layout === 'hero' || presentation.layout === 'empty')
+    ) {
       expect(getByTestId('mascot-proof-proud')).toBeTruthy();
     }
 

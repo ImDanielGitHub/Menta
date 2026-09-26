@@ -23,7 +23,7 @@ export const navigationPtPT = {
   'navigation.create.private_promise': 'Começar uma promessa privada',
   'navigation.personal.title': 'Promessas individuais',
   'navigation.personal.accessibility': 'Promessas individuais. {detail}',
-  'navigation.personal.view': 'Ver suas promessas individuais',
+  'navigation.personal.view': 'Ver as suas promessas individuais',
   'navigation.personal.none': 'Nenhuma promessa individual ativa',
   'navigation.personal.active': '{count} promessas ativas',
   'navigation.personal.active.one': '{count} promessa ativa',

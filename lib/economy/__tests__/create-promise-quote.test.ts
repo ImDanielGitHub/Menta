@@ -42,7 +42,7 @@ describe('create promise quote', () => {
     });
   });
 
-  it('blocks a third live promise before inventing a monthly wall', () => {
+  it('allows a third live promise while the monthly count is below its cap', () => {
     expect(
       resolveCreatePromiseGate({
         cost: 30,
@@ -50,7 +50,18 @@ describe('create promise quote', () => {
         challengesCreatedThisMonth: 1,
         isPro: false,
       })
-    ).toEqual({ allowed: false, reason: 'active', limit: 2 });
+    ).toEqual({ allowed: true });
+  });
+
+  it('blocks a fourth live promise before inventing a monthly wall', () => {
+    expect(
+      resolveCreatePromiseGate({
+        cost: 30,
+        activePromises: 3,
+        challengesCreatedThisMonth: 1,
+        isPro: false,
+      })
+    ).toEqual({ allowed: false, reason: 'active', limit: 3 });
   });
 
   it('blocks a fifth monthly create when the server count is known', () => {

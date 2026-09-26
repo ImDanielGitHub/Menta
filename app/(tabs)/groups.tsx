@@ -25,6 +25,7 @@ import {
   ErrorBoundary,
 } from '@/components/ui';
 import { AppScaledText } from '@/components/ui/AppScaledText';
+import { AppSegmentedControl } from '@/components/ui/AppSegmentedControl';
 import { ChevronRightIcon, ClockIcon, PlusIcon } from '@/components/ui/icons';
 import {
   mentaColors,
@@ -33,6 +34,7 @@ import {
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
+import { IPAD_MAX_CONTENT_WIDTH } from '@/constants/responsive-layout';
 import { useTheme } from '@/constants/ThemeContext';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { useTranslation } from '@/lib/localization';
@@ -79,6 +81,7 @@ export default function GroupsScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const phoneLayout = usePhoneLayout();
+  const isIPad = Platform.OS === 'ios' && Platform.isPad;
   const { user } = useAuthStore();
   const pendingInvite = useInviteStore(state => state.pending);
   const { groups } = useUserGroupsState();
@@ -460,6 +463,7 @@ export default function GroupsScreen() {
       }
       contentContainerStyle={[
         styles.content,
+        isIPad ? styles.iPadContent : null,
         {
           paddingTop: phoneLayout.isShortHeight
             ? mentaSpacing[3]
@@ -513,79 +517,49 @@ export default function GroupsScreen() {
       </View>
 
       {!mineInitialLoading ? (
-        <View
-          accessibilityRole="tablist"
+        <AppSegmentedControl
+          accessibilityLabel={t('navigation.tab.groups')}
+          size="large"
           testID="groups-tab-switcher"
-          style={[
-            styles.segment,
-            { backgroundColor: colors.background.secondary },
-          ]}
-        >
-          {[
+          value={tab}
+          onChange={nextTab => {
+            setPreviewGroup(null);
+            setTab(nextTab);
+            if (nextTab === 'discover') {
+              trackProductOperation({
+                area: 'group_discovery',
+                authority: 'client',
+                operation: 'discover_group',
+                outcome: 'started',
+                phase: 'intent',
+                source: 'groups',
+              });
+            }
+          }}
+          options={[
             {
               label: t('groups.source.accountability.shared_tab'),
-              value: 'mine' as GroupsTab,
+              value: 'mine',
+              accessibilityHint: t(
+                'groups.source.accountability.shared_tab_hint'
+              ),
+              testID: 'groups-tab-mine',
             },
-            { label: t('groups.tab.discover'), value: 'discover' as GroupsTab },
-          ].map(option => {
-            const selected = tab === option.value;
-            const accessibilityRole = Platform.OS === 'ios' ? 'button' : 'tab';
-            return (
-              <Pressable
-                key={option.value}
-                accessibilityLabel={option.label}
-                accessibilityHint={
-                  option.value === 'mine'
-                    ? t('groups.source.accountability.shared_tab_hint')
-                    : t('groups.tab.discover_hint')
-                }
-                accessibilityRole={accessibilityRole}
-                accessibilityState={{ selected }}
-                onPress={() => {
-                  setPreviewGroup(null);
-                  setTab(option.value);
-                  if (option.value === 'discover') {
-                    trackProductOperation({
-                      area: 'group_discovery',
-                      authority: 'client',
-                      operation: 'discover_group',
-                      outcome: 'started',
-                      phase: 'intent',
-                      source: 'groups',
-                    });
-                  }
-                }}
-                role={accessibilityRole}
-                testID={`groups-tab-${option.value}`}
-                style={({ pressed }) => [
-                  styles.segmentOption,
-                  selected ? { backgroundColor: colors.accent.primary } : null,
-                  pressed ? styles.segmentPressed : null,
-                ]}
-              >
-                <Text
-                  accessible={false}
-                  style={[
-                    styles.segmentText,
-                    selected
-                      ? styles.segmentTextSelected
-                      : styles.segmentTextUnselected,
-                    {
-                      color: selected
-                        ? colors.onPrimary
-                        : colors.text.secondary,
-                    },
-                  ]}
-                >
-                  {option.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+            {
+              label: t('groups.tab.discover'),
+              value: 'discover',
+              accessibilityHint: t('groups.tab.discover_hint'),
+              testID: 'groups-tab-discover',
+            },
+          ]}
+        />
       ) : null}
 
-      {tab === 'mine' && !initialLoading ? (
+      {tab === 'mine' &&
+      !initialLoading &&
+      // The empty state offers the same invite-code action, so the row only
+      // earns its place once there is a list or a saved invite to show.
+      (pendingInvite || myGroups.length > 0) ? (
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={
@@ -700,6 +674,9 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     gap: mentaSpacing[6],
   },
+  iPadContent: {
+    maxWidth: IPAD_MAX_CONTENT_WIDTH,
+  },
   listLane: {
     alignSelf: 'stretch',
     width: '100%',
@@ -736,24 +713,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: mentaSpacing[4],
   },
   pressed: { opacity: 0.72 },
-  segment: {
-    width: '100%',
-    minHeight: mentaLayout.primaryControlHeight + mentaSpacing[2],
-    flexDirection: 'row',
-    padding: mentaSpacing[1],
-    borderRadius: mentaRadii.medium,
-  },
-  segmentOption: {
-    flex: 1,
-    minHeight: mentaLayout.primaryControlHeight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: mentaRadii.small,
-  },
-  segmentPressed: { opacity: 0.8 },
-  segmentText: { ...mentaTypography.control, textAlign: 'center' },
-  segmentTextSelected: { ...mentaTypography.control },
-  segmentTextUnselected: { ...mentaTypography.control },
   inviteRow: {
     minHeight: 70,
     flexDirection: 'row',

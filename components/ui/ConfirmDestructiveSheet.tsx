@@ -5,9 +5,14 @@ import {
   TextInput,
   StyleSheet,
   useWindowDimensions,
-  Pressable,
 } from 'react-native';
 import { useTheme } from '@/constants/ThemeContext';
+import {
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
 import { SimpleBottomSheet } from '@/components/ui/SimpleBottomSheet';
 import { AppButton } from '@/components/ui/AppButton';
 import { AlertTriangleIcon, RefreshCwIcon } from '@/components/ui/icons';
@@ -15,10 +20,7 @@ import { useTranslation } from '@/lib/localization/use-translation';
 import { emitHaptic } from '@/lib/motion/haptics';
 
 export type DestructiveSheetStatus =
-  | 'confirm'
-  | 'loading'
-  | 'failed'
-  | 'unknown';
+  'confirm' | 'loading' | 'failed' | 'unknown';
 
 type Props = {
   visible: boolean;
@@ -52,7 +54,7 @@ export const ConfirmDestructiveSheet: React.FC<Props> = ({
   const theme = useTheme();
   const { t } = useTranslation();
   const { height } = useWindowDimensions();
-  const { colors, borderRadius, spacing, typography } = theme;
+  const { colors } = theme;
   const [input, setInput] = useState('');
   const resolvedStatus: DestructiveSheetStatus = loading ? 'loading' : status;
   const isLoading = resolvedStatus === 'loading';
@@ -113,48 +115,26 @@ export const ConfirmDestructiveSheet: React.FC<Props> = ({
       scrollableBody={
         <>
           {isResultState ? (
-            <View style={{ gap: spacing.md }}>
+            <View style={styles.stack}>
               <View
                 accessible
                 accessibilityRole="alert"
-                style={[styles.stateCopy, { gap: spacing.sm }]}
+                style={styles.stateCopy}
               >
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: spacing.sm,
-                  }}
-                >
-                  <AlertTriangleIcon size={18} color={colors.status.error} />
+                <View style={styles.resultHeading}>
+                  <AlertTriangleIcon size={20} color={colors.status.error} />
                   <Text
                     accessibilityRole="header"
-                    style={{
-                      color: colors.text.primary,
-                      fontSize: typography.sizes.lg,
-                      fontWeight: '700',
-                    }}
+                    style={[styles.heading, { color: colors.text.primary }]}
                   >
                     {resultCopy.heading}
                   </Text>
                 </View>
-                <Text
-                  style={{
-                    color: colors.text.secondary,
-                    fontSize: typography.sizes.sm,
-                    lineHeight: typography.lineHeights.relaxed,
-                  }}
-                >
+                <Text style={[styles.body, { color: colors.text.secondary }]}>
                   {resultCopy.body}
                 </Text>
               </View>
-              <Text
-                style={{
-                  color: colors.text.secondary,
-                  fontSize: typography.sizes.xs,
-                  lineHeight: 18,
-                }}
-              >
+              <Text style={[styles.notice, { color: colors.text.secondary }]}>
                 {resultCopy.notice}
               </Text>
 
@@ -165,88 +145,53 @@ export const ConfirmDestructiveSheet: React.FC<Props> = ({
                   haptic={false}
                   variant="primary"
                   size="large"
+                  fullWidth
                   icon={<RefreshCwIcon size={16} color={colors.text.inverse} />}
                   testID={`${testID}-retry`}
                 />
               ) : null}
               {onContactSupport ? (
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={t('shared.action.contactSupport')}
+                <AppButton
+                  title={t('shared.action.contactSupport')}
                   onPress={onContactSupport}
+                  variant="ghost"
+                  size="large"
+                  fullWidth
                   testID={`${testID}-support`}
-                  style={{
-                    minHeight: 44,
-                    justifyContent: 'center',
-                    paddingVertical: spacing.sm,
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: colors.text.secondary,
-                      textAlign: 'center',
-                      fontSize: typography.sizes.sm,
-                      fontWeight: '600',
-                    }}
-                  >
-                    {t('shared.action.contactSupport')}
-                  </Text>
-                </Pressable>
+                />
               ) : null}
               <AppButton
                 title={t('shared.action.close')}
                 onPress={handleClose}
                 variant="ghost"
                 size="large"
+                fullWidth
                 testID={`${testID}-close`}
               />
             </View>
           ) : (
-            <View style={{ gap: spacing.md }}>
+            <View style={styles.stack}>
               <View
                 accessible
                 accessibilityRole="alert"
-                style={[styles.stateCopy, { gap: spacing.sm }]}
+                style={styles.stateCopy}
               >
-                <View
-                  style={{
-                    alignItems: 'center',
-                    flexDirection: 'row',
-                    gap: spacing.sm,
-                  }}
+                <Text
+                  accessibilityRole="header"
+                  style={[styles.heading, { color: colors.text.primary }]}
                 >
-                  <AlertTriangleIcon size={18} color={colors.status.error} />
-                  <Text
-                    accessibilityRole="header"
-                    style={{
-                      color: colors.status.error,
-                      fontSize: typography.sizes.lg,
-                      fontWeight: '700',
-                    }}
-                  >
-                    {title}
-                  </Text>
-                </View>
+                  {title}
+                </Text>
                 {description ? (
-                  <Text
-                    style={{
-                      color: colors.text.secondary,
-                      fontSize: typography.sizes.sm,
-                      lineHeight: typography.lineHeights.relaxed,
-                    }}
-                  >
+                  <Text style={[styles.body, { color: colors.text.secondary }]}>
                     {description}
                   </Text>
                 ) : null}
               </View>
 
-              <View style={{ gap: 8 }}>
+              <View style={styles.field}>
                 <Text
-                  style={{
-                    color: colors.text.primary,
-                    fontSize: typography.sizes.sm,
-                    fontWeight: '500',
-                  }}
+                  style={[styles.fieldLabel, { color: colors.text.primary }]}
                 >
                   {t('shared.confirm.typeToConfirm', { name: nameToType })}
                 </Text>
@@ -270,7 +215,6 @@ export const ConfirmDestructiveSheet: React.FC<Props> = ({
                       borderColor: canConfirm
                         ? colors.status.error
                         : colors.border.primary,
-                      borderRadius: borderRadius.md,
                     },
                   ]}
                   autoCapitalize="none"
@@ -282,7 +226,7 @@ export const ConfirmDestructiveSheet: React.FC<Props> = ({
                 />
               </View>
 
-              <View style={{ gap: 8 }}>
+              <View style={styles.actions}>
                 <AppButton
                   title={
                     isLoading
@@ -292,6 +236,7 @@ export const ConfirmDestructiveSheet: React.FC<Props> = ({
                   onPress={handleConfirm}
                   variant="destructive"
                   size="large"
+                  fullWidth
                   disabled={!canConfirm}
                   loading={isLoading}
                   testID={`${testID}-confirm`}
@@ -301,6 +246,7 @@ export const ConfirmDestructiveSheet: React.FC<Props> = ({
                   onPress={handleClose}
                   variant="ghost"
                   size="large"
+                  fullWidth
                   disabled={isLoading}
                   testID={`${testID}-cancel`}
                 />
@@ -314,15 +260,43 @@ export const ConfirmDestructiveSheet: React.FC<Props> = ({
 };
 
 const styles = StyleSheet.create({
-  input: {
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderWidth: 1,
-    fontSize: 16,
-    minHeight: 48,
+  stack: {
+    gap: mentaSpacing[5],
   },
   stateCopy: {
-    paddingHorizontal: 2,
+    gap: mentaSpacing[2],
+  },
+  resultHeading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: mentaSpacing[2],
+  },
+  heading: {
+    ...mentaTypography.title,
+    flexShrink: 1,
+  },
+  body: {
+    ...mentaTypography.body,
+  },
+  notice: {
+    ...mentaTypography.bodySmall,
+  },
+  field: {
+    gap: mentaSpacing[2],
+  },
+  fieldLabel: {
+    ...mentaTypography.bodySmallMedium,
+  },
+  input: {
+    ...mentaTypography.body,
+    minHeight: mentaLayout.primaryControlHeight,
+    paddingHorizontal: mentaSpacing[4],
+    paddingVertical: mentaSpacing[3],
+    borderRadius: mentaRadii.medium,
+    borderWidth: 1,
+  },
+  actions: {
+    gap: mentaSpacing[2],
   },
 });
 

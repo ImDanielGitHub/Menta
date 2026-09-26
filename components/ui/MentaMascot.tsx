@@ -28,6 +28,9 @@ export type MascotState =
   | 'momenta-gift'
   | 'referral-invitation'
   | 'first-miss-recovery'
+  | 'fresh-start'
+  | 'first-promise'
+  | 'widget-guide'
   | 'closing-soon'
   | 'promise-confirmed'
   | 'promise-guide'
@@ -45,7 +48,10 @@ export type MascotState =
   | 'risk-peek'
   | 'review-needed'
   | 'welcome-hero'
-  | 'welcome-back';
+  | 'welcome-back'
+  | 'momenta-ad-watch'
+  | 'momenta-short'
+  | 'pro-crown';
 
 const MASCOT_SPRITES: Record<MascotState, number> = {
   'proof-proud': require('@/assets/images/mascot/proof-proud.png'),
@@ -56,6 +62,9 @@ const MASCOT_SPRITES: Record<MascotState, number> = {
   'momenta-gift': require('@/assets/images/mascot/momenta-gift.png'),
   'referral-invitation': require('@/assets/images/mascot/referral-invitation.png'),
   'first-miss-recovery': require('@/assets/images/mascot/first-miss-recovery.png'),
+  'first-promise': require('@/assets/images/mascot/first-promise.png'),
+  'fresh-start': require('@/assets/images/mascot/today-fresh-start.png'),
+  'widget-guide': require('@/assets/images/mascot/widget-guide.png'),
   'closing-soon': require('@/assets/images/mascot/closing-soon.png'),
   'promise-confirmed': require('@/assets/images/mascot/promise-confirmed.png'),
   'promise-guide': require('@/assets/images/mascot/promise-guide.png'),
@@ -74,6 +83,9 @@ const MASCOT_SPRITES: Record<MascotState, number> = {
   'review-needed': require('@/assets/images/mascot/review-needed.png'),
   'welcome-hero': require('@/assets/images/mascot/welcome-hero.png'),
   'welcome-back': require('@/assets/images/mascot/welcome-back.png'),
+  'momenta-ad-watch': require('@/assets/images/mascot/momenta-ad-watch.png'),
+  'momenta-short': require('@/assets/images/mascot/momenta-short.png'),
+  'pro-crown': require('@/assets/images/mascot/pro-crown.png'),
 };
 
 const SIZE_PRESETS = {

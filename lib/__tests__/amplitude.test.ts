@@ -30,6 +30,27 @@ const flushReplayState = async () => {
 };
 
 describe('Amplitude transport', () => {
+  it('clears a persisted account without rotating the installation identity on cold start', () => {
+    jest.isolateModules(() => {
+      const { setAmplitudeUserId } = require('@/lib/amplitude');
+      setAmplitudeUserId(null);
+      setAmplitudeUserId(null);
+    });
+    expect(mockAmplitudeSetUserId).toHaveBeenCalledTimes(1);
+    expect(mockAmplitudeSetUserId).toHaveBeenCalledWith(undefined);
+    expect(mockAmplitudeReset).not.toHaveBeenCalled();
+  });
+
+  it('contains asynchronous event transport rejection', async () => {
+    mockAmplitudeTrack.mockReturnValueOnce({
+      promise: Promise.reject(new Error('offline')),
+    });
+    jest.isolateModules(() => {
+      const { trackAmplitudeEvent } = require('@/lib/amplitude');
+      trackAmplitudeEvent('App Opened');
+    });
+    await flushReplayState();
+  });
   const originalApiKey = process.env.EXPO_PUBLIC_AMPLITUDE_API_KEY;
   const originalReplayFlag = process.env.EXPO_PUBLIC_AMPLITUDE_REPLAY_ENABLED;
 
@@ -121,6 +142,11 @@ describe('Amplitude transport', () => {
       expect.objectContaining({
         event_version: 3,
       })
+    );
+    expect(mockAmplitudeReset).not.toHaveBeenCalled();
+    expect(mockAmplitudeSetUserId).toHaveBeenCalledWith(undefined);
+    expect(mockAmplitudeSetUserId.mock.invocationCallOrder[0]).toBeLessThan(
+      mockAmplitudeTrack.mock.invocationCallOrder[0]
     );
   });
 

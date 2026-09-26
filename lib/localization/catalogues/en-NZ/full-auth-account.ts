@@ -1252,6 +1252,13 @@ export const fullAuthAccountEnNZ = {
   'fullAuth.tabs_profile.your_progress_may_be_out_of_date':
     'Your progress may be out of date',
   'fullAuth.tabs_profile.your_rhythm': 'Your rhythm',
+  'fullAuth.tabs_profile.build_your_rhythm': 'Build your rhythm',
+  'fullAuth.tabs_profile.rhythm_next_check_in':
+    'One check-in at a time. Open Today for your next step. Proof waiting for review appears here once it is accepted.',
+  'fullAuth.tabs_profile.rhythm_choose_next_promise':
+    'Choose one thing you can follow through on. Your accepted proof will build a picture of your progress here.',
+  'fullAuth.tabs_profile.rhythm_open_today': 'Go to Today',
+  'fullAuth.tabs_profile.rhythm_view_promises': 'View your promises',
 
   // Complete templates for source-owned onboarding copy. Keep user-visible
   // values in the catalogue instead of composing translated UI in the route.
@@ -1595,4 +1602,28 @@ export const fullAuthAccountEnNZ = {
     'If you turn this on, Menta shares sampled performance measurements with Sentry. Amplitude session replay runs separately with text, input fields and images masked. This does not enable ads or cross-app tracking.',
   'fullAuth.residual.settings.advanced_basic_body':
     'If you turn this on, Menta shares extra performance measurements with Sentry. This does not enable ads or cross-app tracking.',
+  'fullAuth.tabs_profile.since': 'Keeping promises since {month}',
+  'fullAuth.tabs_profile.stat_day_streak': 'day streak',
+  'fullAuth.tabs_profile.stat_best_streak': 'best streak',
+  'fullAuth.tabs_profile.stat_days_kept': 'days kept',
+  'fullAuth.tabs_profile.stat_day_one': 'Day 1',
+  'fullAuth.tabs_profile.stat_starts_today': 'starts today',
+  'fullAuth.tabs_profile.stats_accessibility':
+    '{current}. Best streak {best} days. {kept} days kept.',
+  'fullAuth.tabs_profile.month_kept': '{count} kept',
+  'fullAuth.tabs_profile.month_frozen': '{count} frozen',
+  'fullAuth.tabs_profile.month_missed': '{count} missed',
+  'fullAuth.tabs_profile.month_empty': 'Your days will fill in here',
+  'fullAuth.tabs_profile.day_kept': '{day}: kept',
+  'fullAuth.tabs_profile.day_frozen': '{day}: covered by a Streak Freeze',
+  'fullAuth.tabs_profile.day_missed': '{day}: missed',
+  'fullAuth.tabs_profile.day_today': '{day}: today',
+  'fullAuth.tabs_profile.invite_title': 'Bring a friend to Menta',
+  'fullAuth.tabs_profile.invite_reward':
+    'You each get {amount} Momenta when they make their first promise.',
+  'fullAuth.tabs_profile.invite_body':
+    'Promises stick better when a friend is in on it.',
+  'fullAuth.tabs_profile.invite_action': 'Invite a friend',
+  'fullAuth.tabs_profile.active_count': '{count} active',
+  'fullAuth.tabs_profile.invite_accessibility': '{title}. {body}',
 } as const;

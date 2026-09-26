@@ -15,6 +15,7 @@ import {
   mentaRadii,
   mentaSpacing,
 } from '@/constants/MentaDesignSystem';
+import { useMotionPreferences } from '@/lib/motion/use-motion-preferences';
 
 export type AppCardVariant =
   | 'default'
@@ -61,6 +62,7 @@ export const AppCard: React.FC<AppCardProps> = ({
   accessibilityState,
 }) => {
   const theme = useTheme();
+  const motion = useMotionPreferences();
   const resolvedPadding = padding ?? mentaSpacing[5];
 
   const baseStyle: ViewStyle = {
@@ -169,7 +171,9 @@ export const AppCard: React.FC<AppCardProps> = ({
       style={({ pressed }) => [
         pressableStyle,
         disabled && styles.disabled,
-        pressed && !disabled && styles.pressed,
+        pressed &&
+          !disabled &&
+          (motion.reduceMotion ? styles.pressedReduced : styles.pressed),
       ]}
     >
       {content}
@@ -186,7 +190,10 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.86,
-    transform: [{ scale: 0.985 }],
+    transform: [{ scale: 0.98 }],
+  },
+  pressedReduced: {
+    opacity: 0.86,
   },
 });
 

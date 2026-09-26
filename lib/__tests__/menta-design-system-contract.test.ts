@@ -36,6 +36,7 @@ describe('canonical Menta design-system contract', () => {
       4, 8, 12, 16, 20, 24, 32, 40, 48,
     ]);
     expect(mentaRadii).toEqual({
+      none: 0,
       small: 8,
       medium: 12,
       large: 16,

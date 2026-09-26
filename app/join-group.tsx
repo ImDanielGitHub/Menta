@@ -11,8 +11,8 @@ import {
 } from '@/components/groups/JoinGroupOutcomeSections';
 import { useAuthStore } from '@/store/auth-store';
 import { supabase } from '@/lib/supabase';
-import PaywallModal from '@/components/paywall/PaywallModal';
-import ModalCard from '@/components/ui/modal/ModalCard';
+import Paywall from '@/components/paywall/PaywallModal';
+import Modal from '@/components/ui/modal/ModalCard';
 import { useAdRewardAmount } from '@/lib/hooks/useAdReward';
 import { useOperationalFlag } from '@/hooks/useOperationalFlag';
 import { useMomentaStore } from '@/store/momenta-store';
@@ -130,6 +130,7 @@ export default function JoinGroupScreen() {
   const [inviteCode, setInviteCode] = useState(params.code || pendingGroupCode);
   const [isJoining, setIsJoining] = useState(false);
   const joinLockRef = useRef(false);
+  const joinRequestRef = useRef(0);
   const activeUserIdRef = useRef<string | null>(user?.id ?? null);
   activeUserIdRef.current = user?.id ?? null;
   const [showCamera, setShowCamera] = useState(false);
@@ -150,6 +151,20 @@ export default function JoinGroupScreen() {
   const previewRequestRef = useRef(0);
   const automaticPreviewKeyRef = useRef<string | null>(null);
   const automaticPreviewSourceRef = useRef<'route' | 'pending' | null>(null);
+
+  useEffect(() => {
+    joinRequestRef.current += 1;
+    joinLockRef.current = false;
+    setIsJoining(false);
+    setJoinNotice(null);
+    setReceiptSpend(null);
+    setShowFundingOptions(false);
+    setPaywallVisible(false);
+    return () => {
+      // A request can complete after unmount or after another account signs in.
+      joinRequestRef.current += 1;
+    };
+  }, [user?.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -684,6 +699,10 @@ export default function JoinGroupScreen() {
     }
 
     if (joinLockRef.current) return;
+    const joinRequestId = ++joinRequestRef.current;
+    const isCurrentJoin = () =>
+      joinRequestRef.current === joinRequestId &&
+      activeUserIdRef.current === user.id;
     joinLockRef.current = true;
     setIsJoining(true);
     try {
@@ -699,11 +718,12 @@ export default function JoinGroupScreen() {
         }
       );
 
+      if (!isCurrentJoin()) return;
       if (error) throw error;
 
       if (data?.code === 'QUOTE_STALE') {
         const currentQuote = await getJoinGroupQuote(user.id);
-        if (useAuthStore.getState().user?.id !== user.id) return;
+        if (!isCurrentJoin()) return;
         setJoinQuote(currentQuote);
         setJoinNotice({
           tone: 'warning',
@@ -829,6 +849,7 @@ export default function JoinGroupScreen() {
         fetchUserGroups(user.id),
         fetchDiscoverGroups(user.id),
       ]);
+      if (!isCurrentJoin()) return;
 
       void emitConfirmedOutcome(
         'group-joined',
@@ -866,6 +887,7 @@ export default function JoinGroupScreen() {
         dismissPendingInvite(currentPending);
       }
     } catch (error: unknown) {
+      if (!isCurrentJoin()) return;
       console.error('Error joining group:', error);
       const outcome = resolveGroupJoinError(error, t);
       if (outcome.kind === 'session_required') {
@@ -965,8 +987,10 @@ export default function JoinGroupScreen() {
         description: outcome.message,
       });
     } finally {
-      joinLockRef.current = false;
-      setIsJoining(false);
+      if (isCurrentJoin()) {
+        joinLockRef.current = false;
+        setIsJoining(false);
+      }
     }
   };
 
@@ -1491,7 +1515,7 @@ export default function JoinGroupScreen() {
         />
       ) : null}
 
-      <ModalCard
+      <Modal
         testID="group-invite-scanner-dialog"
         visible={showCamera}
         animationType="slide"
@@ -1510,8 +1534,8 @@ export default function JoinGroupScreen() {
             } catch {}
           }}
         />
-      </ModalCard>
-      <PaywallModal
+      </Modal>
+      <Paywall
         visible={paywallVisible}
         onClose={() => setPaywallVisible(false)}
         onBuyPro={() => setPaywallVisible(false)}
@@ -1522,6 +1546,8 @@ export default function JoinGroupScreen() {
         quotaContext="group"
         quotaLimit={2}
         shortfall={Math.max((joinQuote?.cost ?? 0) - (balance || 0), 0)}
+        balance={balance || 0}
+        requiredAmount={joinQuote?.cost}
         adRewardAmount={canWatchSponsors ? adReward : 0}
       />
     </AppScreen>

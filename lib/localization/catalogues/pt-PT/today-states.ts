@@ -16,7 +16,7 @@ export const todayStatesPtPT = {
     '{weekday} foi protegido. O dia continua no seu histórico.{countCopy}',
   'today.state.loading.title': 'A carregar Hoje.',
   'today.state.loading.detail':
-    'A verificar o estado mais recente das comprovativos e análises.',
+    'A verificar o estado mais recente dos comprovativos e das análises.',
   'today.state.loading.action': 'A carregar',
   'today.state.loading.last_confirmed': 'Usar o último estado confirmado',
   'today.state.offline.promise_title': 'A sua promessa continua pendente.',
@@ -24,47 +24,30 @@ export const todayStatesPtPT = {
   'today.state.offline.promise_detail':
     'Pode preparar o comprovativo agora. O envio vai esperar a ligação voltar.',
   'today.state.offline.detail':
-    'A Menta não consegue atualizar suas promessas agora. Nada mudou neste telemóvel.',
+    'A Menta não consegue atualizar as suas promessas agora. Nada mudou neste telemóvel.',
   'today.state.offline.prepare_proof': 'Preparar comprovativo',
   'today.state.load_failed.refresh_title': 'Não foi possível atualizar Hoje.',
   'today.state.load_failed.title': 'Não foi possível carregar Hoje.',
   'today.state.load_failed.refresh_detail':
     'O último estado confirmado continua no ecrã. Nenhum resultado de comprovativo ou análise mudou aqui.',
-  'today.state.load_failed.detail': 'Verifique sua ligação e tente novamente.',
+  'today.state.load_failed.detail':
+    'Verifique a sua ligação e tente novamente.',
   'today.state.streak.unavailable': 'Indisponível',
-  'today.state.streak.missed_title': 'Um dia foi perdido. Recomece hoje.',
-  'today.state.streak.weekday_missed_title':
-    'A pessoa perdeu {weekday}. Recomece hoje.',
-  'today.state.streak.previous_detail':
-    'A última sequência terminou em {count} porque o comprovativo de {weekday} não chegou a tempo. O seu histórico continua aqui.',
-  'today.state.streak.missed_detail':
-    '{weekday} foi registado como perdido. O seu histórico continua aqui.',
-  'today.state.streak.return_action': 'Voltar por um dia',
-  'today.state.streak.history_action': 'Ver histórico de {count} dias',
   'today.state.streak.history': 'Ver histórico',
-  'today.state.streak.previous_label': 'Sequência anterior',
-  'today.state.streak.new_label': 'Nova sequência',
-  'today.state.streak.starts_today': 'Começa hoje',
-  'today.state.streak.supporting_note':
-    'Um dia já basta para recomeçar. A Menta não vai apagar a sequência anterior.',
   'today.state.returning.away_days': 'Não faz um registo há {count}.',
   'today.state.returning.away': 'Está longe há algum tempo.',
-  'today.state.returning.title': 'Comece de onde a pessoa está.',
+  'today.state.returning.title': 'Pronto para recomeçar?',
   'today.state.returning.detail':
-    '{awayCopy} Nada fica escondido e não há nenhuma ecrã de culpa esperando. Escolha uma pequena ação para voltar.',
+    '{awayCopy} Nada fica escondido e não há nenhum ecrã de culpa à sua espera. Escolha uma pequena ação para voltar.',
   'today.state.returning.action': 'Recomeçar',
-  'today.state.returning.history': 'Ver meu histórico',
+  'today.state.returning.history': 'Ver o meu histórico',
   'today.state.returning.fresh_start': 'Recomeço',
   'today.state.returning.fresh_start_value':
     'O seu histórico continua. A próxima ação é sua.',
   'today.state.returning.supporting_note':
-    'Faça uma promessa menor ou abra seu histórico e retome a última.',
-  'today.state.no_promises.title': 'Ainda não há nada pendente.',
-  'today.state.no_promises.detail':
-    'Faça uma promessa e a Menta vai mostrar o que precisa da sua atenção a cada dia.',
-  'today.state.no_promises.join_group': 'Entrar num grupo existente',
+    'Faça uma promessa mais pequena ou abra o seu histórico e retome a última.',
   'today.state.proof_due.text_detail':
-    'Adicione a anotação combinada. Só a pessoa e quem analisa podem vê-la.',
+    'Adicione a nota combinada. Só o utilizador e quem analisa a podem ver.',
   'today.state.proof_due.text_action': 'Adicionar anotação como comprovativo',
   'today.state.proof_due.video_detail':
     'Adicione o vídeo combinado. Ele fica privado para esta promessa e quem analisa.',
@@ -88,8 +71,8 @@ export const todayStatesPtPT = {
   'today.state.saved.unknown_detail':
     'O original continua guardado. Verifique o estado antes de tentar novamente.',
   'today.state.saved.failed_detail':
-    'Verifique sua ligação e tente novamente. O original fica neste telemóvel.',
-  'today.state.saved.detail': 'Envie quando a pessoa tiver ligação.',
+    'Verifique a sua ligação e tente novamente. O original fica neste telemóvel.',
+  'today.state.saved.detail': 'Envie quando tiver ligação.',
   'today.state.saved.check_action': 'Verificar estado do comprovativo',
   'today.state.saved.retry_action': 'Tentar enviar novamente',
   'today.state.saved.send_action': 'Enviar comprovativo guardado',
@@ -138,5 +121,17 @@ export const todayStatesPtPT = {
   'today.state.all_clear.detail':
     'Volte quando uma promessa estiver pendente ou alguém enviar um comprovativo.',
   'today.state.all_clear.review_status':
-    'Nenhum comprovativo aguarda sua análise.',
+    'Nenhum comprovativo aguarda a sua análise.',
+  'today.state.streak.day_one_title': 'Hoje é o dia 1.',
+  'today.state.streak.day_one_detail':
+    'Adicione a prova de hoje para começar uma nova sequência.',
+  'today.state.streak.bubble_run_ended':
+    '{weekday} ficou sem prova, por isso a sequência de {count} dias terminou. Fica guardada no seu histórico.',
+  'today.state.streak.bubble_missed':
+    '{weekday} ficou sem prova. O seu histórico está guardado.',
+  'today.state.streak.see_run': 'Ver a sequência de {count} dias',
+  'today.state.no_promises.title': 'Comece com uma promessa.',
+  'today.state.no_promises.detail':
+    'Escolha uma coisa pequena, mostre uma foto rápida por dia e, se quiser, peça a alguém para confirmar.',
+  'today.state.no_promises.join_group': 'Tenho um código de convite',
 } as const satisfies Pick<EnglishCatalogue, TodayStateKey>;

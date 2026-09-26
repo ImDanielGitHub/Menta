@@ -29,6 +29,8 @@ export {
 } from './AppFields';
 export { AppInlineNotice, AppProgressPill } from './AppFeedback';
 export { AppReceiptSparkles } from './app-receipt-sparkles';
+export { AppStepProgress } from './app-step-progress';
+export type { AppStepProgressProps } from './app-step-progress';
 export type { AppReceiptSparklesProps } from './app-receipt-sparkles';
 export {
   AppDivider,

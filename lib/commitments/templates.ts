@@ -28,169 +28,174 @@ export type CommitmentTemplate = {
   groupNameSuggestion: string;
 };
 
-export const DEFAULT_COMMITMENT_TEMPLATE_ID: CommitmentTemplateId =
-  'move_daily';
-
-export const commitmentTemplates: CommitmentTemplate[] = [
+const buildCommitmentTemplates = (locale: string): CommitmentTemplate[] => [
   {
     id: 'move_daily',
-    title: translate('en-NZ', 'domain.commitment.move_daily'),
-    hubTitle: translate('en-NZ', 'domain.commitment.move_daily'),
-    description: translate('en-NZ', 'domain.commitment.move_daily_description'),
-    promise: translate('en-NZ', 'domain.commitment.move_daily_promise'),
-    category: translate('en-NZ', 'domain.commitment.fitness'),
+    title: translate(locale, 'domain.commitment.move_daily'),
+    hubTitle: translate(locale, 'domain.commitment.move_daily'),
+    description: translate(locale, 'domain.commitment.move_daily_description'),
+    promise: translate(locale, 'domain.commitment.move_daily_promise'),
+    category: translate(locale, 'domain.commitment.fitness'),
     durationDays: 14,
     difficulty: 'medium',
     verificationType: 'photo',
     verificationDescription: translate(
-      'en-NZ',
+      locale,
       'domain.commitment.move_daily_verification'
     ),
     submissionText: translate(
-      'en-NZ',
+      locale,
       'domain.commitment.move_daily_submission'
     ),
     commitmentLevel: 'steady',
     groupNameSuggestion: translate(
-      'en-NZ',
+      locale,
       'domain.commitment.daily_movement_group'
     ),
   },
   {
     id: 'study_block',
-    title: translate('en-NZ', 'domain.commitment.focused_study'),
-    hubTitle: translate('en-NZ', 'domain.commitment.focused_study'),
+    title: translate(locale, 'domain.commitment.focused_study'),
+    hubTitle: translate(locale, 'domain.commitment.focused_study'),
     description: translate(
-      'en-NZ',
+      locale,
       'domain.commitment.focused_study_description'
     ),
-    promise: translate('en-NZ', 'domain.commitment.focused_study_promise'),
-    category: translate('en-NZ', 'domain.commitment.learning'),
+    promise: translate(locale, 'domain.commitment.focused_study_promise'),
+    category: translate(locale, 'domain.commitment.learning'),
     durationDays: 14,
     difficulty: 'medium',
     verificationType: 'text',
     verificationDescription: translate(
-      'en-NZ',
+      locale,
       'domain.commitment.focused_study_verification'
     ),
     submissionText: translate(
-      'en-NZ',
+      locale,
       'domain.commitment.focused_study_submission'
     ),
     commitmentLevel: 'steady',
-    groupNameSuggestion: translate('en-NZ', 'domain.commitment.focused_study'),
+    groupNameSuggestion: translate(locale, 'domain.commitment.focused_study'),
   },
   {
     id: 'morning_walk',
-    title: translate('en-NZ', 'domain.commitment.morning_walk'),
-    hubTitle: translate('en-NZ', 'domain.commitment.morning_walk'),
+    title: translate(locale, 'domain.commitment.morning_walk'),
+    hubTitle: translate(locale, 'domain.commitment.morning_walk'),
     description: translate(
-      'en-NZ',
+      locale,
       'domain.commitment.morning_walk_description'
     ),
-    promise: translate('en-NZ', 'domain.commitment.morning_walk_promise'),
-    category: translate('en-NZ', 'domain.commitment.health'),
+    promise: translate(locale, 'domain.commitment.morning_walk_promise'),
+    category: translate(locale, 'domain.commitment.health'),
     durationDays: 7,
     difficulty: 'easy',
     verificationType: 'photo',
     verificationDescription: translate(
-      'en-NZ',
+      locale,
       'domain.commitment.morning_walk_verification'
     ),
     submissionText: translate(
-      'en-NZ',
+      locale,
       'domain.commitment.morning_walk_submission'
     ),
     commitmentLevel: 'light',
     groupNameSuggestion: translate(
-      'en-NZ',
+      locale,
       'domain.commitment.morning_walk_group'
     ),
   },
   {
     id: 'sleep_reset',
-    title: translate('en-NZ', 'domain.commitment.sleep_reset'),
-    hubTitle: translate('en-NZ', 'domain.commitment.sleep_reset'),
-    description: translate(
-      'en-NZ',
-      'domain.commitment.sleep_reset_description'
-    ),
-    promise: translate('en-NZ', 'domain.commitment.sleep_reset_promise'),
-    category: translate('en-NZ', 'domain.commitment.health'),
+    title: translate(locale, 'domain.commitment.sleep_reset'),
+    hubTitle: translate(locale, 'domain.commitment.sleep_reset'),
+    description: translate(locale, 'domain.commitment.sleep_reset_description'),
+    promise: translate(locale, 'domain.commitment.sleep_reset_promise'),
+    category: translate(locale, 'domain.commitment.health'),
     durationDays: 14,
     difficulty: 'medium',
     verificationType: 'text',
     verificationDescription: translate(
-      'en-NZ',
+      locale,
       'domain.commitment.sleep_reset_verification'
     ),
     submissionText: translate(
-      'en-NZ',
+      locale,
       'domain.commitment.sleep_reset_submission'
     ),
     commitmentLevel: 'steady',
     groupNameSuggestion: translate(
-      'en-NZ',
+      locale,
       'domain.commitment.sleep_reset_group'
     ),
   },
   {
     id: 'no_sugar',
-    title: translate('en-NZ', 'domain.commitment.no_sugar'),
-    hubTitle: translate('en-NZ', 'domain.commitment.no_sugar_hub'),
-    description: translate('en-NZ', 'domain.commitment.no_sugar_description'),
-    promise: translate('en-NZ', 'domain.commitment.no_sugar_promise'),
-    category: translate('en-NZ', 'domain.commitment.health'),
+    title: translate(locale, 'domain.commitment.no_sugar'),
+    hubTitle: translate(locale, 'domain.commitment.no_sugar_hub'),
+    description: translate(locale, 'domain.commitment.no_sugar_description'),
+    promise: translate(locale, 'domain.commitment.no_sugar_promise'),
+    category: translate(locale, 'domain.commitment.health'),
     durationDays: 7,
     difficulty: 'hard',
     verificationType: 'text',
     verificationDescription: translate(
-      'en-NZ',
+      locale,
       'domain.commitment.no_sugar_verification'
     ),
-    submissionText: translate('en-NZ', 'domain.commitment.no_sugar_submission'),
+    submissionText: translate(locale, 'domain.commitment.no_sugar_submission'),
     commitmentLevel: 'strict',
-    groupNameSuggestion: translate('en-NZ', 'domain.commitment.no_sugar_group'),
+    groupNameSuggestion: translate(locale, 'domain.commitment.no_sugar_group'),
   },
   {
     id: 'creative_minutes',
-    title: translate('en-NZ', 'domain.commitment.creative_minutes'),
-    hubTitle: translate('en-NZ', 'domain.commitment.creative_minutes'),
+    title: translate(locale, 'domain.commitment.creative_minutes'),
+    hubTitle: translate(locale, 'domain.commitment.creative_minutes'),
     description: translate(
-      'en-NZ',
+      locale,
       'domain.commitment.creative_minutes_description'
     ),
-    promise: translate('en-NZ', 'domain.commitment.creative_minutes_promise'),
-    category: translate('en-NZ', 'domain.commitment.creativity'),
+    promise: translate(locale, 'domain.commitment.creative_minutes_promise'),
+    category: translate(locale, 'domain.commitment.creativity'),
     durationDays: 14,
     difficulty: 'easy',
     verificationType: 'photo',
     verificationDescription: translate(
-      'en-NZ',
+      locale,
       'domain.commitment.creative_minutes_verification'
     ),
     submissionText: translate(
-      'en-NZ',
+      locale,
       'domain.commitment.creative_minutes_submission'
     ),
     commitmentLevel: 'light',
     groupNameSuggestion: translate(
-      'en-NZ',
+      locale,
       'domain.commitment.creative_minutes_group'
     ),
   },
 ];
 
+const templatesByLocale = new Map<string, CommitmentTemplate[]>();
+
+/** Starter templates written in the person's app language. */
+export const getCommitmentTemplates = (
+  locale: string
+): readonly CommitmentTemplate[] => {
+  const cached = templatesByLocale.get(locale);
+  if (cached) return cached;
+  const templates = buildCommitmentTemplates(locale);
+  templatesByLocale.set(locale, templates);
+  return templates;
+};
+
 export const resolveCommitmentTemplate = (
-  value: string | string[] | undefined
+  value: string | string[] | undefined,
+  locale: string
 ): CommitmentTemplate | null => {
   const normalized = Array.isArray(value) ? value[0] : value;
   return (
-    commitmentTemplates.find(template => template.id === normalized) ?? null
+    getCommitmentTemplates(locale).find(
+      template => template.id === normalized
+    ) ?? null
   );
 };
-
-export const getDefaultCommitmentTemplate = (): CommitmentTemplate =>
-  commitmentTemplates.find(
-    template => template.id === DEFAULT_COMMITMENT_TEMPLATE_ID
-  ) ?? commitmentTemplates[0];

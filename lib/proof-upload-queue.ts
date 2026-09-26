@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { addBreadcrumb as recordProofDiagnostic } from '@/lib/sentry';
 import {
   getProofDraft,
   isForegroundResumableReceipt,
@@ -164,6 +165,7 @@ export const canQueueReceiptStatus = (status: ProofReceiptStatus): boolean =>
 export const listForegroundResumableUploads = async (): Promise<
   ProofDraft[]
 > => {
+  recordProofDiagnostic('foreground_queue_scan_started');
   const [queue, drafts] = await Promise.all([
     loadProofUploadQueue(),
     listResumableProofDrafts(),
@@ -185,6 +187,10 @@ export const listForegroundResumableUploads = async (): Promise<
   const orphanDrafts = drafts.filter(
     draft => !queuedIds.has(draft.clientEventId)
   );
+  recordProofDiagnostic('foreground_queue_scan_completed', {
+    queuedCount: fromQueue.length,
+    recoveredCount: orphanDrafts.length,
+  });
 
   return [...fromQueue, ...orphanDrafts].sort((a, b) =>
     a.createdAt.localeCompare(b.createdAt)

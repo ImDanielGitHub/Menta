@@ -11,7 +11,7 @@ export const notificationsPtPT = {
   'notifications.topbar.title': 'Notificações',
   'notifications.education.title': 'Quer receber lembretes das suas promessas?',
   'notifications.education.body':
-    'A Menta pode avisar antes do prazo de um comprovativo e quando alguém enviar um comprovativo para si analisar. Em seguida, seu telemóvel vai pedir permissão.',
+    'A Menta pode avisar antes do prazo de um comprovativo e quando alguém enviar um comprovativo para analisar. Em seguida, o seu telemóvel vai pedir permissão.',
   'notifications.education.proof_due.title': '“O comprovativo está pendente”',
   'notifications.education.proof_due.body':
     'Quando o prazo de uma promessa estiver próximo',
@@ -29,7 +29,7 @@ export const notificationsPtPT = {
     'Abre o pedido de permissão para notificações do seu telemóvel',
   'notifications.permission_off.title': 'Sem lembretes por enquanto',
   'notifications.permission_off.body':
-    'Suas promessas continuam funcionando. Veja em Hoje o que está pendente ou ative os lembretes depois em Perfil.',
+    'As suas promessas continuam a funcionar. Veja em Hoje o que está pendente ou ative os lembretes mais tarde em Perfil.',
   'notifications.permission_off.later.title': 'Ative depois',
   'notifications.permission_off.later.body':
     'Abra Perfil e depois Notificações.',
@@ -50,7 +50,7 @@ export const notificationsPtPT = {
   'notifications.granted.title':
     'Este telemóvel está pronto para receber notificações da Menta',
   'notifications.granted.body':
-    'Escolha nas definições de notificações quais lembretes a pessoa quer receber.',
+    'Escolha nas definições de notificações os lembretes que quer receber.',
   'notifications.notice.setup_failed.title':
     'A configuração dos lembretes não foi concluída',
   'notifications.notice.setup_failed.body':
@@ -58,7 +58,7 @@ export const notificationsPtPT = {
   'notifications.notice.still_off.title':
     'As notificações continuam desativadas',
   'notifications.notice.still_off.body':
-    'Suas promessas continuam funcionando. A Menta não vai pedir novamente neste ecrã.',
+    'As suas promessas continuam a funcionar. A Menta não vai voltar a perguntar neste ecrã.',
   'notifications.notice.allowed.title':
     'O seu telemóvel agora permite notificações',
   'notifications.notice.allowed.body':
@@ -74,7 +74,7 @@ export const notificationsPtPT = {
   'notifications.notice.prompt_failed.title':
     'Não foi possível abrir o pedido de notificações',
   'notifications.notice.settings_opening.title':
-    'As definições do seu telemóvel estão abrindo',
+    'As definições do telemóvel estão a abrir',
   'notifications.notice.settings_opening.body':
     'Escolha se a Menta pode enviar notificações e depois volte para este ecrã.',
   'notifications.notice.settings_failed.title':

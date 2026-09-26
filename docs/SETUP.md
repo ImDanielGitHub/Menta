@@ -1,106 +1,126 @@
-# Set up an independent Menta app
+# Install your own Menta app
 
-This guide runs the full app against your own backend. It does not connect to
-Menta's production database or give access to its signing, telemetry or billing
-accounts. Keep each provider's public client configuration separate from its
-server credentials.
+These steps run Menta with a backend you control. The backend stores accounts,
+promises and proof. You do not need access to the official Menta service.
 
-## Prerequisites
+For a first run, use email sign-in and a local backend. Leave purchases, ads,
+social sign-in and remote notifications off until the app is working.
 
-- Node.js 20.19.4 and npm (`nvm use`).
-- Xcode and CocoaPods on macOS for iOS; Android Studio/SDK for Android.
-- The Supabase CLI and Docker for a local backend, or a new Supabase project.
-- A native development build. Expo Go cannot run all of this app's modules.
+## 1. Install the tools
 
-Install the app dependencies with `npm ci`. The package lock and dependency
-patches are included. The checked-in `ios/` source retains Menta's native App
-Intents and home-screen actions. Do not use `expo prebuild --clean` without
-preserving those custom native files.
+| Tool                        | What it does                          | Install it                                                                                                                                        |
+| --------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Git                         | Downloads the source code             | [Git downloads](https://git-scm.com/downloads)                                                                                                    |
+| Node.js 22.23.2             | Runs the development tools            | [nvm for macOS/Linux](https://github.com/nvm-sh/nvm#installing-and-updating) or [Node.js](https://nodejs.org/en/download)                         |
+| npm 11.19.1                 | Installs the JavaScript packages      | Run `npm install --global npm@11.19.1` after selecting Node                                                                                       |
+| Docker                      | Runs the local backend services       | [Docker Desktop](https://www.docker.com/products/docker-desktop/)                                                                                 |
+| Supabase CLI                | Starts and manages that backend       | [Supabase installation instructions](https://supabase.com/docs/guides/local-development/cli/getting-started)                                      |
+| Xcode, for iOS              | Builds the iPhone/iPad app on a Mac   | [Expo's iOS setup guide](https://docs.expo.dev/get-started/set-up-your-environment/?platform=ios&device=simulated&mode=development-build)         |
+| Android Studio, for Android | Provides the Android SDK and emulator | [Expo's Android setup guide](https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=simulated&mode=development-build) |
 
-## Local backend
+You only need the native tools for the platform you want to run. For iOS,
+complete Xcode's first-launch setup, install an iOS simulator runtime and
+CocoaPods. For Android, complete Android Studio's SDK setup and create an emulator.
 
-From this repository:
+Open Docker and wait until its engine is running. Allow room for its database
+and service images as well as your native build. Free space on the host does
+not necessarily mean Docker's virtual disk has free space.
 
-```sh
-supabase start
-```
+Expo Go does not include all the native modules used by Menta. The commands
+below build a development app containing those modules.
 
-On a clean local project, Supabase applies
-`supabase/migrations/20260910000000_public_baseline.sql` and `supabase/seed.sql`.
-The baseline contains the application schema, RPCs, grants, RLS, triggers and
-storage policies. The seed contains the catalogue, legal-version metadata,
-notification templates, economy configuration, product mappings and empty
-storage buckets. It contains **no users, promises, proof, purchases or customer
-records**. Supabase's Auth and Storage schemas are supplied by Supabase itself.
+## 2. Download the project
 
-This edition uses ports 55321 (API), 55322 (database), 55323 (Studio) and 55324
-(local email inbox) to reduce collisions with other local projects.
+Run these commands in a terminal:
 
 ```sh
+git clone https://github.com/ImDanielGitHub/Menta.git
+cd Menta
+nvm install
+nvm use
+npm install --global npm@11.19.1
+node --version
+npm --version
+npm ci
 cp .env.example .env.local
 cp .env.server.example .env.server
 ```
 
-Read your **local publishable/anon client key** from `supabase status` or local
-Studio and put it into `EXPO_PUBLIC_SUPABASE_ANON_KEY` in `.env.local`. Keep the
-service-role key out of the app. The CLI supplies the local Supabase service
-credentials to Edge Functions automatically.
+The version commands should report `v22.23.2` and `11.19.1`. If you do not use
+nvm, install and select Node.js 22.23.2 yourself, then skip the two nvm commands.
+On Windows, use your Node version manager and PowerShell's `Copy-Item` to copy
+the example files.
 
-For an Android emulator, use `http://10.0.2.2:55321` as the Supabase URL. For a
-physical phone, use your computer's reachable LAN address instead of localhost.
-Use a hosted development project when local device networking is inconvenient.
+Keep the terminal in the `Menta` folder for the rest of this guide.
+`npm ci` installs the exact package versions in the lockfile and applies the
+included dependency patches.
 
-Email confirmation is enabled. Open the confirmation message in the local email
-inbox at `http://localhost:55324`. Use the app callback URL in the confirmation
-flow. A physical-device flow needs a reachable URL and correctly registered
-scheme. You can also create disposable local users in Studio while testing.
+## 3. Start the backend
 
-Start the Edge Functions in a second terminal:
+With Docker running, enter:
+
+```sh
+supabase start
+supabase status
+```
+
+The repository already has a Supabase configuration; do not run `supabase init`.
+The first start downloads the service images and creates a local database.
+Supabase applies the migrations in filename order, then `supabase/seed.sql`.
+The seed adds the shop catalogue, settings and empty storage buckets. It adds
+no accounts, promises, proof or purchases.
+
+Open `.env.local` in your editor and fill in these two values:
+
+```dotenv
+EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:55321
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-local-anon-key
+```
+
+Replace `your-local-anon-key` with the **anon key** shown by `supabase status`.
+Use the JWT-format anon key for this setup: the functions use JWT verification.
+Never use the service-role key or a secret key in the app.
+
+Choose the URL that matches where the app will run:
+
+| Where the app runs                 | Supabase URL                        |
+| ---------------------------------- | ----------------------------------- |
+| iOS Simulator on the same Mac      | `http://127.0.0.1:55321`            |
+| Android Studio emulator            | `http://10.0.2.2:55321`             |
+| Physical phone on the same network | `http://YOUR_COMPUTER_LAN_IP:55321` |
+
+For a phone, replace `YOUR_COMPUTER_LAN_IP` with the computer's address on your
+Wi-Fi network. Your firewall must allow the connection. A tunnel for Expo's
+development server does not also tunnel Supabase.
+
+The local services use these addresses:
+
+- Database dashboard (Studio): `http://localhost:55323`
+- Test email inbox: `http://localhost:55324`
+- App API: `http://localhost:55321`
+- PostgreSQL database port: `55322`
+
+Leave optional provider values blank and their enable switches off for now.
+
+## 4. Start the server functions
+
+Server functions handle actions that need trusted server-side checks.
+Open a second terminal in the same `Menta` folder and run:
 
 ```sh
 supabase functions serve --env-file .env.server
 ```
 
-Do not pass `--no-verify-jwt` for all functions. Only the RevenueCat webhook
-disables gateway JWT verification; its handler requires the separate webhook
-secret. All user-owned actions must retain their caller checks.
+Leave this terminal running. The CLI supplies the local Supabase credentials
+to these functions. The example file lists additional secrets for optional
+features; do not put those secrets in `.env.local` or an `EXPO_PUBLIC_*` value.
 
-To reset this **disposable local project only**, use `supabase db reset --local`.
-Never use that command against a shared or production database.
+Do not turn off JWT verification for all functions. The RevenueCat webhook
+has its own exception and checks a separate webhook secret.
 
-## New hosted Supabase project
+## 5. Build and open the app
 
-Create a fresh project and apply the baseline migration followed by the seed
-through the SQL editor or a migration workflow scoped to that new project.
-The baseline is for an empty application schema; it is not an upgrade script
-for an existing deployment. Set the public URL and publishable/anon key for the
-new project in `.env.local`.
-
-Deploy the functions from `supabase/functions/` and configure the server secrets
-shown in `.env.server.example`. The public edition excludes the production
-test-helper and legacy operational endpoints. Set Auth's site and redirect URLs
-for your app, including `menta://auth/callback` and
-`menta://password-recovery/callback`.
-
-The baseline closes the retired waitlist and feature-request tables, restricts
-group edits to user-editable columns and keeps welcome-bonus receipts
-server-owned. Every application table has RLS enabled. Before hosting for real
-users, configure email confirmation, CAPTCHA, password security, API rate
-limits, resource budgets and billing alerts in your provider dashboard.
-Local `config.toml` does not apply those hosted dashboard settings automatically.
-
-## Native app configuration
-
-The portable default bundle/package ID is `org.example.menta`, with no Apple
-team or production Expo project attached. Use your own registered identifiers
-and signing team for physical-device or store builds. Update both `app.json`
-and the native Xcode target configuration when changing an existing native
-project. The native target and folder may retain the historical `LockedInPro`
-build name; that is not a production credential or required store identity.
-
-Expo production updates are disabled in both the app config and native plist.
-Link your own Expo project if you want updates or push notifications. Do not
-reuse the official Menta app's project ID or signing credentials.
+In the first terminal, run one command:
 
 ```sh
 npm run ios
@@ -108,61 +128,198 @@ npm run ios
 npm run android
 ```
 
-The `menta`, `lockedin` and `lockedinprod` callback schemes remain for source
-compatibility. Avoid installing multiple apps that claim the same schemes on
-one test device, or change the schemes and corresponding callback handling in
-your fork together.
+For Android, start your emulator first or connect a device with USB debugging
+enabled. The command builds and installs the app, opens it and starts the
+development server. The first native build can take a while.
 
-## RevenueCat purchases and restoration
+Create an account with email and a password of at least 12 characters.
+Email confirmation is enabled. Open the test inbox at
+`http://localhost:55324`, find the confirmation message and follow its link.
+For a physical phone, open a reachable confirmation link on that phone.
+After confirmation, return to the app and sign in. If the confirmation link
+opens the browser without returning to the app, try signing in again after
+confirming; check the callback settings below if the session still fails.
 
-1. Create your own RevenueCat project and add the iOS/Android apps corresponding
-   to your own store identifiers.
-2. Put the **public SDK keys** in
-   `EXPO_PUBLIC_REVENUECAT_API_KEY_IOS` and
-   `EXPO_PUBLIC_REVENUECAT_API_KEY_ANDROID`. Do not put a RevenueCat secret API
-   key into an `EXPO_PUBLIC_*` variable.
-3. Configure the `pro_access` entitlement. The existing compatibility reader
-   also accepts `Pro` and `pro`, but `pro_access` is the canonical setup.
-4. Attach weekly, monthly and annual subscription packages to the current
-   offering. The app selects RevenueCat package types first. Its legacy
-   product-ID fallbacks remain in source for compatibility.
-5. If using consumable Momenta packs, configure the credit offering/packages
+A useful first check is to create a personal promise and submit proof. Then
+create a second test account to try an invitation and review. Purchases and
+remote notifications will need their own setup.
+
+For later sessions:
+
+```sh
+supabase start
+# In a separate terminal:
+supabase functions serve --env-file .env.server
+# In another terminal:
+npm start
+```
+
+Use the installed development app to connect to the server. Rebuild with
+`npm run ios` or `npm run android` after changing native dependencies or native
+configuration. Restart the development server after changing `.env.local`.
+
+## 6. Run on a physical phone
+
+Installing your own build is sometimes called sideloading. It installs an app
+you compiled; this repository does not provide a signed download.
+
+**iPhone/iPad:** connect the device to your Mac, trust it and enable Developer
+Mode. Configure your Apple signing team, unique app and extension identifiers,
+and the widget App Group in Xcode. Then run:
+
+```sh
+npm run ios -- --device
+```
+
+**Android:** enable Developer options and USB debugging, connect the phone,
+accept the USB prompt, then run:
+
+```sh
+npm run android -- --device
+```
+
+Use the phone's backend URL from step 3. See
+[Expo's local build guide](https://docs.expo.dev/guides/local-app-development/)
+for platform-specific device requirements.
+
+### iOS signing and widgets
+
+The public defaults are `org.example.menta` for the app,
+`org.example.menta.streakwidgets` for the widget and
+`group.org.example.menta.widgets` for their shared App Group.
+Before signing a device build, replace them with identifiers registered to you.
+
+Update the app configuration, native Xcode targets and entitlements, and
+`plugins/with-menta-streak-widget.js` together. The app's
+`ExpoWidgetsAppGroupIdentifier` in `Info.plist` must match the widget's group.
+The retained OneSignal extension needs its own identifier and signing setup
+if you use it. Apple capabilities can affect which developer account is needed.
+
+The native project is still named `LockedInPro`. Open
+`ios/LockedInPro.xcworkspace` after CocoaPods has installed the dependencies.
+That historical folder name is not an account you need access to.
+
+The repository contains custom native files and a widget target. Do not run
+`expo prebuild --clean` casually: it regenerates the native project and can
+remove custom work. Expo updates are disabled by default.
+
+The app supports the `menta`, `lockedin` and `lockedinprod` URL schemes.
+Installing another app with the same schemes can send login links to the wrong
+app. If you change them, update the callback code and Auth redirect URLs too.
+
+## Use a hosted development backend instead
+
+A hosted Supabase project avoids running Docker and makes phone networking
+easier. Use a **new, empty project** for this installation.
+
+1. Create the project in Supabase.
+2. In its SQL editor, run every file in `supabase/migrations/` in filename
+   order, starting with the baseline. Then run `supabase/seed.sql`.
+3. Put that project's HTTPS URL and legacy anon JWT key in `.env.local`.
+4. Deploy the functions in `supabase/functions/` using the Supabase CLI.
+   Select your new project's reference explicitly:
+   `supabase functions deploy --project-ref YOUR_PROJECT_REF`.
+5. Add the secrets needed by the functions you use, following
+   `.env.server.example`. For example:
+   `supabase secrets set --env-file .env.server --project-ref YOUR_PROJECT_REF`.
+   Fill in only your own values first.
+6. Configure Auth redirect URLs including `menta://auth/callback` and
+   `menta://password-recovery/callback`. Set a site URL you control and
+   configure email delivery and confirmation for your test users.
+
+The baseline creates a fresh application schema. It is not an upgrade script
+for a different existing app. Local `supabase/config.toml` settings do not
+automatically change the hosted project's dashboard settings.
+
+## Optional services
+
+### Purchases and restoring purchases
+
+1. Create a RevenueCat project and connect the store apps registered to you.
+2. Add the public SDK keys to `EXPO_PUBLIC_REVENUECAT_API_KEY_IOS` and
+   `EXPO_PUBLIC_REVENUECAT_API_KEY_ANDROID`. Never put a secret API key in
+   an `EXPO_PUBLIC_*` variable.
+3. Create the `pro_access` entitlement and attach your subscription products.
+   Set up weekly, monthly and annual packages in the current offering.
+4. For Momenta packs, configure the credit packages
    (`credits_small`, `credits_medium`, `credits_large`) and replace the sample
-   product IDs in `public.rc_credit_mappings` with your own store products.
-6. Deploy `revenuecat-webhook`. Generate a strong, separate webhook secret and
-   configure the same value in RevenueCat's webhook Authorization header and
-   the Edge Function's `REVENUECAT_WEBHOOK_AUTH` secret. The URL is your own
-   Supabase project's `/functions/v1/revenuecat-webhook` endpoint.
-7. Use your platform's sandbox purchase flow and test both purchase and restore.
-   Confirm the server entitlement/receipt after the webhook. SDK-only purchase
-   success does not establish the server's Pro or wallet state.
+   product IDs in `public.rc_credit_mappings` with your own products.
+5. Deploy `revenuecat-webhook`. Set a strong `REVENUECAT_WEBHOOK_AUTH` secret
+   and use the same value as the Authorization header in RevenueCat's webhook
+   configuration. Point the webhook at your Supabase project's
+   `/functions/v1/revenuecat-webhook` URL.
+6. Test a sandbox purchase and a restore. Check that the webhook updates the
+   account's Pro access or Momenta balance on the server.
 
-No purchase access from the hosted Menta service is included with this source.
-The app handles missing or unavailable provider configuration; complete setup
-is required to exercise purchases. The student submission can be assessed from
-the source and demo, but should still demonstrate the intended RevenueCat flow.
+### Apple and Google sign-in
 
-## Optional providers and scheduled work
+Register your own OAuth clients and configure the provider in Supabase.
+Add the client values from `.env.example` and enable the corresponding login
+switch in the app configuration. The public defaults disable social sign-in;
+email sign-in is the starting path. Apple login also needs its native capability
+and signing configuration.
 
-- Apple/Google login is disabled by default. Register your own OAuth clients,
-  configure them in Supabase and the app, then enable the matching flags.
-- Expo/OneSignal notification code is retained. Configure your own Expo project
-  or OneSignal app and server credentials before enabling delivery. Schedule
-  `daily-maintenance` with a secret `x-maintenance-secret` header; the same secret
-  must be available to the scheduler and notification processor. Vault values
-  used by the RPC worker wake-up path are `project_url`, `anon_key` and
-  `daily_maintenance_secret`, and must be created in your own project. No cron
-  jobs or decrypted vault values are copied from production.
-- Ads use Google's documented sample native app IDs in the portable build and
-  are disabled by default. Add your own configuration and verified server-side
-  reward handling before enabling rewarded ads.
-- Sentry, Amplitude, PostHog and Meta integrations remain available but contain
-  no production keys in the public app config. They are optional for judging.
-- Replace legal/contact links and document URLs with your own policies before
-  distributing a fork. The reference metadata identifies the original Menta
-  policy versions; it is not a legal policy for somebody else's deployment.
+### Remote notifications and scheduled work
 
-## Verification and limits
+Set up your own Expo project or OneSignal app, plus the required server
+credentials, before enabling remote notifications. The public app does not use
+Menta's notification accounts.
+
+The backend source includes maintenance, notification scheduling and delivery.
+It does not install production cron jobs. Configure your own scheduler to call
+`daily-maintenance`, `challenge-notification-scheduler` and
+`notification-processor` as needed. For timely review notifications, run the
+challenge scheduler every five minutes and the processor one minute later.
+Use the handlers' required authentication; never create an unauthenticated job.
+
+Maintenance uses an `x-maintenance-secret` header matching
+`DAILY_MAINTENANCE_SECRET`. The database worker wake-up path expects Vault
+entries named `project_url`, `anon_key` and `daily_maintenance_secret` in your
+own project. No production job commands or Vault values are included.
+
+### Ads, analytics and error reporting
+
+Ads are off by default and the native configuration uses Google's sample app
+IDs. Configure your own ad units and verified server reward handling before
+enabling rewarded ads. The app credits rewards only after server confirmation.
+
+Sentry, Amplitude, PostHog and Meta are optional. Configure your own accounts
+if you need them; none is required for an initial email sign-in and promise.
+Replace the original legal and contact links with your own policies before
+distributing your fork.
+
+### Your own app store pages
+
+If you publish a fork, set `EXPO_PUBLIC_IOS_STORE_URL` or
+`EXPO_PUBLIC_ANDROID_STORE_URL` to your own app listing before enabling an app
+update policy. Set `EXPO_PUBLIC_IOS_STORE_ID` or
+`EXPO_PUBLIC_ANDROID_STORE_PACKAGE` to enable the "Leave a review" link in
+Settings. The public defaults leave these links empty so your build never
+sends someone to the official Menta listing.
+
+## Troubleshooting
+
+| Problem                                        | What to check                                                                                        |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `nvm: command not found`                       | Install nvm and reopen the terminal, or install Node 22.23.2 directly.                               |
+| `EBADENGINE` or npm version error              | Run `nvm use`, then install npm 11.19.1. Check both versions before `npm ci`.                        |
+| Supabase cannot connect to Docker              | Open Docker Desktop and wait for its engine to finish starting.                                      |
+| Docker reports no space left                   | Check Docker's disk usage and disk limit. Preserve existing projects and volumes when freeing space. |
+| App cannot reach the backend                   | Check the URL for your simulator/device, the running Supabase services and your firewall.            |
+| Missing Supabase configuration                 | Fill in both values in `.env.local` and restart the development server.                              |
+| Confirmation email is missing                  | Open the local test inbox, or check SMTP configuration for a hosted project.                         |
+| Link opens another Menta installation          | Check the shared URL schemes and the Auth redirect URL.                                              |
+| Expo Go reports a missing native module        | Install a development build with `npm run ios` or `npm run android`.                                 |
+| Xcode reports signing or App Group errors      | Check the app, widget and notification extension targets use your own identifiers and signing team.  |
+| Native module is missing after an update       | Run `npm ci` and rebuild the native app. Restarting Metro alone is insufficient.                     |
+| Purchases, ads or social login are unavailable | Complete the relevant optional provider setup; source code alone does not connect those accounts.    |
+
+To stop the local backend, run `supabase stop`. Stop the function server and
+Expo server with Ctrl+C in their terminals. To erase and rebuild **this
+disposable local database**, run `supabase db reset --local`. This removes its
+test accounts and content.
+
+## Check the installation
 
 ```sh
 npm run check:public
@@ -171,12 +328,16 @@ npm run test:core
 npm run export:ios
 ```
 
-The public export retains the upstream behavioural tests. Some broader suites
-refer to private release tooling and historical operational documents that are
-intentionally excluded. Run the relevant portable suites when changing app
-behaviour; do not treat those excluded operational checks as runtime proof.
+The export command checks that the iOS JavaScript and assets can be bundled.
+It does not compile the native app or prove that sign-in, purchases or device
+notifications work. Test those in your own development build.
 
-The schema is a data-free catalogue export of the backend contracts at the
-source checkpoint, followed by public-install hardening. It is versioned as a
-fresh baseline so developers do not need to replay the private project's
-historical resets and repairs. Future schema changes belong in new migrations.
+The wider test collection includes checks for release tools and historical
+migrations that are excluded from this public repository. Public CI runs the
+portable core suite. Add relevant behavioural tests for changes you make.
+
+The setup uses a data-free baseline followed by forward migrations. Future
+schema changes belong in new migration files. After updating PostgreSQL or its
+timezone data, refresh the timezone catalogue with
+`select private.refresh_timezone_names_v1();` using an authorised database
+administrator, then compare it with `pg_catalog.pg_timezone_names`.

@@ -116,8 +116,8 @@ describe('today-state daily loop contract', () => {
       'proof-pending-review',
       'review-required',
       'group-at-risk',
-      'no-promises',
       'accepted-today',
+      'no-promises',
       'all-clear',
     ];
 

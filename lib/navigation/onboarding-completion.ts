@@ -102,6 +102,16 @@ export const canResumeOwnedOnboardingCompletion = ({
     readCompletionForUser(completion, currentUserId, now)
   );
 
+/** A destination that never acknowledged its receipt can be resumed after OTA. */
+export const shouldResumeOnboardingInvitation = (
+  input: Parameters<typeof canResumeOwnedOnboardingCompletion>[0] & {
+    currentSegment: string | undefined;
+  }
+): boolean =>
+  (input.currentSegment === '(tabs)' || input.currentSegment === 'settings') &&
+  input.completion?.accountabilityChoice === 'new_group' &&
+  canResumeOwnedOnboardingCompletion(input);
+
 /**
  * Holds the one navigation receipt created after an account's first promise is
  * confirmed. RootLayout routes it and the mounted destination acknowledges it.
@@ -336,7 +346,7 @@ export const chooseOnboardingCompletionDestination = ({
   completion,
 }: {
   pendingInvite: { type: 'group' | 'challenge'; code: string } | null;
-  pendingProtectedRoute: { path: string } | null;
+  pendingProtectedRoute: { path: string; source?: string } | null;
   completion: OnboardingCompletionHandoff | null;
 }): OnboardingCompletionDestination => {
   if (pendingInvite) {
@@ -347,7 +357,19 @@ export const chooseOnboardingCompletionDestination = ({
     };
   }
 
-  if (pendingProtectedRoute) {
+  // The onboarding gate saves the screen that sent the person into setup.
+  // That fallback must not replace the first-promise action they just chose.
+  // Real event links and explicit protected destinations keep their priority.
+  const protectedPath = pendingProtectedRoute?.path.split('?', 1)[0];
+  const isSetupFallback = Boolean(
+    pendingProtectedRoute &&
+    ((pendingProtectedRoute.source === 'onboarding_gate' &&
+      !protectedPath?.startsWith('/events/')) ||
+      protectedPath === '/' ||
+      protectedPath === '/(tabs)' ||
+      protectedPath === '/(tabs)/index')
+  );
+  if (pendingProtectedRoute && (!completion || !isSetupFallback)) {
     return {
       kind: 'protected_route',
       href: pendingProtectedRoute.path.split('?', 1)[0] as Href,

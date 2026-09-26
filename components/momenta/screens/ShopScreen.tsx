@@ -6,7 +6,6 @@ import React, {
   useState,
 } from 'react';
 import {
-  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -22,30 +21,29 @@ import {
   useMomentaPrimaryTab,
   useMomentaSectionNavigation,
 } from '@/components/momenta/MomentaSectionNav';
-import { AppButton } from '@/components/ui/AppButton';
 import { ProEntry } from '@/components/paywall/pro-entry';
 import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import { IPadShopCatalogueWorkspace } from '@/components/ipad/IPadShopWorkspace';
 import { useIPadPortraitWorkspace } from '@/components/ipad/ipad-workspace';
 import { AppInlineNotice } from '@/components/ui/AppFeedback';
 import { AppScreen } from '@/components/ui/AppShell';
+import { BoostsRow, type BoostsRowItem } from '@/components/ui/BoostsRow';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
-import {
-  AlertTriangleIcon,
-  ArrowLeftIcon,
-  RefreshCcwIcon,
-  WalletIcon,
-} from '@/components/ui/icons';
+import { ArrowLeftIcon } from '@/components/ui/icons';
 import {
   getShopCategoryId,
   getShopItemSku,
   ShopCollectionSkeleton,
-  ShopListRow,
-  ShopMetricStrip,
   ShopSectionHeader,
   ShopStatePanel,
   type ShopCategoryId,
 } from '@/components/shop/ShopPrimitives';
+import { MomentaBalanceChip } from '@/components/shop/MomentaBalanceChip';
+import {
+  ShopItemCard,
+  type ShopItemCardTrail,
+} from '@/components/shop/ShopItemCard';
+import { ShopPressable } from '@/components/shop/ShopPressable';
 import { useTheme } from '@/constants/ThemeContext';
 import {
   mentaRadii,
@@ -63,14 +61,13 @@ import {
   filterSupportedCatalogItems,
   formatStreakUnlockCopy,
   getAppearanceSupport,
+  getShopItemDisplayCopy,
   getUnlockStreakDays,
   isSupportedCatalogSku,
+  NEW_THEME_SKUS,
 } from '@/lib/shop/catalogSupport';
 import { claimStreakShopUnlocks } from '@/lib/shop/streak-unlocks';
-import {
-  getPowerUpDisplayCopy,
-  isShopPowerUp,
-} from '@/lib/shop/powerUpSupport';
+import { isShopPowerUp } from '@/lib/shop/powerUpSupport';
 import { supabase } from '@/lib/supabase';
 import { backOrReplace } from '@/lib/navigation/safe-back';
 import { useAuthStore } from '@/store/auth-store';
@@ -84,6 +81,8 @@ type InventoryRow = {
 };
 
 type ShopShelfId = 'boosts' | 'themes' | 'frames' | 'ai';
+
+const NEW_SKUS: ReadonlySet<string> = new Set(NEW_THEME_SKUS);
 
 function getShopState({
   item,
@@ -119,6 +118,56 @@ function getShopState({
   return t('commerce.shop.available');
 }
 
+function getShopTrail({
+  accountDetailsReady,
+  balance,
+  cost,
+  equipped,
+  formatNumber,
+  powerUp,
+  purchased,
+  t,
+  unlockDays,
+}: {
+  accountDetailsReady: boolean;
+  balance: number;
+  cost: number;
+  equipped: boolean;
+  formatNumber: (value: number) => string;
+  powerUp: boolean;
+  purchased: boolean;
+  t: (key: TranslationKey, values?: Record<string, string | number>) => string;
+  unlockDays: number | null;
+}): ShopItemCardTrail {
+  const price = cost > 0 ? formatNumber(cost) : t('commerce.shop.free');
+  const locked = unlockDays
+    ? ({
+        kind: 'locked',
+        label: t('commerce.shop.streak', { days: unlockDays }),
+        reason: formatStreakUnlockCopy(unlockDays, t),
+      } as const)
+    : null;
+
+  if (!accountDetailsReady) return locked ?? { kind: 'price', label: price };
+  if (!powerUp && equipped) {
+    return { kind: 'owned', label: t('commerce.shop.inUse') };
+  }
+  if (!powerUp && purchased) {
+    return { kind: 'owned', label: t('commerce.shop.owned') };
+  }
+  if (locked) return locked;
+  if (balance < cost) {
+    return {
+      kind: 'short',
+      label: price,
+      reason: t('commerce.shop.short', {
+        amount: formatNumber(cost - balance),
+      }),
+    };
+  }
+  return { kind: 'price', label: price };
+}
+
 export default function ShopScreen() {
   const selectSection = useMomentaSectionNavigation();
   const inPrimaryTab = useMomentaPrimaryTab();
@@ -130,6 +179,10 @@ export default function ShopScreen() {
   const numberFormatter = useMemo(
     () => new Intl.NumberFormat(locale),
     [locale]
+  );
+  const formatNumber = useCallback(
+    (value: number) => numberFormatter.format(value),
+    [numberFormatter]
   );
   const phoneLayout = usePhoneLayout();
   const usesIPadWorkspace = useIPadPortraitWorkspace();
@@ -399,24 +452,57 @@ export default function ShopScreen() {
     () => new Set(Object.values(equippedItems)),
     [equippedItems]
   );
+  const accountDetailsReady = !walletLoading && !walletError;
 
-  const renderItemRow = (item: ShopItem) => {
-    const accountDetailsReady = !walletLoading && !walletError;
+  const ownedRowItems = useMemo<BoostsRowItem[]>(() => {
+    if (!accountDetailsReady) return [];
+    return availableItems.flatMap(item => {
+      const sku = getShopItemSku(item);
+      const count = inventoryCounts[sku] || 0;
+      const powerUp = isShopPowerUp(item.category);
+      const equipped = equippedItemIds.has(item.id);
+      const owned = purchasedItemIds.has(item.id) || count > 0;
+      if (powerUp ? count <= 0 : !owned) return [];
+      const { name } = getShopItemDisplayCopy(item, t);
+      const badge = powerUp
+        ? t('commerce.shop.quantity', { count: formatNumber(count) })
+        : equipped
+          ? t('commerce.shop.inUse')
+          : t('commerce.shop.owned');
+      const row: BoostsRowItem = {
+        sku,
+        label: name,
+        badge,
+        badgeTone: !powerUp && equipped ? 'success' : 'action',
+        accessibilityLabel: t('commerce.shop.ownedTileAccessibility', {
+          name,
+          state: powerUp ? t('commerce.shop.availableCount', { count }) : badge,
+        }),
+        onPress: () => router.push(`/shop/${item.id}`),
+      };
+      return [row];
+    });
+  }, [
+    accountDetailsReady,
+    availableItems,
+    equippedItemIds,
+    formatNumber,
+    inventoryCounts,
+    purchasedItemIds,
+    router,
+    t,
+  ]);
+
+  const renderItemCard = (item: ShopItem) => {
     const sku = getShopItemSku(item);
-    const powerUpCopy = getPowerUpDisplayCopy(sku, t);
-    const displayItem = powerUpCopy
-      ? {
-          ...item,
-          name: powerUpCopy.label,
-          description: powerUpCopy.description,
-        }
-      : item;
+    const { name, description } = getShopItemDisplayCopy(item, t);
     const inventoryCount = inventoryCounts[sku] || 0;
+    const powerUp = isShopPowerUp(item.category);
     const purchased = purchasedItemIds.has(item.id) || inventoryCount > 0;
     const equipped = equippedItemIds.has(item.id);
     const cost = Number(item.cost || 0);
     const unlockDays = getUnlockStreakDays(sku, item.unlock_streak_days);
-    const stateLabel = accountDetailsReady
+    const status = accountDetailsReady
       ? getShopState({
           item,
           balance,
@@ -424,28 +510,51 @@ export default function ShopScreen() {
           purchased,
           equipped,
           t,
-          formatNumber: value => numberFormatter.format(value),
+          formatNumber,
         })
       : t('commerce.shop.loadingAccount');
-    const rightLabel =
-      accountDetailsReady && purchased && !isShopPowerUp(item.category)
-        ? equipped
-          ? t('commerce.shop.inUse')
-          : t('commerce.shop.owned')
-        : unlockDays
-          ? t('commerce.shop.streak', { days: unlockDays })
-          : cost > 0
-            ? t('commerce.shop.spendBalance', { amount: cost.toLocaleString() })
-            : t('commerce.shop.free');
+    const trail = getShopTrail({
+      accountDetailsReady,
+      balance,
+      cost,
+      equipped,
+      formatNumber,
+      powerUp,
+      purchased,
+      t,
+      unlockDays,
+    });
+    const isNew = accountDetailsReady && !purchased && NEW_SKUS.has(sku);
 
     return (
-      <ShopListRow
+      <ShopItemCard
         key={item.id}
-        item={displayItem}
-        stateLabel={stateLabel}
-        rightLabel={rightLabel}
-        showCategoryLabel={false}
+        sku={sku}
+        name={name}
+        description={description}
+        trail={trail}
+        tag={
+          isNew ? { label: t('commerce.shop.tagNew'), tone: 'action' } : null
+        }
+        quantity={
+          accountDetailsReady && powerUp && inventoryCount > 0
+            ? inventoryCount
+            : null
+        }
+        quantityLabel={t('commerce.shop.quantity', {
+          count: formatNumber(inventoryCount),
+        })}
+        selected={accountDetailsReady && !powerUp && equipped}
         onPress={() => router.push(`/shop/${item.id}`)}
+        accessibilityLabel={t('commerce.shop.cardAccessibility', {
+          name,
+          price: unlockDays
+            ? t('commerce.shop.streak', { days: unlockDays })
+            : cost > 0
+              ? t('commerce.shop.spendBalance', { amount: formatNumber(cost) })
+              : t('commerce.shop.free'),
+          status,
+        })}
         testID={`shop-item-${item.id}`}
       />
     );
@@ -457,7 +566,7 @@ export default function ShopScreen() {
         <ShopCollectionSkeleton
           title={t('commerce.shop.loading')}
           message={t('commerce.shop.loadingDetail')}
-          metricCount={1}
+          metricCount={0}
           rowCount={4}
           showFilters={false}
           testID="shop-loading-state"
@@ -492,6 +601,13 @@ export default function ShopScreen() {
 
     return (
       <View style={styles.sections}>
+        <BoostsRow
+          title={t('commerce.shop.yourItems')}
+          items={ownedRowItems}
+          actionLabel={t('commerce.shop.seeAllItems')}
+          onAction={() => selectSection('items')}
+          testID="shop-owned-items"
+        />
         {catalogSections.map(section => (
           <View
             key={section.id}
@@ -501,32 +617,81 @@ export default function ShopScreen() {
             <ShopSectionHeader
               title={section.title}
               description={section.description}
-              count={section.items.length}
             />
-            <View style={styles.list}>{section.items.map(renderItemRow)}</View>
+            <View style={styles.list}>{section.items.map(renderItemCard)}</View>
           </View>
         ))}
       </View>
     );
   };
 
+  const walletNotices = (
+    <ErrorBoundary level="component">
+      {!loading && !loadError && walletError ? (
+        <AppInlineNotice
+          title={t('commerce.shop.balanceUnavailable')}
+          description={t('commerce.shop.balanceUnavailableDetail')}
+          tone="warning"
+          actionLabel={t('commerce.action.tryAgain')}
+          onAction={() => void loadWallet()}
+          testID="shop-wallet-unavailable"
+        />
+      ) : null}
+      {refreshError ? (
+        <AppInlineNotice
+          title={t('commerce.shop.outOfDate')}
+          description={refreshError}
+          tone="warning"
+          actionLabel={t('commerce.action.tryAgain')}
+          onAction={() => void load(false)}
+          testID="shop-refresh-warning"
+        />
+      ) : null}
+    </ErrorBoundary>
+  );
+
+  const balanceSlot =
+    user?.id && !loadError ? (
+      walletLoading ? (
+        <SkeletonLoader
+          width={104}
+          height={44}
+          borderRadius={mentaRadii.round}
+          accessibilityLabel={t('commerce.accessibility.loadingWallet')}
+        />
+      ) : !walletError ? (
+        <MomentaBalanceChip
+          balance={balance}
+          onPress={() => selectSection('wallet')}
+          testID="shop-balance-chip"
+        />
+      ) : null
+    ) : null;
+
+  const heading = (
+    <View style={styles.headingRow}>
+      <Text accessibilityRole="header" style={styles.screenTitle}>
+        {t('commerce.shop.title')}
+      </Text>
+      {balanceSlot}
+    </View>
+  );
+
   return (
     <AppScreen lane="working" safeArea padding={false} hasTabBar={inPrimaryTab}>
       <Stack.Screen options={{ headerShown: false }} />
       {!inPrimaryTab ? (
         <View style={[styles.topBar, insetPadding]}>
-          <Pressable
-            accessibilityRole="button"
+          <ShopPressable
             accessibilityLabel={t('commerce.accessibility.goBack')}
+            haptic={false}
             hitSlop={10}
             onPress={() => backOrReplace(router, '/(tabs)/profile')}
-            style={({ pressed }) => [
-              styles.iconButton,
-              pressed && styles.pressed,
-            ]}
+            pressedStyle={styles.iconButtonPressed}
+            style={styles.iconButton}
           >
             <ArrowLeftIcon size={21} color={theme.colors.text.primary} />
-          </Pressable>
+          </ShopPressable>
         </View>
       ) : null}
       <ScrollView
@@ -545,154 +710,22 @@ export default function ShopScreen() {
           <IPadShopCatalogueWorkspace
             sidebar={
               <>
-                <Text accessibilityRole="header" style={styles.screenTitle}>
-                  {t('commerce.shop.title')}
-                </Text>
+                {heading}
                 <MomentaSectionNav active="shop" />
                 <ProEntry />
                 <Text style={styles.ipadIntro}>{t('commerce.shop.intro')}</Text>
-                <ErrorBoundary level="component">
-                  {!loading && !loadError && walletLoading ? (
-                    <SkeletonLoader
-                      width="100%"
-                      height={76}
-                      borderRadius={mentaRadii.large}
-                      accessibilityLabel={t('commerce.shop.loadingAccount')}
-                    />
-                  ) : null}
-                  {!loading && !loadError && !walletLoading && !walletError ? (
-                    <ShopMetricStrip
-                      metrics={[
-                        {
-                          label: t('commerce.shop.balance'),
-                          value: t('commerce.shop.spendBalance', {
-                            amount: balance.toLocaleString(),
-                          }),
-                          icon: (
-                            <WalletIcon
-                              size={15}
-                              color={theme.colors.text.secondary}
-                            />
-                          ),
-                          onPress: () => selectSection('wallet'),
-                        },
-                      ]}
-                    />
-                  ) : null}
-                  {!loading && !loadError && walletError ? (
-                    <AppInlineNotice
-                      title={t('commerce.shop.balanceUnavailable')}
-                      description={t('commerce.shop.balanceUnavailableDetail')}
-                      tone="warning"
-                      actionLabel={t('commerce.action.tryAgain')}
-                      onAction={() => void loadWallet()}
-                      testID="shop-wallet-unavailable"
-                    />
-                  ) : null}
-                </ErrorBoundary>
+                {walletNotices}
               </>
             }
           >
-            {refreshError ? (
-              <View style={styles.inlineWarning}>
-                <AlertTriangleIcon
-                  size={18}
-                  color={theme.colors.status.warning}
-                />
-                <View style={styles.warningCopy}>
-                  <Text style={styles.warningTitle}>
-                    {t('commerce.shop.outOfDate')}
-                  </Text>
-                  <Text style={styles.warningText}>{refreshError}</Text>
-                </View>
-                <AppButton
-                  title={t('commerce.action.tryAgain')}
-                  variant="ghost"
-                  size="small"
-                  icon={
-                    <RefreshCcwIcon
-                      size={14}
-                      color={theme.colors.text.primary}
-                    />
-                  }
-                  onPress={() => void load(false)}
-                />
-              </View>
-            ) : null}
             <ErrorBoundary level="component">{renderCatalog()}</ErrorBoundary>
           </IPadShopCatalogueWorkspace>
         ) : (
           <>
-            <Text accessibilityRole="header" style={styles.screenTitle}>
-              {t('commerce.shop.title')}
-            </Text>
+            {heading}
             <MomentaSectionNav active="shop" />
             <ProEntry />
-            <ErrorBoundary level="component">
-              {!loading && !loadError && walletLoading ? (
-                <SkeletonLoader
-                  width="100%"
-                  height={76}
-                  borderRadius={mentaRadii.large}
-                  accessibilityLabel={t('commerce.shop.loadingAccount')}
-                />
-              ) : null}
-              {!loading && !loadError && !walletLoading && !walletError ? (
-                <ShopMetricStrip
-                  metrics={[
-                    {
-                      label: t('commerce.shop.balance'),
-                      value: t('commerce.shop.spendBalance', {
-                        amount: balance.toLocaleString(),
-                      }),
-                      icon: (
-                        <WalletIcon
-                          size={15}
-                          color={theme.colors.text.secondary}
-                        />
-                      ),
-                      onPress: () => selectSection('wallet'),
-                    },
-                  ]}
-                />
-              ) : null}
-              {!loading && !loadError && walletError ? (
-                <AppInlineNotice
-                  title={t('commerce.shop.balanceUnavailable')}
-                  description={t('commerce.shop.balanceUnavailableDetail')}
-                  tone="warning"
-                  actionLabel={t('commerce.action.tryAgain')}
-                  onAction={() => void loadWallet()}
-                  testID="shop-wallet-unavailable"
-                />
-              ) : null}
-            </ErrorBoundary>
-            {refreshError ? (
-              <View style={styles.inlineWarning}>
-                <AlertTriangleIcon
-                  size={18}
-                  color={theme.colors.status.warning}
-                />
-                <View style={styles.warningCopy}>
-                  <Text style={styles.warningTitle}>
-                    {t('commerce.shop.outOfDate')}
-                  </Text>
-                  <Text style={styles.warningText}>{refreshError}</Text>
-                </View>
-                <AppButton
-                  title={t('commerce.action.tryAgain')}
-                  variant="ghost"
-                  size="small"
-                  icon={
-                    <RefreshCcwIcon
-                      size={14}
-                      color={theme.colors.text.primary}
-                    />
-                  }
-                  onPress={() => void load(false)}
-                />
-              </View>
-            ) : null}
+            {walletNotices}
             <ErrorBoundary level="component">{renderCatalog()}</ErrorBoundary>
           </>
         )}
@@ -718,8 +751,8 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    pressed: {
-      opacity: 0.72,
+    iconButtonPressed: {
+      backgroundColor: theme.colors.background.secondary,
     },
     scroll: {
       flex: 1,
@@ -731,47 +764,30 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
       paddingBottom: mentaSpacing[12],
       gap: mentaSpacing[5],
     },
+    headingRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: mentaSpacing[3],
+      justifyContent: 'space-between',
+    },
     screenTitle: {
       color: theme.colors.text.primary,
       ...mentaTypography.heading,
+      flexShrink: 1,
     },
     ipadIntro: {
       color: theme.colors.text.secondary,
       ...mentaTypography.body,
       maxWidth: 260,
     },
-    inlineWarning: {
-      minHeight: 72,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 10,
-      borderRadius: mentaRadii.small,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.status.warning,
-      backgroundColor: theme.colors.background.surface,
-      padding: 14,
-    },
-    warningCopy: {
-      flex: 1,
-      minWidth: 0,
-    },
-    warningTitle: {
-      color: theme.colors.text.primary,
-      ...mentaTypography.bodySmallMedium,
-    },
-    warningText: {
-      color: theme.colors.text.secondary,
-      ...mentaTypography.caption,
-      marginTop: 2,
-    },
     sections: {
       gap: mentaSpacing[8],
     },
     section: {
-      gap: mentaSpacing[3],
+      gap: mentaSpacing[2],
     },
     list: {
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: theme.colors.border.secondary,
+      gap: mentaSpacing[2],
     },
   });

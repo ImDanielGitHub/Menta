@@ -7,7 +7,7 @@ export const todayStatesFrCA = {
   'today.state.protected.title': 'Série protégée',
   'today.state.protected.count_continues': ' Le compteur continue à {count}.',
   'today.state.protected.freeze_detail':
-    'Un gel de série a couvert le jour manqué de {weekday}. Le jour reste dans votre historique.{countCopy}',
+    'Un gel de série a couvert le jour manqué du {weekday}. Ce jour reste dans votre historique.{countCopy}',
   'today.state.protected.detail':
     '{weekday} a été protégé. Le jour reste dans votre historique.{countCopy}',
   'today.state.loading.title': 'Chargement d’aujourd’hui.',
@@ -29,26 +29,10 @@ export const todayStatesFrCA = {
     'La dernière vue confirmée est toujours affichée. Aucune preuve ou résultat de vérification n’a changé ici.',
   'today.state.load_failed.detail': 'Vérifiez votre connexion et réessayez.',
   'today.state.streak.unavailable': 'Indisponible',
-  'today.state.streak.missed_title':
-    'Un jour a été manqué. Recommencez aujourd’hui.',
-  'today.state.streak.weekday_missed_title':
-    '{weekday} a été manqué. Recommencez aujourd’hui.',
-  'today.state.streak.previous_detail':
-    'La dernière série s’est terminée à {count} parce que la preuve de {weekday} n’a pas été reçue à temps. Votre historique est toujours présent.',
-  'today.state.streak.missed_detail':
-    '{weekday} a été enregistré comme manqué. Votre historique est toujours présent.',
-  'today.state.streak.return_action': 'Commencer un retour d’un jour',
-  'today.state.streak.history_action': 'Voir l’historique de {count} jours',
   'today.state.streak.history': 'Voir l’historique',
-  'today.state.streak.previous_label': 'Série précédente',
-  'today.state.streak.new_label': 'Nouvelle série',
-  'today.state.streak.starts_today': 'Commence aujourd’hui',
-  'today.state.streak.supporting_note':
-    'Un retour d’un jour suffit pour recommencer. Menta n’effacera pas la série précédente.',
   'today.state.returning.away_days':
-    'Cela fait {count} depuis votre dernier pointage.',
-  'today.state.returning.away':
-    'Cela fait un moment depuis votre dernier pointage.',
+    'Vous n’avez pas fait de suivi depuis {count}.',
+  'today.state.returning.away': 'Ça fait un moment depuis votre dernier suivi.',
   'today.state.returning.title': 'Prêt à recommencer ?',
   'today.state.returning.detail':
     '{awayCopy} Commencez une nouvelle promesse, ou revenez à celle sur laquelle vous travailliez.',
@@ -59,19 +43,15 @@ export const todayStatesFrCA = {
     'Votre historique reste. Votre prochaine action vous appartient.',
   'today.state.returning.supporting_note':
     'Définissez une promesse plus petite, ou ouvrez votre historique et revenez à la dernière.',
-  'today.state.no_promises.title': 'Rien n’est encore dû.',
-  'today.state.no_promises.detail':
-    'Faites une promesse et Menta vous montrera chaque jour ce qui nécessite votre attention.',
-  'today.state.no_promises.join_group': 'Rejoindre un groupe existant',
   'today.state.proof_due.text_detail':
     'Ajoutez la note convenue. Vous et le vérificateur êtes les seuls à pouvoir la voir.',
-  'today.state.proof_due.text_action': 'Ajouter la preuve de note',
+  'today.state.proof_due.text_action': 'Ajouter une note comme preuve',
   'today.state.proof_due.video_detail':
     'Ajoutez la vidéo convenue. Elle reste privée à cette promesse et à son vérificateur.',
-  'today.state.proof_due.video_action': 'Ajouter la preuve vidéo',
+  'today.state.proof_due.video_action': 'Ajouter une vidéo comme preuve',
   'today.state.proof_due.photo_detail':
     'Ajoutez la photo convenue. Elle reste privée à cette promesse et à son vérificateur.',
-  'today.state.proof_due.photo_action': 'Ajouter la preuve photo',
+  'today.state.proof_due.photo_action': 'Ajouter une photo comme preuve',
   'today.state.proof_due.risk_title': 'Aujourd’hui compte toujours.',
   'today.state.proof_due.streak_risk_detail':
     'Votre série {streak} est toujours active. Visez à ajouter {proofNoun} avant {dueLabel}. La preuve compte encore jusqu’à minuit.',
@@ -103,7 +83,7 @@ export const todayStatesFrCA = {
   'today.state.pending.action': 'Voir la preuve',
   'today.state.correction.title': 'Votre preuve nécessite une modification.',
   'today.state.correction.detail':
-    'Ajoutez une preuve plus claire pour terminer aujourd’hui. Votre original est toujours enregistré.',
+    'Ajoutez une preuve plus claire pour terminer aujourd’hui. L’original reste enregistré.',
   'today.state.correction.action': 'Mettre à jour la preuve',
   'today.state.correction.feedback': 'Voir les commentaires',
   'today.state.review.named_title': '{name} a envoyé une preuve.',
@@ -113,15 +93,15 @@ export const todayStatesFrCA = {
   'today.state.review.action': 'Vérifier la preuve',
   'today.state.review.see_group': 'Voir le groupe',
   'today.state.review.open_queue': 'Ouvrir la file d’attente',
-  'today.state.group_risk.named_title': '{group} a besoin d’un pointage.',
-  'today.state.group_risk.title': 'Un groupe a besoin d’un pointage.',
+  'today.state.group_risk.named_title': '{group} a besoin d’un suivi.',
+  'today.state.group_risk.title': 'Un groupe a besoin d’un suivi.',
   'today.state.group_risk.named_detail':
     'Ouvrez le groupe pour voir ce qui est dû.',
   'today.state.group_risk.detail':
-    'Ouvrez le groupe pour voir qui doit encore se pointer.',
+    'Ouvrez le groupe pour voir qui doit encore faire son suivi.',
   'today.state.group_risk.action': 'Ouvrir le groupe',
   'today.state.accepted.named_title': '{promise} est terminée.',
-  'today.state.accepted.title': 'Aujourd’hui est terminé.',
+  'today.state.accepted.title': 'La journée est terminée.',
   'today.state.accepted.detail':
     'Votre preuve a été approuvée et enregistrée dans votre historique.',
   'today.state.accepted.named_receipt': '{promise} approuvée',
@@ -130,11 +110,24 @@ export const todayStatesFrCA = {
     'Le résultat d’aujourd’hui est confirmé dans l’historique de votre promesse.',
   'today.state.all_clear.review_unknown_title':
     'Aucune preuve n’est due pour le moment.',
-  'today.state.all_clear.title': 'Rien ne vous requiert pour le moment.',
+  'today.state.all_clear.title':
+    'Rien ne demande votre attention pour le moment.',
   'today.state.all_clear.review_unknown_detail':
     'Menta n’a pas pu vérifier les demandes de vérification. Essayez d’actualiser Aujourd’hui.',
   'today.state.all_clear.detail':
     'Revenez quand une promesse est due ou que quelqu’un envoie une preuve.',
   'today.state.all_clear.review_status':
     'Aucune preuve n’attend votre vérification.',
+  'today.state.streak.day_one_title': 'Aujourd’hui, c’est le jour 1.',
+  'today.state.streak.day_one_detail':
+    'Ajoutez la preuve d’aujourd’hui pour lancer une nouvelle série.',
+  'today.state.streak.bubble_run_ended':
+    '{weekday} a été manqué, donc la série de {count} jours s’arrête. Elle reste dans votre historique.',
+  'today.state.streak.bubble_missed':
+    '{weekday} a été manqué. Votre historique est conservé.',
+  'today.state.streak.see_run': 'Voir la série de {count} jours',
+  'today.state.no_promises.title': 'Commencez par une promesse.',
+  'today.state.no_promises.detail':
+    'Choisissez une petite chose, montrez une photo rapide chaque jour et, si vous voulez, invitez quelqu’un à la vérifier.',
+  'today.state.no_promises.join_group': 'J’ai un code d’invitation',
 } as const;

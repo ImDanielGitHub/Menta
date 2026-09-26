@@ -45,16 +45,24 @@ import {
   getMainRecoveryQuarantineUserId,
 } from '@/lib/auth/main-recovery-quarantine';
 import { EMAIL_CONFIRMATION_REDIRECT_PATH } from '@/lib/auth/email-confirmation-config';
+import { trackConfirmedEmailSignup } from '@/lib/auth/email-confirmation-analytics';
 import {
   isEmailConfirmationForSession,
   useEmailConfirmationStore,
 } from '@/store/email-confirmation-store';
-import { trackProductEvent, trackProductOperation } from '@/lib/posthog';
+import {
+  setProductAnalyticsUserId,
+  trackProductEvent,
+  trackProductOperation,
+} from '@/lib/posthog';
+import { setAmplitudeUserId } from '@/lib/amplitude';
 import { withTimeout } from '@/utils/api';
 
 const AUTH_CANCELLED_CODE = 'AUTH_CANCELLED';
 const ONBOARDING_ACCOUNT_CHANGED_CODE = 'ONBOARDING_ACCOUNT_CHANGED';
 const ONBOARDING_COMPLETION_TIMEOUT_MS = 15_000;
+const AUTH_PROFILE_TIMEOUT_MS = 8_000;
+const AUTH_DRAFT_TIMEOUT_MS = 2_000;
 const authStoreDebugLog = (..._args: unknown[]) => undefined;
 const mainAuthStorageKey =
   getDefaultSupabaseAuthStorageKey(SUPABASE_URL) ??
@@ -132,9 +140,7 @@ const EMAIL_REGISTRATION_CONFIRMATION_REQUIRED =
   'confirmation_required' as const;
 
 export type EmailConfirmationSessionRecoveryResult =
-  | 'session_confirmed'
-  | 'no_session'
-  | 'account_mismatch';
+  'session_confirmed' | 'no_session' | 'account_mismatch';
 
 interface AuthState {
   user: User | null;
@@ -143,6 +149,12 @@ interface AuthState {
   isLoading: boolean;
   isInitialized: boolean;
   hasCompletedOnboarding: boolean;
+  // The account whose completed onboarding the server last confirmed on this
+  // device. Only that same account may reopen straight into the app while its
+  // profile refreshes in the background.
+  onboardingConfirmedUserId: string | null;
+  // Unknown profile authority must recover through sign-in, never onboarding.
+  sessionRecoveryRequired: boolean;
 
   // Singleton auth listener management
   authListenerActive: boolean;
@@ -167,10 +179,7 @@ interface AuthState {
   clearAuthData: () => void;
   completeOnboarding: (context?: {
     activationPath:
-      | 'first_promise'
-      | 'promise_invite'
-      | 'group_invite'
-      | 'event_invite';
+      'first_promise' | 'promise_invite' | 'group_invite' | 'event_invite';
     referralUsed?: boolean;
     completionHandoff?: {
       firstPromiseId: string;
@@ -184,15 +193,51 @@ interface AuthState {
   }) => Promise<void>;
 
   // OAuth methods
-  signInWithGoogle: () => Promise<void>;
-  signInWithApple: () => Promise<void>;
+  signInWithGoogle: (flow?: 'login' | 'signup') => Promise<void>;
+  signInWithApple: (flow?: 'login' | 'signup') => Promise<void>;
   signInWithGoogleOAuth: () => Promise<void>;
   signInWithAppleOAuth: () => Promise<void>;
 }
 
 interface AuthPersistedState {
   hasCompletedOnboarding: boolean;
+  onboardingConfirmedUserId: string | null;
 }
+
+type RestoredSessionLoad = {
+  userId: string;
+  accessToken: string;
+  promise: Promise<void>;
+};
+
+// Supabase's INITIAL_SESSION event and the direct getSession() restore both
+// deliver the same session at launch. They share one account load so the
+// profile and wallet are fetched once.
+let restoredSessionLoad: RestoredSessionLoad | null = null;
+
+const loadRestoredSessionOnce = (
+  session: Session,
+  load: (user: SupabaseUser, session: Session) => Promise<void>
+): Promise<void> => {
+  if (
+    restoredSessionLoad?.userId === session.user.id &&
+    restoredSessionLoad.accessToken === session.access_token
+  ) {
+    return restoredSessionLoad.promise;
+  }
+  const entry: RestoredSessionLoad = {
+    userId: session.user.id,
+    accessToken: session.access_token,
+    promise: load(session.user, session),
+  };
+  restoredSessionLoad = entry;
+  void entry.promise
+    .finally(() => {
+      if (restoredSessionLoad === entry) restoredSessionLoad = null;
+    })
+    .catch(() => undefined);
+  return entry.promise;
+};
 
 // Single instance of auth state change subscription
 let authStateSubscription: ReturnType<
@@ -231,6 +276,8 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       isInitialized: false,
       hasCompletedOnboarding: false,
+      onboardingConfirmedUserId: null,
+      sessionRecoveryRequired: false,
       authListenerActive: false,
 
       initializeAuth: async () => {
@@ -294,7 +341,10 @@ export const useAuthStore = create<AuthState>()(
                   switch (event) {
                     case 'INITIAL_SESSION':
                       if (session?.user) {
-                        await store.setUserAndSession(session.user, session);
+                        await loadRestoredSessionOnce(
+                          session,
+                          store.setUserAndSession
+                        );
                       }
                       break;
 
@@ -399,8 +449,8 @@ export const useAuthStore = create<AuthState>()(
             if (session?.user) {
               // Restore directly as well as listening for auth events. The
               // listener can be delayed or silent during persisted-session
-              // hydration; setUserAndSession deduplicates the same token.
-              await get().setUserAndSession(session.user, session);
+              // hydration; both paths share one load for the same token.
+              await loadRestoredSessionOnce(session, get().setUserAndSession);
             } else {
               set({
                 isInitialized: true,
@@ -489,6 +539,7 @@ export const useAuthStore = create<AuthState>()(
             isInitialized: true,
             isLoading: true,
             hasCompletedOnboarding: false,
+            sessionRecoveryRequired: false,
           });
           if (previousUserId) {
             await queueAccountTeardown(previousUserId);
@@ -537,6 +588,14 @@ export const useAuthStore = create<AuthState>()(
           // snapshot has no owner, even when auth restores the same user id.
           useMomentaStore.getState().activateAccountScope(supabaseUser.id);
 
+          // Completing onboarding is one-way, so a server confirmation stored
+          // for this exact account is enough to reopen the app immediately.
+          // The profile below still loads and ends the session if the account
+          // no longer exists.
+          const restoresConfirmedAccount =
+            currentState.onboardingConfirmedUserId === supabaseUser.id &&
+            currentState.hasCompletedOnboarding;
+
           // 1) Fast-path: set minimal authenticated state immediately to unblock navigation
           const minimalUser: User = {
             id: supabaseUser.id,
@@ -558,12 +617,15 @@ export const useAuthStore = create<AuthState>()(
             // Route authority is not ready until the matching profile confirms
             // this account's onboarding state. Exposing the temporary false
             // value can send an existing user back through onboarding.
-            isLoading: true,
+            isLoading: !restoresConfirmedAccount,
             // Never carry an earlier account's completion state across handoff.
-            hasCompletedOnboarding: isSameAccount
-              ? currentState.hasCompletedOnboarding ||
-                completedOnboardingAccountEpoch === accountEpoch
-              : false,
+            sessionRecoveryRequired: false,
+            hasCompletedOnboarding:
+              restoresConfirmedAccount ||
+              (isSameAccount
+                ? currentState.hasCompletedOnboarding ||
+                  completedOnboardingAccountEpoch === accountEpoch
+                : false),
           });
           const isCurrentAccountSession = () => {
             const latest = get();
@@ -582,7 +644,11 @@ export const useAuthStore = create<AuthState>()(
 
           // 2) Background: fetch additional user profile data to enrich state
           // Fetch additional user profile data from our custom table
-          const profile = await getMyProfile();
+          const profile = await withTimeout(
+            getMyProfile(),
+            AUTH_PROFILE_TIMEOUT_MS,
+            'Account profile'
+          );
 
           // A delayed profile response must never overwrite a newer account
           // after A -> B switching or a revoked-session clear.
@@ -613,6 +679,14 @@ export const useAuthStore = create<AuthState>()(
             return;
           }
 
+          if (profile.id !== supabaseUser.id) {
+            throw new Error('AUTH_PROFILE_IDENTITY_MISMATCH');
+          }
+
+          const profileConfirmsOnboarding =
+            profile.has_completed_onboarding === true ||
+            completedOnboardingAccountEpoch === accountEpoch;
+
           const appUser: User = {
             id: supabaseUser.id,
             username: profile.username ?? '',
@@ -625,17 +699,29 @@ export const useAuthStore = create<AuthState>()(
           };
 
           try {
-            await loadOnboardingDraftForUser({
-              userId: appUser.id,
-              hasCompletedOnboarding:
-                profile.has_completed_onboarding === true ||
-                completedOnboardingAccountEpoch === accountEpoch,
-            });
-          } catch (draftError) {
-            console.warn(
-              '[AuthStore] Could not reconcile the local onboarding draft:',
-              draftError
+            await withTimeout(
+              loadOnboardingDraftForUser({
+                userId: appUser.id,
+                hasCompletedOnboarding:
+                  profile.has_completed_onboarding === true ||
+                  completedOnboardingAccountEpoch === accountEpoch,
+              }),
+              AUTH_DRAFT_TIMEOUT_MS,
+              'Local onboarding draft'
             );
+          } catch (draftError) {
+            if (isCurrentAccountSession()) {
+              logError(
+                new Error('Local onboarding draft reconciliation unavailable'),
+                {
+                  context: 'auth_draft_hydration',
+                  reason:
+                    (draftError as { code?: unknown })?.code === 'TIMEOUT'
+                      ? 'timeout'
+                      : 'read_failed',
+                }
+              );
+            }
           }
 
           if (!isCurrentAccountSession()) {
@@ -647,6 +733,18 @@ export const useAuthStore = create<AuthState>()(
             profile.has_completed_onboarding
           );
           notificationService.startUserScopedWork(appUser.id);
+          // Bind confirmed authority before subscribers or submit handlers can
+          // emit success; a React effect can run after those events.
+          try {
+            setAmplitudeUserId(appUser.id);
+          } catch {
+            // Analytics must never prevent an authenticated session.
+          }
+          try {
+            setProductAnalyticsUserId(appUser.id);
+          } catch {
+            // Each transport is optional and fails independently.
+          }
           set({
             user: appUser,
             // Keep a token rotated while profile hydration was in flight.
@@ -654,9 +752,11 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
             isInitialized: true,
             isLoading: false,
-            hasCompletedOnboarding:
-              profile.has_completed_onboarding === true ||
-              completedOnboardingAccountEpoch === accountEpoch,
+            hasCompletedOnboarding: profileConfirmsOnboarding,
+            onboardingConfirmedUserId: profileConfirmsOnboarding
+              ? appUser.id
+              : null,
+            sessionRecoveryRequired: false,
           });
 
           try {
@@ -781,6 +881,16 @@ export const useAuthStore = create<AuthState>()(
           // code; it must not create referral or reward facts in parallel.
         } catch (error) {
           if (accountEpoch !== accountIdentityEpoch) return;
+          const latest = get();
+          if (
+            latest.user?.id === supabaseUser.id &&
+            latest.isAuthenticated &&
+            !latest.isLoading
+          ) {
+            // INITIAL_SESSION and getSession may hydrate the same account
+            // concurrently. A late failed read cannot undo confirmed authority.
+            return;
+          }
           if (isExpectedSessionEndError(error)) {
             notificationService.stopUserScopedWork(supabaseUser.id);
             await queueAccountTeardown(supabaseUser.id);
@@ -789,7 +899,16 @@ export const useAuthStore = create<AuthState>()(
               sentryClearUser();
             } catch {}
           } else {
-            console.error('[AuthStore] Error in setUserAndSession:', error);
+            logError(new Error('Account profile could not be confirmed'), {
+              context: 'auth_profile_hydration',
+              reason:
+                (error as { code?: unknown })?.code === 'TIMEOUT'
+                  ? 'timeout'
+                  : error instanceof Error &&
+                      error.message === 'AUTH_PROFILE_IDENTITY_MISMATCH'
+                    ? 'profile_mismatch'
+                    : 'read_failed',
+            });
           }
           set({
             user: null,
@@ -797,6 +916,8 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: false,
             isInitialized: true,
             isLoading: false,
+            hasCompletedOnboarding: false,
+            sessionRecoveryRequired: !isExpectedSessionEndError(error),
           });
           useMomentaStore.getState().clearMomentaData();
         }
@@ -1015,6 +1136,13 @@ export const useAuthStore = create<AuthState>()(
         }
 
         await get().setUserAndSession(session.user as SupabaseUser, session);
+        if (
+          pending &&
+          get().isAuthenticated &&
+          get().user?.id === session.user.id
+        ) {
+          trackConfirmedEmailSignup(session.user.id, pending.requestedAt);
+        }
         await useEmailConfirmationStore
           .getState()
           .clearForEmail(normalizedEmail);
@@ -1067,6 +1195,8 @@ export const useAuthStore = create<AuthState>()(
           isInitialized: true,
           isLoading: false,
           hasCompletedOnboarding: false,
+          onboardingConfirmedUserId: null,
+          sessionRecoveryRequired: false,
           // Keep authListenerActive true.
         });
         useMomentaStore.getState().clearMomentaData();
@@ -1191,7 +1321,10 @@ export const useAuthStore = create<AuthState>()(
             source:
               activationPath === 'first_promise' ? 'onboarding' : 'invite',
           });
-          set({ hasCompletedOnboarding: true });
+          set({
+            hasCompletedOnboarding: true,
+            onboardingConfirmedUserId: expectedUserId,
+          });
           if (
             completionHandoff &&
             useOnboardingCompletionStore
@@ -1281,7 +1414,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      signInWithGoogle: async () => {
+      signInWithGoogle: async (flow = 'login') => {
         // App-owned release switch; Google stays available by default.
         const googleLoginDisabled = await isOperationalFeatureEnabled(
           'disable_google_login'
@@ -1319,6 +1452,18 @@ export const useAuthStore = create<AuthState>()(
 
           // Beta gate removed: no post-OAuth approval re-check
 
+          if (
+            result.user?.id &&
+            get().isAuthenticated &&
+            get().user?.id === result.user.id
+          ) {
+            trackProductEvent('Authentication Result', {
+              flow,
+              method: 'google',
+              outcome: 'succeeded',
+            });
+          }
+
           // Auth state change listener will handle the session update
           authStoreDebugLog('Google sign-in successful');
           showGlobalToast(
@@ -1342,7 +1487,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      signInWithApple: async () => {
+      signInWithApple: async (flow = 'login') => {
         const useWeb = Boolean(Constants.expoConfig?.extra?.oauthUseWeb);
         // App-owned release switch; Apple stays available by default.
         const appleLoginDisabled = await isOperationalFeatureEnabled(
@@ -1381,6 +1526,18 @@ export const useAuthStore = create<AuthState>()(
           }
 
           // Beta gate removed: no post-OAuth approval re-check
+
+          if (
+            result.user?.id &&
+            get().isAuthenticated &&
+            get().user?.id === result.user.id
+          ) {
+            trackProductEvent('Authentication Result', {
+              flow,
+              method: 'apple',
+              outcome: 'succeeded',
+            });
+          }
 
           // Auth state change listener will handle the session update
           authStoreDebugLog('Apple sign-in successful');
@@ -1515,16 +1672,30 @@ export const useAuthStore = create<AuthState>()(
       storage: createJSONStorage(() => AsyncStorage),
       partialize: state => ({
         hasCompletedOnboarding: state.hasCompletedOnboarding,
+        onboardingConfirmedUserId: state.onboardingConfirmedUserId,
       }),
-      version: 1,
+      version: 2,
       migrate: (
         persistedState: unknown,
         version: number
       ): AuthPersistedState => {
         if (version === 0) {
-          return { hasCompletedOnboarding: false };
+          return {
+            hasCompletedOnboarding: false,
+            onboardingConfirmedUserId: null,
+          };
         }
-        return persistedState as AuthPersistedState;
+        // Version 1 never recorded which account completed onboarding, so the
+        // first launch after upgrading still waits for the server profile.
+        const persisted = persistedState as Partial<AuthPersistedState>;
+        return {
+          hasCompletedOnboarding: persisted.hasCompletedOnboarding === true,
+          onboardingConfirmedUserId:
+            version >= 2 &&
+            typeof persisted.onboardingConfirmedUserId === 'string'
+              ? persisted.onboardingConfirmedUserId
+              : null,
+        };
       },
     }
   )

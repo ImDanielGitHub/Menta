@@ -15,9 +15,7 @@ export interface AccountActivationReceipt {
   welcomeMomentaAmount: number;
   welcomeMomentaGranted: boolean;
   welcomeMomentaOutcome:
-    | 'granted_now'
-    | 'already_confirmed'
-    | 'legacy_not_backfilled';
+    'granted_now' | 'already_confirmed' | 'legacy_not_backfilled';
   referral: ReferralActivationReceipt | null;
 }
 
@@ -280,22 +278,4 @@ export const decodePromiseCreationReceipt = (
     activation,
     referral,
   };
-};
-
-export const formatPromiseDueWindow = (
-  nextDueAt: string | null,
-  timeZone?: string
-): string | null => {
-  if (!isTimestamp(nextDueAt)) return null;
-
-  try {
-    return new Intl.DateTimeFormat('en-NZ', {
-      weekday: 'long',
-      hour: 'numeric',
-      minute: '2-digit',
-      timeZone,
-    }).format(new Date(nextDueAt));
-  } catch {
-    return null;
-  }
 };

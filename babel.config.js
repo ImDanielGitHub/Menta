@@ -1,17 +1,6 @@
 module.exports = function (api) {
   const isTest = api.env('test');
-  const plugins = [
-    [
-      'module-resolver',
-      {
-        root: ['./'],
-        alias: {
-          '@': './',
-        },
-        extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
-      },
-    ],
-  ];
+  const plugins = [];
 
   if (isTest) {
     plugins.unshift(function transformDynamicImportForJest({ types: t }) {

@@ -2,9 +2,14 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useTheme, type ThemeContextType } from '@/constants/ThemeContext';
+import {
+  mentaHeadingRoles,
+  mentaRadii,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
 import { AppInlineNotice } from '@/components/ui/AppFeedback';
 import { XIcon } from '@/components/ui/icons';
-import ModalCard from '@/components/ui/modal/ModalCard';
+import { ModalCard } from '@/components/ui/modal/ModalCard';
 import {
   ProofEvidenceRow,
   ProofEvidenceRowSkeleton,
@@ -269,10 +274,12 @@ const FilterChip: React.FC<{
 }> = ({ label, count, active, onPress }) => {
   const theme = useTheme();
   const { colors, spacing } = theme;
-  const backgroundColor = active ? colors.interactive.secondary : 'transparent';
-  const foregroundColor = active
-    ? colors.interactive.primary
-    : colors.text.secondary;
+  // Filters share the onboarding chip language: a violet tint and edge
+  // once chosen, a raised quiet chip otherwise.
+  const backgroundColor = active
+    ? colors.accent.background
+    : colors.interactive.secondary;
+  const foregroundColor = active ? colors.text.primary : colors.text.secondary;
 
   return (
     <Pressable
@@ -284,19 +291,24 @@ const FilterChip: React.FC<{
         alignItems: 'center',
         gap: spacing.xs,
         paddingHorizontal: spacing.md,
-        borderRadius: 999,
+        borderRadius: mentaRadii.medium,
         borderWidth: 1,
-        borderColor: active
-          ? colors.border.focus || colors.interactive.primary
-          : colors.border.primary,
+        borderColor: active ? colors.border.focus : colors.border.primary,
         backgroundColor,
         opacity: pressed ? 0.72 : 1,
       })}
       accessibilityState={{ selected: active }}
     >
-      <Text style={{ color: foregroundColor, fontWeight: '700' }}>{label}</Text>
       <Text
-        style={{ color: foregroundColor, fontWeight: '700', opacity: 0.72 }}
+        style={[mentaTypography.bodySmallMedium, { color: foregroundColor }]}
+      >
+        {label}
+      </Text>
+      <Text
+        style={[
+          mentaTypography.captionMedium,
+          { color: foregroundColor, opacity: 0.72 },
+        ]}
       >
         {count}
       </Text>
@@ -328,13 +340,11 @@ const createStyles = (theme: ThemeContextType) =>
       minWidth: 0,
     },
     title: {
-      fontSize: theme.typography.sizes['2xl'] || theme.typography.sizes.lg,
-      fontWeight: '700',
+      ...mentaHeadingRoles.section,
     },
     subtitle: {
+      ...mentaTypography.bodySmall,
       color: theme.colors.text.secondary,
-      fontSize: theme.typography.sizes.sm,
-      lineHeight: 19,
       marginTop: theme.spacing.xs,
     },
     closeButton: {
@@ -374,22 +384,20 @@ const createStyles = (theme: ThemeContextType) =>
       borderTopColor: theme.colors.border.primary,
     },
     refreshingText: {
+      ...mentaTypography.bodySmall,
       color: theme.colors.text.secondary,
-      fontSize: theme.typography.sizes.sm,
     },
     emptyBox: {
       paddingVertical: theme.spacing.xl,
       gap: theme.spacing.xs,
     },
     emptyTitle: {
+      ...mentaTypography.bodySemibold,
       color: theme.colors.text.primary,
-      fontSize: theme.typography.sizes.lg,
-      fontWeight: '700',
     },
     emptyCopy: {
+      ...mentaTypography.bodySmall,
       color: theme.colors.text.secondary,
-      fontSize: theme.typography.sizes.sm,
-      lineHeight: 19,
     },
   });
 

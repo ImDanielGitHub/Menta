@@ -11,6 +11,13 @@ type FullAuthResidualKey = Extract<
 >;
 
 export const fullAuthAccountDeDE = {
+  'fullAuth.tabs_profile.build_your_rhythm': 'Finde deinen Rhythmus',
+  'fullAuth.tabs_profile.rhythm_next_check_in':
+    'Ein Check-in nach dem anderen. Öffne Heute für deinen nächsten Schritt. Nachweise, die auf eine Prüfung warten, erscheinen hier, sobald sie akzeptiert wurden.',
+  'fullAuth.tabs_profile.rhythm_choose_next_promise':
+    'Wähle eine Sache, die du umsetzen kannst. Deine akzeptierten Nachweise zeigen hier nach und nach deinen Fortschritt.',
+  'fullAuth.tabs_profile.rhythm_open_today': 'Zu Heute',
+  'fullAuth.tabs_profile.rhythm_view_promises': 'Deine Versprechen ansehen',
   'fullAuth.shared.try_again': 'Versuche es erneut',
   'fullAuth.support.untitled_report': 'Bericht ohne Titel',
   'fullAuth.onboarding.promise_setup_step_one':
@@ -1681,5 +1688,30 @@ export const fullAuthAccountDeDE = {
     'Wenn du dies aktivierst, teilt Menta stichprobenartige Leistungsmessungen mit Sentry. Die Sitzungswiedergabe von Amplitude läuft separat; Text, Eingabefelder und Bilder werden maskiert. Dadurch werden weder Werbung noch appübergreifendes Tracking aktiviert.',
   'fullAuth.residual.settings.advanced_basic_body':
     'Wenn du dies aktivierst, teilt Menta zusätzliche Leistungsmessungen mit Sentry. Dadurch werden weder Werbung noch appübergreifendes Tracking aktiviert.',
+  'fullAuth.tabs_profile.since': 'Hält Versprechen seit {month}',
+  'fullAuth.tabs_profile.stat_day_streak': 'Tage Serie',
+  'fullAuth.tabs_profile.stat_best_streak': 'beste Serie',
+  'fullAuth.tabs_profile.stat_days_kept': 'Tage gehalten',
+  'fullAuth.tabs_profile.stat_day_one': 'Tag 1',
+  'fullAuth.tabs_profile.stat_starts_today': 'beginnt heute',
+  'fullAuth.tabs_profile.stats_accessibility':
+    '{current}. Beste Serie {best} Tage. {kept} Tage gehalten.',
+  'fullAuth.tabs_profile.month_kept': '{count} gehalten',
+  'fullAuth.tabs_profile.month_frozen': '{count} geschützt',
+  'fullAuth.tabs_profile.month_missed': '{count} verpasst',
+  'fullAuth.tabs_profile.month_empty': 'Hier füllen sich deine Tage',
+  'fullAuth.tabs_profile.day_kept': '{day}: gehalten',
+  'fullAuth.tabs_profile.day_frozen': '{day}: durch Serien-Schutz abgedeckt',
+  'fullAuth.tabs_profile.day_missed': '{day}: verpasst',
+  'fullAuth.tabs_profile.day_today': '{day}: heute',
+  'fullAuth.tabs_profile.invite_title':
+    'Hol eine Freundin oder einen Freund zu Menta',
+  'fullAuth.tabs_profile.invite_reward':
+    'Ihr bekommt beide {amount} Momenta, wenn sie ihr erstes Versprechen machen.',
+  'fullAuth.tabs_profile.invite_body':
+    'Versprechen halten besser, wenn jemand mit dabei ist.',
+  'fullAuth.tabs_profile.invite_action': 'Jemanden einladen',
+  'fullAuth.tabs_profile.active_count': '{count} aktiv',
+  'fullAuth.tabs_profile.invite_accessibility': '{title}. {body}',
 } as const satisfies Pick<EnglishCatalogue, FullAuthAccountKey> &
   Record<FullAuthSourceKey | FullAuthResidualKey, string>;

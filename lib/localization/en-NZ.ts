@@ -1,4 +1,5 @@
 import { languageEnNZ } from '@/lib/localization/catalogues/en-NZ/language';
+import { widgetsEnNZ } from '@/lib/localization/catalogues/en-NZ/widgets';
 import { notificationsEnNZ } from '@/lib/localization/catalogues/en-NZ/notifications';
 import { onboardingEnNZ } from '@/lib/localization/catalogues/en-NZ/onboarding';
 import { todayEnNZ } from '@/lib/localization/catalogues/en-NZ/today';
@@ -17,8 +18,10 @@ import { fullCommerceEnNZ } from '@/lib/localization/catalogues/en-NZ/full-comme
 import { fullGroupsEnNZ } from '@/lib/localization/catalogues/en-NZ/full-groups';
 import { fullDomainFeedbackEnNZ } from '@/lib/localization/catalogues/en-NZ/full-domain-feedback';
 import { sourceGateEnNZ } from '@/lib/localization/catalogues/en-NZ/source-gate';
+import { momentaTopUpEnNZ } from '@/lib/localization/catalogues/en-NZ/momenta-top-up';
 
 export const enNZ = {
+  ...widgetsEnNZ,
   'commerce.proJourney.back': 'Back',
   'commerce.proJourney.title': 'Menta Pro',
   'commerce.proJourney.subtitle':
@@ -109,6 +112,7 @@ export const enNZ = {
   ...fullSharedUiEnNZ,
   ...fullTodayProofEnNZ,
   ...fullCommerceEnNZ,
+  ...momentaTopUpEnNZ,
   ...fullGroupsEnNZ,
   ...fullDomainFeedbackEnNZ,
   ...sourceGateEnNZ,

@@ -136,12 +136,12 @@ export const fullTodayProofFrCA = {
   'todayProof.create.group_proof_rule':
     'Indiquez aux vérifieurs du groupe ce qui confirme que cela a été fait.',
   'todayProof.create.prompt_optional':
-    "Invite affichée lors de l'enregistrement (facultatif)",
+    'Consigne affichée lors du suivi (facultatif)',
   'todayProof.create.prompt_placeholder':
     'Ajoutez une courte instruction que les gens voient avant de soumettre',
   'todayProof.create.prompt_helper':
     'Limitez cela à un rappel pratique pour la personne qui envoie la preuve.',
-  'todayProof.create.prompt': "Invite affichée lors de l'enregistrement",
+  'todayProof.create.prompt': 'Consigne affichée lors du suivi',
   'todayProof.create.prompt_example':
     'Exemple : Qu’avez‑vous fait, et pendant combien de temps ?',
   'todayProof.create.edit_wording': 'Modifier le libellé de la promesse',
@@ -235,7 +235,7 @@ export const fullTodayProofFrCA = {
   'todayProof.create.set_reminder': 'Définir un rappel',
   'todayProof.solo.back': 'Retour',
   'todayProof.solo.items': 'Vos éléments',
-  'todayProof.solo.items_hint': 'Ouvre les boosts et styles que vous possédez.',
+  'todayProof.solo.items_hint': 'Ouvre les bonus et styles que vous possédez.',
   'todayProof.solo.create_personal': 'Créer une promesse personnelle',
   'todayProof.solo.heading': 'Promesses personnelles',
   'todayProof.solo.detail':
@@ -376,11 +376,11 @@ export const fullTodayProofFrCA = {
   'todayProof.promise.not_changed_title': 'Promesse inchangée',
   'todayProof.promise.check_status': 'Vérifier l’état',
   'todayProof.promise.check_action_unavailable':
-    'Menta ne peut pas encore vérifier cette action. Rafraîchissez la promesse avant de réessayer.',
+    'Menta ne peut pas encore vérifier cette action. Actualisez la promesse avant de réessayer.',
   'todayProof.promise.leave_result_unknown':
     'Menta n’a pas pu confirmer si vous avez quitté cette promesse. Vérifiez son état avant de réessayer.',
   'todayProof.promise.leave_check_unavailable':
-    'Menta ne peut pas encore vérifier si vous avez quitté cette promesse. Rafraîchissez la promesse avant de réessayer.',
+    'Menta ne peut pas encore vérifier si vous avez quitté cette promesse. Actualisez la promesse avant de réessayer.',
   'todayProof.promise.result_mismatch':
     'Menta n’a pas pu associer ce résultat à la promesse. Vérifiez son état avant de réessayer.',
   'todayProof.promise.confirmation_mismatch':
@@ -392,9 +392,9 @@ export const fullTodayProofFrCA = {
   'todayProof.promise.delete_result_unknown':
     'Menta n’a pas pu confirmer si cette promesse avait été supprimée. Vérifiez son état avant de réessayer.',
   'todayProof.promise.delete_check_unavailable':
-    'Menta ne peut pas encore vérifier si cette promesse a été supprimée. Rafraîchissez vos promesses avant de réessayer.',
+    'Menta ne peut pas encore vérifier si cette promesse a été supprimée. Actualisez vos promesses avant de réessayer.',
   'todayProof.promise.delete_status_unavailable':
-    'Menta n’a pas pu vérifier si cette promesse a été supprimée. Rafraîchissez vos promesses avant de réessayer.',
+    'Menta n’a pas pu vérifier si cette promesse a été supprimée. Actualisez vos promesses avant de réessayer.',
   'todayProof.promise.delete_question': 'Supprimer cette promesse ?',
   'todayProof.promise.leave_question': 'Quitter cette promesse ?',
   'todayProof.promise.delete': 'Supprimer la promesse',
@@ -856,7 +856,7 @@ export const fullTodayProofFrCA = {
   'todayProof.creation.title': "Créer une promesse ou rejoindre d'autres.",
   'todayProof.creation.subtitle':
     'Les promesses solo restent privées. Les promesses de groupe partagent les progrès avec les personnes que vous choisissez.',
-  'todayProof.creation.close_hub': 'Fermer le hub de création',
+  'todayProof.creation.close_hub': 'Fermer la création',
   'todayProof.creation.create_options': 'Options de création',
   'todayProof.creation.group_promise': 'Ajouter une promesse à votre groupe',
   'todayProof.creation.group_promise_detail':
@@ -1005,7 +1005,7 @@ export const fullTodayProofFrCA = {
   'todayProof.residual.invite_preview': "APERÇU DE L'INVITATION",
   'todayProof.residual.copy_invite_link': "Copier le lien d'invitation",
   'todayProof.residual.your_promise': 'VOTRE PROMESSE',
-  'todayProof.residual.type_your_promise': 'Tapez votre promesse…',
+  'todayProof.residual.type_your_promise': 'Écrivez votre promesse…',
   'todayProof.residual.daily_minimum': 'MINIMUM QUOTIDIEN',
   'todayProof.residual.daily_minimum_2': 'Minimum quotidien',
   'todayProof.residual.describe_what_counts_as_done':
@@ -1176,4 +1176,69 @@ export const fullTodayProofFrCA = {
   'todayProof.profile.approved_proof_count': 'Preuves approuvées : {count}',
   'todayProof.streak.reminder_row_accessibility':
     'Rappels de preuve. {detail}. Préférence : {status}.',
+  'todayProof.createFlow.close': 'Fermer',
+  'todayProof.createFlow.back': 'Retour',
+  'todayProof.createFlow.promiseBubble': 'Qu’est-ce que vous voulez faire?',
+  'todayProof.createFlow.promiseLabel': 'Votre promesse',
+  'todayProof.createFlow.draftNote':
+    'Votre brouillon reste ici si vous partez.',
+  'todayProof.createFlow.startFrom': 'Ou commencez avec l’une de celles-ci',
+  'todayProof.createFlow.proofBubble':
+    'Une fois fait, comment allez-vous me le montrer?',
+  'todayProof.createFlow.proofFor': 'Pour « {title} »',
+  'todayProof.createFlow.photo': 'Photo',
+  'todayProof.createFlow.photoDetail': 'Prenez une photo.',
+  'todayProof.createFlow.note': 'Note',
+  'todayProof.createFlow.noteDetail': 'Écrivez ce qui s’est passé.',
+  'todayProof.createFlow.video': 'Vidéo',
+  'todayProof.createFlow.videoDetail': 'Filmez un court clip.',
+  'todayProof.createFlow.showPhoto': 'Que doit montrer la photo?',
+  'todayProof.createFlow.showNote': 'Que doit dire la note?',
+  'todayProof.createFlow.showVideo': 'Que doit montrer le clip?',
+  'todayProof.createFlow.showHelpShared':
+    'La personne qui vérifie votre preuve verra ceci, pour savoir ce qui compte.',
+  'todayProof.createFlow.showHelpSolo':
+    'Vous verrez ceci à chaque envoi de preuve.',
+  'todayProof.createFlow.chooseWho': 'Choisir qui vérifie',
+  'todayProof.createFlow.chooseLength': 'Choisir la durée',
+  'todayProof.createFlow.whoBubble': 'Qui doit vérifier votre preuve?',
+  'todayProof.createFlow.yourGroups': 'Vos groupes',
+  'todayProof.createFlow.or': 'Ou',
+  'todayProof.createFlow.friend': 'Un ami',
+  'todayProof.createFlow.friendDetail':
+    'Envoyez-lui une invitation après l’enregistrement',
+  'todayProof.createFlow.justMe': 'Moi seul pour l’instant',
+  'todayProof.createFlow.justMeDetail': 'Ajoutez quelqu’un quand vous voulez',
+  'todayProof.createFlow.groupMembers.one': '{count} membre',
+  'todayProof.createFlow.groupMembers.other': '{count} membres',
+  'todayProof.createFlow.groupMembers': '{count} membres',
+  'todayProof.createFlow.lengthBubble': 'Combien de temps voulez-vous tenir?',
+  'todayProof.createFlow.days': '{count} jours',
+  'todayProof.createFlow.checkIns.one': '{count} preuve',
+  'todayProof.createFlow.checkIns.other': '{count} preuves',
+  'todayProof.createFlow.checkIns': '{count} preuves',
+  'todayProof.createFlow.whichDays': 'Quels jours comptent?',
+  'todayProof.createFlow.everyDay': 'Tous les jours',
+  'todayProof.createFlow.weekdays': 'En semaine',
+  'todayProof.createFlow.pickDays': 'Choisir les jours',
+  'todayProof.createFlow.pickOneDay': 'Choisissez au moins un jour.',
+  'todayProof.createFlow.useDays': 'Choisir {count} jours',
+  'todayProof.createFlow.reviewBubble': 'Voici votre promesse. Tout est bon?',
+  'todayProof.createFlow.ready': 'Prêt à commencer?',
+  'todayProof.createFlow.almostThere': 'Presque',
+  'todayProof.createFlow.photoProof': 'Preuve photo',
+  'todayProof.createFlow.noteProof': 'Preuve écrite',
+  'todayProof.createFlow.videoProof': 'Preuve vidéo',
+  'todayProof.createFlow.checkedBy': 'Vérifiée par',
+  'todayProof.createFlow.checkerMe': 'Vous seul',
+  'todayProof.createFlow.checkerFriend': 'Un ami que vous invitez',
+  'todayProof.createFlow.checksIt': 'Vérifiée par {checker}',
+  'todayProof.createFlow.firstProofDue': 'Première preuve',
+  'todayProof.createFlow.today': 'Aujourd’hui',
+  'todayProof.createFlow.tomorrow': 'Demain',
+  'todayProof.createFlow.start': 'Commencer ma promesse',
+  'todayProof.createFlow.edit': 'Modifier',
+  'todayProof.createFlow.editPromise': 'Modifier la promesse',
+  'todayProof.createFlow.dayToggle': '{day}, compte',
+  'todayProof.createFlow.dayToggleOff': '{day}, jour de repos',
 } as const;

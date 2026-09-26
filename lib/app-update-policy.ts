@@ -52,9 +52,9 @@ export type AppUpdateDecision =
       storeUrl: string;
     };
 
-const IOS_STORE_URL = 'https://apps.apple.com/app/id6747362646';
+const IOS_STORE_URL = process.env.EXPO_PUBLIC_IOS_STORE_URL?.trim() ?? '';
 const ANDROID_STORE_URL =
-  'https://play.google.com/store/apps/details?id=com.anekedigitalapps.lockedinpro';
+  process.env.EXPO_PUBLIC_ANDROID_STORE_URL?.trim() ?? '';
 
 export const getMentaStoreUrl = (platform: AppUpdatePlatform): string =>
   platform === 'ios' ? IOS_STORE_URL : ANDROID_STORE_URL;
@@ -167,6 +167,7 @@ export const resolveAppUpdateDecision = ({
   if (!payload) return { status: 'authority_unknown' };
   const policy = payload.platforms[platform];
   if (!policy.store_available) return { status: 'authority_unknown' };
+  if (!getMentaStoreUrl(platform)) return { status: 'authority_unknown' };
 
   const comparison = compareAppVersions(currentVersion, policy.minimum_version);
   if (comparison === null) return { status: 'authority_unknown' };

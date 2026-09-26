@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { translate } from '@/lib/localization';
+import { trackProductEvent } from '@/lib/posthog';
+import { captureError } from '@/lib/sentry';
 import {
   EVENT_MEDIA_BUCKET,
   EVENT_MEDIA_CONTENT_TYPES,
@@ -522,6 +524,44 @@ const invokeEventAction = async <TData>(input: {
   payload: UnknownRecord;
   parseData: (value: unknown) => value is TData;
 }): Promise<EventReceipt<TData>> => {
+  const finish = (receipt: EventReceipt<TData>): EventReceipt<TData> => {
+    // Only canonical action/outcome enums leave this boundary. Receipt messages,
+    // event contents, capability tokens and identifiers remain local.
+    try {
+      const reason =
+        receipt.code === 'MALFORMED_SERVER_RECEIPT'
+          ? 'invalid_receipt'
+          : receipt.code === 'FUNCTION_TRANSPORT_FAILED'
+            ? 'transport'
+            : receipt.outcome === 'failed'
+              ? 'server_rejected'
+              : receipt.outcome === 'unknown_result'
+                ? 'server_unknown'
+                : 'none';
+      trackProductEvent('Event Action Outcome', {
+        action: input.action,
+        outcome: receipt.outcome,
+        reason,
+        idempotent: receipt.idempotent,
+      });
+    } catch {
+      // Analytics failure must never change a confirmed server receipt.
+    }
+    if (receipt.code === 'MALFORMED_SERVER_RECEIPT') {
+      try {
+        captureError(
+          new Error('Event action returned an invalid server receipt'),
+          {
+            operation: input.action,
+            reason: 'invalid_receipt',
+          }
+        );
+      } catch {
+        // Reporting an unreadable receipt must preserve its recovery state.
+      }
+    }
+    return receipt;
+  };
   try {
     const { data, error } = await supabase.functions.invoke(
       'event-participation',
@@ -531,11 +571,13 @@ const invokeEventAction = async <TData>(input: {
     );
 
     if (error) {
-      return unknownReceipt(
-        input.action,
-        input.clientEventId,
-        'FUNCTION_TRANSPORT_FAILED',
-        "We couldn't tell whether the event action went through. Check its status before trying again."
+      return finish(
+        unknownReceipt(
+          input.action,
+          input.clientEventId,
+          'FUNCTION_TRANSPORT_FAILED',
+          "We couldn't tell whether the event action went through. Check its status before trying again."
+        )
       );
     }
 
@@ -545,20 +587,24 @@ const invokeEventAction = async <TData>(input: {
       input.clientEventId,
       input.parseData
     );
-    if (parsed) return parsed;
+    if (parsed) return finish(parsed);
 
-    return unknownReceipt(
-      input.action,
-      input.clientEventId,
-      'MALFORMED_SERVER_RECEIPT',
-      "Menta couldn't read the result. Check what changed before trying again."
+    return finish(
+      unknownReceipt(
+        input.action,
+        input.clientEventId,
+        'MALFORMED_SERVER_RECEIPT',
+        "Menta couldn't read the result. Check what changed before trying again."
+      )
     );
   } catch {
-    return unknownReceipt(
-      input.action,
-      input.clientEventId,
-      'FUNCTION_TRANSPORT_FAILED',
-      "We couldn't tell whether the event action went through. Check its status before trying again."
+    return finish(
+      unknownReceipt(
+        input.action,
+        input.clientEventId,
+        'FUNCTION_TRANSPORT_FAILED',
+        "We couldn't tell whether the event action went through. Check its status before trying again."
+      )
     );
   }
 };

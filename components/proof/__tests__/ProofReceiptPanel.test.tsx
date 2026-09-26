@@ -59,7 +59,7 @@ describe('ProofReceiptPanel detail', () => {
       />
     );
 
-    expect(getAllByText('Proof approved')).toHaveLength(1);
+    expect(getAllByText('Done today')).toHaveLength(1);
 
     fireEvent.press(getByText('Report an issue'));
     expect(onReportIssue).toHaveBeenCalledTimes(1);

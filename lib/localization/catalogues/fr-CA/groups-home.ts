@@ -15,7 +15,7 @@ export const groupsHomeFrCA = {
   'groupsHome.count.members.one': '{count} membre',
   'groupsHome.count.members.other': '{count} membres',
   'groupsHome.count.streak': 'Série de {count} jours',
-  'groupsHome.count.streak.one': '{count} jour de série',
+  'groupsHome.count.streak.one': 'Série de {count} jour',
   'groupsHome.count.streak.other': 'Série de {count} jours',
   'groupsHome.summary.meta': '{members} - {streak} · {risk}',
   'groupsHome.invites.title': 'Invitations ouvertes',

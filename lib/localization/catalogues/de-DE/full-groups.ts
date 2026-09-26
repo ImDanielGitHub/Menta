@@ -1520,4 +1520,19 @@ export const fullGroupsDeDE = {
   'groups.create.promise_link.check_again': 'Verknüpfung prüfen',
   'groups.create.promise_link.return_to_promise':
     'Zum Versprechen zurückkehren',
+  'groups.share.pass_title': 'Hältst du mich auf Kurs?',
+  'groups.share.pass_from': 'Von {name}',
+  'groups.share.pitch_title': 'Hol dir jemanden, der nach dir schaut.',
+  'groups.share.pitch_proof':
+    'Sie sehen deinen Nachweis und bestätigen ihn mit einem Tippen. Das dauert Sekunden.',
+  'groups.share.pitch_reward':
+    'Wenn sie ihr erstes Versprechen machen, bekommt ihr beide {amount} Momenta.',
+  'groups.share.pitch_link': 'Mit diesem Link können sie direkt beitreten.',
+  'groups.share.sent_step_join': 'Sie öffnen ihn und treten Menta bei.',
+  'groups.share.sent_step_promise': 'Sie machen ihr erstes Versprechen.',
+  'groups.share.sent_step_reward':
+    'Sie machen ihr erstes Versprechen, und ihr bekommt beide {amount} Momenta.',
+  'groups.share.you': 'Du',
+  'groups.share.checker': 'Deine Prüfperson',
+  'groups.share.sent_title': 'Gesendet? So geht es weiter.',
 } as const;

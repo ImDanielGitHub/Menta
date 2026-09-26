@@ -1,12 +1,7 @@
 import React from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import {
-  AppButton,
-  AppInlineNotice,
-  MentaMascot,
-  SkeletonLoader,
-} from '@/components/ui';
+import { AppButton, AppInlineNotice, SkeletonLoader } from '@/components/ui';
 import {
   AlertCircleIcon,
   ChevronRightIcon,
@@ -19,6 +14,7 @@ import {
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
+import { MentaNarrator } from '@/components/onboarding/MentaNarrator';
 import { withReadableLeading } from '@/constants/phone-layout';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { useTheme } from '@/constants/ThemeContext';
@@ -303,32 +299,22 @@ const MyGroupsEmpty = ({
       testID="groups-paper-GRP-02"
     >
       <View style={styles.emptyBody}>
-        <MentaMascot
-          state="empty-guide"
-          size={phoneLayout.isCompactHeight ? 'sm' : 'md'}
-          style={styles.emptyMascot}
+        <MentaNarrator
+          layout="stacked"
+          state="referral-invitation"
+          message={t('groups.source.accountability.empty_title')}
+          mascotSize={phoneLayout.isCompactHeight ? 150 : 200}
+          testID="groups-empty-narrator"
         />
-        <View style={styles.emptyCopy}>
-          <Text
-            accessibilityRole="header"
-            style={[
-              styles.emptyTitle,
-              withReadableLeading(mentaTypography.heading, phoneLayout),
-              { color: colors.text.primary },
-            ]}
-          >
-            {t('groups.source.accountability.empty_title')}
-          </Text>
-          <Text
-            style={[
-              styles.emptyDescription,
-              withReadableLeading(mentaTypography.body, phoneLayout),
-              { color: colors.text.secondary },
-            ]}
-          >
-            {t('groups.source.accountability.empty_detail')}
-          </Text>
-        </View>
+        <Text
+          style={[
+            styles.emptyDescription,
+            withReadableLeading(mentaTypography.body, phoneLayout),
+            { color: colors.text.secondary },
+          ]}
+        >
+          {t('groups.source.accountability.empty_detail')}
+        </Text>
       </View>
       <View style={styles.emptyActions}>
         <AppButton
@@ -846,16 +832,16 @@ const styles = StyleSheet.create({
   },
   blockingActions: { gap: mentaSpacing[2], marginTop: 'auto' },
   emptyState: { flex: 1, justifyContent: 'space-between' },
-  emptyBody: { flex: 1, justifyContent: 'center', gap: 22 },
-  emptyMascot: { width: 104, height: 104 },
-  emptyCopy: { gap: 10 },
-  emptyTitle: {
-    ...mentaTypography.heading,
+  emptyBody: {
+    flex: 1,
+    justifyContent: 'center',
+    gap: mentaSpacing[4],
   },
   emptyDescription: {
     ...mentaTypography.body,
+    textAlign: 'center',
   },
-  emptyActions: { gap: 10, paddingTop: mentaSpacing[3] },
+  emptyActions: { gap: mentaSpacing[1], paddingTop: mentaSpacing[3] },
   section: { gap: mentaSpacing[3] },
   sectionHeader: {
     minHeight: 18,

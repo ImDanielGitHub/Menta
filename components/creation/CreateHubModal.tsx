@@ -1,7 +1,15 @@
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import ModalCard from '@/components/ui/modal/ModalCard';
+import { ModalCard } from '@/components/ui/modal/ModalCard';
 import {
   mentaColors,
   mentaLayout,
@@ -25,6 +33,10 @@ import {
   TargetIcon,
   UsersIcon,
 } from '@/components/ui/icons';
+import {
+  IPAD_BOUNDED_SHEET_MIN_WIDTH,
+  IPAD_MAX_CONTENT_WIDTH,
+} from '@/constants/responsive-layout';
 
 type CreateHubModalProps = {
   visible: boolean;
@@ -32,11 +44,7 @@ type CreateHubModalProps = {
   pendingInvite?: PendingInvite | null;
   recommendedAction?: {
     choiceId:
-      | 'solo'
-      | 'accountability'
-      | 'group'
-      | 'group_challenge'
-      | 'invite';
+      'solo' | 'accountability' | 'group' | 'group_challenge' | 'invite';
     title: string;
     description: string;
     ctaLabel: string;
@@ -80,8 +88,13 @@ export const CreateHubModal: React.FC<CreateHubModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const phoneLayout = usePhoneLayout();
   const { colors } = useTheme();
+  const usesIPadFrame =
+    Platform.OS === 'ios' &&
+    Platform.isPad &&
+    width >= IPAD_BOUNDED_SHEET_MIN_WIDTH;
   const preferredChoice =
     preferredIntent === 'create_group'
       ? 'group'
@@ -99,11 +112,7 @@ export const CreateHubModal: React.FC<CreateHubModalProps> = ({
     (hasActiveGroup ? 'group_challenge' : 'solo');
   const choicePress = (
     choiceId:
-      | 'solo'
-      | 'accountability'
-      | 'group'
-      | 'group_challenge'
-      | 'invite',
+      'solo' | 'accountability' | 'group' | 'group_challenge' | 'invite',
     fallback: () => void
   ) =>
     recommendedAction?.choiceId === choiceId
@@ -203,6 +212,7 @@ export const CreateHubModal: React.FC<CreateHubModalProps> = ({
           style={[
             styles.topBar,
             { paddingHorizontal: phoneLayout.screenInset },
+            usesIPadFrame ? styles.iPadFrame : null,
           ]}
         >
           <Pressable
@@ -232,6 +242,7 @@ export const CreateHubModal: React.FC<CreateHubModalProps> = ({
           contentContainerStyle={[
             styles.content,
             { paddingHorizontal: phoneLayout.screenInset },
+            usesIPadFrame ? styles.iPadFrame : null,
           ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -381,6 +392,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 17,
     paddingBottom: 24,
+  },
+  iPadFrame: {
+    alignSelf: 'center',
+    maxWidth: IPAD_MAX_CONTENT_WIDTH,
+    width: '100%',
   },
   title: {
     color: PAPER.text,

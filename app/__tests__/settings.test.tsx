@@ -10,6 +10,7 @@ import { Linking, Pressable, Text, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import SettingsScreen from '@/app/settings';
+import { ToastProvider, toastManager } from '@/components/ui/Toast';
 import { ThemeProvider } from '@/constants/ThemeContext';
 import { getMyProfile } from '@/lib/profile-api';
 import {
@@ -105,6 +106,7 @@ jest.mock('@/lib/sentry', () => ({
 }));
 
 jest.mock('@/lib/posthog', () => ({
+  trackProductEvent: jest.fn(),
   trackProductOperation: jest.fn(),
 }));
 
@@ -426,7 +428,9 @@ const renderSettings = () =>
       }}
     >
       <ThemeProvider>
-        <SettingsScreen />
+        <ToastProvider>
+          <SettingsScreen />
+        </ToastProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );
@@ -445,6 +449,7 @@ describe('SettingsScreen release-safe account feedback', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    toastManager.clear();
     mockAuthState.user = { id: 'user-1' };
     mockAuthState.isAuthenticated = true;
     mockNetworkState.isOnline = true;
@@ -494,7 +499,7 @@ describe('SettingsScreen release-safe account feedback', () => {
     await waitForSettingsAccountCheck();
 
     expect(screen.getByText('Sign out')).toBeTruthy();
-    expect(screen.getByText('Menta Pro')).toBeTruthy();
+    expect(screen.queryByText('Menta Pro')).toBeNull();
     expect(screen.getByText('Check for updates')).toBeTruthy();
     expect(screen.getByText('Notifications')).toBeTruthy();
     expect(screen.queryByText('Ad measurement')).toBeNull();
@@ -528,9 +533,9 @@ describe('SettingsScreen release-safe account feedback', () => {
       expect(screen.getByText('Menta update ready')).toBeTruthy();
     });
     expect(mockedDownloadAvailableOtaUpdate).toHaveBeenCalledTimes(1);
-    expect(screen.getByText('Restart')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Restart' })).toBeTruthy();
 
-    fireEvent.press(screen.getByTestId('settings-check-for-updates'));
+    fireEvent.press(screen.getByRole('button', { name: 'Restart' }));
 
     await waitFor(() => {
       expect(mockedRestartIntoDownloadedOta).toHaveBeenCalledTimes(1);
@@ -546,7 +551,23 @@ describe('SettingsScreen release-safe account feedback', () => {
     await waitFor(() => {
       expect(screen.getByText('Menta is up to date')).toBeTruthy();
     });
+    expect(screen.queryByText('Checking for updates')).toBeNull();
     expect(mockedRestartIntoDownloadedOta).not.toHaveBeenCalled();
+  });
+
+  it('keeps a failed update check visible as a notification and permits a retry', async () => {
+    mockedDownloadAvailableOtaUpdate.mockRejectedValueOnce(
+      new Error('offline')
+    );
+    renderSettings();
+    await waitForSettingsAccountCheck();
+    fireEvent.press(screen.getByTestId('settings-check-for-updates'));
+    expect(
+      await screen.findByText('Menta could not check for updates')
+    ).toBeTruthy();
+    fireEvent.press(screen.getByTestId('settings-check-for-updates'));
+    expect(await screen.findByText('Menta is up to date')).toBeTruthy();
+    expect(mockedDownloadAvailableOtaUpdate).toHaveBeenCalledTimes(2);
   });
 
   it('uses tab chrome when Settings is a persistent destination', async () => {
@@ -560,36 +581,12 @@ describe('SettingsScreen release-safe account feedback', () => {
     expect(screen.queryByText('Back to You')).toBeNull();
   });
 
-  it('opens Menta Pro in the canonical paywall instead of Momenta', async () => {
+  it('keeps the primary Pro entry in You rather than Settings', async () => {
     renderSettings();
     await waitForSettingsAccountCheck();
 
-    fireEvent.press(screen.getByTestId('settings-open-pro'));
-
-    expect(mockRouter.push).not.toHaveBeenCalledWith('/momenta');
-    expect(openPaywall).toHaveBeenCalledWith({
-      context: 'general',
-      initialView: 'plans',
-    });
-  });
-
-  it('opens active Pro management without showing purchase plans', async () => {
-    mockedGetMyProfile.mockResolvedValueOnce({
-      ...mockProfile,
-      is_pro: true,
-    });
-    renderSettings();
-    await waitForSettingsAccountCheck();
-
-    expect(
-      screen.getByText('Active. View or manage your subscription.')
-    ).toBeTruthy();
-    fireEvent.press(screen.getByTestId('settings-open-pro'));
-
-    expect(openPaywall).toHaveBeenCalledWith({
-      context: 'general',
-      initialView: 'active',
-    });
+    expect(screen.queryByTestId('settings-open-pro')).toBeNull();
+    expect(openPaywall).not.toHaveBeenCalled();
   });
 
   it('uses one support entry before disclosing report and feedback actions', async () => {
@@ -1017,7 +1014,9 @@ describe('SettingsScreen release-safe account feedback', () => {
         }}
       >
         <ThemeProvider>
-          <SettingsScreen />
+          <ToastProvider>
+            <SettingsScreen />
+          </ToastProvider>
         </ThemeProvider>
       </SafeAreaProvider>
     );
@@ -1232,7 +1231,9 @@ describe('SettingsScreen release-safe account feedback', () => {
         }}
       >
         <ThemeProvider>
-          <SettingsScreen />
+          <ToastProvider>
+            <SettingsScreen />
+          </ToastProvider>
         </ThemeProvider>
       </SafeAreaProvider>
     );

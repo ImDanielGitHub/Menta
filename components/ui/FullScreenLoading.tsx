@@ -1,89 +1,52 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Image, StyleSheet, Text, View } from 'react-native';
 import { useScreenReader } from '@/lib/accessibility';
 import { mentaColors } from '@/constants/MentaDesignSystem';
 import { mentaFonts } from '@/lib/menta-fonts';
 import { useTranslation } from '@/lib/localization/use-translation';
 
+const LAUNCH_TIPS = [
+  'shared.launch.tip.small',
+  'shared.launch.tip.friend',
+  'shared.launch.tip.miss',
+] as const;
+
+/**
+ * Paper 19 / S02 (OTA form): the mark stays exactly where the native splash
+ * drew it, so launch never jumps; a plain status line and one tip settle in
+ * underneath, the way Duolingo's loading screen talks while it works. The
+ * violet S01/S02 composition ships with the next native splash change.
+ */
 export const FullScreenLoading = ({ message }: { message?: string }) => {
   const { isReduceMotionEnabled } = useScreenReader();
   const { t } = useTranslation();
   const motionDisabled =
     isReduceMotionEnabled || process.env.NODE_ENV === 'test';
-
-  const copyOpacity = useRef(new Animated.Value(0)).current;
-  const copyTranslateY = useRef(new Animated.Value(6)).current;
-  const pulseOpacity = useRef(new Animated.Value(0.18)).current;
-  const pulseTranslateX = useRef(new Animated.Value(-34)).current;
+  const [tipKey] = useState(
+    () => LAUNCH_TIPS[Math.floor(Math.random() * LAUNCH_TIPS.length)]
+  );
+  const copyOpacity = useRef(
+    new Animated.Value(motionDisabled ? 1 : 0)
+  ).current;
 
   useEffect(() => {
     if (motionDisabled) {
       copyOpacity.setValue(1);
-      copyTranslateY.setValue(0);
-      pulseOpacity.setValue(0.52);
-      pulseTranslateX.setValue(0);
       return;
     }
-
     const entrance = Animated.sequence([
-      Animated.delay(120),
-      Animated.parallel([
-        Animated.timing(copyOpacity, {
-          toValue: 1,
-          duration: 280,
-          useNativeDriver: true,
-        }),
-        Animated.timing(copyTranslateY, {
-          toValue: 0,
-          duration: 280,
-          useNativeDriver: true,
-        }),
-      ]),
+      Animated.delay(240),
+      Animated.timing(copyOpacity, {
+        toValue: 1,
+        duration: 320,
+        useNativeDriver: true,
+      }),
     ]);
-
-    const pulse = Animated.loop(
-      Animated.parallel([
-        Animated.sequence([
-          Animated.timing(pulseOpacity, {
-            toValue: 0.78,
-            duration: 625,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseOpacity, {
-            toValue: 0.18,
-            duration: 625,
-            useNativeDriver: true,
-          }),
-        ]),
-        Animated.sequence([
-          Animated.timing(pulseTranslateX, {
-            toValue: 34,
-            duration: 1250,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseTranslateX, {
-            toValue: -34,
-            duration: 0,
-            useNativeDriver: true,
-          }),
-        ]),
-      ])
-    );
-
     entrance.start();
-    pulse.start();
+    return () => entrance.stop();
+  }, [copyOpacity, motionDisabled]);
 
-    return () => {
-      entrance.stop();
-      pulse.stop();
-    };
-  }, [
-    copyOpacity,
-    copyTranslateY,
-    motionDisabled,
-    pulseOpacity,
-    pulseTranslateX,
-  ]);
+  const status = message ?? t('shared.rootLayout.initialising');
 
   return (
     <View
@@ -91,75 +54,42 @@ export const FullScreenLoading = ({ message }: { message?: string }) => {
       style={styles.container}
       accessible
       accessibilityRole="progressbar"
-      accessibilityLabel={message ?? t('shared.accessibility.mentaLoading')}
+      accessibilityLabel={status}
     >
-      <View style={styles.composition}>
-        <View testID="loading-mark-shell" style={styles.markShell}>
-          <Image
-            testID="loading-mark"
-            source={require('@/assets/images/menta-splash-welcome.png')}
-            style={styles.mark}
-            resizeMode="contain"
-            accessibilityIgnoresInvertColors
-          />
-        </View>
-
-        <Animated.View
-          style={[
-            styles.copy,
-            {
-              opacity: copyOpacity,
-              transform: [{ translateY: copyTranslateY }],
-            },
-          ]}
-        >
-          <Text testID="loading-wordmark" style={styles.wordmark}>
-            {t('brand.name')}
-          </Text>
-          {message ? <Text style={styles.message}>{message}</Text> : null}
-        </Animated.View>
-
-        <View testID="loading-progress-track" style={styles.progressTrack}>
-          <Animated.View
-            style={[
-              styles.progressPulse,
-              {
-                opacity: pulseOpacity,
-                transform: [{ translateX: pulseTranslateX }],
-              },
-            ]}
-          />
-        </View>
+      <View testID="loading-mark-shell" style={styles.markShell}>
+        <Image
+          testID="loading-mark"
+          source={require('@/assets/images/menta-splash-welcome.png')}
+          style={styles.mark}
+          resizeMode="contain"
+          accessibilityIgnoresInvertColors
+        />
       </View>
+      <Animated.View style={[styles.copy, { opacity: copyOpacity }]}>
+        <Text testID="loading-status" style={styles.status}>
+          {status}
+        </Text>
+        <Text testID="loading-tip" style={styles.tip}>
+          {t(tipKey)}
+        </Text>
+      </Animated.View>
     </View>
   );
-};
-
-const launchTokens = {
-  canvas: mentaColors.canvas,
-  text: mentaColors.text.primary,
-  textMuted: 'rgba(248, 247, 241, 0.58)',
-  divider: 'rgba(248, 247, 241, 0.12)',
 };
 
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    backgroundColor: launchTokens.canvas,
+    backgroundColor: mentaColors.canvas,
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: 40,
   },
-  composition: {
-    alignItems: 'center',
-    maxWidth: 360,
-    width: '100%',
-  },
+  // Matches the expo-splash-screen imageWidth in app.json, shrinking only on
+  // windows narrower than the splash itself.
   markShell: {
-    alignItems: 'center',
     aspectRatio: 1,
-    justifyContent: 'center',
-    maxWidth: 264,
+    maxWidth: 280,
     width: '100%',
   },
   mark: {
@@ -168,35 +98,25 @@ const styles = StyleSheet.create({
   },
   copy: {
     alignItems: 'center',
+    gap: 8,
+    left: 40,
+    position: 'absolute',
+    right: 40,
+    top: '64%',
   },
-  wordmark: {
-    color: launchTokens.text,
-    fontSize: 24,
-    fontFamily: mentaFonts.inter.bold,
-    letterSpacing: 0,
-    lineHeight: 30,
-  },
-  message: {
-    color: launchTokens.textMuted,
-    fontSize: 14,
+  status: {
+    color: mentaColors.text.primary,
     fontFamily: mentaFonts.inter.semibold,
-    letterSpacing: 0,
-    lineHeight: 20,
-    marginTop: 8,
+    fontSize: 17,
+    lineHeight: 24,
     textAlign: 'center',
   },
-  progressTrack: {
-    backgroundColor: launchTokens.divider,
-    borderRadius: 999,
-    height: 2,
-    marginTop: 24,
-    overflow: 'hidden',
-    width: 96,
-  },
-  progressPulse: {
-    backgroundColor: launchTokens.text,
-    borderRadius: 999,
-    height: 2,
-    width: 40,
+  tip: {
+    color: mentaColors.text.secondary,
+    fontFamily: mentaFonts.inter.regular,
+    fontSize: 16,
+    lineHeight: 23,
+    maxWidth: 320,
+    textAlign: 'center',
   },
 });

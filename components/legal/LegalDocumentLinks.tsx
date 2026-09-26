@@ -26,6 +26,10 @@ type LegalDocumentLinksProps = {
   onOpen?: (document: 'terms' | 'community_standards' | 'privacy') => void;
   onOpenError?: (label: string) => void;
   presentation?: 'plain' | 'onboarding' | 'consent';
+  /** Plain-language line shown under each document in the consent card. */
+  summaries?: Partial<
+    Record<'terms' | 'community_standards' | 'privacy', string>
+  >;
   testID?: string;
 };
 
@@ -56,6 +60,7 @@ export const LegalDocumentLinks = ({
   onOpen,
   onOpenError,
   presentation = 'plain',
+  summaries,
   testID = 'legal-document-links',
 }: LegalDocumentLinksProps) => {
   const isOnboarding = presentation === 'onboarding';
@@ -81,12 +86,14 @@ export const LegalDocumentLinks = ({
             : row.key === 'community_standards'
               ? t('shared.legal.communityStandards')
               : t('shared.legal.privacy');
+        const summary = isConsent ? summaries?.[row.key] : undefined;
         const description =
-          row.key === 'terms'
+          summary ??
+          (row.key === 'terms'
             ? t('shared.legal.termsDescription')
             : row.key === 'community_standards'
               ? t('shared.legal.communityStandardsDescription')
-              : t('shared.legal.privacyDescription');
+              : t('shared.legal.privacyDescription'));
         const versionLabel = document
           ? t('shared.legal.version', { version: document.version })
           : t('shared.legal.readDocument');
@@ -176,6 +183,28 @@ export const LegalDocumentLinks = ({
                   ]}
                 >
                   {description}
+                </Text>
+              ) : null}
+              {summary ? (
+                <Text
+                  allowFontScaling={textScale == null}
+                  style={[
+                    styles.consentSummary,
+                    textScale == null
+                      ? undefined
+                      : {
+                          fontSize: scaleTypeMetric(
+                            mentaTypography.caption.fontSize,
+                            textScale
+                          ),
+                          lineHeight: scaleTypeMetric(
+                            mentaTypography.caption.lineHeight,
+                            textScale
+                          ),
+                        },
+                  ]}
+                >
+                  {summary}
                 </Text>
               ) : null}
             </View>
@@ -285,6 +314,11 @@ const styles = StyleSheet.create({
   description: {
     color: mentaColors.text.secondary,
     ...mentaTypography.caption,
+  },
+  consentSummary: {
+    color: mentaColors.text.mutedOnPaper,
+    ...mentaTypography.caption,
+    marginTop: 2,
   },
   iconLane: {
     alignItems: 'center',

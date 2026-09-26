@@ -11,6 +11,7 @@ import {
   useThemedStyles,
 } from '@/constants/ThemeContext';
 import { AppButton } from './AppButton';
+import { mentaTypography } from '@/constants/MentaDesignSystem';
 import { useTranslation } from '@/lib/localization/use-translation';
 import { translate } from '@/lib/localization/translate';
 
@@ -364,17 +365,15 @@ const createStyles = (_theme: ThemeContextType) =>
       flex: 1,
     },
     title: {
-      fontSize: 16,
-      fontWeight: '600',
+      ...mentaTypography.bodySemibold,
       marginBottom: 4,
     },
     message: {
-      fontSize: 14,
-      lineHeight: 20,
+      ...mentaTypography.bodySmall,
       marginBottom: 4,
     },
     debugMessage: {
-      fontSize: 12,
+      ...mentaTypography.micro,
       fontStyle: 'italic',
       marginTop: 4,
     },
@@ -400,7 +399,7 @@ const createStyles = (_theme: ThemeContextType) =>
       alignItems: 'center',
     },
     compactMessage: {
-      fontSize: 14,
+      ...mentaTypography.bodySmall,
       flex: 1,
       marginLeft: 8,
       marginRight: 8,

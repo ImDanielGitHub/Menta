@@ -393,7 +393,7 @@ export const spanishAccountabilityDelta = {
   'groups.source.accountability.event.visibility.unlisted':
     'Compartido mediante un enlace privado',
   'groups.source.accountability.event.visibility.public': 'Evento público',
-  'groups.source.accountability.event.availability.open': 'Asistencia abierta',
+  'groups.source.accountability.event.availability.open': 'Abierto a todos',
   'groups.source.accountability.event.availability.at_capacity':
     'Cupo completo',
   'groups.source.accountability.event.availability.places':

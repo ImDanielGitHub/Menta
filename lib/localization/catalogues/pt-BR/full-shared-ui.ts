@@ -8,7 +8,7 @@ export const fullSharedUiPtBR = {
   'shared.navigation.settings': 'Configurações',
   'shared.redirect.invite.navTitle': 'Convidar',
   'shared.redirect.join.navTitle': 'Participar',
-  'shared.accessibility.primaryNavigation': 'Navegação primária',
+  'shared.accessibility.primaryNavigation': 'Navegação principal',
   'shared.accessibility.tabSelected': '{label} está selecionado.',
   'shared.accessibility.tabOpens': 'Abre {label}.',
   'shared.accessibility.choiceSummary': '{title}. {description}',
@@ -84,7 +84,7 @@ export const fullSharedUiPtBR = {
   'shared.error.generic.title': 'Esta parte precisa de uma nova tentativa',
   'shared.error.generic.message':
     'Menta não conseguiu terminar aquela ação. Os dados da sua conta estão seguros; tente novamente, volte para Hoje ou entre em contato com o suporte se isso continuar acontecendo.',
-  'shared.error.networkHandler.timeout.title': 'O Menta está demorando muito.',
+  'shared.error.networkHandler.timeout.title': 'A Menta está demorando muito',
   'shared.error.networkHandler.network.title':
     'O Menta não consegue se conectar no momento.',
   'shared.error.networkHandler.timeout.message':
@@ -283,7 +283,7 @@ export const fullSharedUiPtBR = {
   'shared.redirect.invite.subtitleMissing':
     'Este link de referência não inclui o código que Menta precisa.',
   'shared.redirect.invite.subtitleExisting':
-    'Esta conta já está configurada, portanto o Menta não alterará seu referido.',
+    'Esta conta já está configurada, então a Menta não vai alterar a indicação.',
   'shared.redirect.invite.subtitleOpening':
     'Estamos salvando a indicação e levando você de volta para Menta.',
   'shared.redirect.invite.missingTitle': 'Código de indicação ausente',
@@ -292,7 +292,7 @@ export const fullSharedUiPtBR = {
   'shared.redirect.invite.continueWithout': 'Continuar sem referência',
   'shared.redirect.invite.accountReady': 'Conta já configurada',
   'shared.redirect.invite.accountDescription':
-    'Links de referência se aplicam ao criar uma nova conta Menta. Sua conta corrente permanece inalterada.',
+    'Os links de indicação se aplicam ao criar uma nova conta Menta. Sua conta atual não muda.',
   'shared.redirect.invite.continue': 'Continuar para Menta',
   'shared.redirect.invite.saved': 'Indicação salva',
   'shared.redirect.invite.oneMoment': 'Um momento',
@@ -352,7 +352,6 @@ export const fullSharedUiPtBR = {
   'shared.rootLayout.noProofDue.title': 'Nenhuma comprovação no momento',
   'shared.rootLayout.noProofDue.message':
     'Hoje mostrará a próxima promessa quando a comprovação for necessária.',
-  'shared.rootLayout.initialising': 'Inicializando Menta...',
   'shared.web.eyebrow': 'Aplicativo para iPhone necessário',
   'shared.web.title': 'Abra este link no Menta no iPhone',
   'shared.web.explanation':
@@ -531,6 +530,12 @@ export const fullSharedUiPtBR = {
     'Seletor de horário indisponível nesta plataforma.',
   'shared.accessibility.toastCount': '{count}x',
   'shared.update.authorityUnknown': 'autoridade_desconhecida',
+  'shared.rootLayout.initialising': 'Preparando o seu dia…',
+  'shared.launch.tip.small':
+    'Promessas pequenas são as mais fáceis de cumprir.',
+  'shared.launch.tip.friend':
+    'Quem divide uma meta com um amigo tem mais chance de alcançá-la.',
+  'shared.launch.tip.miss': 'Perdeu um dia? O próximo ainda conta.',
 } as const;
 
 export type FullSharedUiPtBRKey = keyof typeof fullSharedUiPtBR;

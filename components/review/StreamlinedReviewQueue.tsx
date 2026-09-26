@@ -1970,15 +1970,12 @@ const reviewQueueSkeletonStyles = StyleSheet.create({
 
 const createStyles = (theme: ThemeContextType) => {
   const s = theme.spacing;
-  const f = theme.typography.sizes;
   const br = theme.borderRadius;
   const c = theme.colors;
   const transparent = (color: string, opacity: number) =>
     theme.colorUtils?.withOpacity
       ? theme.colorUtils.withOpacity(color, opacity)
       : color;
-  const displaySize = f['3xl'] || 28;
-  const headingSize = f['2xl'] || 24;
 
   return StyleSheet.create({
     container: {
@@ -2016,32 +2013,27 @@ const createStyles = (theme: ThemeContextType) => {
       backgroundColor: c.background.primary,
     },
     clearedHeaderTitle: {
+      ...mentaTypography.control,
       color: c.text.primary,
-      fontSize: f.lg,
-      fontWeight: '800',
     },
     reviewThesis: {
       gap: s.xs,
     },
     reviewTitle: {
+      ...mentaTypography.heading,
       color: c.text.primary,
-      fontSize: displaySize,
-      lineHeight: displaySize * 1.08,
-      fontWeight: '700',
     },
     reviewCopy: {
+      ...mentaTypography.body,
       color: c.text.secondary,
-      fontSize: f.base,
-      lineHeight: 22,
       maxWidth: 560,
     },
     reviewReceiptTitle: {
       ...mentaTypography.title,
     },
     reviewReputationNote: {
+      ...mentaTypography.bodySmall,
       color: c.text.secondary,
-      fontSize: f.sm,
-      lineHeight: 20,
     },
     filterList: {
       minHeight: 48,
@@ -2061,28 +2053,28 @@ const createStyles = (theme: ThemeContextType) => {
       gap: s.xs,
       borderRadius: br.full,
     },
+    // The chosen filter is a filled violet segment, as in onboarding.
     filterRowSelected: {
-      backgroundColor: c.interactive.primary,
+      backgroundColor: c.accent.primary,
     },
     filterRowPressed: {
       opacity: 0.72,
     },
     filterLabel: {
+      ...mentaTypography.bodyMedium,
       color: c.text.secondary,
-      fontSize: f.base,
-      fontWeight: '500',
     },
     filterLabelSelected: {
-      color: c.text.inverse,
-      fontWeight: '700',
+      ...mentaTypography.bodySemibold,
+      color: c.onPrimary,
     },
     filterCount: {
+      ...mentaTypography.captionMedium,
       color: c.text.tertiary,
-      fontSize: f.sm,
-      fontWeight: '600',
+      fontVariant: ['tabular-nums'],
     },
     filterCountSelected: {
-      color: c.text.inverse,
+      color: c.onPrimary,
     },
     routeNotice: {
       paddingHorizontal: mentaSpacing[4],
@@ -2098,14 +2090,12 @@ const createStyles = (theme: ThemeContextType) => {
       backgroundColor: transparent(c.status.error, 0.1),
     },
     errorTitle: {
+      ...mentaTypography.bodySemibold,
       color: c.text.primary,
-      fontSize: f.base,
-      fontWeight: '700',
     },
     errorCopy: {
+      ...mentaTypography.bodySmall,
       color: c.text.secondary,
-      fontSize: f.sm,
-      lineHeight: 20,
       marginTop: s.xs,
     },
     errorActions: {
@@ -2158,15 +2148,14 @@ const createStyles = (theme: ThemeContextType) => {
       borderRadius: br.md,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: transparent(c.interactive.primary, 0.16),
+      backgroundColor: c.accent.background,
       borderWidth: 1,
-      borderColor: transparent(c.interactive.primary, 0.34),
+      borderColor: c.border.focus,
       flexShrink: 0,
     },
     rowAvatarText: {
+      ...mentaTypography.bodySmallMedium,
       color: c.text.primary,
-      fontSize: f.sm,
-      fontWeight: '800',
     },
     rowBody: {
       flex: 1,
@@ -2179,18 +2168,17 @@ const createStyles = (theme: ThemeContextType) => {
       gap: s.sm,
     },
     rowTitle: {
+      ...mentaTypography.bodySemibold,
       flex: 1,
       color: c.text.primary,
-      fontSize: f.base,
-      fontWeight: '700',
     },
     rowMeta: {
+      ...mentaTypography.bodySmall,
       color: c.text.secondary,
-      fontSize: f.sm,
     },
     rowNote: {
+      ...mentaTypography.bodySmall,
       color: c.text.tertiary,
-      fontSize: f.sm,
     },
     rowRight: {
       flexDirection: 'row',
@@ -2221,9 +2209,8 @@ const createStyles = (theme: ThemeContextType) => {
       backgroundColor: c.status.error,
     },
     rowActionText: {
-      color: c.interactive.primary,
-      fontSize: f.sm,
-      fontWeight: '800',
+      ...mentaTypography.bodySmallMedium,
+      color: c.accent.primary,
     },
     focusPanel: {
       gap: s.md,
@@ -2240,15 +2227,14 @@ const createStyles = (theme: ThemeContextType) => {
       borderRadius: br.lg,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: transparent(c.interactive.primary, 0.18),
+      backgroundColor: c.accent.background,
       borderWidth: 1,
-      borderColor: transparent(c.interactive.primary, 0.38),
+      borderColor: c.border.focus,
       flexShrink: 0,
     },
     proofAvatarText: {
+      ...mentaTypography.bodySemibold,
       color: c.text.primary,
-      fontSize: f.base,
-      fontWeight: '800',
     },
     proofParticipantCopy: {
       flex: 1,
@@ -2256,14 +2242,12 @@ const createStyles = (theme: ThemeContextType) => {
       gap: 2,
     },
     proofParticipantTitle: {
+      ...mentaTypography.control,
       color: c.text.primary,
-      fontSize: f.lg,
-      fontWeight: '800',
     },
     proofParticipantMeta: {
+      ...mentaTypography.bodySmall,
       color: c.text.secondary,
-      fontSize: f.sm,
-      lineHeight: 19,
     },
     statusBadge: {
       borderRadius: br.full,
@@ -2282,9 +2266,8 @@ const createStyles = (theme: ThemeContextType) => {
       backgroundColor: transparent(c.status.error, 0.12),
     },
     statusBadgeText: {
+      ...mentaTypography.captionMedium,
       color: c.text.primary,
-      fontSize: f.xs,
-      fontWeight: '700',
     },
     reviewMediaCard: {
       borderRadius: br.lg,
@@ -2320,9 +2303,8 @@ const createStyles = (theme: ThemeContextType) => {
       borderColor: c.border.secondary,
     },
     textProofLabel: {
+      ...mentaTypography.bodySmallMedium,
       color: c.text.tertiary,
-      fontSize: f.sm,
-      fontWeight: '700',
     },
     textProofBody: {
       ...mentaTypography.title,
@@ -2347,14 +2329,12 @@ const createStyles = (theme: ThemeContextType) => {
       minWidth: 0,
     },
     mediaFooterTitle: {
+      ...mentaTypography.bodySmallMedium,
       color: c.text.primary,
-      fontSize: f.sm,
-      fontWeight: '800',
     },
     mediaFooterAction: {
-      color: c.interactive.primary,
-      fontSize: f.sm,
-      fontWeight: '800',
+      ...mentaTypography.bodySmallMedium,
+      color: c.accent.primary,
     },
     reviewPromiseArtefact: {
       marginVertical: s.sm,
@@ -2372,8 +2352,8 @@ const createStyles = (theme: ThemeContextType) => {
       borderBottomColor: c.border.secondary,
     },
     contextText: {
+      ...mentaTypography.bodySmall,
       color: c.text.secondary,
-      fontSize: f.sm,
     },
     noteBlock: {
       paddingVertical: s.md,
@@ -2383,14 +2363,12 @@ const createStyles = (theme: ThemeContextType) => {
       gap: s.xs,
     },
     noteLabel: {
+      ...mentaTypography.bodySmallMedium,
       color: c.text.tertiary,
-      fontSize: f.sm,
-      fontWeight: '700',
     },
     noteText: {
+      ...mentaTypography.body,
       color: c.text.secondary,
-      fontSize: f.base,
-      lineHeight: 23,
     },
     bottomAction: {
       paddingHorizontal: s.lg,
@@ -2405,9 +2383,8 @@ const createStyles = (theme: ThemeContextType) => {
       gap: 3,
     },
     bottomActionTitle: {
+      ...mentaTypography.bodySemibold,
       color: c.text.primary,
-      fontSize: f.base,
-      fontWeight: '700',
     },
     bottomActionButtons: {
       flexDirection: 'row',
@@ -2426,15 +2403,13 @@ const createStyles = (theme: ThemeContextType) => {
       paddingHorizontal: s.lg,
     },
     emptyTitle: {
+      ...mentaTypography.title,
       color: c.text.primary,
-      fontSize: headingSize,
-      fontWeight: '700',
       textAlign: 'center',
     },
     emptyCopy: {
+      ...mentaTypography.body,
       color: c.text.secondary,
-      fontSize: f.base,
-      lineHeight: 22,
       textAlign: 'center',
     },
     clearedReward: {
@@ -2456,15 +2431,13 @@ const createStyles = (theme: ThemeContextType) => {
       textAlign: 'center',
     },
     rewardText: {
+      ...mentaTypography.body,
       color: c.text.secondary,
-      fontSize: f.base,
-      lineHeight: 22,
       textAlign: 'center',
     },
     rewardOutcomeText: {
+      ...mentaTypography.bodySmall,
       color: c.text.secondary,
-      fontSize: f.sm,
-      lineHeight: 19,
       maxWidth: 360,
       textAlign: 'center',
     },
@@ -2496,9 +2469,8 @@ const createStyles = (theme: ThemeContextType) => {
       opacity: 0.48,
     },
     sheetCopy: {
+      ...mentaTypography.body,
       color: c.text.secondary,
-      fontSize: f.base,
-      lineHeight: 22,
       marginBottom: s.md,
     },
     reasonList: {
@@ -2518,7 +2490,7 @@ const createStyles = (theme: ThemeContextType) => {
       opacity: 0.72,
     },
     reasonRowSelected: {
-      backgroundColor: transparent(c.interactive.primary, 0.1),
+      backgroundColor: c.accent.background,
     },
     reasonRowDisabled: {
       opacity: 0.62,
@@ -2534,16 +2506,14 @@ const createStyles = (theme: ThemeContextType) => {
       borderWidth: StyleSheet.hairlineWidth,
     },
     reasonIconSelected: {
-      backgroundColor: c.interactive.primary,
-      borderColor: c.interactive.primary,
+      backgroundColor: c.accent.primary,
+      borderColor: c.accent.primary,
     },
     reasonText: {
+      ...mentaTypography.bodyMedium,
       flex: 1,
       minWidth: 0,
       color: c.text.primary,
-      fontSize: f.base,
-      lineHeight: 21,
-      fontWeight: '500',
     },
     rejectSheetActions: {
       gap: s.sm,

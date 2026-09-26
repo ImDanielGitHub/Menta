@@ -6,8 +6,20 @@ const mockGetCustomerInfo = jest.fn();
 const mockPurchasePackage = jest.fn();
 const mockInvalidateCustomerInfoCache = jest.fn();
 const mockGetMyProAuthority = jest.fn();
+const mockAuth = { user: { id: 'user-1' } };
+const mockGetAppUserID = jest.fn();
+let mockAdTracker:
+  { trackAdDisplayed?: jest.Mock; trackAdLoaded?: jest.Mock } | undefined;
+
+jest.mock('@/store/auth-store', () => ({
+  useAuthStore: { getState: () => mockAuth },
+}));
 
 jest.mock('react-native-purchases', () => ({
+  getAppUserID: () => mockGetAppUserID(),
+  get adTracker() {
+    return mockAdTracker;
+  },
   configure(this: unknown, ...args: unknown[]) {
     return mockConfigure.apply(this, args);
   },
@@ -53,7 +65,9 @@ import {
   purchasePlan,
   restorePurchases,
   RevenueCatAPI,
+  trackRevenueCatAdEvent,
 } from '@/lib/paywall/revenuecat';
+import { captureError } from '@/lib/sentry';
 
 const proCustomerInfo = {
   entitlements: {
@@ -84,6 +98,12 @@ const currentOffering = {
 describe('RevenueCat authority', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAuth.user = { id: 'user-1' };
+    mockGetAppUserID.mockResolvedValue('user-1');
+    mockAdTracker = {
+      trackAdDisplayed: jest.fn().mockResolvedValue(undefined),
+      trackAdLoaded: jest.fn().mockResolvedValue(undefined),
+    };
     mockConfigure.mockResolvedValue(undefined);
     mockGetOfferings.mockResolvedValue(currentOffering);
     mockGetCustomerInfo.mockResolvedValue({ entitlements: { active: {} } });
@@ -114,6 +134,96 @@ describe('RevenueCat authority', () => {
       expect.objectContaining({ PACKAGE_TYPE: expect.any(Object) }),
     ]);
     expect(mockGetOfferings).toHaveBeenCalledTimes(1);
+  });
+
+  it('sends manual ad display tracking through the configured account SDK', async () => {
+    const data = {
+      mediatorName: 'AdMob',
+      adFormat: 'interstitial',
+      adUnitId: 'ad-unit',
+      impressionId: 'impression',
+    };
+    await expect(
+      trackRevenueCatAdEvent('user-1', { type: 'displayed', data })
+    ).resolves.toBe(true);
+    expect(mockAdTracker?.trackAdDisplayed).toHaveBeenCalledWith(data);
+    expect(mockAdTracker?.trackAdDisplayed?.mock.contexts[0]).toBe(
+      mockAdTracker
+    );
+  });
+
+  it('reports a missing ad method once and returns false so serving can continue independently', async () => {
+    delete mockAdTracker!.trackAdDisplayed;
+    const payload = {
+      type: 'displayed' as const,
+      data: {
+        mediatorName: 'AdMob',
+        adFormat: 'interstitial',
+        adUnitId: 'ad-unit',
+        impressionId: 'impression',
+      },
+    };
+    await expect(trackRevenueCatAdEvent('user-1', payload)).resolves.toBe(
+      false
+    );
+    await expect(trackRevenueCatAdEvent('user-1', payload)).resolves.toBe(
+      false
+    );
+    expect(captureError).toHaveBeenCalledTimes(1);
+    expect(captureError).toHaveBeenCalledWith(
+      new Error('revenuecat_ad_capability_missing'),
+      {
+        context: 'revenuecat_ad_capability_missing',
+        capability: 'displayed',
+      }
+    );
+  });
+
+  it('does not count a missing tracker or a rejected tracking call as delivered', async () => {
+    const payload = {
+      type: 'loaded' as const,
+      data: {
+        mediatorName: 'AdMob',
+        adFormat: 'rewarded',
+        adUnitId: 'ad-unit',
+        impressionId: 'impression',
+      },
+    };
+    mockAdTracker = undefined;
+    await expect(trackRevenueCatAdEvent('user-1', payload)).resolves.toBe(
+      false
+    );
+    expect(captureError).toHaveBeenCalledWith(
+      new Error('revenuecat_ad_capability_missing'),
+      {
+        context: 'revenuecat_ad_capability_missing',
+        capability: 'adTracker',
+      }
+    );
+    mockAdTracker = {
+      trackAdLoaded: jest
+        .fn()
+        .mockRejectedValue(new Error('native tracker unavailable')),
+    };
+    await expect(trackRevenueCatAdEvent('user-1', payload)).resolves.toBe(
+      false
+    );
+  });
+
+  it('never reports an old account ad under the new purchase identity', async () => {
+    mockGetAppUserID.mockResolvedValue('user-2');
+    await expect(
+      trackRevenueCatAdEvent('user-1', {
+        type: 'displayed',
+        data: {
+          mediatorName: 'AdMob',
+          adFormat: 'interstitial',
+          adUnitId: 'ad-unit',
+          impressionId: 'impression',
+        },
+      })
+    ).resolves.toBe(false);
+    expect(mockAdTracker?.trackAdDisplayed).not.toHaveBeenCalled();
   });
 
   it('uses server Pro when an SDK refresh fails', async () => {

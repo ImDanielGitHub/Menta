@@ -137,7 +137,8 @@ type AuthoredRecoveryState = {
 
 export default function EventsIndexScreen() {
   const phoneLayout = usePhoneLayout();
-  const usesIpadWorkspace = useIPadPortraitWorkspace();
+  const ipadWorkspaceEligible = useIPadPortraitWorkspace();
+  const usesIpadWorkspace = ipadWorkspaceEligible && phoneLayout.height >= 600;
   const { locale, t } = useTranslation();
   const resolvedLocale = resolveCatalogueLocale(locale);
   const router = useRouter();
@@ -147,6 +148,9 @@ export default function EventsIndexScreen() {
   const error = useEventStore(state => state.publicEventsError);
   const loadPublicEvents = useEventStore(state => state.loadPublicEvents);
   const activeRecoveryAccount = useRef(userId);
+  const [selectedIPadEventKey, setSelectedIPadEventKey] = useState<
+    string | null
+  >(null);
   activeRecoveryAccount.current = userId;
   const recoveryRequestId = useRef(0);
   const [authoredRecovery, setAuthoredRecovery] =
@@ -379,9 +383,36 @@ export default function EventsIndexScreen() {
               authoredLabel={t('events.index.yours')}
               items={ipadItems}
               onRefresh={refresh}
+              onSelectedKeyChange={setSelectedIPadEventKey}
               refreshing={loading || authoredEventsLoading}
+              selectedKey={selectedIPadEventKey}
               upcomingLabel={t('events.index.upcoming')}
             />
+          ) : null}
+          {(loading || authoredEventsLoading) && !hasVisibleEvents ? (
+            <View
+              accessible
+              accessibilityLabel={t('events.index.loading')}
+              accessibilityRole="progressbar"
+              style={styles.ipadLoadingWorkspace}
+              testID="events-ipad-loading"
+            >
+              <View style={styles.ipadLoadingList}>
+                <SkeletonLoader announce={false} height={16} width={110} />
+                {[0, 1, 2].map(row => (
+                  <View key={row} style={styles.ipadLoadingRow}>
+                    <SkeletonText announce={false} lines={2} />
+                    <SkeletonLoader announce={false} height={12} width="60%" />
+                  </View>
+                ))}
+              </View>
+              <View style={styles.ipadLoadingDetail}>
+                <SkeletonLoader announce={false} height={34} width="80%" />
+                <SkeletonText announce={false} lines={3} />
+                <SkeletonLoader announce={false} height={140} width="100%" />
+                <SkeletonLoader announce={false} height={52} width="100%" />
+              </View>
+            </View>
           ) : null}
         </View>
       </AppScreen>
@@ -766,6 +797,7 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.72 },
   ipadContent: {
     flex: 1,
+    minHeight: 0,
     gap: mentaSpacing[5],
     paddingBottom: mentaSpacing[8],
     paddingHorizontal: mentaSpacing[8],
@@ -775,6 +807,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: mentaSpacing[5],
+  },
+  ipadLoadingWorkspace: {
+    flex: 1,
+    minHeight: 0,
+    flexDirection: 'row',
+    borderColor: mentaColors.border,
+    borderRadius: mentaRadii.large,
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: 'hidden',
+  },
+  ipadLoadingList: {
+    flexBasis: 390,
+    flexShrink: 1,
+    backgroundColor: mentaColors.surface,
+    padding: mentaSpacing[5],
+    gap: mentaSpacing[6],
+  },
+  ipadLoadingRow: {
+    gap: mentaSpacing[3],
+    paddingVertical: mentaSpacing[4],
+  },
+  ipadLoadingDetail: {
+    flex: 1,
+    minWidth: 0,
+    padding: mentaSpacing[6],
+    gap: mentaSpacing[6],
   },
   ipadBackButton: { marginBottom: 0 },
   ipadCreateButton: {

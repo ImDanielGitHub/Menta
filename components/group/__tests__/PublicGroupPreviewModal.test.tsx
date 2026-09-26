@@ -8,6 +8,8 @@ import PublicGroupPreviewModal, {
 import { ThemeProvider } from '@/constants/ThemeContext';
 import { getThemeAppearance } from '@/lib/shop/catalogSupport';
 
+const mockGetJoinGroupQuote = jest.fn().mockResolvedValue({ cost: 10 });
+
 const publicGroup: PublicGroupPreview = {
   id: 'group-1',
   name: 'Morning crew',
@@ -17,6 +19,19 @@ const publicGroup: PublicGroupPreview = {
   current_streak: 3,
   active_challenges_count: 2,
 };
+
+jest.mock('@/store/auth-store', () => ({
+  useAuthStore: (selector: (state: { user: { id: string } }) => unknown) =>
+    selector({ user: { id: 'preview-user' } }),
+}));
+
+jest.mock('@/store/group-store', () => ({
+  useGroupStore: (
+    selector: (state: {
+      getJoinGroupQuote: () => Promise<{ cost: number }>;
+    }) => unknown
+  ) => selector({ getJoinGroupQuote: mockGetJoinGroupQuote }),
+}));
 
 const renderModal = (
   props?: Partial<React.ComponentProps<typeof PublicGroupPreviewModal>>,
@@ -50,7 +65,7 @@ const renderModal = (
 };
 
 describe('PublicGroupPreviewModal', () => {
-  it('frames the join decision and routes explicit actions', () => {
+  it('frames the join decision and routes explicit actions', async () => {
     const { onJoin, onOpenDetails, onClose } = renderModal();
 
     expect(screen.getByText('Morning crew')).toBeTruthy();
@@ -79,11 +94,11 @@ describe('PublicGroupPreviewModal', () => {
     );
 
     fireEvent.press(screen.getByTestId('public-group-preview-view-board'));
-    fireEvent.press(screen.getByTestId('public-group-preview-join'));
+    fireEvent.press(await screen.findByRole('button', { name: /10 Momenta/ }));
     fireEvent.press(screen.getByTestId('public-group-preview-close'));
 
     expect(onOpenDetails).toHaveBeenCalledWith('group-1');
-    expect(onJoin).toHaveBeenCalledWith('group-1');
+    expect(onJoin).toHaveBeenCalledWith('group-1', 10);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 

@@ -4,7 +4,7 @@ export const fullEventsEsMX = {
   'events.detail.link.incomplete': 'El enlace de este evento está incompleto.',
   'events.detail.link.invalid': 'El enlace de este evento no es válido.',
   'events.detail.link.invalid_body':
-    'Abra un enlace de evento actual. Nada ha cambiado.',
+    'Abre un enlace de evento vigente. No ha cambiado nada.',
   'events.detail.back': 'Volver a eventos',
   'events.detail.loading': 'Cargando detalles del evento',
   'events.detail.unavailable': 'Este evento no está disponible.',
@@ -14,7 +14,7 @@ export const fullEventsEsMX = {
   'events.detail.stage.event': 'Evento',
   'events.detail.stage.agreement': 'Acuerdo de asistencia',
   'events.detail.about': 'Acerca de este evento',
-  'events.detail.availability.open': 'Asistencia abierta',
+  'events.detail.availability.open': 'Abierto a todos',
   'events.detail.availability.full': 'Completo',
   'events.detail.availability.remaining': '{count} lugares restantes',
   'events.detail.visibility.public': 'Evento público',
@@ -47,7 +47,7 @@ export const fullEventsEsMX = {
   'events.detail.join_unknown_body':
     'Menta no pudo confirmar esta solicitud. No inicia una segunda unión. Primero comprueba esta solicitud nuevamente.',
   'events.detail.join_failed': 'Menta no se unió a ti',
-  'events.detail.try_again': 'inténtalo de nuevo.',
+  'events.detail.try_again': 'Vuelve a intentarlo.',
   'events.detail.check_join_status': 'Verificar estado de unión',
   'events.detail.agree_join': 'Aceptar y unirse',
   'events.detail.join_hint':
@@ -80,14 +80,14 @@ export const fullEventsEsMX = {
     'Muestra el resumen del evento cuando esté listo.',
   'events.album.link.incomplete': 'El enlace de este álbum está incompleto.',
   'events.album.link.incomplete_body':
-    'Abra el álbum de asistentes desde la página del evento.',
+    'Abre el álbum de asistentes desde la página del evento.',
   'events.album.back': 'Volver al evento',
   'events.album.title': 'Álbum de asistente',
   'events.album.sign_in_title': 'Inicia sesión para abrir este álbum.',
   'events.album.sign_in_body':
-    'Solo un asistente registrado o el organizador de este evento pueden solicitar tus fotos privadas.',
+    'Solo una persona asistente registrada o quien organiza este evento puede pedir sus fotos privadas.',
   'events.album.loading': 'Cargando álbum de asistentes',
-  'events.album.try_again': 'Intentar otra vez',
+  'events.album.try_again': 'Volver a intentarlo',
   'events.album.load_error_title': 'No se pudo cargar el álbum de asistentes.',
   'events.album.refresh': 'Actualizar álbum',
   'events.album.refresh_body':
@@ -119,7 +119,7 @@ export const fullEventsEsMX = {
   'events.check_in.link.incomplete': 'Este enlace de registro está incompleto.',
   'events.check_in.link.invalid': 'El enlace de este evento no es válido.',
   'events.check_in.link.invalid_body':
-    'Abra un enlace de evento actual. Nada ha cambiado.',
+    'Abre un enlace de evento vigente. No ha cambiado nada.',
   'events.check_in.back': 'Volver al evento',
   'events.check_in.title': 'Registrarse',
   'events.check_in.loading': 'Cargando registro de eventos',
@@ -141,7 +141,7 @@ export const fullEventsEsMX = {
   'events.check_in.camera_body':
     'Menta usa la cámara solo mientras escaneas el código del organizador de este evento. En tu lugar, puede ingresar el código manualmente.',
   'events.check_in.event': 'Evento',
-  'events.check_in.this_event': 'este evento',
+  'events.check_in.this_event': 'Este evento',
   'events.check_in.camera_does': '¿Qué hace la cámara?',
   'events.check_in.scans_qr': 'Escanea un QR del organizador',
   'events.check_in.no_photo': 'No se toma ninguna foto',
@@ -149,7 +149,7 @@ export const fullEventsEsMX = {
   'events.check_in.allow_camera_button': 'Permitir cámara',
   'events.check_in.camera_off': 'El acceso a la cámara está desactivado',
   'events.check_in.camera_off_body':
-    'Active el acceso a la cámara en la configuración de tu celular o introduce el código del organizador.',
+    'Activa el acceso a la cámara en la configuración del celular o ingresa el código del organizador.',
   'events.check_in.camera_request_failed':
     'No se pudo solicitar acceso a la cámara',
   'events.check_in.camera_request_failed_body':
@@ -180,7 +180,7 @@ export const fullEventsEsMX = {
   'events.check_in.scan_button': 'Escanear código del organizador',
   'events.check_in.scan_hint':
     'Abre la cámara solo para escanear este código de organizador.',
-  'events.check_in.code_label': 'código de registro',
+  'events.check_in.code_label': 'Código de registro',
   'events.check_in.code_helper':
     'El código confirma únicamente la asistencia. No envía ni aprueba una foto.',
   'events.check_in.code_accessibility': 'Código de registro del organizador',
@@ -216,7 +216,7 @@ export const fullEventsEsMX = {
   'events.create.step_two': 'Detalles del evento · 2 de 2',
   'events.create.title': 'Crea un evento.',
   'events.create.body':
-    'Establece el nombre y la hora. A continuación, agregará el lugar de reunión y las reglas de asistencia.',
+    'Establece el nombre y la hora. A continuación, agregarás el lugar de reunión y las reglas de asistencia.',
   'events.create.sign_in_title': 'Inicia sesión para publicar un evento',
   'events.create.sign_in_body':
     'Inicia sesión para guardar este borrador en tu cuenta y publicar el evento.',
@@ -295,10 +295,10 @@ export const fullEventsEsMX = {
   'events.create.back_setup': 'Volver a la configuración del evento',
   'events.create.published_title': 'Tu evento está publicado.',
   'events.create.published_body':
-    'El código de organizador de {event} está en este celular. Los asistentes lo escanean para registrar la asistencia. No aprueba tus fotos.',
+    'El código de organizador de {event} está en este celular. Los asistentes lo escanean para registrar su asistencia. No aprueba sus fotos.',
   'events.create.link_label': 'Enlace del evento',
-  'events.create.code_label': 'código de registro',
-  'events.create.start_details': 'Comience con los detalles del evento.',
+  'events.create.code_label': 'Código de registro',
+  'events.create.start_details': 'Empieza con los datos del evento',
   'events.create.start_details_body':
     'El primer paso de configuración no se ha guardado en este celular.',
   'events.create.open_setup': 'Abrir configuración de evento',
@@ -311,7 +311,7 @@ export const fullEventsEsMX = {
   'events.create.open_published': 'Abrir evento publicado',
   'events.create.copy_success': '{label} copiado a este celular.',
   'events.create.copy_failure': 'Menta no pudo copiar el {label}.',
-  'events.create.share_message': 'Únete a {event} en Menta.\\n{link}',
+  'events.create.share_message': 'Únete a {event} en Menta.\n{link}',
   'events.create.share_failure': 'Menta no pudo abrir el menú para compartir.',
   'events.pass.title': 'Consultar asistentes en',
   'events.pass.ready_body':
@@ -323,14 +323,14 @@ export const fullEventsEsMX = {
     'Este código de registro pertenece a la cuenta que publicó el evento.',
   'events.pass.loading': 'Cargando pase de registro del organizador',
   'events.pass.load_error': 'No se pudo cargar el código de registro',
-  'events.pass.try_again': 'Intentar otra vez',
+  'events.pass.try_again': 'Volver a intentarlo',
   'events.pass.missing_title': 'Este celular no tiene el código de registro',
   'events.pass.missing_body':
-    'Abra el evento en el celular utilizado para publicarlo.',
+    'Abre el evento en el celular con el que lo publicaste.',
   'events.pass.not_ready': 'El código de registro no está listo',
   'events.pass.not_ready_body':
     'Menta no pudo cargar el código del organizador. Comprueba nuevamente antes de que lleguen los asistentes.',
-  'events.pass.check_again': 'comprobar de nuevo',
+  'events.pass.check_again': 'Volver a comprobar',
   'events.pass.share': 'Compartir evento',
   'events.pass.copy_link': 'Copiar enlace del evento',
   'events.pass.copy_code': 'Copiar código de registro',
@@ -345,11 +345,11 @@ export const fullEventsEsMX = {
     'Menta no pudo verificar el código de este evento. Inténtalo de nuevo mientras estás registrado como organizador.',
   'events.pass.recovery_read_error':
     'Menta no pudo leer el código de registro guardado en este celular.',
-  'events.pass.open_event': 'evento abierto',
+  'events.pass.open_event': 'Abrir evento',
   'events.proof.link.incomplete': 'El enlace de este evento está incompleto.',
   'events.proof.link.invalid': 'El enlace de este evento no es válido.',
   'events.proof.link.invalid_body':
-    'Abra un enlace de evento actual. Nada ha cambiado.',
+    'Abre un enlace de evento vigente. No ha cambiado nada.',
   'events.proof.back': 'Volver al evento',
   'events.proof.title': 'Foto del evento',
   'events.proof.loading': 'Cargando foto del evento',
@@ -361,7 +361,7 @@ export const fullEventsEsMX = {
   'events.proof.local_photo_body':
     'No se ha compartido. Menta no volverá a intentarlo mientras este evento no esté disponible.',
   'events.proof.find_event': 'Encuentra otro evento',
-  'events.proof.back_today': 'Volver a hoy',
+  'events.proof.back_today': 'Volver a Hoy',
   'events.proof.session_title': 'Tu sesión terminó',
   'events.proof.session_body':
     'Inicia sesión, vuelve aquí y luego elige una foto del evento.',
@@ -382,7 +382,7 @@ export const fullEventsEsMX = {
   'events.proof.preparing': 'Preparando tu foto…',
   'events.proof.choose_one': 'Elige una foto',
   'events.proof.photo_types':
-    'JPEG, PNG o WebP. Permanece en este celular hasta que lo envías para revisión.',
+    'JPEG, PNG o WebP. Se queda en este celular hasta que la envíes para revisión.',
   'events.proof.caption': 'Título (opcional)',
   'events.proof.caption_accessibility': 'Pie de foto del evento opcional',
   'events.proof.caption_placeholder': '¿Qué pasó?',
@@ -451,36 +451,37 @@ export const fullEventsEsMX = {
     'Esta cola está disponible sólo para el organizador de este evento.',
   'events.review.loading': 'Cargando cola de revisión del organizador',
   'events.review.load_error': 'No se pudo cargar la cola de revisión',
-  'events.review.try_again': 'Intentar otra vez',
+  'events.review.try_again': 'Volver a intentarlo',
   'events.review.queue_subtitle':
-    'Revisa cada foto de los asistentes antes de que aparezca en el álbum compartido.',
+    'Cada fila muestra si la persona asistente se registró y la foto que quiere agregar al álbum del evento.',
   'events.review.window_notice':
-    'Las fotos permanecen privadas hasta que las apruebes. Una foto rechazada permanece visible sólo para tu asistente.',
+    'Las fotos siguen siendo privadas hasta que las apruebes. Una foto rechazada solo la ve la persona que la envió.',
   'events.review.item_accessibility': 'Revisión {attendee}: {status}',
   'events.review.approve': 'Aprobar foto',
   'events.review.reject': 'Rechazar foto',
   'events.review.apply': 'Aplicar decisión',
   'events.review.apply_hint':
-    'Aplica esta decisión a la foto seleccionada. Espere el resultado antes de revisar otra foto.',
-  'events.review.open_recap': 'Resumen del evento abierto',
+    'Aplica esta decisión a la foto seleccionada. Espera el resultado antes de revisar otra foto.',
+  'events.review.open_recap': 'Abrir resumen del evento',
   'events.review.open_recap_hint':
     'Abre el resumen del organizador de la fecha del evento completado más reciente.',
   'events.review.joined': 'Evento unido',
   'events.review.joined_detail': 'El asistente guardó un lugar en este evento.',
   'events.review.checked_in': 'Registro confirmado',
-  'events.review.checked_in_detail': 'El asistente se registró con tu código',
+  'events.review.checked_in_detail':
+    'El código del organizador registró su asistencia',
   'events.review.uploaded': 'Foto subida',
-  'events.review.uploaded_detail': 'El asistente envió una foto para revisión',
+  'events.review.uploaded_detail': 'La foto está lista para que decidas',
   'events.review.decision': 'Decisión del organizador',
   'events.review.decision_detail':
-    'En el álbum del asistente solo aparecen las fotos aprobadas',
+    'Si la apruebas, se agrega al álbum; si la rechazas, se queda fuera',
   'events.review.rules': 'Revisar reglas',
   'events.review.link.incomplete':
     'Este enlace de revisión del organizador está incompleto.',
   'events.review.photo_unavailable': 'Foto no disponible',
   'events.review.no_check_in': 'No hay registro confirmado',
   'events.review.roster_check_in': 'Registro de lista',
-  'events.review.qr_check_in': 'registro QR',
+  'events.review.qr_check_in': 'Registro con QR',
   'events.review.check_in_confirmed': '{method} confirmado · foto lista',
   'events.review.pending_count': 'Ninguna foto necesita una decisión.',
   'events.review.pending_count.one': 'La foto {count} necesita una decisión.',
@@ -501,7 +502,7 @@ export const fullEventsEsMX = {
     'No puedes aprobarla ni rechazarla hasta que la foto sea visible.',
   'events.review.photo_loading': 'Cargando la foto del asistente…',
   'events.review.decision_explanation':
-    'La aprobación agrega esta foto al álbum de asistentes. Rechazarlo lo mantiene fuera. El rechazo es definitivo y no solicita un reemplazo al asistente.',
+    'Si la apruebas, esta foto se agrega al álbum de asistentes. Si la rechazas, se queda fuera. El rechazo es definitivo y no solicita un reemplazo al asistente.',
   'events.review.check_same': 'Comprueba la misma decisión',
   'events.review.confirm_approval': 'Confirmar aprobación',
   'events.review.confirm_rejection': 'Confirmar rechazo',

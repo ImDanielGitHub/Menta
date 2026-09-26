@@ -13,6 +13,7 @@ describe('AppOptionCard', () => {
         <AppOptionCard
           title="Photo proof"
           description="Show the finished work."
+          badge="Recommended"
           selected
           onPress={onPress}
         />
@@ -20,7 +21,8 @@ describe('AppOptionCard', () => {
     );
 
     const option = getByRole('radio', {
-      name: 'Photo proof. Show the finished work.',
+      // The suggestion pill is part of the option's spoken name.
+      name: 'Photo proof, Recommended. Show the finished work.',
     });
 
     expect(option.props.accessibilityState).toMatchObject({

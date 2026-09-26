@@ -22,6 +22,9 @@ jest.mock('@/components/ui/Toast', () => ({
 jest.mock('expo-router', () => ({
   useRouter: () => ({ back: jest.fn() }),
 }));
+jest.mock('expo-router/react-navigation', () => ({
+  useIsFocused: () => true,
+}));
 jest.mock('expo-image', () => {
   const React = require('react') as typeof import('react');
   const { View } = require('react-native') as typeof import('react-native');
@@ -56,7 +59,10 @@ jest.mock('expo-video', () => {
       React.useEffect(() => {
         onFirstFrameRender?.();
       }, [onFirstFrameRender]);
-      return React.createElement(View, props);
+      return React.createElement(View, {
+        ...props,
+        testID: 'native-video-view',
+      });
     },
   };
 });
@@ -293,7 +299,7 @@ describe('VerificationReview', () => {
     fireEvent.press(getByLabelText('submitter2 proof for Test Challenge'));
 
     await waitFor(() => {
-      expect(getByTestId('review-evidence-video')).toBeTruthy();
+      expect(getByTestId('native-video-view').props.nativeControls).toBe(true);
       expect(getByText('Play or open full screen')).toBeTruthy();
       expect(getByText('Does this proof match the promise?')).toBeTruthy();
     });

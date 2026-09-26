@@ -1,12 +1,11 @@
-declare module 'timezone-support';
 declare module 'react-native-modern-datepicker';
 
 declare module '*.png' {
-  const value: any;
+  const value: number;
   export default value;
 }
 
 declare module '*.jpg' {
-  const value: any;
+  const value: number;
   export default value;
-} 
+}

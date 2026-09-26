@@ -21,16 +21,13 @@ type GoogleMobileAdsPackage = typeof import('react-native-google-mobile-ads');
 
 let mobileAds: GoogleMobileAdsPackage['default'] | undefined;
 let MaxAdContentRating:
-  | GoogleMobileAdsPackage['MaxAdContentRating']
-  | undefined;
+  GoogleMobileAdsPackage['MaxAdContentRating'] | undefined;
 let RewardedAd: GoogleMobileAdsPackage['RewardedAd'] | undefined;
 let InterstitialAd:
-  | typeof import('react-native-google-mobile-ads').InterstitialAd
-  | undefined;
+  typeof import('react-native-google-mobile-ads').InterstitialAd | undefined;
 let AdEventType: GoogleMobileAdsPackage['AdEventType'] | undefined;
 let RewardedAdEventType:
-  | GoogleMobileAdsPackage['RewardedAdEventType']
-  | undefined;
+  GoogleMobileAdsPackage['RewardedAdEventType'] | undefined;
 let TestIds: GoogleMobileAdsPackage['TestIds'] | undefined;
 let AdsConsent: AdsConsentInterface | undefined;
 
@@ -71,9 +68,7 @@ type AdsReadiness = {
 };
 
 export type AdsPrivacyOptionsRequirement =
-  | 'required'
-  | 'not_required'
-  | 'unavailable';
+  'required' | 'not_required' | 'unavailable';
 
 export type AdsPrivacyOptionsResult = {
   shown: boolean;
@@ -129,6 +124,7 @@ export type InterstitialAdResult = {
   reason?:
     | 'ads_disabled'
     | 'background'
+    | 'account_changed'
     | 'module_missing'
     | 'invalid_config'
     | 'no_fill'
@@ -410,8 +406,7 @@ const AD_NO_FILL_CODES = [
 function isNoFillErrorPayload(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false;
   const maybeCode = ((error as Record<string, unknown>).code ?? '') as
-    | string
-    | number;
+    string | number;
   const maybeMessage = ((error as Record<string, unknown>).message ??
     '') as string;
   const maybeDetails = ((error as Record<string, unknown>).details ??
@@ -639,6 +634,23 @@ async function showRewardedAdDetailedInternal(
         }
       };
 
+      const armTimeout = (durationMs = 45_000, presenting = false) => {
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(() => {
+          finish({
+            earned: false,
+            amount: 0,
+            provider: 'revenuecat',
+            verified: false,
+            reason: earnedCallbackReceived
+              ? 'reward_pending'
+              : presenting
+                ? 'show_failed'
+                : 'load_failed',
+          });
+        }, durationMs);
+      };
+
       const verifyReward = async () => {
         const verification = await pollRevenueCatAdReward(
           appUserId,
@@ -717,15 +729,7 @@ async function showRewardedAdDetailedInternal(
         finishAfterDismissal();
       };
 
-      timeout = setTimeout(() => {
-        finish({
-          earned: false,
-          amount: 0,
-          provider: 'revenuecat',
-          verified: false,
-          reason: earnedCallbackReceived ? 'reward_pending' : 'load_failed',
-        });
-      }, 45_000);
+      armTimeout();
 
       try {
         unsubscribers.push(
@@ -748,6 +752,9 @@ async function showRewardedAdDetailedInternal(
         );
         unsubscribers.push(
           ad.addAdEventListener(AdEventType.OPENED, () => {
+            // The SDK owns playback duration. Expiring the load timeout here
+            // would detach reward listeners while a longer video is playing.
+            armTimeout(5 * 60_000, true);
             void trackRevenueCatAdEvent(appUserId, {
               type: 'displayed',
               data: trackingData,
@@ -801,6 +808,9 @@ async function showRewardedAdDetailedInternal(
         unsubscribers.push(
           ad.addAdEventListener(AdEventType.CLOSED, () => {
             adClosed = true;
+            // Verification may outlive playback, but the underlying screen
+            // must regain control if the provider stops responding.
+            armTimeout();
             if (!earnedCallbackReceived) {
               finish({
                 earned: false,
@@ -923,11 +933,17 @@ export async function getInterstitialAdReadiness(): Promise<InterstitialAdReadin
   return { ready: true };
 }
 
-async function showInterstitialAdDetailedInternal(options?: {
-  appUserId?: string;
-  placement?: string;
-}): Promise<InterstitialAdResult> {
+async function showInterstitialAdDetailedInternal(
+  options:
+    | {
+        appUserId?: string;
+        placement?: string;
+      }
+    | undefined,
+  isCurrentAccount: () => boolean = () => true
+): Promise<InterstitialAdResult> {
   const readiness = await getInterstitialAdReadiness();
+  if (!isCurrentAccount()) return { shown: false, reason: 'account_changed' };
   if (!readiness.ready) return { shown: false, reason: readiness.reason };
 
   const adUnitId = getInterstitialUnitId();
@@ -990,6 +1006,10 @@ async function showInterstitialAdDetailedInternal(options?: {
       try {
         unsubscribers.push(
           ad.addAdEventListener(InterstitialEvents.LOADED, () => {
+            if (!isCurrentAccount()) {
+              finish({ shown: false, reason: 'account_changed' });
+              return;
+            }
             if (appUserId) {
               void trackRevenueCatAdEvent(appUserId, {
                 type: 'loaded',
@@ -1019,6 +1039,15 @@ async function showInterstitialAdDetailedInternal(options?: {
         );
         unsubscribers.push(
           ad.addAdEventListener(InterstitialEvents.OPENED, () => {
+            // Playback duration belongs to the native ad. Keep close and
+            // revenue listeners alive after the loading deadline.
+            if (timeout) clearTimeout(timeout);
+            timeout = setTimeout(() => {
+              sentryCapture(new Error('interstitial_ad_presentation_timeout'), {
+                context: 'interstitial_ad_presentation_timeout',
+              });
+              finish({ shown: false, reason: 'timeout' });
+            }, 5 * 60_000);
             if (appUserId) {
               void trackRevenueCatAdEvent(appUserId, {
                 type: 'displayed',
@@ -1119,7 +1148,30 @@ export async function showInterstitialAdDetailed(options?: {
   appUserId?: string;
   placement?: string;
 }): Promise<InterstitialAdResult> {
-  const result = await showInterstitialAdDetailedInternal(options);
+  const accountId = options?.appUserId;
+  let accountChanged = Boolean(
+    accountId && useAuthStore.getState().user?.id !== accountId
+  );
+  const unsubscribe = useAuthStore.subscribe(state => {
+    if (accountId && state.user?.id !== accountId) accountChanged = true;
+  });
+  let result: InterstitialAdResult;
+  try {
+    result = await showInterstitialAdDetailedInternal(
+      options,
+      () =>
+        !accountChanged &&
+        (!accountId || useAuthStore.getState().user?.id === accountId)
+    );
+    if (
+      accountChanged ||
+      (accountId && useAuthStore.getState().user?.id !== accountId)
+    ) {
+      return { shown: false, reason: 'account_changed' };
+    }
+  } finally {
+    unsubscribe();
+  }
   trackProductEvent('Ad Outcome', {
     format: 'interstitial',
     outcome: result.shown

@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 
@@ -13,33 +13,43 @@ import {
   MomentaActionNoticeSheet,
   type MomentaActionNotice,
 } from '@/components/momenta/MomentaActionNoticeSheet';
-import PaywallModal from '@/components/paywall/PaywallModal';
+import { PaywallModal } from '@/components/paywall/PaywallModal';
 import { IPadShopDetailWorkspace } from '@/components/ipad/IPadShopWorkspace';
 import { useIPadPortraitWorkspace } from '@/components/ipad/ipad-workspace';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppInlineNotice } from '@/components/ui/AppFeedback';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
-import SimpleBottomSheet from '@/components/ui/SimpleBottomSheet';
+import { SimpleBottomSheet } from '@/components/ui/SimpleBottomSheet';
 import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import {
   ArrowLeftIcon,
   CheckCircleIcon,
   ChevronRightIcon,
+  CoinsIcon,
   GiftIcon,
   TargetIcon,
-  WalletIcon,
 } from '@/components/ui/icons';
+import { getShopItemSku } from '@/components/shop/ShopPrimitives';
+import { MomentaBalanceChip } from '@/components/shop/MomentaBalanceChip';
+import { ShopItemArt } from '@/components/shop/ShopItemArt';
 import {
-  formatShopCategory,
-  getShopItemSku,
-  ShopItemGlyph,
-} from '@/components/shop/ShopPrimitives';
+  ShopTrailPill,
+  type ShopItemCardTrail,
+} from '@/components/shop/ShopItemCard';
+import { ShopMascotBubble } from '@/components/shop/ShopMascotBubble';
+import { ShopPressable } from '@/components/shop/ShopPressable';
+import { ShopPurchaseCelebration } from '@/components/shop/ShopPurchaseCelebration';
+import {
+  ShopReceiptCard,
+  type ShopReceiptFact,
+} from '@/components/shop/ShopReceiptCard';
 import {
   ShopItemImpactPreview,
   ShopItemImpactSkeleton,
 } from '@/components/shop/ShopItemImpactPreview';
 import { useTheme } from '@/constants/ThemeContext';
 import {
+  mentaColors,
   mentaRadii,
   mentaSpacing,
   mentaTypography,
@@ -79,12 +89,13 @@ import { REVIEW_QUEUE_CLEAR_REWARD_AMOUNT } from '@/lib/review-rewards';
 import {
   getCatalogItemSku,
   getEquipCategoryForCatalogItem,
+  formatStreakUnlockCopy,
+  getShopItemDisplayCopy,
   getUnlockStreakDays,
   isSupportedCatalogItem,
 } from '@/lib/shop/catalogSupport';
 import { claimStreakShopUnlocks } from '@/lib/shop/streak-unlocks';
 import {
-  getPowerUpSupport,
   isShopPowerUp,
   powerUpIsAutoConsumed,
   powerUpRequiresChallengeId,
@@ -103,6 +114,15 @@ import {
 import { trackProductOperation } from '@/lib/posthog';
 
 type StatusSheet = MomentaActionNotice | null;
+
+type CelebrationState = {
+  sku: string;
+  title: string;
+  detail: string;
+  gainLabel: string | null;
+  facts: ShopReceiptFact[];
+  next: 'items' | 'choose-promise' | 'use-style';
+};
 
 type InventoryRow = {
   item_sku: string;
@@ -164,6 +184,7 @@ function getPrimaryState({
   inventoryCount,
   insufficient,
   shortfall,
+  unlockDays,
   t,
 }: {
   purchased: boolean;
@@ -173,6 +194,7 @@ function getPrimaryState({
   inventoryCount: number;
   insufficient: boolean;
   shortfall: number;
+  unlockDays: number | null;
   t: (
     key: import('@/lib/localization/en-NZ').TranslationKey,
     values?: Record<string, string | number>
@@ -184,6 +206,8 @@ function getPrimaryState({
   }
   if (isPowerUp && historicallyPurchased) return t('commerce.shop.usedUp');
   if (purchased) return t('commerce.shop.owned');
+  // A streak-locked item cannot be bought, so the unlock rule is the state.
+  if (unlockDays) return formatStreakUnlockCopy(unlockDays, t);
   if (insufficient)
     return t('commerce.shop.short', { amount: shortfall.toLocaleString() });
   return t('commerce.shop.available');
@@ -246,6 +270,7 @@ export default function ShopItemDetailsScreen() {
   const [creditPriceLoading, setCreditPriceLoading] = useState(false);
   const [statusRefreshing, setStatusRefreshing] = useState(false);
   const [statusSheet, setStatusSheet] = useState<StatusSheet>(null);
+  const [celebration, setCelebration] = useState<CelebrationState | null>(null);
   const handledUseActionRef = useRef<string | null>(null);
   const purchaseAttemptRef = useRef<{
     beforeOwned: boolean;
@@ -287,9 +312,9 @@ export default function ShopItemDetailsScreen() {
     ? getUnlockStreakDays(sku, item.unlock_streak_days)
     : null;
   const equipCategory = item ? getEquipCategoryForCatalogItem(item) : 'catalog';
-  const support = getPowerUpSupport(sku);
-  const displayName = support?.label || item?.name || '';
-  const displayDescription = support?.description || item?.description || '';
+  const { name: displayName, description: displayDescription } = item
+    ? getShopItemDisplayCopy(item, t)
+    : { name: '', description: '' };
   const requiresChallenge = isPowerUp && powerUpRequiresChallengeId(sku);
   const autoConsumedPowerUp = isPowerUp && powerUpIsAutoConsumed(sku);
   const creditTotal = CREDIT_PACK.credits + CREDIT_PACK.bonus;
@@ -367,6 +392,7 @@ export default function ShopItemDetailsScreen() {
     inventoryCount,
     insufficient,
     shortfall,
+    unlockDays,
     t,
   });
 
@@ -430,7 +456,7 @@ export default function ShopItemDetailsScreen() {
     } finally {
       setAccountLoading(false);
     }
-  }, [refreshState, user?.id]);
+  }, [refreshState, user?.id, t]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -451,7 +477,7 @@ export default function ShopItemDetailsScreen() {
       void accountLoad;
       setLoading(false);
     }
-  }, [fetchShopItems, refreshAccountState]);
+  }, [fetchShopItems, refreshAccountState, t]);
 
   useEffect(() => {
     void load();
@@ -538,7 +564,9 @@ export default function ShopItemDetailsScreen() {
         await refreshAfterCompletedAction({
           title: t('commerce.shop.deadlineExtended'),
           message: result.message,
-          staleMessage: `${result.message} Refresh your items if the available count has not updated.`,
+          staleMessage: t('commerce.shop.refreshCountIfStale', {
+            message: result.message,
+          }),
           logContext: 'extension receipt check',
           refreshActionTitle: t('commerce.shop.refreshItemsAction'),
           facts: [
@@ -586,7 +614,7 @@ export default function ShopItemDetailsScreen() {
             },
             t
           ),
-          message: `${attempt.itemName} is in Your items. Your balance has been updated.`,
+          message: t('commerce.shop.inYourItems', { name: attempt.itemName }),
           facts: [
             {
               label: t('commerce.shop.purchaseLabel'),
@@ -594,7 +622,11 @@ export default function ShopItemDetailsScreen() {
             },
             {
               label: t('commerce.shop.balance'),
-              value: `${currentStore.balance.toLocaleString()} Momenta`,
+              value: t('commerce.shop.spendBalance', {
+                amount: new Intl.NumberFormat(locale).format(
+                  currentStore.balance
+                ),
+              }),
             },
           ],
         });
@@ -620,10 +652,12 @@ export default function ShopItemDetailsScreen() {
   }, [
     applyInventoryPowerUp,
     item,
+    locale,
     refreshAfterCompletedAction,
     refreshState,
     sku,
     statusRefreshing,
+    t,
     user?.id,
   ]);
 
@@ -657,7 +691,9 @@ export default function ShopItemDetailsScreen() {
             : row.challenges;
           return {
             id: String(row.challenge_id),
-            title: String(challengeRecord?.title || 'Active promise'),
+            title: String(
+              challengeRecord?.title || t('commerce.shop.activePromise')
+            ),
             currentStreak: Number(row.current_streak || 0),
           };
         });
@@ -678,7 +714,7 @@ export default function ShopItemDetailsScreen() {
     } finally {
       setTargetsLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, t]);
 
   const handleWatchAd = useCallback(async (): Promise<RewardAdResult> => {
     if (!canWatchSponsors) {
@@ -724,7 +760,7 @@ export default function ShopItemDetailsScreen() {
     } finally {
       setAdLoading(false);
     }
-  }, [adLoading, canWatchSponsors, claimAdReward, user?.id]);
+  }, [adLoading, canWatchSponsors, claimAdReward, user?.id, t]);
 
   const handleCreditPurchase = useCallback(async () => {
     if (!creditPurchaseReady || creditLoading) return;
@@ -793,7 +829,7 @@ export default function ShopItemDetailsScreen() {
     } finally {
       setCreditLoading(false);
     }
-  }, [creditLoading, creditPurchaseReady]);
+  }, [creditLoading, creditPurchaseReady, t]);
 
   const handlePurchase = useCallback(async () => {
     if (
@@ -821,7 +857,6 @@ export default function ShopItemDetailsScreen() {
       return;
     }
 
-    setConfirmPurchaseVisible(false);
     setWorking(true);
     purchaseAttemptRef.current = {
       beforeOwned: purchased,
@@ -830,7 +865,6 @@ export default function ShopItemDetailsScreen() {
       itemName: displayName,
       itemSku: sku,
     };
-    setStatusSheet(getCommerceNotice('submitting', undefined, t));
     trackProductOperation({
       area: 'shop',
       authority: 'server',
@@ -947,39 +981,65 @@ export default function ShopItemDetailsScreen() {
         console.error('[ShopItem] Refresh after purchase failed', refreshError);
         setStatusSheet({
           ...notice,
-          message: `${receiptMessage} Check status if the balance or inventory does not update immediately.`,
-          refreshActionTitle: 'Check status',
+          message: t('commerce.shop.checkStatusIfStale', {
+            message: receiptMessage,
+          }),
+          refreshActionTitle: t('commerce.shop.checkStatus'),
         });
         setPurchaseRecoveryPending(true);
         return;
       }
       purchaseAttemptRef.current = null;
       setPurchaseRecoveryPending(false);
-      setStatusSheet(
-        appearanceActivated
-          ? {
-              ...notice,
-              title: `${displayName} is in use`,
-              message: `You bought ${displayName}, and Menta is now using it.`,
-              facts: [
-                {
-                  label: t('commerce.shop.purchaseLabel'),
-                  value: t('commerce.commerce.purchaseStatusComplete'),
-                },
-                {
-                  label: t('commerce.shop.styleLabel'),
-                  value: t('commerce.shop.inUse'),
-                },
-              ],
-            }
-          : {
-              ...notice,
-              message:
-                !isPowerUp && equipCategory !== 'catalog'
-                  ? `${receiptMessage} Tap Use this style to apply it.`
-                  : receiptMessage,
-            }
-      );
+      const formatNumber = (value: number) =>
+        new Intl.NumberFormat(locale).format(value);
+      const confirmedQuantity = result.receipt?.quantity;
+      const confirmedBalance = result.receipt?.newBalance;
+      const gained =
+        isPowerUp && typeof confirmedQuantity === 'number'
+          ? confirmedQuantity - inventoryCount
+          : 0;
+      const facts: ShopReceiptFact[] = [];
+      if (isPowerUp && typeof confirmedQuantity === 'number') {
+        facts.push({
+          label: t('commerce.celebrate.youHave'),
+          value: formatNumber(confirmedQuantity),
+        });
+      }
+      if (typeof confirmedBalance === 'number') {
+        facts.push({
+          label: t('commerce.shop.balance'),
+          value: t('commerce.shop.spendBalance', {
+            amount: formatNumber(confirmedBalance),
+          }),
+          emphasis: true,
+        });
+      }
+      const appearance = !isPowerUp && equipCategory !== 'catalog';
+      setCelebration({
+        sku,
+        title: appearanceActivated
+          ? t('commerce.shop.styleInUse', { name: displayName })
+          : t('commerce.celebrate.added', { name: displayName }),
+        detail: appearanceActivated
+          ? t('commerce.shop.boughtAndUsing', { name: displayName })
+          : appearance
+            ? t('commerce.celebrate.styleNotActive')
+            : autoConsumedPowerUp
+              ? t('commerce.powerUp.freezeDescription')
+              : requiresChallenge
+                ? t('commerce.powerUp.extensionSummary')
+                : receiptMessage,
+        gainLabel:
+          gained > 0 ? t('commerce.celebrate.gain', { count: gained }) : null,
+        facts,
+        next:
+          appearance && !appearanceActivated
+            ? 'use-style'
+            : requiresChallenge
+              ? 'choose-promise'
+              : 'items',
+      });
     } catch (error) {
       trackProductOperation({
         area: 'shop',
@@ -1006,9 +1066,11 @@ export default function ShopItemDetailsScreen() {
       setPurchaseRecoveryPending(unknown);
       if (!unknown) purchaseAttemptRef.current = null;
     } finally {
+      setConfirmPurchaseVisible(false);
       setWorking(false);
     }
   }, [
+    autoConsumedPowerUp,
     insufficient,
     displayName,
     equipCategory,
@@ -1022,6 +1084,7 @@ export default function ShopItemDetailsScreen() {
     purchaseRetryPending,
     purchased,
     refreshState,
+    requiresChallenge,
     sku,
     user?.id,
     working,
@@ -1036,10 +1099,10 @@ export default function ShopItemDetailsScreen() {
     try {
       await equipItem(item.id, equipCategory, sku);
       await refreshAfterCompletedAction({
-        title: t('commerce.shop.styleInUse', { name: item.name }),
+        title: t('commerce.shop.styleInUse', { name: displayName }),
         message: t('commerce.shop.usingStyle'),
         staleMessage: t('commerce.shop.refreshIfMissing', {
-          message: t('commerce.shop.styleInUse', { name: item.name }),
+          message: t('commerce.shop.styleInUse', { name: displayName }),
         }),
         logContext: 'equip',
         refreshActionTitle: t('commerce.shop.refreshItemsAction'),
@@ -1055,6 +1118,8 @@ export default function ShopItemDetailsScreen() {
       setWorking(false);
     }
   }, [
+    displayName,
+    t,
     equipCategory,
     equipItem,
     item,
@@ -1070,10 +1135,10 @@ export default function ShopItemDetailsScreen() {
     try {
       await unequipItem(equipCategory);
       await refreshAfterCompletedAction({
-        title: t('commerce.shop.styleRemoved', { name: item.name }),
+        title: t('commerce.shop.styleRemoved', { name: displayName }),
         message: t('commerce.shop.styleNoLongerUsed'),
         staleMessage: t('commerce.shop.refreshIfMissing', {
-          message: t('commerce.shop.styleRemoved', { name: item.name }),
+          message: t('commerce.shop.styleRemoved', { name: displayName }),
         }),
         logContext: 'unequip',
         refreshActionTitle: t('commerce.shop.refreshItemsAction'),
@@ -1088,7 +1153,15 @@ export default function ShopItemDetailsScreen() {
     } finally {
       setWorking(false);
     }
-  }, [equipCategory, item, refreshAfterCompletedAction, unequipItem, working]);
+  }, [
+    displayName,
+    equipCategory,
+    item,
+    refreshAfterCompletedAction,
+    unequipItem,
+    working,
+    t,
+  ]);
 
   const applyPowerUp = useCallback(
     async (challengeId?: string) => {
@@ -1134,7 +1207,9 @@ export default function ShopItemDetailsScreen() {
         await refreshAfterCompletedAction({
           title: t('commerce.shop.deadlineExtended'),
           message: result.message,
-          staleMessage: `${result.message} Refresh your items if the available count has not updated.`,
+          staleMessage: t('commerce.shop.refreshCountIfStale', {
+            message: result.message,
+          }),
           logContext: 'extension use',
           refreshActionTitle: t('commerce.shop.refreshItemsAction'),
           facts: [
@@ -1160,6 +1235,7 @@ export default function ShopItemDetailsScreen() {
       }
     },
     [
+      t,
       fetchTargets,
       item,
       refreshAfterCompletedAction,
@@ -1227,6 +1303,7 @@ export default function ShopItemDetailsScreen() {
     setTargetSheetVisible(true);
     await fetchTargets();
   }, [
+    t,
     autoConsumedPowerUp,
     displayName,
     equipped,
@@ -1241,13 +1318,26 @@ export default function ShopItemDetailsScreen() {
 
   useEffect(() => {
     if (!item || action !== 'use' || !isPowerUp) return;
+    // The catalogue is usually cached already, but the person's inventory is
+    // read fresh on this screen. Wait for that read so an item they hold is
+    // not reported as unavailable before its count arrives.
+    if (accountLoading || accountError) return;
 
     const actionKey = `${String(id)}:${sku}:use`;
     if (handledUseActionRef.current === actionKey) return;
 
     handledUseActionRef.current = actionKey;
     void openUseFlow();
-  }, [action, id, isPowerUp, item, openUseFlow, sku]);
+  }, [
+    accountError,
+    accountLoading,
+    action,
+    id,
+    isPowerUp,
+    item,
+    openUseFlow,
+    sku,
+  ]);
 
   const primaryAction = useMemo(() => {
     if (!item) return null;
@@ -1312,14 +1402,30 @@ export default function ShopItemDetailsScreen() {
 
     if (isPowerUp) {
       if (autoConsumedPowerUp) {
+        // A freeze is never used by hand, so the useful action for one the
+        // person already holds is buying another. The server still owns the
+        // price and balance check.
+        if (shortfall > 0) {
+          return {
+            title: t('commerce.shop.getMomenta'),
+            variant: 'accent' as const,
+            disabled: false,
+            onPress: () => {
+              void emitHaptic({
+                type: 'blocked',
+                reason: 'insufficient-momenta',
+              });
+              setTopUpVisible(true);
+            },
+          };
+        }
         return {
-          title:
-            inventoryCount > 0
-              ? t('commerce.shop.howItWorks')
-              : t('commerce.shop.noneAvailable'),
-          variant: 'primary' as const,
-          disabled: inventoryCount <= 0,
-          onPress: openUseFlow,
+          title: t('commerce.shop.buyAgainFor', {
+            amount: cost.toLocaleString(),
+          }),
+          variant: 'accent' as const,
+          disabled: false,
+          onPress: () => setConfirmPurchaseVisible(true),
         };
       }
 
@@ -1348,6 +1454,8 @@ export default function ShopItemDetailsScreen() {
     cost,
     equipped,
     insufficient,
+    shortfall,
+    t,
     inventoryCount,
     isPowerUp,
     item,
@@ -1366,47 +1474,41 @@ export default function ShopItemDetailsScreen() {
     unlockDays,
   ]);
 
+  const formatAmount = (value: number) =>
+    new Intl.NumberFormat(locale).format(value);
+
+  const renderBackButton = () => (
+    <ShopPressable
+      accessibilityLabel={t('commerce.accessibility.goBack')}
+      haptic={false}
+      hitSlop={10}
+      onPress={() => backOrReplace(router, '/shop')}
+      pressedStyle={styles.iconButtonPressed}
+      style={styles.iconButton}
+    >
+      <ArrowLeftIcon size={20} color={theme.colors.text.primary} />
+    </ShopPressable>
+  );
+
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <Stack.Screen options={{ headerShown: false }} />
-        <View style={[styles.topBar, insetPadding]}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('commerce.accessibility.goBack')}
-            hitSlop={10}
-            onPress={() => backOrReplace(router, '/shop')}
-            style={({ pressed }) => [
-              styles.iconButton,
-              pressed && styles.pressed,
-            ]}
-          >
-            <ArrowLeftIcon size={20} color={theme.colors.text.primary} />
-          </Pressable>
-        </View>
+        <View style={[styles.topBar, insetPadding]}>{renderBackButton()}</View>
         <View
           accessibilityRole="progressbar"
           accessibilityLabel={t('commerce.accessibility.loadingItem')}
           style={[styles.detailLoadingState, insetPadding]}
           testID="shop-item-loading-state"
         >
-          <Text style={styles.kicker}>{t('commerce.shop.currentItem')}</Text>
           <SkeletonLoader announce={false} style={styles.detailSkeletonHero} />
           <SkeletonLoader announce={false} style={styles.detailSkeletonTitle} />
           <SkeletonLoader announce={false} style={styles.detailSkeletonBody} />
           <ShopItemImpactSkeleton testID="shop-item-impact-skeleton" />
-          <View style={styles.detailSkeletonRows}>
-            <View style={styles.detailSkeletonRow}>
-              <SkeletonLoader
-                announce={false}
-                style={styles.detailSkeletonLabel}
-              />
-              <SkeletonLoader
-                announce={false}
-                style={styles.detailSkeletonValue}
-              />
-            </View>
-          </View>
+          <SkeletonLoader
+            announce={false}
+            style={styles.detailSkeletonSummary}
+          />
         </View>
       </SafeAreaView>
     );
@@ -1416,30 +1518,20 @@ export default function ShopItemDetailsScreen() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <Stack.Screen options={{ headerShown: false }} />
-        <View style={[styles.topBar, insetPadding]}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('commerce.accessibility.goBack')}
-            hitSlop={10}
-            onPress={() => backOrReplace(router, '/shop')}
-            style={({ pressed }) => [
-              styles.iconButton,
-              pressed && styles.pressed,
-            ]}
-          >
-            <ArrowLeftIcon size={20} color={theme.colors.text.primary} />
-          </Pressable>
-        </View>
+        <View style={[styles.topBar, insetPadding]}>{renderBackButton()}</View>
         <View style={[styles.centerState, insetPadding]}>
-          <Text style={styles.stateTitle}>
+          <ShopMascotBubble
+            message={loadError || t('commerce.shop.notCurrentItem')}
+            state="calm-warning"
+          />
+          <Text accessibilityRole="header" style={styles.stateTitle}>
             {t('commerce.shop.itemUnavailable')}
-          </Text>
-          <Text style={styles.stateText}>
-            {loadError || t('commerce.shop.notCurrentItem')}
           </Text>
           <AppButton
             title={t('commerce.action.tryAgain')}
             variant="outline"
+            size="large"
+            fullWidth
             onPress={() => void load()}
           />
         </View>
@@ -1447,38 +1539,206 @@ export default function ShopItemDetailsScreen() {
     );
   }
 
+  const itemKindLabel = isPowerUp
+    ? t('commerce.shop.categoryBoost')
+    : t('commerce.shop.categoryStyle');
+  const priceLabel = unlockDays
+    ? t('commerce.shop.streak', { days: unlockDays })
+    : cost > 0
+      ? t('commerce.shop.spendBalance', { amount: formatAmount(cost) })
+      : t('commerce.shop.free');
+  // Styles stop showing a price once owned; consumables keep theirs because
+  // the person can buy another.
+  const summaryTrail: ShopItemCardTrail | null =
+    purchased && !isPowerUp
+      ? null
+      : unlockDays && !purchased
+        ? { kind: 'locked', label: priceLabel, reason: '' }
+        : shortfall > 0
+          ? { kind: 'short', label: formatAmount(cost), reason: '' }
+          : {
+              kind: 'price',
+              label: cost > 0 ? formatAmount(cost) : t('commerce.shop.free'),
+            };
+
+  const hero = (
+    <View style={[styles.hero, usesIPadWorkspace && styles.ipadHero]}>
+      <View style={[styles.artStage, usesIPadWorkspace && styles.ipadArtStage]}>
+        <View style={styles.artGlow} />
+        <View>
+          <ShopItemArt
+            sku={sku}
+            size={usesIPadWorkspace ? 184 : 136}
+            locked={Boolean(unlockDays) && !purchased}
+            muted={insufficient && !unlockDays}
+            testID="shop-item-hero-art"
+          />
+          {isPowerUp && inventoryCount > 0 ? (
+            <View style={styles.heroQuantity}>
+              <Text style={styles.heroQuantityText}>
+                {t('commerce.shop.quantity', {
+                  count: formatAmount(inventoryCount),
+                })}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      </View>
+      <Text accessibilityRole="header" style={styles.title}>
+        {displayName}
+      </Text>
+      {displayDescription ? (
+        <Text style={styles.description}>{displayDescription}</Text>
+      ) : null}
+    </View>
+  );
+
+  const accountDetails = (
+    <>
+      {accountError ? (
+        <AppInlineNotice
+          title={t('commerce.shop.balanceUnavailable')}
+          description={t('commerce.shop.itemAccountDetail')}
+          tone="warning"
+          actionLabel={t('commerce.action.tryAgain')}
+          onAction={() => void refreshAccountState()}
+          testID="shop-item-account-unavailable"
+        />
+      ) : null}
+      {!accountLoading && !accountError ? (
+        <ErrorBoundary level="component">
+          <View
+            accessible
+            accessibilityRole="summary"
+            accessibilityLabel={t('commerce.shop.detailSummaryAccessibility', {
+              kind: itemKindLabel,
+              name: displayName,
+              status: primaryState,
+              price:
+                purchased || repeatConsumablePurchase
+                  ? primaryState
+                  : priceLabel,
+            })}
+            style={styles.accountSummary}
+            testID="shop-account-summary"
+          >
+            <View style={styles.accountSummaryCopy}>
+              <Text style={styles.accountSummaryLabel}>{itemKindLabel}</Text>
+              <Text style={styles.accountSummaryValue}>{primaryState}</Text>
+            </View>
+            {summaryTrail ? <ShopTrailPill trail={summaryTrail} /> : null}
+          </View>
+          <ShopItemImpactPreview
+            item={{
+              id: item.id,
+              sku: item.sku,
+              name: displayName,
+              description: displayDescription,
+              category: item.category,
+              unlock_streak_days: item.unlock_streak_days,
+            }}
+            inventoryCount={inventoryCount}
+            owned={purchased}
+            equipped={equipped}
+            profileImageUrl={user?.avatarUrl}
+            profileName={user?.username}
+          />
+        </ErrorBoundary>
+      ) : null}
+    </>
+  );
+
+  const actions = (
+    <>
+      {primaryAction ? (
+        <AppButton
+          title={
+            working ? t('commerce.accessibility.checking') : primaryAction.title
+          }
+          variant={primaryAction.variant}
+          size="large"
+          haptic
+          hapticIntent="selection"
+          onPress={() => void primaryAction.onPress()}
+          disabled={primaryAction.disabled || working}
+          loading={working && !confirmPurchaseVisible}
+          preserveLabelPositionOnLoading
+          fullWidth
+          testID="shop-item-primary-action"
+        />
+      ) : null}
+      <AppButton
+        title={
+          purchased
+            ? t('commerce.action.openItems')
+            : t('commerce.action.backToShop')
+        }
+        variant="ghost"
+        size="medium"
+        textStyle={styles.secondaryActionText}
+        onPress={() => router.push(purchased ? '/inventory' : '/shop')}
+        fullWidth
+      />
+    </>
+  );
+
+  const celebrationActions = (() => {
+    if (!celebration) return null;
+    const backToShop = {
+      label: t('commerce.action.backToShop'),
+      onPress: () => {
+        setCelebration(null);
+        backOrReplace(router, '/shop');
+      },
+    };
+    if (celebration.next === 'choose-promise') {
+      return {
+        primary: {
+          label: t('commerce.shop.choosePromise'),
+          onPress: () => {
+            setCelebration(null);
+            setTargetSheetVisible(true);
+            void fetchTargets();
+          },
+        },
+        secondary: backToShop,
+      };
+    }
+    if (celebration.next === 'use-style') {
+      return {
+        primary: {
+          label: t('commerce.shop.useStyle'),
+          onPress: () => {
+            setCelebration(null);
+            void handleEquip();
+          },
+        },
+        secondary: backToShop,
+      };
+    }
+    return {
+      primary: backToShop,
+      secondary: {
+        label: t('commerce.action.openItems'),
+        onPress: () => {
+          setCelebration(null);
+          router.push('/inventory');
+        },
+      },
+    };
+  })();
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={[styles.topBar, insetPadding]}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('commerce.accessibility.goBack')}
-          hitSlop={10}
-          onPress={() => backOrReplace(router, '/shop')}
-          style={({ pressed }) => [
-            styles.iconButton,
-            pressed && styles.pressed,
-          ]}
-        >
-          <ArrowLeftIcon size={20} color={theme.colors.text.primary} />
-        </Pressable>
-
+        {renderBackButton()}
         {!accountLoading && !accountError ? (
-          <Pressable
-            accessibilityRole="button"
+          <MomentaBalanceChip
+            balance={balance}
             onPress={() => router.push('/momenta')}
-            style={({ pressed }) => [
-              styles.balancePill,
-              pressed && styles.pressed,
-            ]}
-          >
-            <WalletIcon size={14} color={theme.colors.text.primary} />
-            <Text style={styles.balanceText}>
-              {new Intl.NumberFormat(locale).format(balance)}{' '}
-              {t('commerce.shop.currency')}
-            </Text>
-          </Pressable>
+            testID="shop-item-balance-chip"
+          />
         ) : null}
       </View>
 
@@ -1493,252 +1753,35 @@ export default function ShopItemDetailsScreen() {
       >
         {usesIPadWorkspace ? (
           <IPadShopDetailWorkspace
-            visual={
-              <ErrorBoundary level="component">
-                <View style={[styles.hero, styles.ipadHero]}>
-                  <View style={[styles.objectPlane, styles.ipadObjectPlane]}>
-                    <ShopItemGlyph
-                      item={item}
-                      color={theme.colors.text.primary}
-                      size={112}
-                    />
-                  </View>
-                  <Text style={styles.kicker}>
-                    {formatShopCategory(item.category, t)}
-                  </Text>
-                  <Text style={styles.title}>{displayName}</Text>
-                  {displayDescription ? (
-                    <Text style={styles.description}>{displayDescription}</Text>
-                  ) : null}
-                </View>
-              </ErrorBoundary>
-            }
-            details={
-              <>
-                {accountError ? (
-                  <AppInlineNotice
-                    title={t('commerce.shop.balanceUnavailable')}
-                    description={t('commerce.shop.itemAccountDetail')}
-                    tone="warning"
-                    actionLabel={t('commerce.action.tryAgain')}
-                    onAction={() => void refreshAccountState()}
-                    testID="shop-item-account-unavailable"
-                  />
-                ) : null}
-                {!accountLoading && !accountError ? (
-                  <ErrorBoundary level="component">
-                    <ShopItemImpactPreview
-                      item={{
-                        id: item.id,
-                        sku: item.sku,
-                        name: displayName,
-                        description: displayDescription,
-                        category: item.category,
-                        unlock_streak_days: item.unlock_streak_days,
-                      }}
-                      inventoryCount={inventoryCount}
-                      owned={purchased}
-                      equipped={equipped}
-                      profileImageUrl={user?.avatarUrl}
-                      profileName={user?.username}
-                    />
-                    <View
-                      accessible
-                      accessibilityRole="summary"
-                      accessibilityLabel={`${isPowerUp ? 'Boost' : 'Style'}. ${displayName}. ${primaryState}. ${
-                        purchased || repeatConsumablePurchase
-                          ? primaryState
-                          : unlockDays
-                            ? `Unlocks at a ${unlockDays}-day streak`
-                            : cost > 0
-                              ? `${cost.toLocaleString()} Momenta`
-                              : 'Free'
-                      }.`}
-                      style={styles.accountSummary}
-                      testID="shop-account-summary"
-                    >
-                      <View style={styles.accountSummaryCopy}>
-                        <Text style={styles.accountSummaryLabel}>
-                          {isPowerUp ? 'Boost' : 'Style'}
-                        </Text>
-                        <Text style={styles.accountSummaryValue}>
-                          {primaryState}
-                        </Text>
-                      </View>
-                      {!purchased && !repeatConsumablePurchase ? (
-                        <Text style={styles.accountSummaryTrail}>
-                          {unlockDays
-                            ? `${unlockDays}-day streak`
-                            : cost > 0
-                              ? `${cost.toLocaleString()} Momenta`
-                              : 'Free'}
-                        </Text>
-                      ) : null}
-                    </View>
-                  </ErrorBoundary>
-                ) : null}
-              </>
-            }
-            actions={
-              <>
-                {primaryAction ? (
-                  <AppButton
-                    title={
-                      working
-                        ? t('commerce.accessibility.checking')
-                        : primaryAction.title
-                    }
-                    variant={primaryAction.variant}
-                    size="large"
-                    onPress={() => void primaryAction.onPress()}
-                    disabled={primaryAction.disabled || working}
-                    fullWidth
-                  />
-                ) : null}
-                <AppButton
-                  title={
-                    purchased
-                      ? t('commerce.action.openItems')
-                      : t('commerce.action.backToShop')
-                  }
-                  variant="ghost"
-                  size="medium"
-                  onPress={() =>
-                    router.push(purchased ? '/inventory' : '/shop')
-                  }
-                  fullWidth
-                />
-              </>
-            }
+            visual={<ErrorBoundary level="component">{hero}</ErrorBoundary>}
+            details={accountDetails}
+            actions={actions}
           />
         ) : (
           <>
-            <ErrorBoundary level="component">
-              <View style={styles.hero}>
-                <View style={styles.objectPlane}>
-                  <ShopItemGlyph
-                    item={item}
-                    color={theme.colors.text.primary}
-                    size={84}
-                  />
-                </View>
-                <Text style={styles.kicker}>
-                  {formatShopCategory(item.category, t)}
-                </Text>
-                <Text style={styles.title}>{displayName}</Text>
-                {displayDescription ? (
-                  <Text style={styles.description}>{displayDescription}</Text>
-                ) : null}
-              </View>
-            </ErrorBoundary>
-
-            {accountError ? (
-              <AppInlineNotice
-                title={t('commerce.shop.balanceUnavailable')}
-                description={t('commerce.shop.itemAccountDetail')}
-                tone="warning"
-                actionLabel={t('commerce.action.tryAgain')}
-                onAction={() => void refreshAccountState()}
-                testID="shop-item-account-unavailable"
-              />
-            ) : null}
-
-            {!accountLoading && !accountError ? (
-              <ErrorBoundary level="component">
-                <ShopItemImpactPreview
-                  item={{
-                    id: item.id,
-                    sku: item.sku,
-                    name: displayName,
-                    description: displayDescription,
-                    category: item.category,
-                    unlock_streak_days: item.unlock_streak_days,
-                  }}
-                  inventoryCount={inventoryCount}
-                  owned={purchased}
-                  equipped={equipped}
-                  profileImageUrl={user?.avatarUrl}
-                  profileName={user?.username}
-                />
-
-                <View
-                  accessible
-                  accessibilityRole="summary"
-                  accessibilityLabel={`${isPowerUp ? 'Boost' : 'Style'}. ${displayName}. ${primaryState}. ${
-                    purchased || repeatConsumablePurchase
-                      ? primaryState
-                      : unlockDays
-                        ? `Unlocks at a ${unlockDays}-day streak`
-                        : cost > 0
-                          ? `${cost.toLocaleString()} Momenta`
-                          : 'Free'
-                  }.`}
-                  style={styles.accountSummary}
-                  testID="shop-account-summary"
-                >
-                  <View style={styles.accountSummaryCopy}>
-                    <Text style={styles.accountSummaryLabel}>
-                      {isPowerUp ? 'Boost' : 'Style'}
-                    </Text>
-                    <Text style={styles.accountSummaryValue}>
-                      {primaryState}
-                    </Text>
-                  </View>
-                  {!purchased && !repeatConsumablePurchase ? (
-                    <Text style={styles.accountSummaryTrail}>
-                      {unlockDays
-                        ? `${unlockDays}-day streak`
-                        : cost > 0
-                          ? `${cost.toLocaleString()} Momenta`
-                          : 'Free'}
-                    </Text>
-                  ) : null}
-                </View>
-              </ErrorBoundary>
-            ) : null}
+            <ErrorBoundary level="component">{hero}</ErrorBoundary>
+            {accountDetails}
           </>
         )}
       </ScrollView>
 
       {!usesIPadWorkspace ? (
-        <View style={[styles.footer, insetPadding]}>
-          {primaryAction ? (
-            <AppButton
-              title={
-                working
-                  ? t('commerce.accessibility.checking')
-                  : primaryAction.title
-              }
-              variant={primaryAction.variant}
-              size="large"
-              onPress={() => void primaryAction.onPress()}
-              disabled={primaryAction.disabled || working}
-              fullWidth
-            />
-          ) : null}
-          <AppButton
-            title={
-              purchased
-                ? t('commerce.action.openItems')
-                : t('commerce.action.backToShop')
-            }
-            variant="ghost"
-            size="medium"
-            onPress={() => router.push(purchased ? '/inventory' : '/shop')}
-            fullWidth
-          />
-        </View>
+        <View style={[styles.footer, insetPadding]}>{actions}</View>
       ) : null}
 
       <SimpleBottomSheet
         visible={confirmPurchaseVisible}
-        onClose={() => setConfirmPurchaseVisible(false)}
-        maxHeight={520}
+        onClose={() => {
+          if (!working) setConfirmPurchaseVisible(false);
+        }}
+        dismissOnBackdrop={!working}
+        maxHeight={620}
         testID="shop-confirm-purchase-sheet"
         scrollHint={t('commerce.shop.costScrollHint')}
         scrollableBody={
           <>
             <View style={styles.sheetHeader}>
+              <ShopItemArt sku={sku} size={72} />
               <Text style={styles.sheetTitle}>
                 {t('commerce.shop.buyQuestion', { name: displayName })}
               </Text>
@@ -1765,24 +1808,30 @@ export default function ShopItemDetailsScreen() {
               testID="shop-confirm-impact-preview"
             />
 
-            <View style={styles.confirmRows}>
-              <DetailRow
-                label={t('commerce.shop.currentBalance')}
-                value={t('commerce.shop.spendBalance', {
-                  amount: balance.toLocaleString(),
-                })}
-              />
-              <DetailRow
-                label={t('commerce.shop.spend')}
-                value={t('commerce.shop.spendBalance', {
-                  amount: cost.toLocaleString(),
-                })}
-              />
-              <DetailRow
-                label={t('commerce.shop.balanceAfter')}
-                value={t('commerce.shop.spendBalance', {
-                  amount: Math.max(balance - cost, 0).toLocaleString(),
-                })}
+            <View style={styles.confirmReceipt}>
+              <ShopReceiptCard
+                facts={[
+                  {
+                    label: t('commerce.shop.currentBalance'),
+                    value: t('commerce.shop.spendBalance', {
+                      amount: formatAmount(balance),
+                    }),
+                  },
+                  {
+                    label: t('commerce.shop.spend'),
+                    value: t('commerce.shop.spendBalance', {
+                      amount: formatAmount(cost),
+                    }),
+                  },
+                  {
+                    label: t('commerce.shop.balanceAfter'),
+                    value: t('commerce.shop.spendBalance', {
+                      amount: formatAmount(Math.max(balance - cost, 0)),
+                    }),
+                    emphasis: true,
+                  },
+                ]}
+                testID="shop-confirm-receipt"
               />
             </View>
           </>
@@ -1790,16 +1839,21 @@ export default function ShopItemDetailsScreen() {
         footer={
           <>
             <AppButton
-              title={t('commerce.shop.buyFor', {
-                amount: cost.toLocaleString(),
-              })}
+              title={
+                working
+                  ? t('commerce.shop.buying')
+                  : t('commerce.shop.buyFor', {
+                      amount: formatAmount(cost),
+                    })
+              }
               accessibilityLabel={t('commerce.shop.buyNamedFor', {
                 name: displayName,
-                amount: cost.toLocaleString(),
+                amount: formatAmount(cost),
               })}
               disabled={working}
               fullWidth
               loading={working}
+              preserveLabelPositionOnLoading
               onPress={() => void handlePurchase()}
               size="large"
               testID="shop-confirm-purchase"
@@ -1810,6 +1864,8 @@ export default function ShopItemDetailsScreen() {
               title={t('commerce.action.cancelPurchase')}
               variant="ghost"
               size="large"
+              disabled={working}
+              textStyle={styles.secondaryActionText}
               onPress={() => setConfirmPurchaseVisible(false)}
               fullWidth
             />
@@ -1836,28 +1892,15 @@ export default function ShopItemDetailsScreen() {
               <View
                 accessibilityRole="progressbar"
                 accessibilityLabel={t('commerce.accessibility.loadingPromises')}
-                style={styles.centerSheet}
+                style={styles.sheetSkeletonList}
               >
-                <Text style={styles.sheetTitleSmall}>
-                  {t('commerce.shop.loadingPromises')}
-                </Text>
-                <Text style={styles.sheetSubtitle}>
-                  {t('commerce.shop.findingPromises')}
-                </Text>
-                <View style={styles.sheetSkeletonList}>
-                  {[0, 1].map(index => (
-                    <View key={index} style={styles.sheetSkeletonRow}>
-                      <SkeletonLoader
-                        announce={false}
-                        style={styles.sheetSkeletonCopy}
-                      />
-                      <SkeletonLoader
-                        announce={false}
-                        style={styles.sheetSkeletonTrail}
-                      />
-                    </View>
-                  ))}
-                </View>
+                {[0, 1].map(index => (
+                  <SkeletonLoader
+                    key={index}
+                    announce={false}
+                    style={styles.sheetSkeletonRow}
+                  />
+                ))}
               </View>
             ) : targetError ? (
               <View style={styles.centerSheet}>
@@ -1893,21 +1936,21 @@ export default function ShopItemDetailsScreen() {
                 />
               </View>
             ) : (
-              <View style={styles.sheetList}>
+              <View style={styles.choiceList}>
                 {targets.map(target => (
-                  <Pressable
+                  <ShopPressable
                     key={target.id}
-                    accessibilityRole="button"
                     disabled={working}
                     onPress={() => void applyPowerUp(target.id)}
-                    style={({ pressed }) => [
-                      styles.sheetRow,
-                      pressed && styles.pressed,
-                    ]}
+                    pressedStyle={styles.choiceRowPressed}
+                    style={styles.choiceRow}
                   >
-                    <View style={styles.sheetRowCopy}>
-                      <Text style={styles.sheetRowTitle}>{target.title}</Text>
-                      <Text style={styles.sheetRowMeta}>
+                    <View style={styles.choiceIcon}>
+                      <TargetIcon size={18} color={mentaColors.action} />
+                    </View>
+                    <View style={styles.choiceCopy}>
+                      <Text style={styles.choiceTitle}>{target.title}</Text>
+                      <Text style={styles.choiceMeta}>
                         {target.currentStreak > 0
                           ? t('commerce.shop.dayStreak', {
                               count: target.currentStreak,
@@ -1919,7 +1962,7 @@ export default function ShopItemDetailsScreen() {
                       size={18}
                       color={theme.colors.text.tertiary}
                     />
-                  </Pressable>
+                  </ShopPressable>
                 ))}
               </View>
             )}
@@ -1933,78 +1976,41 @@ export default function ShopItemDetailsScreen() {
         testID="shop-item-top-up-sheet"
         scrollableBody={
           <>
-            <View style={styles.sheetHeader}>
+            <View style={styles.topUpHeader}>
               <Text style={styles.sheetTitle}>
                 {t('commerce.shop.addMomenta', {
-                  amount: shortfall.toLocaleString(),
+                  amount: formatAmount(shortfall),
                 })}
               </Text>
-              <Text style={styles.sheetSubtitle}>
-                {t('commerce.shop.coverDifference', {
-                  balance: balance.toLocaleString(),
+              <ShopMascotBubble
+                message={t('commerce.shop.topUpBubble', {
+                  amount: formatAmount(shortfall),
                   name: displayName,
                 })}
-              </Text>
+                state="momenta-gift"
+                testID="shop-top-up-bubble"
+              />
             </View>
 
-            <View style={styles.earnFirstCard}>
-              <View style={styles.earnFirstIcon}>
-                <GiftIcon size={18} color={theme.colors.text.primary} />
-              </View>
-              <View style={styles.earnFirstCopy}>
-                <Text style={styles.earnFirstTitle}>
-                  {t('commerce.shop.itemStillHere')}
-                </Text>
-                <Text style={styles.earnFirstText}>
-                  {t('commerce.shop.comeBack')}
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.sheetList}>
-              <Pressable
-                accessibilityRole="button"
+            <View style={styles.choiceList}>
+              <EarnOptionRow
                 accessibilityLabel={t('commerce.shop.earnReviewAccessibility', {
                   amount: REVIEW_QUEUE_CLEAR_REWARD_AMOUNT,
                 })}
+                icon={<CheckCircleIcon size={18} color={mentaColors.action} />}
+                title={t('commerce.wallet.earnReview')}
+                meta={t('commerce.wallet.reviewMeta', {
+                  amount: REVIEW_QUEUE_CLEAR_REWARD_AMOUNT,
+                })}
+                value={`+${REVIEW_QUEUE_CLEAR_REWARD_AMOUNT}`}
                 onPress={() => {
                   setTopUpVisible(false);
                   router.push('/review-queue');
                 }}
-                style={({ pressed }) => [
-                  styles.sheetRow,
-                  !canWatchSponsors && !canBuyCredits && styles.sheetRowLast,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <View style={styles.sheetRowIcon}>
-                  <CheckCircleIcon
-                    size={18}
-                    color={theme.colors.text.secondary}
-                  />
-                </View>
-                <View style={styles.sheetRowCopy}>
-                  <Text style={styles.sheetRowTitle}>
-                    {t('commerce.wallet.earnReview')}
-                  </Text>
-                  <Text style={styles.sheetRowMeta}>
-                    {t('commerce.wallet.reviewMeta', {
-                      amount: REVIEW_QUEUE_CLEAR_REWARD_AMOUNT,
-                    })}
-                  </Text>
-                </View>
-                <Text style={styles.sheetRowValue}>
-                  +{REVIEW_QUEUE_CLEAR_REWARD_AMOUNT}
-                </Text>
-                <ChevronRightIcon
-                  size={18}
-                  color={theme.colors.text.tertiary}
-                />
-              </Pressable>
+              />
 
               {canWatchSponsors ? (
-                <Pressable
-                  accessibilityRole="button"
+                <EarnOptionRow
                   accessibilityLabel={
                     adReward && adReward > 0
                       ? t('commerce.shop.watchAdAccessibility', {
@@ -2012,89 +2018,48 @@ export default function ShopItemDetailsScreen() {
                         })
                       : t('commerce.shop.watchAdNoAmountAccessibility')
                   }
+                  icon={<GiftIcon size={18} color={mentaColors.action} />}
+                  title={t('commerce.wallet.watchAd')}
+                  meta={t('commerce.wallet.dailyLimits')}
+                  value={
+                    adReward
+                      ? t('commerce.shop.upTo', { amount: adReward })
+                      : t('commerce.wallet.open')
+                  }
                   onPress={() => {
                     setTopUpVisible(false);
                     setPaywallVisible(true);
                   }}
-                  style={({ pressed }) => [
-                    styles.sheetRow,
-                    !canBuyCredits && styles.sheetRowLast,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <View style={styles.sheetRowIcon}>
-                    <GiftIcon size={18} color={theme.colors.text.secondary} />
-                  </View>
-                  <View style={styles.sheetRowCopy}>
-                    <Text style={styles.sheetRowTitle}>
-                      {t('commerce.wallet.watchAd')}
-                    </Text>
-                    <Text style={styles.sheetRowMeta}>
-                      {t('commerce.wallet.dailyLimits')}
-                    </Text>
-                  </View>
-                  <Text style={styles.sheetRowValue}>
-                    {adReward
-                      ? t('commerce.shop.upTo', { amount: adReward })
-                      : t('commerce.wallet.open')}
-                  </Text>
-                  <ChevronRightIcon
-                    size={18}
-                    color={theme.colors.text.tertiary}
-                  />
-                </Pressable>
+                />
               ) : null}
 
               {canBuyCredits ? (
-                <Pressable
-                  accessibilityRole="button"
+                <EarnOptionRow
                   accessibilityLabel={
                     creditPurchaseReady
                       ? t('commerce.shop.buyPackAccessibility', {
-                          amount: creditTotal.toLocaleString(),
+                          amount: formatAmount(creditTotal),
                           price: creditPrice || '',
                         })
                       : t('commerce.shop.buyPackChecking')
                   }
                   disabled={!creditPurchaseReady || creditLoading}
+                  icon={<CoinsIcon size={18} color={mentaColors.action} />}
+                  title={t('commerce.wallet.buyPack')}
+                  meta={
+                    creditPurchaseReady
+                      ? t('commerce.shop.spendBalance', {
+                          amount: formatAmount(creditTotal),
+                        })
+                      : t('commerce.wallet.checkingPrice')
+                  }
+                  value={
+                    creditLoading || creditPriceLoading
+                      ? t('commerce.accessibility.checking')
+                      : creditPrice || t('commerce.wallet.unavailable')
+                  }
                   onPress={() => void handleCreditPurchase()}
-                  style={({ pressed }) => [
-                    styles.sheetRow,
-                    styles.sheetRowLast,
-                    (!creditPurchaseReady || creditLoading) &&
-                      styles.disabledRow,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <View style={styles.sheetRowIcon}>
-                    <WalletIcon size={18} color={theme.colors.text.secondary} />
-                  </View>
-                  <View style={styles.sheetRowCopy}>
-                    <Text style={styles.sheetRowTitle}>
-                      {t('commerce.wallet.buyPack')}
-                    </Text>
-                    <Text style={styles.sheetRowMeta}>
-                      {creditPurchaseReady
-                        ? `${creditTotal.toLocaleString()} Momenta`
-                        : t('commerce.wallet.checkingPrice')}
-                    </Text>
-                  </View>
-                  {creditLoading || creditPriceLoading ? (
-                    <Text style={styles.sheetRowValue}>
-                      {t('commerce.accessibility.checking')}
-                    </Text>
-                  ) : (
-                    <>
-                      <Text style={styles.sheetRowValue}>
-                        {creditPrice || t('commerce.wallet.unavailable')}
-                      </Text>
-                      <ChevronRightIcon
-                        size={18}
-                        color={theme.colors.text.tertiary}
-                      />
-                    </>
-                  )}
-                </Pressable>
+                />
               ) : null}
             </View>
           </>
@@ -2103,7 +2068,7 @@ export default function ShopItemDetailsScreen() {
           <View style={styles.sheetActions}>
             <AppButton
               title={t('commerce.action.seeWaysToEarn')}
-              variant="primary"
+              variant="accent"
               size="large"
               onPress={() => {
                 setTopUpVisible(false);
@@ -2115,6 +2080,7 @@ export default function ShopItemDetailsScreen() {
               title={t('commerce.paywall.seePro')}
               variant="ghost"
               size="medium"
+              textStyle={styles.secondaryActionText}
               onPress={() => {
                 setTopUpVisible(false);
                 setPaywallVisible(true);
@@ -2136,6 +2102,20 @@ export default function ShopItemDetailsScreen() {
         testID="shop-item-status-sheet"
       />
 
+      {celebration && celebrationActions ? (
+        <ShopPurchaseCelebration
+          visible
+          sku={celebration.sku}
+          title={celebration.title}
+          detail={celebration.detail}
+          gainLabel={celebration.gainLabel}
+          facts={celebration.facts}
+          primaryAction={celebrationActions.primary}
+          secondaryAction={celebrationActions.secondary}
+          onClose={() => setCelebration(null)}
+        />
+      ) : null}
+
       <PaywallModal
         visible={paywallVisible}
         onClose={() => setPaywallVisible(false)}
@@ -2150,15 +2130,40 @@ export default function ShopItemDetailsScreen() {
   );
 }
 
-function DetailRow({ label, value }: { label: string; value: string }) {
+function EarnOptionRow({
+  accessibilityLabel,
+  disabled = false,
+  icon,
+  meta,
+  onPress,
+  title,
+  value,
+}: {
+  accessibilityLabel: string;
+  disabled?: boolean;
+  icon: React.ReactNode;
+  meta: string;
+  onPress: () => void;
+  title: string;
+  value: string;
+}) {
   const theme = useTheme();
   const styles = createStyles(theme);
-
   return (
-    <View style={styles.detailRow}>
-      <Text style={styles.detailLabel}>{label}</Text>
-      <Text style={styles.detailValue}>{value}</Text>
-    </View>
+    <ShopPressable
+      accessibilityLabel={accessibilityLabel}
+      disabled={disabled}
+      onPress={onPress}
+      pressedStyle={styles.choiceRowPressed}
+      style={[styles.choiceRow, disabled && styles.disabledRow]}
+    >
+      <View style={styles.choiceIcon}>{icon}</View>
+      <View style={styles.choiceCopy}>
+        <Text style={styles.choiceTitle}>{title}</Text>
+        <Text style={styles.choiceMeta}>{meta}</Text>
+      </View>
+      <Text style={styles.choiceValue}>{value}</Text>
+    </ShopPressable>
   );
 }
 
@@ -2169,13 +2174,11 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
       backgroundColor: theme.colors.background.primary,
     },
     topBar: {
-      minHeight: 58,
+      minHeight: 64,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: mentaSpacing[6],
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: theme.colors.border.secondary,
     },
     iconButton: {
       width: 48,
@@ -2186,28 +2189,17 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    balancePill: {
-      minHeight: 36,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 7,
-      borderRadius: mentaRadii.round,
-      borderWidth: 1,
-      borderColor: theme.colors.border.secondary,
-      paddingHorizontal: 12,
-    },
-    balanceText: {
-      color: theme.colors.text.primary,
-      ...mentaTypography.bodySmallMedium,
+    iconButtonPressed: {
+      backgroundColor: theme.colors.background.secondary,
     },
     scroll: {
       flex: 1,
     },
     content: {
       paddingHorizontal: mentaSpacing[6],
-      paddingTop: mentaSpacing[6],
+      paddingTop: mentaSpacing[2],
       paddingBottom: mentaSpacing[8],
-      gap: mentaSpacing[6],
+      gap: mentaSpacing[5],
     },
     ipadContent: {
       paddingBottom: mentaSpacing[8],
@@ -2215,26 +2207,43 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
       paddingTop: mentaSpacing[8],
     },
     hero: {
-      gap: 12,
+      gap: mentaSpacing[3],
     },
     ipadHero: {
       gap: mentaSpacing[4],
     },
-    objectPlane: {
-      width: '100%',
-      minHeight: 220,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.border.secondary,
+    artStage: {
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: mentaSpacing[3],
+      marginBottom: mentaSpacing[2],
+      minHeight: 216,
+      width: '100%',
     },
-    ipadObjectPlane: {
-      minHeight: 400,
+    ipadArtStage: {
+      minHeight: 380,
     },
-    kicker: {
-      color: theme.colors.text.tertiary,
-      ...mentaTypography.labelBold,
+    artGlow: {
+      backgroundColor: mentaColors.actionSoft,
+      borderRadius: mentaRadii.round,
+      height: 200,
+      position: 'absolute',
+      width: 200,
+    },
+    heroQuantity: {
+      backgroundColor: mentaColors.action,
+      borderColor: theme.colors.background.primary,
+      borderRadius: mentaRadii.round,
+      borderWidth: 3,
+      paddingHorizontal: mentaSpacing[3],
+      paddingVertical: 2,
+      position: 'absolute',
+      right: -mentaSpacing[3],
+      top: -mentaSpacing[3],
+    },
+    heroQuantityText: {
+      color: mentaColors.canvas,
+      ...mentaTypography.bodySemibold,
+      fontVariant: ['tabular-nums'],
     },
     title: {
       color: theme.colors.text.primary,
@@ -2242,18 +2251,20 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
     },
     description: {
       color: theme.colors.text.secondary,
-      ...mentaTypography.body,
+      ...mentaTypography.lead,
     },
     accountSummary: {
       alignItems: 'center',
-      borderBottomColor: theme.colors.border.secondary,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderTopColor: theme.colors.border.secondary,
-      borderTopWidth: StyleSheet.hairlineWidth,
+      backgroundColor: mentaColors.surface,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
       flexDirection: 'row',
       gap: mentaSpacing[4],
       justifyContent: 'space-between',
+      marginBottom: mentaSpacing[4],
       minHeight: 72,
+      paddingHorizontal: mentaSpacing[4],
       paddingVertical: mentaSpacing[3],
     },
     accountSummaryCopy: {
@@ -2267,115 +2278,68 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
     },
     accountSummaryValue: {
       color: theme.colors.text.primary,
-      ...mentaTypography.bodySmallMedium,
-    },
-    accountSummaryTrail: {
-      color: theme.colors.text.primary,
-      ...mentaTypography.bodySmallMedium,
-      flexShrink: 0,
-      fontVariant: ['tabular-nums'],
-      textAlign: 'right',
-    },
-    detailRow: {
-      minHeight: 58,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 16,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: theme.colors.border.secondary,
-    },
-    detailLabel: {
-      color: theme.colors.text.secondary,
-      ...mentaTypography.bodySmall,
-    },
-    detailValue: {
-      flex: 1,
-      color: theme.colors.text.primary,
-      ...mentaTypography.bodySmallMedium,
-      textAlign: 'right',
+      ...mentaTypography.bodySemibold,
     },
     footer: {
-      gap: 8,
+      gap: mentaSpacing[1],
       paddingHorizontal: mentaSpacing[6],
       paddingTop: mentaSpacing[3],
-      paddingBottom: mentaSpacing[6],
+      paddingBottom: mentaSpacing[4],
       backgroundColor: theme.colors.background.primary,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: theme.colors.border.secondary,
+    },
+    secondaryActionText: {
+      color: mentaColors.action,
     },
     centerState: {
       flex: 1,
-      alignItems: 'center',
+      gap: mentaSpacing[5],
       justifyContent: 'center',
-      gap: 12,
-      padding: 24,
+      paddingHorizontal: mentaSpacing[6],
     },
     detailLoadingState: {
       flex: 1,
-      gap: 12,
-      paddingHorizontal: 24,
-      paddingTop: 24,
+      gap: mentaSpacing[3],
+      paddingHorizontal: mentaSpacing[6],
+      paddingTop: mentaSpacing[2],
     },
     detailSkeletonHero: {
-      width: '100%',
-      height: 190,
-      marginVertical: 8,
-      borderRadius: mentaRadii.small,
-      borderWidth: 1,
-      borderColor: theme.colors.border.secondary,
+      alignSelf: 'center',
+      width: 136,
+      height: 136,
+      marginVertical: mentaSpacing[10],
+      borderRadius: mentaRadii.large * 2,
     },
     detailSkeletonTitle: {
       width: '64%',
-      height: 28,
+      height: 34,
       borderRadius: mentaRadii.small,
     },
     detailSkeletonBody: {
       width: '88%',
-      height: 14,
+      height: 18,
       borderRadius: mentaRadii.small,
     },
-    detailSkeletonRows: {
-      marginTop: 8,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: theme.colors.border.secondary,
-    },
-    detailSkeletonRow: {
-      minHeight: 58,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: theme.colors.border.secondary,
-    },
-    detailSkeletonLabel: {
-      width: 58,
-      height: 11,
-      borderRadius: mentaRadii.small,
-    },
-    detailSkeletonValue: {
-      width: 104,
-      height: 13,
-      borderRadius: mentaRadii.small,
+    detailSkeletonSummary: {
+      width: '100%',
+      height: 72,
+      borderRadius: mentaRadii.large,
     },
     stateTitle: {
       color: theme.colors.text.primary,
-      ...mentaTypography.title,
-      textAlign: 'center',
-    },
-    stateText: {
-      color: theme.colors.text.secondary,
-      ...mentaTypography.bodySmall,
-      textAlign: 'center',
+      ...mentaTypography.heading,
     },
     sheetHeader: {
-      gap: 6,
-      paddingBottom: 16,
+      alignItems: 'center',
+      gap: mentaSpacing[2],
+      paddingBottom: mentaSpacing[4],
     },
-    confirmRows: {
-      marginBottom: 18,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: theme.colors.border.secondary,
+    topUpHeader: {
+      gap: mentaSpacing[4],
+      paddingBottom: mentaSpacing[4],
+    },
+    confirmReceipt: {
+      marginBottom: mentaSpacing[4],
+      marginTop: mentaSpacing[4],
     },
     sheetTitle: {
       color: theme.colors.text.primary,
@@ -2396,114 +2360,68 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
       minHeight: 180,
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 12,
+      gap: mentaSpacing[3],
     },
     sheetSkeletonList: {
+      gap: mentaSpacing[2],
       width: '100%',
-      marginTop: 8,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: theme.colors.border.secondary,
     },
     sheetSkeletonRow: {
-      minHeight: 64,
-      flexDirection: 'row',
+      borderRadius: mentaRadii.large,
+      height: 76,
+      width: '100%',
+    },
+    choiceList: {
+      gap: mentaSpacing[2],
+    },
+    choiceRow: {
       alignItems: 'center',
-      justifyContent: 'space-between',
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: theme.colors.border.secondary,
-    },
-    sheetSkeletonCopy: {
-      width: '58%',
-      height: 14,
-      borderRadius: mentaRadii.small,
-    },
-    sheetSkeletonTrail: {
-      width: 42,
-      height: 14,
-      borderRadius: mentaRadii.small,
-    },
-    sheetList: {
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.border.secondary,
-      overflow: 'hidden',
-      backgroundColor: 'transparent',
-    },
-    sheetRow: {
+      backgroundColor: mentaColors.surface,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
       minHeight: 76,
-      flexDirection: 'row',
+      paddingHorizontal: mentaSpacing[4],
+      paddingVertical: mentaSpacing[3],
+    },
+    choiceRowPressed: {
+      backgroundColor: mentaColors.actionSoft,
+      borderColor: mentaColors.actionBorder,
+    },
+    choiceIcon: {
       alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 14,
-      paddingHorizontal: 14,
-      paddingVertical: 13,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: theme.colors.border.secondary,
+      backgroundColor: mentaColors.actionSoft,
+      borderRadius: mentaRadii.small,
+      height: 36,
+      justifyContent: 'center',
+      width: 36,
     },
-    sheetRowLast: {
-      borderBottomWidth: 0,
-    },
-    sheetRowIcon: {
-      width: 28,
-      alignItems: 'flex-start',
-    },
-    sheetRowCopy: {
+    choiceCopy: {
       flex: 1,
+      gap: 2,
       minWidth: 0,
-      gap: 4,
     },
-    sheetRowTitle: {
+    choiceTitle: {
       color: theme.colors.text.primary,
       ...mentaTypography.bodySemibold,
     },
-    sheetRowMeta: {
+    choiceMeta: {
       color: theme.colors.text.secondary,
       ...mentaTypography.bodySmall,
     },
-    sheetRowValue: {
-      minWidth: 42,
-      color: theme.colors.accent.primary,
+    choiceValue: {
+      color: mentaColors.action,
       ...mentaTypography.bodySemibold,
+      flexShrink: 0,
+      fontVariant: ['tabular-nums'],
+      maxWidth: 120,
       textAlign: 'right',
     },
-    earnFirstCard: {
-      minHeight: 66,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: mentaSpacing[3],
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.border.secondary,
-      paddingVertical: mentaSpacing[4],
-      marginBottom: mentaSpacing[4],
-    },
-    earnFirstIcon: {
-      width: 34,
-      height: 34,
-      borderRadius: mentaRadii.round,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: theme.colors.accent.background,
-    },
-    earnFirstCopy: {
-      flex: 1,
-      minWidth: 0,
-      gap: 2,
-    },
-    earnFirstTitle: {
-      color: theme.colors.text.primary,
-      ...mentaTypography.bodySemibold,
-    },
-    earnFirstText: {
-      color: theme.colors.text.secondary,
-      ...mentaTypography.bodySmall,
-    },
     sheetActions: {
-      paddingTop: 14,
-      gap: 10,
-    },
-    pressed: {
-      opacity: 0.72,
+      paddingTop: mentaSpacing[3],
+      gap: mentaSpacing[1],
     },
     disabledRow: {
       opacity: 0.46,

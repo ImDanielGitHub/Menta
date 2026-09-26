@@ -16,7 +16,10 @@ import {
 import type { PromiseAccountabilityRole } from '@/lib/promises/accountability';
 import { useMotionPreferences } from '@/lib/motion/use-motion-preferences';
 
-const roleArtwork: Record<PromiseAccountabilityRole, ImageSourcePropType> = {
+export const roleArtwork: Record<
+  PromiseAccountabilityRole,
+  ImageSourcePropType
+> = {
   partner: require('@/assets/images/mascot/roles/do-it-together.png'),
   reviewer: require('@/assets/images/mascot/roles/reviewer.png'),
   supporter: require('@/assets/images/mascot/roles/supporter.png'),

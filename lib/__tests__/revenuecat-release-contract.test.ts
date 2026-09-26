@@ -18,7 +18,7 @@ describe('RevenueCat release contract', () => {
 
   it('uses the live StoreKit credit price without a made-up runtime fallback', () => {
     const shop = readFile('app/shop/[id].tsx');
-    const momenta = readFile('app/momenta.tsx');
+    const momenta = readFile('components/momenta/screens/WalletScreen.tsx');
     const storeKit = readFile('scripts/generate-storekit-config.js');
     const rcMigration = readFile(
       'supabase/migrations/20260430103000_app_store_revenuecat_release_fixes.sql'
@@ -120,22 +120,25 @@ describe('RevenueCat release contract', () => {
     );
   });
 
-  it('grants one Pro freeze per subscription credit, including duplicate retries', () => {
+  it('grants the billed-period freeze quantity once, including duplicate retries', () => {
     const webhook = readFile('supabase/functions/revenuecat-webhook/index.ts');
     const freezeGrant = readFile(
-      'supabase/migrations/20260815013000_pro_period_freeze_grant.sql'
+      'supabase/migrations/20260905014140_participation_join_pricing_v1.sql'
     );
 
-    expect(webhook).toContain('/rest/v1/rpc/grant_pro_period_freeze_v1');
+    expect(webhook).toContain('/rest/v1/rpc/grant_pro_period_freeze_v2');
     expect(webhook).toContain("creditReason === 'subscription_credit'");
     expect(webhook).toContain('p_period_reference: periodReference');
+    expect(webhook).toContain('p_quantity: quantity');
     expect(webhook).toContain('grantProPeriodFreeze(');
     expect(freezeGrant).toContain(
-      'revoke all on function public.grant_pro_period_freeze_v1(uuid, text)'
+      'revoke all on function public.grant_pro_period_freeze_v2(uuid,text,integer)'
     );
     expect(freezeGrant).toContain(
-      'grant execute on function public.grant_pro_period_freeze_v1(uuid, text)'
+      'grant execute on function public.grant_pro_period_freeze_v2(uuid,text,integer)'
     );
     expect(freezeGrant).toContain('to service_role');
+    expect(freezeGrant).toContain("'pro_freeze:' || v_reference");
+    expect(freezeGrant).toContain('on conflict(user_id,sku) do nothing');
   });
 });

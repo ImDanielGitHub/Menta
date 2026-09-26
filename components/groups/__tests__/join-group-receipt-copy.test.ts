@@ -14,7 +14,7 @@ describe('getJoinGroupReceiptCopy', () => {
     expect(copy.description.toLowerCase()).not.toContain('stake');
   });
 
-  it('says the first group is free when nothing was spent', () => {
+  it('confirms a free join when nothing was spent', () => {
     const copy = getJoinGroupReceiptCopy({
       alreadyMember: false,
       joinCost: 0,
@@ -22,7 +22,7 @@ describe('getJoinGroupReceiptCopy', () => {
     });
 
     expect(copy.spendValue).toBe('0 Momenta');
-    expect(copy.description).toContain('Your first group is free');
+    expect(copy.description).toContain('You joined for free');
   });
 
   it('keeps an already-member receipt at zero spend', () => {

@@ -106,10 +106,7 @@ const createThenableQuery = (result: { data: unknown; error: unknown }) => {
 
 const mockApprovedProofReceipt = (newStreak: number) => {
   (mockSupabase.rpc as jest.Mock).mockImplementation(
-    async (
-      functionName: string,
-      args: Record<string, string | null> | undefined
-    ) => {
+    (functionName: string, args: Record<string, string | null> | undefined) => {
       if (functionName !== 'submit_challenge_verification' || !args) {
         return { data: null, error: null };
       }
@@ -120,35 +117,37 @@ const mockApprovedProofReceipt = (newStreak: number) => {
       const submissionText = args.p_submission_text;
 
       return {
-        data: {
-          success: true,
-          inputAccepted: true,
-          submissionId: approvedProofSubmissionId,
-          clientEventId,
-          status: 'approved',
-          allowSelfReview: true,
-          newStreak,
-          longestStreak: Math.max(newStreak, 5),
-          freezeUsed: false,
-          freezesRemaining: 0,
-          dayStatus: 'done',
-          milestone: null,
-          effectiveLocalDay: '2024-01-10',
-          effectiveTimezone: 'Pacific/Auckland',
-          isCorrection: false,
-          replacesSubmissionId: null,
+        setHeader: jest.fn().mockResolvedValue({
           data: {
-            id: approvedProofSubmissionId,
-            client_event_id: clientEventId,
+            success: true,
+            inputAccepted: true,
+            submissionId: approvedProofSubmissionId,
+            clientEventId,
             status: 'approved',
             allowSelfReview: true,
-            media_url: mediaUrl,
-            media_type: mediaType,
-            submission_text: submissionText,
-            replaces_submission_id: null,
+            newStreak,
+            longestStreak: Math.max(newStreak, 5),
+            freezeUsed: false,
+            freezesRemaining: 0,
+            dayStatus: 'done',
+            milestone: null,
+            effectiveLocalDay: '2024-01-10',
+            effectiveTimezone: 'Pacific/Auckland',
+            isCorrection: false,
+            replacesSubmissionId: null,
+            data: {
+              id: approvedProofSubmissionId,
+              client_event_id: clientEventId,
+              status: 'approved',
+              allowSelfReview: true,
+              media_url: mediaUrl,
+              media_type: mediaType,
+              submission_text: submissionText,
+              replaces_submission_id: null,
+            },
           },
-        },
-        error: null,
+          error: null,
+        }),
       };
     }
   );
@@ -653,6 +652,46 @@ describe('ChallengeStore', () => {
       ).toHaveBeenCalledWith('user-1', 'challenge-1', 'Paid Challenge');
     });
 
+    it('sends a weekday schedule only when the promise has one', async () => {
+      (mockSupabase.rpc as jest.Mock).mockResolvedValue({
+        data: { success: true, challenge_id: 'challenge-1', receipt: null },
+        error: null,
+      });
+      mockSupabase.from.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: paidChallengeRow,
+              error: null,
+            }),
+          }),
+        }),
+      } as any);
+
+      const { result } = renderHook(() => useChallengeStore());
+      await act(async () => {
+        await result.current.createChallengeWithPayment({
+          ...paidChallengeInput,
+          checkInWeekdays: [1, 2, 3, 4, 5],
+        });
+      });
+      expect(mockSupabase.rpc).toHaveBeenLastCalledWith(
+        'create_accountability_challenge',
+        expect.objectContaining({ p_check_in_weekdays: [1, 2, 3, 4, 5] })
+      );
+
+      await act(async () => {
+        await result.current.createChallengeWithPayment({
+          ...paidChallengeInput,
+          checkInWeekdays: null,
+        });
+      });
+      const everyDayArgs = (mockSupabase.rpc as jest.Mock).mock.calls
+        .filter(([name]) => name === 'create_accountability_challenge')
+        .at(-1)?.[1];
+      expect(everyDayArgs).not.toHaveProperty('p_check_in_weekdays');
+    });
+
     it('uses the idempotent server path for the first promise', async () => {
       (mockSupabase.rpc as jest.Mock).mockResolvedValue({
         data: {
@@ -907,8 +946,7 @@ describe('ChallengeStore', () => {
       receiptQuery.maybeSingle = jest.fn(async () => {
         const latestRpcCall = (mockSupabase.rpc as jest.Mock).mock.calls.at(-1);
         const rpcArgs = latestRpcCall?.[1] as
-          | Record<string, string | null>
-          | undefined;
+          Record<string, string | null> | undefined;
 
         return {
           data: rpcArgs

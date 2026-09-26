@@ -138,13 +138,13 @@ describe('Today copy contract', () => {
     const presentation = resolve('no-promises');
 
     expect(presentation.layout).toBe('empty');
-    expect(presentation.title).toBe('Nothing is due yet.');
+    expect(presentation.title).toBe('Start with one promise.');
     expect(presentation.detail).toBe(
-      'Make one promise and Menta will show you what needs attention each day.'
+      'Pick one small thing, show a quick photo each day, and bring someone to check it if you like.'
     );
     expect(presentation.primaryLabel).toBe('Make a promise');
-    expect(presentation.secondaryLabel).toBe('Join an existing group');
-    expect(presentation.mascot).toBe('promise-guide');
+    expect(presentation.secondaryLabel).toBe('I have an invite code');
+    expect(presentation.mascot).toBe('first-promise');
   });
 
   it('offers one real recovery action when a refresh fails', () => {
@@ -154,7 +154,7 @@ describe('Today copy contract', () => {
     expect(presentation.secondaryLabel).toBeNull();
   });
 
-  it('uses the exact server day and prior run for the broken state', () => {
+  it('names day 1 as the next step when a streak breaks', () => {
     const selection = {
       ...createSelection('streak-broken'),
       primaryChallengeId: 'challenge-1',
@@ -182,14 +182,20 @@ describe('Today copy contract', () => {
       now: new Date('2026-08-03T00:30:00.000Z'),
     });
 
-    expect(presentation.title).toBe('Saturday was missed. Start again today.');
-    expect(presentation.mascot).toBe('calm-warning');
-    expect(presentation.detail).toContain(
-      'Saturday’s proof was not received in time'
+    // One clear next action: prove today. The ended run is history, not a
+    // second choice between "one-day return" and "restart".
+    expect(presentation.title).toBe('Today is day 1.');
+    expect(presentation.detail).toBe(
+      'Add today’s proof to start a new streak.'
     );
-    expect(presentation.detail).toContain('last run ended at 4 days');
-    expect(presentation.primaryLabel).toBe('Start a one-day return');
-    expect(presentation.secondaryLabel).toBe('View 4-day history');
+    expect(presentation.prompt).toBe(
+      'Saturday was missed, so the 4-day run ended. It’s saved in your history.'
+    );
+    expect(presentation.mascot).toBe('fresh-start');
+    expect(presentation.primaryLabel).toBe('Add proof photo');
+    expect(presentation.secondaryLabel).toBe('See the 4-day run');
+    expect(presentation.facts).toEqual([]);
+    expect(presentation.supportingNote).toBeNull();
   });
 
   it('uses the server inactivity count without claiming a quest', () => {
@@ -302,7 +308,7 @@ describe('Today copy contract', () => {
     expect(presentation.detail).toContain('Add the video you agreed on');
   });
 
-  it('attaches a local proof-due countdown only when Today is at risk', () => {
+  it('leads every due day with a countdown and warns only when at risk', () => {
     const selection = {
       ...createSelection('proof-due'),
       primaryChallengeId: 'challenge-1',
@@ -362,8 +368,17 @@ describe('Today copy contract', () => {
       preferredReminderTime: '20:00:00',
       promiseLabel: 'Walk before dusk',
       dueAtIso: null,
+      streak: 12,
     });
-    expect(due.countdown).toBeUndefined();
+    expect(due.accent).toBe('action');
+    expect(due.countdown).toEqual({
+      localDay: '2026-08-03',
+      timeZone: 'Pacific/Auckland',
+      preferredReminderTime: '20:00:00',
+      promiseLabel: 'Walk before dusk',
+      dueAtIso: null,
+      streak: null,
+    });
   });
 
   it.each([

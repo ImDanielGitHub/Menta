@@ -75,11 +75,7 @@ const FAILED_STATUS: ProofReceiptStatus = 'failed';
 const SAVED_LOCAL_STATUS: ProofReceiptStatus = 'saved-local';
 const UPLOADING_STATUS: ProofReceiptStatus = 'uploading';
 type SubmitDayStatus =
-  | 'pending_review'
-  | 'already_applied'
-  | 'done'
-  | 'freeze_used'
-  | 'missed';
+  'pending_review' | 'already_applied' | 'done' | 'freeze_used' | 'missed';
 
 type SubmitMilestoneReceipt = MilestoneResult & {
   rewardGranted: boolean;
@@ -125,8 +121,7 @@ type DecodedSubmitProofFailurePayload = RpcSubmitProofPayload & {
 };
 
 export type DecodedSubmitProofPayload =
-  | DecodedSubmitProofSuccessPayload
-  | DecodedSubmitProofFailurePayload;
+  DecodedSubmitProofSuccessPayload | DecodedSubmitProofFailurePayload;
 
 type ServerProofReceipt = {
   id: string;
@@ -490,6 +485,43 @@ const markFailed = async (
   return updated;
 };
 
+const assertProofAccountIsCurrent = async (
+  userId: string,
+  clientEventId: string,
+  draft: ProofDraft | null = null,
+  receiptBeforeAttempt?: ProofReceiptStatus
+): Promise<string> => {
+  const { data, error } = await supabase.auth.getSession();
+  if (!error && data.session?.user.id === userId && data.session.access_token) {
+    return data.session.access_token;
+  }
+
+  const message =
+    'Your account changed or its session could not be confirmed. Sign back into the account that saved this proof to send it.';
+  // A resumed send may already have reached the server. Preserve that ambiguity
+  // as well as its files; changing accounts is never a media cleanup signal.
+  const receiptStatus = draft
+    ? draft.status === 'unknown-result' ||
+      draft.status === 'sent' ||
+      receiptBeforeAttempt === 'unknown-result' ||
+      receiptBeforeAttempt === 'sent'
+      ? UNKNOWN_RESULT_STATUS
+      : SAVED_LOCAL_STATUS
+    : FAILED_STATUS;
+  const preservedDraft = draft
+    ? await updateProofDraft(draft.clientEventId, {
+        status: receiptStatus,
+        lastError: message,
+      })
+    : null;
+  throw new ProofSubmissionError(message, {
+    receiptStatus,
+    clientEventId,
+    draft: preservedDraft,
+    code: 'ACCOUNT_CHANGED',
+  });
+};
+
 const assertProofTargetIsCurrent = async (draft: ProofDraft): Promise<void> => {
   const { data, error } = await supabase
     .from('challenge_participants')
@@ -813,6 +845,13 @@ const finalizeSuccessfulSubmission = async (
 
   const milestone = payload.milestone ?? null;
 
+  if (receiptStatus === 'pending-review' || receiptStatus === 'accepted') {
+    // Widget failures cannot change or delay the server's proof receipt.
+    void import('@/lib/widgets/widget-events')
+      .then(module => module.notifyWidgetProofChanged())
+      .catch(() => undefined);
+  }
+
   return {
     ...payload,
     success: true,
@@ -844,6 +883,7 @@ export const submitChallengeProof = async ({
   let requestStarted = false;
 
   try {
+    await assertProofAccountIsCurrent(userId, clientEventId ?? 'unknown');
     draft = await ensureDraft({
       userId,
       challengeId,
@@ -854,8 +894,16 @@ export const submitChallengeProof = async ({
       clientEventId,
       localMediaUri,
     });
+    const receiptBeforeAttempt = draft.status;
 
     await assertProofTargetIsCurrent(draft);
+
+    await assertProofAccountIsCurrent(
+      userId,
+      draft.clientEventId,
+      draft,
+      receiptBeforeAttempt
+    );
 
     draft = await ensureRemoteMedia(draft);
 
@@ -877,11 +925,21 @@ export const submitChallengeProof = async ({
       p_submission_text: submissionText,
     };
 
-    requestStarted = true;
-    const { data, error } = await supabase.rpc(
-      'submit_challenge_verification',
-      rpcArgs
+    // The authenticated account can change during upload or local persistence.
+    // This RPC derives ownership from auth.uid(), not the draft's userId.
+    const submissionAccessToken = await assertProofAccountIsCurrent(
+      userId,
+      draft.clientEventId,
+      draft,
+      receiptBeforeAttempt
     );
+    requestStarted = true;
+    const { data, error } = await supabase
+      .rpc('submit_challenge_verification', rpcArgs)
+      // Pin this request to the confirmed owner even if the client's next
+      // async token lookup observes another signed-in account. The server
+      // still validates token expiry/revocation and all proof authority.
+      .setHeader('Authorization', `Bearer ${submissionAccessToken}`);
 
     if (error) {
       const message =

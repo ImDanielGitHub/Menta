@@ -1,7 +1,12 @@
 /** Customer-facing copy for the Momenta wallet, shop, inventory, and Pro flows. */
 import type { EnglishCatalogue } from '@/lib/localization/en-NZ';
+import type { momentaTopUpEnNZ } from '@/lib/localization/catalogues/en-NZ/momenta-top-up';
 
-type FullCommerceKey = Extract<keyof EnglishCatalogue, `commerce.${string}`>;
+// Top-up, Momenta guide and Pro journey copy lives in momenta-top-up.ts.
+type FullCommerceKey = Exclude<
+  Extract<keyof EnglishCatalogue, `commerce.${string}`>,
+  keyof typeof momentaTopUpEnNZ
+>;
 
 export const fullCommerceEsMX = {
   'commerce.proJourney.back': 'Atrás',
@@ -76,18 +81,18 @@ export const fullCommerceEsMX = {
   'commerce.accessibility.loadingActivity':
     'Comprobando la actividad de la billetera',
   'commerce.accessibility.checkActivity':
-    'Comprueba la actividad de la billetera nuevamente',
+    'Vuelve a revisar la actividad de la billetera',
   'commerce.accessibility.loadingItem':
     'Cargando el artículo actual de la tienda',
   'commerce.accessibility.loadingPromises': 'Cargando tus promesas',
   'commerce.accessibility.checking': 'Comprobando…',
-  'commerce.action.tryAgain': 'Intentar otra vez',
-  'commerce.action.checkAgain': 'comprobar de nuevo',
+  'commerce.action.tryAgain': 'Volver a intentarlo',
+  'commerce.action.checkAgain': 'Volver a comprobar',
   'commerce.action.refreshItems': 'Actualizar artículos',
   'commerce.action.refreshInventory': 'Actualizar inventario',
-  'commerce.action.openShop': 'tienda abierta',
+  'commerce.action.openShop': 'Abrir tienda',
   'commerce.action.openItems': 'Abre tus artículos',
-  'commerce.action.backToShop': 'volver a la tienda',
+  'commerce.action.backToShop': 'Volver a la tienda',
   'commerce.action.close': 'Cerrar',
   'commerce.action.cancelPurchase': 'Cancelar compra',
   'commerce.action.returnToDraft': 'Volver al borrador',
@@ -112,11 +117,11 @@ export const fullCommerceEsMX = {
   'commerce.wallet.activityEmpty':
     'Las recompensas, compras y gastos confirmados aparecerán aquí.',
   'commerce.wallet.earn': 'Gana Momenta',
-  'commerce.wallet.openShop': 'tienda abierta',
+  'commerce.wallet.openShop': 'Abrir tienda',
   'commerce.wallet.add': 'Añadir Momenta',
   'commerce.wallet.addDetail':
     'Menta puede agregarlo después de revisiones confirmadas o hitos de racha. También puedes elegir un patrocinador opcional o comprar un pack.',
-  'commerce.wallet.invite': 'invitar a alguien',
+  'commerce.wallet.invite': 'Invitar a alguien',
   'commerce.wallet.checkingInviteRewards':
     'Comprobando las recompensas de las invitaciones',
   'commerce.wallet.checking': 'Comprobando…',
@@ -129,7 +134,7 @@ export const fullCommerceEsMX = {
   'commerce.wallet.inviteCap':
     'Has ganado todas las {cap} recompensas de invitación de este año.',
   'commerce.wallet.inviteEarn':
-    '{amount} cada uno cuando un nuevo miembro se une y hace tu primera promesa',
+    '{amount} para cada uno cuando un miembro nuevo se une y hace su primera promesa',
   'commerce.wallet.earnReview': 'Gana revisando',
   'commerce.wallet.reviewMeta':
     '{amount} después de cada revisión completa, hasta 20 revisiones por día',
@@ -166,7 +171,7 @@ export const fullCommerceEsMX = {
     'No se pudo actualizar la actividad de la billetera.',
   'commerce.wallet.refreshBeforeAd':
     'Actualiza tu billetera antes de ver otro anuncio.',
-  'commerce.wallet.addedToBalance': '{amount} Se agregó Momenta a tu saldo.',
+  'commerce.wallet.addedToBalance': 'Se agregaron {amount} Momenta a tu saldo.',
   'commerce.wallet.updated': 'Billetera actualizada',
   'commerce.wallet.updatedDetail':
     'Tu saldo, artículos y actividad reciente están actualizados.',
@@ -204,7 +209,7 @@ export const fullCommerceEsMX = {
   'commerce.wallet.earnedDescription': 'Momenta ganado',
   'commerce.wallet.bonusDescription': 'Bonificación de Momenta',
   'commerce.wallet.spentDescription': 'Momenta gastado',
-  'commerce.wallet.adjustmentDescription': 'Ajuste de equilibrio',
+  'commerce.wallet.adjustmentDescription': 'Ajuste de saldo',
   'commerce.wallet.activityDescription': 'Actividad de Momenta',
   'commerce.wallet.promiseCreated': 'Promesa creada',
   'commerce.wallet.groupCreated': 'Grupo creado',
@@ -223,7 +228,7 @@ export const fullCommerceEsMX = {
   'commerce.shop.noItems': 'No hay artículos disponibles en este momento',
   'commerce.shop.noItemsDetail':
     'Vuelve a consultar más tarde para ver mejoras, temas, marcos de perfil y herramientas de inteligencia artificial.',
-  'commerce.shop.boosts': 'Impulsa',
+  'commerce.shop.boosts': 'Potenciadores',
   'commerce.shop.boostsDetail':
     'Protección y tiempo extra para promesas activas.',
   'commerce.shop.themes': 'Temas',
@@ -232,7 +237,7 @@ export const fullCommerceEsMX = {
   'commerce.shop.frames': 'Marcos de perfil',
   'commerce.shop.framesDetail':
     'Agrega un marco distintivo alrededor de tu foto de perfil.',
-  'commerce.shop.aiTools': 'herramientas de inteligencia artificial',
+  'commerce.shop.aiTools': 'Herramientas de IA',
   'commerce.shop.aiToolsDetail':
     'Asistencia opcional que te mantiene en control.',
   'commerce.shop.available': 'Disponible',
@@ -244,7 +249,7 @@ export const fullCommerceEsMX = {
   'commerce.shop.balanceIs': 'Tu saldo es {balance} Momenta',
   'commerce.shop.nowAvailable': 'Ahora tienes {quantity} disponible',
   'commerce.shop.short': '{amount} Momenta corto',
-  'commerce.shop.streak': '{days} racha de días',
+  'commerce.shop.streak': 'Racha de {days} días',
   'commerce.shop.unlocksAfter':
     'Se desbloquea después de una racha de {days} días',
   'commerce.shop.loadingAccount': 'Saldo y artículos no disponibles',
@@ -262,25 +267,25 @@ export const fullCommerceEsMX = {
     'Menta no pudo terminar de comprobar esta compra. Inténtalo de nuevo: no gastarás Momenta dos veces.',
   'commerce.shop.purchaseReceipt': '{name} ahora está en Tus artículos.',
   'commerce.shop.purchaseReceiptWithInventory':
-    '{name} ahora está en Tus artículos. Ahora tienes {quantity} disponible.',
+    '{name} ya está en Tus artículos. Ahora tienes {quantity} disponibles.',
   'commerce.shop.purchaseReceiptWithBalance':
     '{name} ahora está en Tus artículos. Tu saldo es {balance} Momenta.',
   'commerce.shop.purchaseReceiptWithInventoryAndBalance':
-    '{name} ahora está en Tus artículos. Ahora tienes {quantity} disponible. Tu saldo es {balance} Momenta.',
+    '{name} ya está en Tus artículos. Ahora tienes {quantity} disponibles. Tu saldo es de {balance} Momenta.',
   'commerce.shop.purchaseLabel': 'Compra',
   'commerce.shop.styleLabel': 'Estilo',
   'commerce.shop.currency': 'Momenta',
-  'commerce.shop.appearance.ember': 'Tema de ascuas',
+  'commerce.shop.appearance.ember': 'Tema Brasa',
   'commerce.shop.appearance.glacier': 'Tema Glaciar',
-  'commerce.shop.appearance.aurora': 'Tema de aurora',
-  'commerce.shop.appearance.iris': 'Tema de iris',
-  'commerce.shop.appearance.cobalt': 'Tema de cobalto',
-  'commerce.shop.appearance.jade': 'Tema de jade',
-  'commerce.shop.appearance.orchid': 'Tema de orquídeas',
-  'commerce.shop.appearance.horizon': 'Tema del horizonte',
-  'commerce.shop.appearance.graphite': 'Tema de grafito',
-  'commerce.shop.appearance.neon': 'Tema de neón',
-  'commerce.shop.appearance.tidepool': 'Tema de la piscina de marea',
+  'commerce.shop.appearance.aurora': 'Tema Aurora',
+  'commerce.shop.appearance.iris': 'Tema Iris',
+  'commerce.shop.appearance.cobalt': 'Tema Cobalto',
+  'commerce.shop.appearance.jade': 'Tema Jade',
+  'commerce.shop.appearance.orchid': 'Tema Orquídea',
+  'commerce.shop.appearance.horizon': 'Tema Horizonte',
+  'commerce.shop.appearance.graphite': 'Tema Grafito',
+  'commerce.shop.appearance.neon': 'Tema Neón',
+  'commerce.shop.appearance.tidepool': 'Tema Marea',
   'commerce.shop.appearance.goldFrame': 'Marco dorado',
   'commerce.shop.appearance.violetFrame': 'Marco violeta',
   'commerce.shop.appearance.iceFrame': 'Marco de hielo',
@@ -291,6 +296,48 @@ export const fullCommerceEsMX = {
   'commerce.shop.appearance.fortnightFrame': 'Marco de quincena',
   'commerce.shop.appearance.monthFrame': 'Marco del mes',
   'commerce.shop.appearance.seasonFrame': 'Marco de temporada',
+  'commerce.shop.appearance.emberDescription':
+    'Botones y detalles en ámbar cálido.',
+  'commerce.shop.appearance.glacierDescription':
+    'Botones y detalles en cian helado.',
+  'commerce.shop.appearance.auroraDescription':
+    'Botones y detalles en verde menta de aurora boreal.',
+  'commerce.shop.appearance.irisDescription':
+    'Botones y detalles en índigo frío.',
+  'commerce.shop.appearance.cobaltDescription':
+    'Botones y detalles en azul eléctrico.',
+  'commerce.shop.appearance.jadeDescription':
+    'Botones y detalles en verde esmeralda.',
+  'commerce.shop.appearance.orchidDescription':
+    'Botones y detalles en magenta frío.',
+  'commerce.shop.appearance.horizonDescription':
+    'Botones y detalles en azul cielo.',
+  'commerce.shop.appearance.graphiteDescription':
+    'Botones y detalles en plata fría.',
+  'commerce.shop.appearance.neonDescription':
+    'Botones y detalles en cian y verde lima.',
+  'commerce.shop.appearance.tidepoolDescription':
+    'Botones y detalles en verde azulado intenso.',
+  'commerce.shop.appearance.goldFrameDescription':
+    'Un aro dorado cálido alrededor de tu foto de perfil.',
+  'commerce.shop.appearance.violetFrameDescription':
+    'Un aro de dorado a violeta alrededor de tu foto de perfil.',
+  'commerce.shop.appearance.iceFrameDescription':
+    'Un aro cian glaciar alrededor de tu foto de perfil.',
+  'commerce.shop.appearance.neonFrameDescription':
+    'Un aro cian, lima y magenta alrededor de tu foto de perfil.',
+  'commerce.shop.appearance.obsidianFrameDescription':
+    'Un aro gris pizarra alrededor de tu foto de perfil.',
+  'commerce.shop.appearance.sparkFrameDescription':
+    'Un aro verde menta alrededor de tu foto de perfil.',
+  'commerce.shop.appearance.weekFrameDescription':
+    'Un aro de menta a índigo alrededor de tu foto de perfil.',
+  'commerce.shop.appearance.fortnightFrameDescription':
+    'Un aro índigo más grueso alrededor de tu foto de perfil.',
+  'commerce.shop.appearance.monthFrameDescription':
+    'Un aro azul aurora alrededor de tu foto de perfil.',
+  'commerce.shop.appearance.seasonFrameDescription':
+    'Un aro menta, índigo y orquídea alrededor de tu foto de perfil.',
   'commerce.shop.automaticProtection': 'Protección automática',
   'commerce.shop.automaticProtectionDetail':
     'Menta los aplica después de un día perdido elegible.',
@@ -324,7 +371,7 @@ export const fullCommerceEsMX = {
   'commerce.shop.itemsRefreshed':
     'Tus potenciadores y estilos se han actualizado.',
   'commerce.shop.tryRefreshAgain': 'Intenta actualizar nuevamente',
-  'commerce.shop.howItWorks': 'como funciona',
+  'commerce.shop.howItWorks': 'Cómo funciona',
   'commerce.shop.choose': 'Elegir',
   'commerce.shop.use': 'Usar',
   'commerce.shop.remove': 'Eliminar',
@@ -369,9 +416,9 @@ export const fullCommerceEsMX = {
   'commerce.shop.noActivePromises': 'Sin promesas activas',
   'commerce.shop.startBeforeExtension':
     'Inicia o únete a una promesa antes de usar una extensión.',
-  'commerce.shop.startPromise': 'iniciar una promesa',
-  'commerce.shop.activePromise': 'promesa activa',
-  'commerce.shop.dayStreak': '{count} racha de días',
+  'commerce.shop.startPromise': 'Empezar una promesa',
+  'commerce.shop.activePromise': 'Promesa activa',
+  'commerce.shop.dayStreak': 'Racha de {count} días',
   'commerce.shop.addMomenta': 'Añadir {amount} Momenta',
   'commerce.shop.coverDifference':
     'Tienes {balance} Momenta. Elige cómo cubrir la diferencia de {name}.',
@@ -392,8 +439,8 @@ export const fullCommerceEsMX = {
   'commerce.shop.refreshStatus': 'A hoy',
   'commerce.shop.balanceItemsCurrent':
     'Tu saldo y artículos están actualizados.',
-  'commerce.shop.checkStatus': 'comprobar estado',
-  'commerce.action.checkStatus': 'comprobar estado',
+  'commerce.shop.checkStatus': 'Comprobar estado',
+  'commerce.action.checkStatus': 'Comprobar estado',
   'commerce.shop.checkPurchaseAgain': 'Intenta comprar nuevamente',
   'commerce.shop.keepStreak': 'Mantén una racha de {days} días',
   'commerce.shop.getMomenta': 'Obtener Momenta',
@@ -465,14 +512,14 @@ export const fullCommerceEsMX = {
   'commerce.shop.choosePromiseAfter':
     'Elige la promesa activa después de la compra o más tarde de Tus artículos.',
   'commerce.shop.buttonsColours':
-    'Los botones, las luces y los artículos seleccionados utilizan los colores cálidos de Ember.',
+    'Los botones, los resaltados y los elementos seleccionados usan los colores cálidos de Ember.',
   'commerce.shop.frameProfile':
     'El marco aparece en cualquier lugar donde Menta muestre tu identidad de perfil.',
   'commerce.shop.frameDescription':
     'El marco aparece en tu foto de perfil una vez desbloqueado.',
   'commerce.shop.frameLockedBody':
     'Alcanza una racha de {days} días. El marco aparece en tu foto de perfil una vez desbloqueado.',
-  'commerce.shop.genericReview': 'Revise el artículo antes de comprarlo.',
+  'commerce.shop.genericReview': 'Revisa el artículo antes de comprarlo.',
   'commerce.shop.underYourItems': '{name} estará disponible en Tus artículos.',
   'commerce.shop.access': 'Acceso',
   'commerce.shop.unlocksAt': 'Se desbloquea con una racha de {days} días',
@@ -490,7 +537,7 @@ export const fullCommerceEsMX = {
   'commerce.paywall.priceUnavailable': 'Indisponible',
   'commerce.paywall.storePrices': 'Los precios se cargan desde la App Store.',
   'commerce.paywall.planTerms':
-    'Elige un plan para ver tu precio y términos de renovación.',
+    'Elige un plan para ver su precio y las condiciones de renovación.',
   'commerce.paywall.billedMonthly': 'Facturado {price} mensualmente',
   'commerce.paywall.renewsMonthly': 'Se renueva mensualmente',
   'commerce.paywall.monthEquivalent': '{price} equivalente a un mes',
@@ -498,9 +545,9 @@ export const fullCommerceEsMX = {
   'commerce.paywall.trialTerms':
     'Apple muestra los términos de la prueba antes de confirmar.',
   'commerce.paywall.autoRenewsMonthly':
-    'Se renueva automáticamente mensualmente. {period}. Cancele en cualquier Momenta en la configuración de tu suscripción de Apple.',
+    'Se renueva cada mes. {period}. Cancela cuando quieras en la configuración de suscripciones de Apple.',
   'commerce.paywall.autoRenewsYearly':
-    'Se renueva automáticamente anualmente. {period}. Cancele en cualquier Momenta en la configuración de tu suscripción de Apple.',
+    'Se renueva cada año. {period}. Cancela cuando quieras en la configuración de suscripciones de Apple.',
   'commerce.paywall.openCheckout': 'Abriendo caja de Apple...',
   'commerce.paywall.continueMonthly': 'Continuar con el pago mensual',
   'commerce.paywall.continueAnnual': 'Continuar al pago anual',
@@ -524,7 +571,7 @@ export const fullCommerceEsMX = {
     '{monthly} cada mes, o {annual} en el plan anual. Pro levanta las tapas libres; Los usuarios que crean y se unen siguen gastando Momenta al precio normal.',
   'commerce.paywall.noRequiredAds': 'No se requieren pausas publicitarias',
   'commerce.paywall.noRequiredAdsDetail':
-    'Cree y administre promesas sin las interrupciones necesarias de los patrocinadores.',
+    'Crea y administra promesas sin pausas obligatorias de patrocinadores.',
   'commerce.paywall.restore': 'Restaurar compras',
   'commerce.paywall.restoring': 'Restaurando...',
   'commerce.paywall.manageWithApple': 'Administrar Menta Pro con Apple',
@@ -539,9 +586,9 @@ export const fullCommerceEsMX = {
   'commerce.paywall.quotaReached':
     'Has alcanzado el límite gratuito para esta acción.',
   'commerce.paywall.legalDisclaimer':
-    'El pago se carga a través de tu cuenta de la tienda de aplicaciones al Momenta de la confirmación de la compra. La suscripción se renueva automáticamente a menos que se desactive la renovación automática al menos 24 horas antes del final del período actual. Se cargará a tu cuenta la renovación dentro de las 24 horas anteriores al final del período actual. Puede administrar y cancelar suscripciones en la configuración de suscripción de tu tienda.',
+    'El pago se carga en tu cuenta de la tienda de apps al confirmar la compra. La suscripción se renueva automáticamente salvo que desactives la renovación automática al menos 24 horas antes de que termine el periodo actual. La renovación se cobrará en tu cuenta en las 24 horas anteriores al final del periodo actual. Puedes administrar y cancelar tus suscripciones en la configuración de suscripciones de la tienda.',
   'commerce.paywall.terms': 'Condiciones de uso',
-  'commerce.paywall.privacy': 'política de privacidad',
+  'commerce.paywall.privacy': 'Política de privacidad',
   'commerce.paywall.termsDidNotOpen': 'Los términos no se abrieron',
   'commerce.paywall.privacyDidNotOpen': 'La política de privacidad no se abrió',
   'commerce.paywall.tryBrowserTerms':
@@ -572,7 +619,7 @@ export const fullCommerceEsMX = {
     'No te acusaron. Puedes elegir un plan cuando estés listo.',
   'commerce.paywall.purchaseFailed': 'La compra no se realizó',
   'commerce.paywall.purchaseFailedDetail':
-    'Pro no se activó. Revisa tu conexión y vuelve a intentarlo.',
+    'Pro no se activó. Revisa tu acceso a Pro antes de volver a intentarlo.',
   'commerce.paywall.restoreFailed': 'No se pudieron restaurar las compras',
   'commerce.paywall.restoreFailedDetail':
     'Comprueba tu conexión y vuelve a intentarlo. No se cobró nada.',
@@ -586,11 +633,11 @@ export const fullCommerceEsMX = {
   'commerce.paywall.tryTomorrow': 'Inténtalo de nuevo mañana.',
   'commerce.paywall.rewardNotReady': 'La recompensa aún no está lista',
   'commerce.paywall.waitTwoMinutes':
-    'Espere dos minutos antes de ver otro anuncio.',
+    'Espera dos minutos antes de ver otro anuncio.',
   'commerce.paywall.refreshBeforeAd':
     'Tu saldo no cambió. Actualiza antes de ver otro anuncio.',
   'commerce.paywall.adLoadTryAgain':
-    'El anuncio no se cargó. Intentar otra vez.',
+    'El anuncio no se cargó. Vuelve a intentarlo.',
   'commerce.paywall.rewardNotAddedDetail':
     'La recompensa no fue añadida. Tu saldo no cambió.',
   'commerce.paywall.adError': 'Error de anuncio',
@@ -604,7 +651,7 @@ export const fullCommerceEsMX = {
     'Selecciona este plan. A continuación confirmarás la compra con Apple.',
   'commerce.paywall.checkingAccess': 'Comprobando el acceso Pro',
   'commerce.paywall.checkingAccessDetail':
-    'Esta revisión no generará ningún cargo.',
+    'Esto revisa tu compra actual. No se te cobrará nada.',
   'commerce.paywall.accessDelayed': 'Pro está tardando más en activarse',
   'commerce.paywall.accessDelayedDetail':
     'Es posible que tu compra aún esté finalizando. No lo vuelvas a comprar. Comprueba el acceso Pro o restaura compras.',
@@ -621,13 +668,13 @@ export const fullCommerceEsMX = {
   'commerce.paywall.couldNotOpenSubscriptions':
     'No se pudieron abrir las suscripciones de Apple',
   'commerce.paywall.openAppleSettings':
-    'Abra Ajustes, toque tu cuenta de Apple y luego Suscripciones para administrar Menta Pro.',
+    'Abre Configuración, toca tu cuenta de Apple y luego Suscripciones para administrar Menta Pro.',
   'commerce.paywall.manageDetail':
-    'Cambia o cancela tu plan en Ajustes de Apple. Menta actualiza Pro cuando regresas.',
+    'Cambia o cancela tu plan en la configuración de Apple. Menta actualiza Pro cuando regresas.',
   'commerce.paywall.purchaseTermsReturn':
     'Apple mostrará los términos finales y le pedirá que los confirme. Vuelve a Menta cuando se cierre el pago.',
   'commerce.paywall.continueApple': 'Continuar en la configuración de Apple',
-  'commerce.paywall.startPro': 'Comience a usar Pro',
+  'commerce.paywall.startPro': 'Empezar a usar Pro',
   'commerce.paywall.choosePlanAction': 'Elige un plan',
   'commerce.paywall.returnMenta': 'Regresar a Menta',
   'commerce.paywall.backPlans': 'Volver a los planes',
@@ -645,7 +692,7 @@ export const fullCommerceEsMX = {
     'Un anuncio agrega {amount} Momenta, suficiente para este {subject}.',
   'commerce.paywall.adLoading': 'Cargando anuncio...',
   'commerce.paywall.watchAdFor': 'Ver un anuncio de {amount} Momenta',
-  'commerce.paywall.freeLimit': 'Límite libre',
+  'commerce.paywall.freeLimit': 'Límite gratuito',
   'commerce.paywall.reachedLimit': 'Has alcanzado el límite gratuito',
   'commerce.paywall.revenueCat.notInitializedDetail':
     'Las compras no están listas. Comprueba tu conexión y vuelve a intentarlo.',
@@ -696,7 +743,7 @@ export const fullCommerceEsMX = {
   'commerce.commerce.unknownDetail':
     'No lo vuelvas a comprar todavía. Primero comprueba tu saldo y tus artículos; es posible que la compra aún se realice.',
   'commerce.commerce.stillChecking': 'Todavía comprobando',
-  'commerce.commerce.wait': 'Espere hasta que lo revisen',
+  'commerce.commerce.wait': 'Espera a que se compruebe',
   'commerce.commerce.storePending': 'Comprobando tu Momenta',
   'commerce.commerce.storePendingDetail':
     'Apple aceptó la compra. Tu Momenta aparecerá después de que Menta lo confirme. Verificar nuevamente no le cobrará.',
@@ -724,13 +771,13 @@ export const fullCommerceEsMX = {
   'commerce.commerce.balanceItemsLabel': 'Saldo y partidas',
   'commerce.commerce.notChangedYet': 'Aún no cambiado',
   'commerce.commerce.stillCheckingLabel': 'Todavía comprobando',
-  'commerce.commerce.waitUntilChecked': 'Espere hasta que lo revisen',
-  'commerce.commerce.applePurchaseLabel': 'compra de manzana',
+  'commerce.commerce.waitUntilChecked': 'Espera a que se compruebe',
+  'commerce.commerce.applePurchaseLabel': 'Compra en Apple',
   'commerce.commerce.waitingLabel': 'Espera',
   'commerce.commerce.yourItemsLabel': 'Tus artículos',
   'commerce.commerce.accountLabel': 'Cuenta',
   'commerce.commerce.paymentLabel': 'Pago',
-  'commerce.commerce.notMade': 'no hecho',
+  'commerce.commerce.notMade': 'No hecha',
   'commerce.commerce.notAdded': 'No añadido',
   'commerce.commerce.itemsLabel': 'Artículos',
   'commerce.commerce.unchanged': 'Sin alterar',
@@ -792,12 +839,12 @@ export const fullCommerceEsMX = {
     'Una racha congelada por cumplir una promesa durante una semana.',
   'commerce.economy.monthFreezeLabel': 'Congelación del mes',
   'commerce.economy.monthFreezeBenefit':
-    'Otro congelamiento por mantener una racha de 30 días.',
+    'Otra congelación por mantener una racha de 30 días.',
   'commerce.economy.createFirstFree': 'Gratis: primera promesa',
   'commerce.economy.createCost': '{amount} Momenta',
   'commerce.economy.quotaActiveTitle': 'Estás en el límite de promesa gratuita',
   'commerce.economy.quotaActiveMessage':
-    'Las cuentas gratuitas pueden cumplir 2 promesas reales. Termine o deje uno, o inicia Pro antes de crear otro.',
+    'Las cuentas gratuitas pueden tener {limit} promesas activas. Termina o deja una, o activa Pro antes de crear otra.',
   'commerce.economy.quotaMonthlyTitle':
     'Se alcanzó el límite de creación mensual',
   'commerce.economy.quotaMonthlyMessage':
@@ -835,4 +882,60 @@ export const fullCommerceEsMX = {
   'commerce.wallet.refreshingBalance': 'Actualizando saldo…',
   'commerce.wallet.rewardClaimInProgress':
     'Menta todavía está revisando tu recompensa anterior.',
+  'commerce.shop.balanceChipAccessibility':
+    'Saldo de Momenta: {amount}. Abre tu billetera.',
+  'commerce.shop.tagNew': 'Nuevo',
+  'commerce.shop.quantity': '×{count}',
+  'commerce.shop.seeAllItems': 'Ver todo',
+  'commerce.shop.cardAccessibility': '{name}. {price}. {status}.',
+  'commerce.shop.ownedTileAccessibility': '{name}. {state}.',
+  'commerce.shop.itemActionAccessibility': '{action}: {name}',
+  'commerce.shop.detailSummaryAccessibility':
+    '{kind}. {name}. {status}. {price}.',
+  'commerce.shop.buying': 'Comprando…',
+  'commerce.shop.topUpBubble':
+    'Te faltan {amount} Momenta para {name}. Así puedes ganarlos.',
+  'commerce.shop.refreshCountIfStale':
+    '{message} Actualiza tus artículos si la cantidad disponible no ha cambiado.',
+  'commerce.shop.checkStatusIfStale':
+    '{message} Revisa el estado si el saldo o el inventario no se actualizan de inmediato.',
+  'commerce.shop.inYourItems':
+    '{name} está en tus artículos. Tu saldo se ha actualizado.',
+  'commerce.celebrate.added': '{name} agregado.',
+  'commerce.celebrate.gain': '+{count}',
+  'commerce.celebrate.youHave': 'Ahora tienes',
+  'commerce.celebrate.styleNotActive':
+    'Ya es tuyo. Menta aún no pudo activarlo. Toca Usar este estilo para aplicarlo.',
+  'commerce.wallet.earnOptionAccessibility': '{title}. {meta}. {value}.',
+  'commerce.freeze.remaining': 'Quedan {count} congelaciones',
+  'commerce.freeze.remaining.one': 'Queda {count} congelación',
+  'commerce.freeze.remaining.other': 'Quedan {count} congelaciones',
+  'commerce.freeze.getAnother': 'Conseguir otra congelación',
+  'commerce.freeze.getFirst': 'Conseguir una congelación de racha',
+  'commerce.freeze.protectedTitle':
+    'Tu congelación de racha protegió tu racha de {count} días.',
+  'commerce.firstMiss.open': 'Consigue tu congelación de racha gratis',
+  'commerce.firstMiss.accessibility': 'Tu primer día perdido',
+  'commerce.firstMiss.titleOffer': '¿Perdiste un día? Sigamos adelante.',
+  'commerce.firstMiss.titleConfirmed': 'Tu día perdido está cubierto.',
+  'commerce.firstMiss.bodyConfirmedStreak':
+    'Tu congelación gratis protegió tu racha de {count} días. Agrega una prueba hoy para continuarla.',
+  'commerce.firstMiss.bodyConfirmed':
+    'Tu congelación gratis cubrió el día perdido. Agrega una prueba hoy para empezar tu racha.',
+  'commerce.firstMiss.noteConfirmed':
+    'La congelación solo cubre el día perdido. No cuenta como prueba completada.',
+  'commerce.firstMiss.backToToday': 'Volver a Hoy',
+  'commerce.firstMiss.errorUnconfirmed':
+    'No se pudo confirmar la congelación. Inténtalo otra vez.',
+  'commerce.firstMiss.errorUnavailable':
+    'Esta oferta del primer día ya no está disponible. Aún puedes agregar una prueba hoy.',
+  'commerce.firstMiss.bubble':
+    'Se te pasó el {weekday}. Le pasa a todo el mundo.',
+  'commerce.firstMiss.decisionTitle': '¿Mantener tu racha de {count} días?',
+  'commerce.firstMiss.decisionBody':
+    'Tu primer día perdido corre de nuestra cuenta. Una congelación de racha gratis cubre el {weekday} y tu racha se queda en {count}.',
+  'commerce.firstMiss.decisionBodyNoCount':
+    'Tu primer día perdido corre de nuestra cuenta. Una congelación de racha gratis cubre el {weekday}.',
+  'commerce.firstMiss.keep': 'Mantener mi racha gratis',
+  'commerce.firstMiss.startOver': 'Empezar de nuevo desde el día 1',
 } as const satisfies Pick<EnglishCatalogue, FullCommerceKey>;

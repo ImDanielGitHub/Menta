@@ -15,7 +15,7 @@ export const notificationsEsES = {
     'Menta puede avisarte antes de que venza el plazo para enviar la prueba y cuando alguien envíe una prueba para que la revises. A continuación, tu teléfono te pedirá permiso.',
   'notifications.education.proof_due.title': '«La prueba vence pronto»',
   'notifications.education.proof_due.body':
-    'Cuando se acerca el plazo de una promesa',
+    'Cuando una promesa se acerca a su plazo',
   'notifications.education.review.title':
     '«Hay una prueba pendiente de revisión»',
   'notifications.education.review.body':
@@ -82,7 +82,7 @@ export const notificationsEsES = {
     'No se pudieron abrir los ajustes',
   'notifications.notice.settings_failed.body':
     'Abre los ajustes del teléfono, elige Menta y después Notificaciones para cambiar este permiso.',
-  'notifications.onboarding.title': 'No te pierdas el momento.',
+  'notifications.onboarding.title': '¿Quieres recordatorios para tu promesa?',
   'notifications.onboarding.body':
     'Menta necesita permiso para enviarte recordatorios cuando venza una prueba o alguien necesite que la revises.',
   'notifications.onboarding.trust':

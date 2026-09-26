@@ -1,6 +1,13 @@
 import React from 'react';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
@@ -16,9 +23,11 @@ import {
 } from '@/constants/MentaDesignSystem';
 import { useTheme } from '@/constants/ThemeContext';
 import { emitHaptic } from '@/lib/motion/haptics';
+import { useMotionPreferences } from '@/lib/motion/use-motion-preferences';
 import { useTranslation } from '@/lib/localization/use-translation';
 import { translate } from '@/lib/localization/translate';
 import type { TranslationKey } from '@/lib/localization/en-NZ';
+import { resolveIPadBottomTabContentWidth } from '@/constants/responsive-layout';
 
 const VISIBLE_TABS = ['index', 'groups', 'shop-tab', 'profile'] as const;
 type VisibleTab = (typeof VISIBLE_TABS)[number];
@@ -72,8 +81,14 @@ export function MentaBottomTabBar({
   navigation,
 }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const { colors } = useTheme();
+  const motion = useMotionPreferences();
   const { t } = useTranslation();
+  const iPadContentWidth = resolveIPadBottomTabContentWidth(
+    width,
+    Platform.OS === 'ios' && Platform.isPad
+  );
   return (
     <View
       accessibilityRole="tablist"
@@ -81,6 +96,9 @@ export function MentaBottomTabBar({
       style={[
         styles.container,
         styles.bottomContainer,
+        iPadContentWidth === undefined
+          ? null
+          : { paddingHorizontal: Math.max(0, (width - iPadContentWidth) / 2) },
         {
           paddingBottom: Math.max(insets.bottom, mentaSpacing[5]),
           paddingTop: mentaSpacing[2],
@@ -138,7 +156,11 @@ export function MentaBottomTabBar({
             role={accessibilityRole}
             style={({ pressed }) => [
               styles.item,
-              pressed && !selected ? styles.pressed : null,
+              pressed && !selected
+                ? motion.reduceMotion
+                  ? styles.pressedReduced
+                  : styles.pressed
+                : null,
             ]}
             testID={testID}
           >
@@ -194,7 +216,8 @@ const styles = StyleSheet.create({
     maxWidth: 96,
     width: '100%',
   },
-  pressed: { opacity: 0.68 },
+  pressed: { opacity: 0.68, transform: [{ scale: 0.94 }] },
+  pressedReduced: { opacity: 0.68 },
   label: {
     ...mentaTypography.label,
     fontSize: 11,

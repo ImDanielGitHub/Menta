@@ -5,20 +5,19 @@ type FullGroupsKey = Extract<keyof EnglishCatalogue, `groups.${string}`>;
 export const fullGroupsPtPT = {
   'groups.tab.title': 'Grupos',
   'groups.tab.archived': 'Grupos arquivados',
-  'groups.tab.archived_hint': 'Abre seus grupos arquivados e concluídos.',
+  'groups.tab.archived_hint': 'Abre os seus grupos arquivados e concluídos.',
   'groups.tab.create': 'Criar grupo',
   'groups.tab.create_hint': 'Inicia a criação do grupo.',
-  'groups.tab.mine': 'Meus',
-  'groups.tab.mine_hint': 'Mostra os grupos aos quais a pessoa pertence.',
+  'groups.tab.mine': 'Os meus',
+  'groups.tab.mine_hint': 'Mostra os grupos a que pertence.',
   'groups.tab.discover': 'Descobrir',
-  'groups.tab.discover_hint':
-    'Mostra grupos públicos dos quais a pessoa pode participar.',
+  'groups.tab.discover_hint': 'Mostra grupos públicos em que pode participar.',
   'groups.tab.invite_ready': 'Convite pronto para verificação',
   'groups.tab.enter_code': 'Introduza um código de convite',
   'groups.tab.invite_hint': 'Abre a entrada de convite de grupo ou promessa.',
   'groups.tab.invite_row': 'Convite pronto para verificação',
   'groups.tab.enter_invite_row': 'Introduza o código de convite',
-  'groups.tab.invite_detail': 'Use um ligação, código QR ou código de convite.',
+  'groups.tab.invite_detail': 'Use um link, código QR ou código de convite.',
   'groups.tab.check': 'Verificar',
   'groups.tab.enter': 'Entrar',
   'groups.tab.sign_in_title': 'sessão obrigatório',
@@ -30,12 +29,12 @@ export const fullGroupsPtPT = {
   'groups.tab.joined_action': 'Abrir grupo',
   'groups.tab.join_unknown_title': 'Entrada não confirmada',
   'groups.tab.join_unknown_detail':
-    'Menta não pôde confirmar se a pessoa entrou. Verifique Meus grupos antes de tentar novamente.',
-  'groups.tab.join_unknown_action': 'Verificar Meus grupos',
+    'A Menta não conseguiu confirmar se entrou. Verifique Os meus grupos antes de tentar novamente.',
+  'groups.tab.join_unknown_action': 'Verificar Os meus grupos',
   'groups.tab.create_solo': 'Criar promessa individual',
   'groups.tab.enter_code_action': 'Digitar código',
   'groups.tab.sign_in': 'Entrar',
-  'groups.tab.my_groups': 'Meus grupos',
+  'groups.tab.my_groups': 'Os meus grupos',
   'groups.tab.try_again': 'Tentar novamente',
   'groups.tab.go_today': 'Ir para Hoje',
   'groups.tab.back_groups': 'Voltar para Grupos',
@@ -46,7 +45,7 @@ export const fullGroupsPtPT = {
   'groups.tab.join_action': 'Introduza um código de convite',
   'groups.tab.offline_detail':
     'Estes são os últimos grupos guardados neste telemóvel. Conecte-se à internet antes de entrar, sair ou alterar um grupo.',
-  'groups.tab.loading': 'A carregar seus grupos',
+  'groups.tab.loading': 'A carregar os seus grupos',
   'groups.tab.empty_title': 'Ainda não há grupos',
   'groups.tab.empty_detail': 'Crie um grupo ou entre com um convite.',
   'groups.tab.discover_empty_title': 'Nenhum grupo público',
@@ -58,17 +57,17 @@ export const fullGroupsPtPT = {
   'groups.tab.discover_before_join':
     'Veja a promessa partilhada e as regras de comprovativo antes de entrar.',
   'groups.tab.known_group': 'Grupo conhecido · ações pausadas',
-  'groups.list.your_groups': 'Seus grupos',
+  'groups.list.your_groups': 'Os seus grupos',
   'groups.list.public_groups': 'Grupos públicos',
   'groups.list.load_failed_detail':
-    'Nada mudou. Tente novamente quando sua ligação estiver estável.',
+    'Nada mudou. Tente novamente quando a sua ligação estiver estável.',
   'groups.list.ended': 'Grupo encerrado · registo final disponível',
   'groups.list.archived': 'Arquivado · registo final disponível',
   'groups.list.streak': 'Sequência de grupo de {count} dias',
   'groups.list.view_before_joining': 'Ver {group} antes de entrar',
   'groups.archive.description': 'Grupos passados permanecem somente leitura.',
   'groups.archive.stale_detail':
-    'Mostrando a última lista guardada. Verifique novamente quando sua ligação estiver estável.',
+    'A mostrar a última lista guardada. Verifique novamente quando a sua ligação estiver estável.',
   'groups.archive.stale_title': 'Grupos arquivados não atualizados',
   'groups.archive.groups': 'Grupos',
   'groups.archive.read_only': 'Somente leitura',
@@ -81,24 +80,24 @@ export const fullGroupsPtPT = {
   'groups.archive.check_again': 'Verificar novamente',
   'groups.archive.loading': 'A carregar grupos arquivados',
   'groups.archive.empty_label':
-    'Nenhum grupo arquivado. Grupos que a pessoa arquivar ou terminar aparecerão aqui.',
+    'Nenhum grupo arquivado. Os grupos que arquivar ou terminar aparecem aqui.',
   'groups.archive.empty_title': 'Nenhum grupo arquivado',
   'groups.archive.empty_detail':
-    'Grupos que a pessoa arquivar ou terminar aparecerão aqui.',
+    'Os grupos que arquivar ou terminar aparecem aqui.',
   'groups.create.public_label': 'Qualquer um pode encontrá-lo',
   'groups.create.public_note':
-    'O grupo está listado em Descobrir. As pessoas podem visualizá-lo e entrar sem precisar pedir a a pessoa.',
-  'groups.create.private_label': 'Apenas pessoas que a pessoa convidar',
+    'O grupo está listado em Descobrir. As pessoas podem vê-lo e entrar sem ter de pedir.',
+  'groups.create.private_label': 'Apenas pessoas que convidar',
   'groups.create.private_note':
-    'O grupo está oculto. As pessoas precisam do ligação de convite, código QR ou código para entrar.',
+    'O grupo está oculto. As pessoas precisam do link de convite, código QR ou código para entrar.',
   'groups.create.missing_id': 'ID do grupo ausente.',
   'groups.create.load_error': 'Não foi possível carregar as definições.',
   'groups.create.not_created_title': 'Grupo não criado',
   'groups.create.not_created_detail':
     'O grupo não pôde ser criado. Tente novamente.',
-  'groups.create.name_prompt': 'Como a pessoa chamará este grupo?',
+  'groups.create.name_prompt': 'Que nome vai dar a este grupo?',
   'groups.create.name_help':
-    'Use ao menos três caracteres para que as pessoas saibam o que estão entrando.',
+    'Use pelo menos três caracteres para que as pessoas saibam em que grupo estão a entrar.',
   'groups.create.settings_prompt': 'Quem pode encontrar e entrar?',
   'groups.create.review_prompt': 'Pronto para criar este grupo?',
   'groups.create.choose_join': 'Escolha quem pode entrar',
@@ -110,23 +109,23 @@ export const fullGroupsPtPT = {
     'Inicie sessão antes de criar um grupo. O seu rascunho ainda está aqui.',
   'groups.create.promise_unavailable_title': 'Primeira promessa indisponível',
   'groups.create.promise_unavailable_detail':
-    'Menta não pode conectar este grupo sem a primeira promessa confirmada. O seu rascunho de grupo ainda está aqui. Volte para Hoje e tente novamente.',
+    'A Menta não pode conectar este grupo sem a primeira promessa confirmada. O seu rascunho de grupo ainda está aqui. Volte para Hoje e tente novamente.',
   'groups.create.name_short_detail': 'Use ao menos três caracteres.',
   'groups.create.default_description': 'Um grupo para a sua primeira promessa.',
   'groups.create.cost_unknown_title':
     'Não foi possível confirmar o custo do grupo',
   'groups.create.cost_unknown_detail':
-    'Menta não criou o grupo nem gastou Momenta. Verifique sua ligação e tente novamente.',
+    'A Menta não criou o grupo nem gastou Momenta. Verifique a sua ligação e tente novamente.',
   'groups.create.paused_title': 'Criação de grupo pausada',
   'groups.create.cooldown_detail':
     'Pode criar outro grupo depois que o período de espera atual terminar.',
-  'groups.create.last_group': 'seu último grupo',
+  'groups.create.last_group': 'o seu último grupo',
   'groups.create.cooldown_active.one':
-    '{group} falhou recentemente, então a criação de grupos e entradas são pausadas por mais {hours} hora. Mantenha o ciclo de promessas avançando com um comprovativo individual enquanto o período de espera do grupo termina.',
+    '{group} falhou recentemente, então a criação de grupos e entradas são pausadas por mais {hours} hora. Mantenha o ritmo das promessas com um comprovativo individual enquanto o período de espera do grupo termina.',
   'groups.create.cooldown_active.other':
-    '{group} falhou recentemente, então a criação de grupos e entradas são pausadas por mais {hours} horas. Mantenha o ciclo de promessas avançando com um comprovativo individual enquanto o período de espera do grupo termina.',
+    '{group} falhou recentemente, então a criação de grupos e entradas são pausadas por mais {hours} horas. Mantenha o ritmo das promessas com um comprovativo individual enquanto o período de espera do grupo termina.',
   'groups.create.cooldown_active':
-    '{group} falhou recentemente, então a criação de grupos e entradas estão pausadas por {hours}. Mantenha o ciclo de promessas avançando com um comprovativo individual enquanto o período de espera do grupo termina.',
+    '{group} falhou recentemente, então a criação de grupos e entradas estão pausadas por {hours}. Mantenha o ritmo das promessas com um comprovativo individual enquanto o período de espera do grupo termina.',
   'groups.create.limit_title': 'Limite gratuito atingido',
   'groups.create.limit_detail':
     'O seu rascunho ainda está aqui. Comece o Pro ou libere espaço antes de criar outro grupo.',
@@ -142,15 +141,15 @@ export const fullGroupsPtPT = {
     'Permitir lembretes de análise para este grupo. Os membros ainda controlam as notificações nos seus telemóvels.',
   'groups.create.your_group': 'O seu grupo',
   'groups.create.review_outcome':
-    'Criar o grupo faz de a pessoa o primeiro membro. Ninguém mais entra até que a pessoa envie um convite, e a pessoa pode mudar o nome e as definições depois.',
+    'Ao criar o grupo, torna-se o primeiro membro. Ninguém mais entra até enviar um convite, e pode mudar o nome e as definições depois.',
   'groups.create.back_from_creation': 'Voltar da criação de grupo',
   'groups.create.step': 'Etapa {current} de {total}',
-  'groups.create.nothing_created': 'Ainda nada está sendo criado.',
+  'groups.create.nothing_created': 'Ainda não está a ser criado nada.',
   'groups.create.add_then_invite':
     'Adicione a primeira promessa, depois convide pessoas.',
   'groups.create.creating_detail':
     'Mantenha este ecrã aberto enquanto a Menta cria o grupo.',
-  'groups.create.entries_saved': 'Suas entradas ainda estão neste ecrã.',
+  'groups.create.entries_saved': 'Os seus dados continuam neste ecrã.',
   'groups.create.review_reminders': 'Lembretes de análise',
   'groups.create.who_can_join': 'Quem pode entrar',
   'groups.create.on': 'Ativado',
@@ -159,9 +158,9 @@ export const fullGroupsPtPT = {
   'groups.create.checking_cost': 'A verificar custo atual…',
   'groups.create.free': 'Gratuito',
   'groups.create.draft_saved': 'Rascunho guardado neste telemóvel',
-  'groups.create.restoring_draft': 'Restaurando seu rascunho de grupo',
-  'groups.create.creating': 'Criando {group}',
-  'groups.create.creating_button': 'Criando…',
+  'groups.create.restoring_draft': 'A restaurar o seu rascunho de grupo',
+  'groups.create.creating': 'A criar {group}',
+  'groups.create.creating_button': 'A criar…',
   'groups.create.try_again': 'Tente novamente',
   'groups.create.invite_people': 'Convidar pessoas',
   'groups.create.add_promise': 'Adicionar primeira promessa',
@@ -169,8 +168,8 @@ export const fullGroupsPtPT = {
   'groups.create.go_today': 'Ir para Hoje',
   'groups.create.back': 'Voltar',
   'groups.create.exit_setup': 'Sair da configuração',
-  'groups.create.restoring_button': 'Restaurando rascunho…',
-  'groups.create.creating_label': 'Criando grupo',
+  'groups.create.restoring_button': 'A restaurar o rascunho…',
+  'groups.create.creating_label': 'A criar o grupo',
   'groups.create.review_change': 'Alterar',
   'groups.create.checking_limits': 'A verificar limites do grupo',
   'groups.create.limits_detail':
@@ -208,7 +207,7 @@ export const fullGroupsPtPT = {
   'groups.create.cooldown_detail_group':
     'Pode criar outro grupo depois que o período de espera de {group} terminar.',
   'groups.create.momenta_detail':
-    'Este grupo custa {cost} Momenta e seu saldo é {balance}. O seu rascunho ainda está aqui.',
+    'Este grupo custa {cost} Momenta e o seu saldo é de {balance}. O seu rascunho continua aqui.',
   'groups.create.spend_question': 'Gastar {cost} Momenta?',
   'groups.create.spend_detail':
     'Criar este grupo gasta {cost} Momenta e deixa {balance} no seu saldo.',
@@ -218,15 +217,15 @@ export const fullGroupsPtPT = {
   'groups.create.ready': '{group} está pronto',
   'groups.create.change_label': 'Alterar {label}',
   'groups.create.promise_not_linkable':
-    'A sua promessa original não pode se tornar a promessa deste grupo porque já começou ou foi alterada. O seu rascunho ainda está aqui. Pode voltar depois e criar explicitamente um grupo vazio.',
+    'A sua promessa original não pode passar a ser a promessa deste grupo porque já começou ou foi alterada. O seu rascunho continua aqui. Pode voltar mais tarde e criar um grupo vazio.',
   'groups.create.group_already_confirmed':
     'Este grupo de introdução já foi confirmado com detalhes diferentes. Abra o grupo confirmado ao invés de criar outro.',
   'groups.create.first_group_unavailable':
-    'Este grupo de primeira promessa só está disponível antes de a pessoa criar outro grupo. O seu rascunho ainda está aqui. Pode voltar depois e criar explicitamente um grupo vazio.',
+    'Este grupo de primeira promessa só está disponível antes de criar outro grupo. O seu rascunho continua aqui. Pode voltar mais tarde e criar um grupo vazio.',
   'groups.create.insufficient_momenta':
     'Não tem Momenta suficiente para criar este grupo.',
   'groups.create.link_failed':
-    'Menta não pôde confirmar o grupo e a primeira promessa juntos. O seu rascunho ainda está aqui. Tente novamente.',
+    'A Menta não conseguiu confirmar o grupo e a primeira promessa juntos. O seu rascunho ainda está aqui. Tente novamente.',
   'groups.create.image_move_label': 'Mover',
   'groups.create.image_focus_label': 'Focar',
   'groups.create.image_reset_label': 'Reiniciar',
@@ -235,17 +234,17 @@ export const fullGroupsPtPT = {
   'groups.join.back': 'Voltar',
   'groups.join.loading_title': 'A verificar detalhes da entrada',
   'groups.join.loading_detail':
-    'Estamos a verificar esta promessa e seu saldo atual de Momenta.',
+    'Estamos a verificar esta promessa e o seu saldo atual de Momenta.',
   'groups.join.loading_action': 'A verificar detalhes',
   'groups.join.loading_accessibility':
     'A verificar custo atual da entrada e saldo da carteira',
   'groups.join.review_detail':
-    'Analise o custo e seu saldo. Nada muda até que a pessoa entre.',
+    'Reveja o custo e o seu saldo. Nada muda até entrar.',
   'groups.join.review_title': 'Entrar em {name}?',
   'groups.join.momenta_value': '{amount} Momenta',
   'groups.join.confirmed_title': 'Está em {name}.',
   'groups.join.confirmed_detail':
-    'O seu saldo de Momenta foi atualizado. A sua primeiro comprovativo está pronta neste {destination}.',
+    'O seu saldo de Momenta foi atualizado. O seu primeiro comprovativo está pronto neste {destination}.',
   'groups.join.debit': '−{amount}',
   'groups.join.confirm': 'Entrar com {cost} Momenta',
   'groups.join.maybe_later': 'Talvez depois',
@@ -267,7 +266,7 @@ export const fullGroupsPtPT = {
   'groups.join.first_proof': 'Primeiro comprovativo',
   'groups.join.open_group': 'Abrir grupo',
   'groups.join.open_promise': 'Abrir promessa',
-  'groups.join.check_status_title': 'Precisamos verificar se a pessoa entrou',
+  'groups.join.check_status_title': 'Precisamos de verificar se entrou',
   'groups.join.check_status_detail':
     'A último pedido terminou antes que a Menta recebesse um comprovativo. Não faremos outra entrada até que a associação e o saldo sejam verificados.',
   'groups.join.check_status': 'Verificar estado da entrada',
@@ -282,24 +281,24 @@ export const fullGroupsPtPT = {
   'groups.join.already_title': 'Já está nesta promessa.',
   'groups.join.back_action': 'Voltar',
   'groups.join.boundary':
-    'A sua associação e saldo de Momenta permanecem inalterados até que a Menta confirme a entrada.',
+    'A sua participação e o saldo de Momenta mantêm-se inalterados até a Menta confirmar a entrada.',
   'groups.join.sign_in_before': 'Inicie sessão antes de entrar.',
   'groups.join.no_debit':
     'Nenhuma associação ou débito de Momenta foi efetuado.',
-  'groups.join.incomplete': 'Este ligação de entrada está incompleto.',
+  'groups.join.incomplete': 'Este link de entrada está incompleto.',
   'groups.join.open_current':
-    'Abra uma promessa atual ou peça um novo ligação de convite.',
+    'Abra uma promessa atual ou peça um novo link de convite.',
   'groups.invite.title': 'Convidar pessoas',
   'groups.invite.back_group': 'Voltar ao grupo',
   'groups.invite.loading': 'A carregar convite ativo',
   'groups.invite.missing_group':
     'Este convite está sem grupo. Volte ao grupo e tente novamente.',
   'groups.invite.load_error':
-    'Menta não pôde carregar este convite. Verifique sua ligação e tente novamente.',
-  'groups.invite.copy_link': 'Copiar ligação de convite',
+    'A Menta não conseguiu carregar este convite. Verifique a sua ligação e tente novamente.',
+  'groups.invite.copy_link': 'Copiar link de convite',
   'groups.invite.copy_code': 'Copiar código de convite',
   'groups.invite.copied': 'Copiado',
-  'groups.invite.link_copied': 'ligação de convite copiado.',
+  'groups.invite.link_copied': 'Link de convite copiado.',
   'groups.invite.code_copied': 'Código de convite copiado.',
   'groups.invite.copy_error': 'O convite não foi copiado. Tente novamente.',
   'groups.invite.share': 'partilhar convite',
@@ -308,7 +307,7 @@ export const fullGroupsPtPT = {
   'groups.invite.share_error':
     'A opção de partilha não abriu. Tente novamente.',
   'groups.invite.replace': 'Substituir código de convite',
-  'groups.invite.replace_loading': 'Substituindo…',
+  'groups.invite.replace_loading': 'A substituir…',
   'groups.invite.keep': 'Manter convite atual',
   'groups.invite.new_share': 'partilhar novo convite',
   'groups.invite.replace_question': 'Substituir este convite?',
@@ -329,7 +328,7 @@ export const fullGroupsPtPT = {
   'groups.invite.action_failed': 'Ação de convite falhou',
   'groups.invite.invite_to': 'Convidar pessoas para {group}',
   'groups.invite.intro':
-    'Permita que alguém leia o código QR ou envie o ligação de convite. Eles podem ver o grupo antes de entrar.',
+    'Permita que alguém leia o código QR ou envie o link de convite. Eles podem ver o grupo antes de entrar.',
   'groups.invite.show_qr_full':
     'Exibir QR do convite em ecrã cheia. Convite {code}',
   'groups.invite.active_detail':
@@ -347,9 +346,9 @@ export const fullGroupsPtPT = {
   'groups.invite.replaced_accessibility':
     'Novo convite pronto. O convite anterior não funciona mais.',
   'groups.invite.replace_error':
-    'Menta não pôde confirmar um novo convite. Verifique o código atual antes de partilhá-lo.',
+    'A Menta não conseguiu confirmar um novo convite. Verifique o código atual antes de partilhá-lo.',
   'groups.invite.replace_warning':
-    'O ligação, código QR e código atuais deixarão de funcionar. Pessoas que já entraram permanecem no grupo.',
+    'O link, código QR e código atuais deixarão de funcionar. Pessoas que já entraram permanecem no grupo.',
   'groups.invite.replaced_detail':
     'O convite anterior não funciona mais. Partilhe este código a partir de agora.',
   'groups.preview.close': 'Fechar',
@@ -363,10 +362,10 @@ export const fullGroupsPtPT = {
   'groups.preview.available_after_joining': 'Disponível após entrar',
   'groups.preview.current_streak': 'Sequência atual',
   'groups.preview.no_streak': 'Ainda não há sequência',
-  'groups.preview.joining': 'Entrando...',
+  'groups.preview.joining': 'A entrar...',
   'groups.preview.join': 'Entrar no grupo',
   'groups.preview.join_hint':
-    'Entre neste grupo para participar de suas promessas partilhadas.',
+    'Entre neste grupo para participar nas promessas partilhadas.',
   'groups.preview.view_board': 'Ver painel',
   'groups.preview.view_board_hint':
     'Veja as promessas e membros do grupo antes de entrar.',
@@ -410,9 +409,9 @@ export const fullGroupsPtPT = {
   'groups.admin.group': 'Grupo',
   'groups.admin.ownership': 'Propriedade do grupo',
   'groups.admin.leave': 'Sair do grupo',
-  'groups.admin.remove_account_detail': 'Remover sua conta deste grupo.',
+  'groups.admin.remove_account_detail': 'Remover a sua conta deste grupo.',
   'groups.admin.transfer_unavailable':
-    'Menta ainda não pode transferir a propriedade do grupo.',
+    'A Menta ainda não pode transferir a propriedade do grupo.',
   'groups.admin.delete': 'eliminar grupo',
   'groups.admin.delete_detail':
     'Remover este grupo permanentemente após confirmação.',
@@ -422,9 +421,9 @@ export const fullGroupsPtPT = {
   'groups.admin.settings': 'Definições do grupo',
   'groups.admin.delete_question': 'eliminar grupo?',
   'groups.admin.delete_warning':
-    'Isso exclui permanentemente o grupo, suas promessas partilhadas, histórico de comprovativos e acesso dos membros. Mantenha este ecrã aberto até que Menta confirme o resultado.',
+    'Isto elimina permanentemente o grupo, as promessas partilhadas, o histórico de comprovativos e o acesso de todos os membros. Mantenha este ecrã aberto até a Menta confirmar o resultado.',
   'groups.admin.members_description':
-    'Veja quem pertence a este grupo e qual cargo cada pessoa tem.',
+    'Veja quem pertence a este grupo e que função tem cada pessoa.',
   'groups.admin.members_manage_description':
     'Convidar pessoas ou mudar cargos dos membros.',
   'groups.admin.access': 'Acesso',
@@ -445,7 +444,7 @@ export const fullGroupsPtPT = {
   'groups.admin.member_hint': 'Abre ações do membro.',
   'groups.admin.member_readonly_hint': 'Detalhes do membro em modo leitura.',
   'groups.admin.locked': 'Bloqueado',
-  'groups.admin.updating': 'Atualizando',
+  'groups.admin.updating': 'A atualizar',
   'groups.admin.loading_members': 'A carregar membros',
   'groups.admin.loading_settings': 'A carregar definições do grupo',
   'groups.admin.load_members_error':
@@ -454,7 +453,7 @@ export const fullGroupsPtPT = {
   'groups.admin.member_actions_hint':
     'Abre denúncias. Gestores do grupo também veem ações de cargo e remoção.',
   'groups.admin.open_member_actions': 'Abir ações para {member}',
-  'groups.board.you': 'A pessoa',
+  'groups.board.you': 'Tu',
   'groups.board.member_status_accessibility': '{name}. {status}. {detail}',
   'groups.board.submit_proof': 'Enviar o seu comprovativo',
   'groups.board.loading': 'A carregar painel do grupo',
@@ -468,7 +467,7 @@ export const fullGroupsPtPT = {
     'Verifique antes que o resultado do grupo de hoje seja final.',
   'groups.board.review_proof': 'Analisar comprovativo',
   'groups.board.review_proofs': 'Analisar comprovativos',
-  'groups.board.proof_due': 'Comprovativo devida hoje',
+  'groups.board.proof_due': 'Comprovativo pendente hoje',
   'groups.board.add_proof_deadline':
     'Adicione o seu comprovativo antes de {deadline}.',
   'groups.board.daily_deadline': 'o prazo diário',
@@ -498,54 +497,54 @@ export const fullGroupsPtPT = {
     'A regra de comprovativo final é preservada para referência.',
   'groups.board.proof_history': 'Histórico de comprovativos',
   'groups.board.promise_rules': 'Regras da promessa',
-  'groups.board.saved_board': 'Exibindo o painel guardado do grupo',
+  'groups.board.saved_board': 'A mostrar o painel guardado do grupo',
   'groups.board.saved_status': 'estado guardado',
   'groups.board.saved_approved':
     '{completed} de {total} comprovativos foram aprovadas no painel guardado.',
   'groups.board.saved_proof_missing':
     'O estado do comprovativo de hoje não foi guardado neste telemóvel.',
   'groups.board.stale_detail':
-    'Verifique novamente antes de entrar, sair, enviar comprovativo ou analisá‑la.',
+    'Verifique novamente antes de entrar, sair, enviar um comprovativo ou analisá-lo.',
   'groups.board.stale_notice':
-    '{updated}. Verifique novamente antes de entrar, sair, enviar comprovativo ou analisá‑la.',
+    '{updated}. Verifique novamente antes de entrar, sair, enviar um comprovativo ou analisá-lo.',
   'groups.board.stale_footnote':
     'Ainda pode ler o histórico guardado. Conecte‑se à internet e tente novamente antes de mudar a participação, enviar comprovativo, analisar comprovativo ou enviar lembrete.',
   'groups.board.permission_title': 'Não tem acesso a este grupo',
   'groups.board.offline_title': 'Este grupo não está disponível offline',
   'groups.board.unavailable_title': 'Este grupo não está disponível',
   'groups.board.permission_detail':
-    'A sua conta não pode ler este grupo. Peça a um proprietário um convite atual.',
+    'A sua conta não pode ver este grupo. Peça um convite atual a um proprietário.',
   'groups.board.offline_detail':
     'Não há painel guardado para exibir. Reconecte e tente o grupo ao vivo novamente.',
   'groups.board.unavailable_detail':
     'Pode ter sido removido, arquivado ou Tornado privado.',
   'groups.board.go_groups': 'Ir para Grupos',
   'groups.board.enter_code': 'Inserir outro código',
-  'groups.detail.opening': 'Abrindo painel do grupo',
+  'groups.detail.opening': 'A abrir o painel do grupo',
   'groups.detail.opening_detail':
     'A verificar membros, promessas partilhadas e estado da análise de hoje.',
   'groups.detail.promises': 'Promessas',
   'groups.detail.reviews': 'Análises',
   'groups.detail.window': 'Janela',
   'groups.detail.preparing_promises':
-    'Preparando a faixa de promessa partilhada.',
+    'A preparar a faixa da promessa partilhada.',
   'groups.detail.checking_members':
     'A verificar quem pode enviar e analisar comprovativos.',
   'groups.detail.load_failed': 'Não foi possível carregar o grupo.',
   'groups.detail.unavailable': 'Grupo indisponível',
   'groups.detail.unavailable_detail':
     'Este grupo pode estar arquivado, privado ou indisponível temporariamente.',
-  'groups.detail.what_you_can_do': 'O que a pessoa pode fazer',
+  'groups.detail.what_you_can_do': 'O que pode fazer',
   'groups.detail.what_you_can_do_detail':
     'Tente novamente, volte aos Grupos ou peça ao proprietário do grupo um novo convite.',
   'groups.admin.discard_question': 'Descartar alterações?',
-  'groups.admin.discard_detail': 'Suas edições não foram guardadas.',
-  'groups.admin.keep_editing': 'Continuar editando',
+  'groups.admin.discard_detail': 'As suas alterações não foram guardadas.',
+  'groups.admin.keep_editing': 'Continuar a editar',
   'groups.admin.discard': 'Descartar alterações',
   'groups.admin.cannot_leave': 'Ainda não pode sair deste grupo',
   'groups.admin.leave_question': 'Sair do grupo?',
   'groups.admin.transfer_warning':
-    'Menta ainda não pode transferir a propriedade do grupo. Pode manter o grupo ou excluí‑lo permanentemente. Nada muda até que a pessoa escolha uma ação.',
+    'A Menta ainda não pode transferir a propriedade do grupo. Pode manter o grupo ou eliminá-lo permanentemente. Nada muda até escolher uma ação.',
   'groups.admin.leave_detail':
     'A sua conta permanece no grupo até que a saída seja confirmada.',
   'groups.admin.close': 'Fechar',
@@ -558,7 +557,7 @@ export const fullGroupsPtPT = {
   'groups.admin.demote_detail': '{member} voltará ao acesso de membro normal.',
   'groups.admin.remove_question': 'Remover membro?',
   'groups.admin.remove_warning':
-    '{member} perderá acesso ao grupo. Comprovativos passadas permanecem no histórico, mas ele não poderá enviar ou analisar novas promessas.',
+    '{member} vai perder o acesso ao grupo. Os comprovativos antigos ficam no histórico do grupo, mas não poderá enviar nem analisar novas promessas do grupo.',
   'groups.empty.shared_title': 'Ainda não há promessas partilhadas',
   'groups.empty.shared_detail':
     'Adicione a primeira promessa para que todos saibam o que fazer e quais comprovativos contam.',
@@ -573,12 +572,12 @@ export const fullGroupsPtPT = {
   'groups.join.code_accessibility': 'Código de convite',
   'groups.join.code_placeholder': 'WALK-7K2',
   'groups.join.code_placeholder_long': 'ABCD2345',
-  'groups.join.link_or_code': 'ligação ou código de convite',
+  'groups.join.link_or_code': 'Link ou código de convite',
   'groups.join.find_invite': 'Encontrar convite',
   'groups.join.paste_clipboard': 'Colar da área de transferência',
   'groups.join.checking_invite': 'A verificar convite de grupo',
   'groups.join.not_now': 'Agora não',
-  'groups.join.joining_long': 'Entrando…',
+  'groups.join.joining_long': 'A entrar…',
   'groups.join.continue_sign_in': 'Continuar a sessão',
   'groups.join.retry_preview': 'Repetir pré‑visualização',
   'groups.join.how_it_works': 'Como funciona',
@@ -590,43 +589,43 @@ export const fullGroupsPtPT = {
   'groups.join.scan_mode_detail':
     'Abra a câmara somente quando alguém mostrar o QR do convite.',
   'groups.join.scan_prompt':
-    'Aponte seu telemóvel para o cartaz ou QR do convite.',
+    'Aponte o telemóvel para o cartaz ou código QR do convite.',
   'groups.join.preview_intro':
     'Inserir um código apenas pré‑visualiza o grupo.',
   'groups.join.preview_free':
     'Participar pela primeira vez é gratuito, seja numa promessa ou num grupo. Qualquer custo é mostrado antes de confirmar.',
   'groups.join.preview_paid':
-    'Entrar gasta {cost} Momenta. O seu código só é usado depois que o grupo aceita a pessoa.',
+    'Entrar custa {cost} Momenta. O seu código só é usado depois de o grupo o aceitar.',
   'groups.join.preview_unknown':
-    'O seu código só é usado depois que o grupo aceita a pessoa. Se a entrada custa Momenta, a pessoa verá o valor antes de qualquer gasto.',
+    'O seu código só é usado depois de o grupo o aceitar. Se entrar custar Momenta, vê o valor antes de gastar alguma coisa.',
   'groups.join.preview_free_membership': 'Esta entrada é gratuita.',
   'groups.join.preview_paid_detail':
     'Entrar gasta {cost} Momenta. A pré‑visualização não cobrará nada.',
   'groups.join.preview_unchanged':
-    'Entrar adiciona a pessoa a este grupo. A pré‑visualização não alterou nada.',
+    'Entrar adiciona-o a este grupo. A pré-visualização não alterou nada.',
   'groups.join.scan_qr': 'Ler QR',
   'groups.join.scan_qr_accessibility': 'Ler convite QR',
   'groups.join.paste_code': 'Colar código',
   'groups.join.paste_accessibility': 'Colar código de convite',
   'groups.join.sign_in': 'Entrar para participar',
-  'groups.join.joining': 'Entrando...',
+  'groups.join.joining': 'A entrar...',
   'groups.join.screen_subtitle':
-    'Cole um ligação ou introduza um código. A pessoa verá o grupo antes de entrar.',
+    'Cole um link ou introduza um código. Vai ver o grupo antes de entrar.',
   'groups.join.join_group': 'Entrar no grupo',
   'groups.join.details_toggle_show': 'Mostrar o que acontece após entrar',
   'groups.join.details_toggle_hide': 'Ocultar o que acontece após entrar',
   'groups.join.details_toggle': 'O que acontece quando eu entro?',
   'groups.join.details':
-    'A pessoa verá as promessas do grupo, enviará comprovativos quando um registo for devido e analisará outras comprovativos quando necessário. Um registo conta após um membro aceitar o comprovativo. Comprovativos, sequências e análises permanecem associados ao grupo.',
+    'Vai ver as promessas do grupo, enviar comprovativos quando tiver um registo pendente e analisar outros comprovativos quando for preciso. Um registo conta depois de um membro aceitar o comprovativo. Os comprovativos, as sequências e as análises ficam associados ao grupo.',
   'groups.join.receipt.already': 'Já é membro',
   'groups.join.receipt.joined': 'Grupo adicionado',
   'groups.join.receipt.group_fallback': 'o grupo',
   'groups.join.receipt.already_detail':
-    'Nenhum Momenta gasto. Abra o quadro do grupo para continuar registrando.',
+    'Nenhum Momenta gasto. Abra o quadro do grupo para continuar a registar.',
   'groups.join.receipt.free_detail':
     'Entraste gratuitamente. Abre o grupo para ver as suas promessas.',
   'groups.join.receipt.spent_detail':
-    'A pessoa gastou {cost} Momenta. Abra o grupo para ver as promessas e o primeiro registo.',
+    'Gastou {cost} Momenta. Abra o grupo para ver as promessas e o primeiro registo.',
   'groups.join.receipt.spent_label': 'Momenta gasto',
   'groups.join.receipt.zero': '0 Momenta',
   'groups.join.receipt.spent_value': '{cost} Momenta',
@@ -648,20 +647,19 @@ export const fullGroupsPtPT = {
     'Entrar custa {cost} Momenta. Adicione Momenta suficiente e volte a este convite.',
   'groups.join.promise_invite_found': 'Convite de promessa encontrado',
   'groups.join.promise_invite_detail':
-    'Este convite é de uma promessa, não de um grupo. Menta salvou‑o para que o app possa abri‑lo após entrar.',
+    'Este convite é de uma promessa, não de um grupo. A Menta guardou-o para que a aplicação o possa abrir após entrar.',
   'groups.join.promise_invite_title': 'Este é um convite de promessa',
   'groups.join.promise_invite_saved':
-    'Menta salvou‑o para o fluxo de promessa. Nenhuma entrada em grupo ocorreu.',
+    'A Menta guardou-o para o fluxo da promessa. Não entrou em nenhum grupo.',
   'groups.join.enter_code_title': 'Introduza um código de convite',
   'groups.join.invalid_detail':
     'Verifique o código e tente novamente. Nada mudou.',
-  'groups.join.enter_code_detail':
-    'Cole o ligação ou código do convite do grupo.',
+  'groups.join.enter_code_detail': 'Cole o link ou código do convite do grupo.',
   'groups.join.expired_title': 'Este convite expirou',
   'groups.join.expired_detail': 'Peça ao dono do grupo um convite novo.',
   'groups.join.replaced_title': 'Este convite foi substituído',
   'groups.join.replaced_detail':
-    'Peça ao dono do grupo o ligação ou código mais recente.',
+    'Peça ao dono do grupo o link ou código mais recente.',
   'groups.join.inactive_title': 'Este grupo não está mais ativo',
   'groups.join.inactive_detail':
     'Nenhuma associação foi alterada e nenhum Momenta foi gasto.',
@@ -672,7 +670,7 @@ export const fullGroupsPtPT = {
   'groups.join.preview_unavailable_title':
     'Pré‑visualização do convite indisponível',
   'groups.join.preview_unavailable_detail':
-    'Menta não conseguiu verificar este convite. Nada mudou, então é seguro tentar novamente quando estiver online.',
+    'A Menta não conseguiu verificar este convite. Nada mudou, então é seguro tentar novamente quando estiver online.',
   'groups.join.unavailable_title': 'Este convite não está disponível',
   'groups.join.unavailable_detail': 'Peça ao dono do grupo o convite atual.',
   'groups.join.qr_invalid_title': 'QR não continha convite de grupo',
@@ -684,14 +682,14 @@ export const fullGroupsPtPT = {
   'groups.join.invalid_code_detail':
     'Verifique novamente o código ou leia o QR outra vez.',
   'groups.join.preview_first_title': 'Pré‑visualizar este convite primeiro',
-  'groups.join.preview_first_detail': 'Menta não entrou nem alterou nada.',
-  'groups.join.quota_title': 'A pessoa atingiu o limite de grupos gratuitos',
+  'groups.join.preview_first_detail': 'A Menta não entrou nem alterou nada.',
+  'groups.join.quota_title': 'Atingiu o limite de grupos gratuitos',
   'groups.join.quota_detail':
     'Contas gratuitas podem estar em 2 grupos ativos. Saia de um ou faça upgrade para Pro para entrar neste grupo.',
   'groups.join.momenta_detail':
-    'Entrar gasta {cost} Momenta e seu saldo é {balance}. Ganhe uma recompensa rápida ou use Pro, depois volte imediatamente a este convite.',
+    'Entrar custa {cost} Momenta e o seu saldo é de {balance}. Ganhe uma recompensa rápida ou use o Pro e volte logo a este convite.',
   'groups.join.join_group_title': 'Entrar num grupo',
-  'groups.join.invited_you': '{inviter} convidou a pessoa',
+  'groups.join.invited_you': '{inviter} convidou-o',
   'groups.join.invited_by': 'Convidado por {inviter}',
   'groups.join.how_it_works_detail':
     'Membros postam comprovativo. Outro membro elegível analisa.',
@@ -703,12 +701,11 @@ export const fullGroupsPtPT = {
     'Peça ao dono do grupo um código novo. Nenhum Momenta foi gasto neste convite.',
   'groups.join.outcome_sign_in_title': 'Entre para continuar',
   'groups.join.outcome_sign_in_detail':
-    'O seu convite fica pronto enquanto a pessoa entra, então pode tentar novamente.',
+    'O seu convite fica pronto enquanto inicia sessão e depois pode tentar novamente.',
   'groups.join.outcome_momenta_title': 'Momenta necessário',
   'groups.join.outcome_momenta_detail':
     'Ganhe uma recompensa rápida ou use Pro, depois volte direto a este convite.',
-  'groups.join.outcome_quota_title':
-    'A pessoa atingiu o limite de grupos gratuitos',
+  'groups.join.outcome_quota_title': 'Atingiu o limite de grupos gratuitos',
   'groups.join.outcome_quota_detail':
     'Contas gratuitas podem estar em 2 grupos ativos. Saia de um ou faça upgrade para Pro para entrar neste grupo.',
   'groups.join.outcome_closed_title': 'Grupo encerrado',
@@ -716,65 +713,65 @@ export const fullGroupsPtPT = {
     'Este grupo não está mais ativo. Consulte o dono ou veja outros grupos.',
   'groups.join.outcome_retry_title': 'Entrada não confirmada',
   'groups.join.outcome_retry_detail':
-    'Menta ainda não pôde confirmar sua presença. O seu código continua aqui, então tente novamente quando a ligação voltar.',
+    'A Menta ainda não conseguiu confirmar a sua vaga. O seu código continua aqui, por isso tente novamente quando a ligação voltar.',
   'groups.referral.title': 'Deixe‑os ler para entrar',
   'groups.referral.body':
-    'Peça que leiam este código. Ele abre seu ligação de indicação.',
+    'Peça que leiam este código. Abre o seu link de indicação.',
   'groups.referral.qr_label':
-    'QR de convite de indicação. leia para abrir o ligação do convite.',
+    'QR de convite de indicação. leia para abrir o link do convite.',
   'groups.referral.qr_unavailable':
     'QR indisponível. Ainda pode usar as opções de partilhar ou copiar abaixo.',
-  'groups.referral.qr_preparing': 'Preparando seu código QR…',
+  'groups.referral.qr_preparing': 'A preparar o seu código QR…',
   'groups.redirect.title': 'Entrar',
   'groups.redirect.invite_code': 'Código de convite',
   'groups.redirect.promise_saved': 'Convite de promessa guardado',
   'groups.redirect.promise_subtitle':
-    'A verificar o ligação da promessa e seu estado de sessão.',
+    'A verificar o link da promessa e o seu estado de sessão.',
   'groups.redirect.invite_saved': 'Convite guardado',
   'groups.redirect.promise_detail':
     'A próxima ecrã mostrará o custo de entrada atual antes de qualquer alteração.',
-  'groups.redirect.group_opening': 'Abrindo convite de grupo',
+  'groups.redirect.group_opening': 'A abrir o convite do grupo',
   'groups.redirect.group_subtitle':
-    'A verificar o convite de grupo e seu sessão.',
+    'A verificar o convite do grupo e a sua sessão.',
   'groups.redirect.group_found': 'Convite de grupo encontrado',
   'groups.redirect.group_detail': 'Pode ver o grupo antes de decidir entrar.',
-  'groups.redirect.needs_code': 'ligação de convite precisa de código',
+  'groups.redirect.needs_code': 'Link de convite precisa de código',
   'groups.redirect.needs_code_subtitle':
-    'Este ligação de convite não contém código de grupo ou promessa.',
+    'Este link de convite não contém código de grupo ou promessa.',
   'groups.redirect.missing_code': 'Código de convite ausente',
   'groups.redirect.missing_code_detail':
-    'Pegue um novo ligação de convite ou introduza o código do grupo manualmente.',
-  'groups.redirect.opening': 'Abrindo convite',
+    'Pegue um novo link de convite ou introduza o código do grupo manualmente.',
+  'groups.redirect.opening': 'A abrir o convite',
   'groups.redirect.opening_subtitle':
-    'A verificar o ligação do convite e seu estado de sessão.',
+    'A verificar o link do convite e o seu estado de sessão.',
   'groups.redirect.one_moment': 'Um momento',
-  'groups.redirect.checking': 'Menta está a verificar o código do convite.',
+  'groups.redirect.checking': 'A Menta está a verificar o código do convite.',
   'groups.redirect.enter_group_code': 'Introduza o código do grupo',
   'groups.redirect.without_invite': 'Continuar sem convite',
   'groups.redirect.referral_title': 'Convite',
   'groups.redirect.referral_missing_title':
-    'ligação de indicação precisa de código',
+    'Link de indicação precisa de código',
   'groups.redirect.referral_missing_subtitle':
-    'Este ligação de indicação não contém o código que a Menta precisa.',
+    'Este link de indicação não contém o código que a Menta precisa.',
   'groups.redirect.referral_missing_notice': 'Código de indicação ausente',
   'groups.redirect.referral_missing_detail':
-    'Peça ao seu amigo que reenvie o ligação de convite ou continuar no Menta sem indicação.',
+    'Peça ao seu amigo que reenvie o link de convite ou continue na Menta sem indicação.',
   'groups.redirect.without_referral': 'Continuar sem indicação',
   'groups.redirect.referral_existing_title': 'Indicação é para contas novas',
   'groups.redirect.referral_existing_subtitle':
-    'Esta conta já está configurada, então a Menta não mudará sua indicação.',
+    'Esta conta já está configurada, por isso a Menta não vai alterar a indicação.',
   'groups.redirect.account_ready': 'Conta já configurada',
   'groups.redirect.account_ready_detail':
-    'ligações de indicação valem ao criar uma nova conta Menta. A sua conta atual permanece inalterada.',
+    'Os links de indicação aplicam-se ao criar uma nova conta Menta. A sua conta atual não muda.',
   'groups.redirect.continue_menta': 'Continuar para Menta',
-  'groups.redirect.referral_opening': 'Abrindo indicação',
+  'groups.redirect.referral_opening': 'A abrir a indicação',
   'groups.redirect.referral_opening_subtitle':
-    'Estamos a guardar a indicação e retornando ao Menta.',
+    'A guardar a indicação e a voltar à Menta.',
   'groups.redirect.referral_saved': 'Indicação guardada',
   'groups.redirect.referral_saved_detail':
-    'A indicação foi guardada e ficará visível enquanto a pessoa entrar ou criar sua conta.',
+    'A indicação foi guardada e fica visível enquanto inicia sessão ou cria a sua conta.',
   'groups.redirect.referral_checking':
-    'Menta está a verificar a indicação antes de abrir o app.',
+    'A Menta está a verificar a indicação antes de abrir o app.',
   'groups.detail.archive': 'Arquivar este grupo',
   'groups.detail.archive_detail':
     'Remova da lista ativa e mantenha o histórico.',
@@ -804,9 +801,10 @@ export const fullGroupsPtPT = {
     'Altere o nome, quem pode entrar, convites e controles do dono.',
   'groups.detail.leave': 'Sair do grupo',
   'groups.detail.delete': 'eliminar grupo',
-  'groups.detail.delete_detail': 'Exclui o grupo e seu histórico para todos.',
+  'groups.detail.delete_detail':
+    'Elimina o grupo e o histórico dele para todos.',
   'groups.detail.delete_warning':
-    'Isto exclui permanentemente o grupo, suas promessas partilhadas, histórico de comprovativo e acesso dos membros para todos.',
+    'Isto elimina permanentemente o grupo, as promessas partilhadas, o histórico de comprovativos e o acesso de todos os membros.',
   'groups.detail.cancel': 'Cancelar',
   'groups.detail.sign_in_detail': 'Inicie sessão antes de entrar neste grupo.',
   'groups.detail.joined_title': 'Entrou',
@@ -817,23 +815,23 @@ export const fullGroupsPtPT = {
   'groups.detail.left_detail': 'Não pertence mais a este grupo.',
   'groups.detail.leave_unknown_title': 'Saída não confirmada',
   'groups.detail.leave_unknown_detail':
-    'Menta não pôde confirmar se a pessoa saiu. Volte a Grupos e verifique sua associação antes de tentar novamente.',
+    'A Menta não conseguiu confirmar se saiu. Volte a Grupos e verifique a sua participação antes de tentar novamente.',
   'groups.detail.leave_failed_title': 'Saída não concluída',
   'groups.detail.leave_warning':
-    'A pessoa deixará de aparecer neste grupo e não poderá enviar ou analisar novas promessas do grupo. Comprovativos passadas permanecem no histórico.',
+    'Vai deixar de aparecer neste grupo e não poderá enviar nem analisar novas promessas do grupo. Os comprovativos antigos ficam no histórico.',
   'groups.detail.deleted_title': 'Grupo eliminado',
   'groups.detail.deleted_detail':
-    'O grupo, suas promessas partilhadas e o histórico de comprovativo foram removidos para todos.',
+    'O grupo, as promessas partilhadas e o histórico de comprovativos foram removidos para todos.',
   'groups.detail.delete_unknown_title': 'Eliminação não confirmada',
   'groups.detail.delete_unknown_detail':
-    'Menta não pôde confirmar se o grupo foi eliminado. Volte a Grupos e verifique antes de tentar novamente.',
+    'A Menta não conseguiu confirmar se o grupo foi eliminado. Volte a Grupos e verifique antes de tentar novamente.',
   'groups.detail.delete_failed_title': 'Grupo não eliminado',
   'groups.detail.archive_failed_title': 'Falha ao arquivar',
   'groups.detail.archive_failed_detail':
-    'Menta não pôde arquivar este grupo. O seu histórico e posição na lista ativa não foram alterados. Tente novamente.',
+    'A Menta não conseguiu arquivar este grupo. O seu histórico e posição na lista ativa não foram alterados. Tente novamente.',
   'groups.detail.archived_title': 'Grupo arquivado',
   'groups.detail.archived_detail':
-    'Ele está agora em Grupos Arquivados, e seu histórico ainda está disponível.',
+    'Está agora em Grupos arquivados e o histórico continua disponível.',
   'groups.detail.day_streak': 'Sequência de {count} dias do grupo',
   'groups.detail.open_proof_detail': 'Abra o seu comprovativo neste grupo.',
   'groups.detail.member_board_detail': '{count} pessoas estão neste quadro.',
@@ -842,7 +840,7 @@ export const fullGroupsPtPT = {
     'Adicione a primeira promessa partilhada e depois convide pessoas.',
   'groups.detail.privacy_group': 'Grupo {privacy}',
   'groups.detail.joined_count': '{count} entraram',
-  'groups.detail.invite_ready': 'ligação de convite pronto',
+  'groups.detail.invite_ready': 'Link de convite pronto',
   'groups.detail.nudges_off': 'Lembretes desativados',
   'groups.detail.nudges_on': 'Lembretes ativados',
   'groups.detail.review_prompt_detail':
@@ -854,55 +852,55 @@ export const fullGroupsPtPT = {
   'groups.detail.no_fixed_streak': 'Sem meta fixa de sequência',
   'groups.detail.review_against_promise':
     'Analisar contra a promessa partilhada.',
-  'groups.share.back_you': 'De volta a a pessoa',
+  'groups.share.back_you': 'Voltar ao Perfil',
   'groups.share.invite_someone': 'Convidar alguém',
-  'groups.share.invite_someone_title': 'Convidar alguém para o Menta',
-  'groups.share.preparing': 'Preparando seu convite',
+  'groups.share.invite_someone_title': 'Convidar alguém para a Menta',
+  'groups.share.preparing': 'A preparar o seu convite',
   'groups.share.choose_where': 'Escolha onde partilhar',
   'groups.share.ready_after_return': 'Pronto para partilhar novamente',
   'groups.share.reward_confirmed': '{amount} Momenta adicionados',
-  'groups.share.link_copied': 'ligação copiado',
-  'groups.share.unavailable': 'ligação de convite indisponível',
+  'groups.share.link_copied': 'Link copiado',
+  'groups.share.unavailable': 'Link de convite indisponível',
   'groups.share.ready_detail':
-    'Deixe‑os ler o código ou partilhe seu ligação de indicação.',
+    'Deixe-os ler o código ou partilhe o seu link de indicação.',
   'groups.share.preparing_detail':
-    'O seu convite será aberto quando o ligação estiver pronto.',
+    'O seu convite será aberto quando o link estiver pronto.',
   'groups.share.choose_where_detail':
     'Escolha uma pessoa ou aplicação no menu de partilha do seu telemóvel.',
   'groups.share.returned_detail':
-    'Menta não consegue saber se o ligação foi enviado. Pode partilhá‑lo novamente ou copiá‑lo.',
+    'A Menta não consegue saber se o link foi enviado. Pode partilhá‑lo novamente ou copiá‑lo.',
   'groups.share.copied_detail':
     'Está na área de transferência deste telemóvel. Ainda não foi enviado.',
   'groups.share.unavailable_detail':
-    'O ligação não foi copiado nem aberto. Tente novamente.',
+    'O link não foi copiado nem aberto. Tente novamente.',
   'groups.share.share_hint': 'Abre o menu de partilha do seu telemóvel.',
   'groups.share.share_subtitle': 'Envie por qualquer app',
-  'groups.share.share_link': 'partilhar ligação',
-  'groups.share.copy_hint': 'Copia o ligação de convite para este telemóvel.',
+  'groups.share.share_link': 'partilhar link',
+  'groups.share.copy_hint': 'Copia o link de convite para este telemóvel.',
   'groups.share.copy_subtitle': 'Cole onde desejar',
-  'groups.share.copy_link': 'Copiar ligação',
+  'groups.share.copy_link': 'Copiar link',
   'groups.share.programme': 'Programa de indicação',
   'groups.share.checking_rewards': 'A verificar recompensas de indicação',
   'groups.share.checking_rewards_detail':
-    'Ainda pode partilhar seu ligação ativo enquanto Menta verifica os termos de recompensa atuais.',
+    'Pode continuar a partilhar o seu link ativo enquanto a Menta verifica os termos de recompensa atuais.',
   'groups.share.terms_unavailable': 'Termos de recompensa indisponíveis',
   'groups.share.terms_unavailable_detail':
-    'Ainda pode partilhar seu ligação. Menta mostrará os termos de recompensa quando puder confirmará‑los.',
+    'Pode continuar a partilhar o seu link. A Menta mostra os termos de recompensa quando os puder confirmar.',
   'groups.share.rewards_paused': 'Recompensas pausadas',
   'groups.share.paused_detail':
-    'Ainda pode partilhar seu ligação, mas a Menta não adicionará Momenta de indicação enquanto o programa está pausado.',
+    'Pode continuar a partilhar o seu link, mas a Menta não adiciona Momenta de indicação enquanto o programa estiver em pausa.',
   'groups.share.annual_limit': 'Limite anual',
-  'groups.share.rewards_title': 'Suas recompensas de indicação',
+  'groups.share.rewards_title': 'As suas recompensas de indicação',
   'groups.share.limit_resets': 'Limite reinicia',
   'groups.share.at_midnight': 'Às 00:00 UTC',
-  'groups.share.retry_hint': 'Cria um novo ligação de convite.',
-  'groups.share.preparing_label': 'Preparando convite',
-  'groups.share.preparing_action': 'Preparando convite…',
-  'groups.share.opening_handoff': 'Abrindo menu de partilha',
-  'groups.share.opening_action': 'Abrindo menu de partilha…',
+  'groups.share.retry_hint': 'Cria um novo link de convite.',
+  'groups.share.preparing_label': 'A preparar o convite',
+  'groups.share.preparing_action': 'A preparar o convite…',
+  'groups.share.opening_handoff': 'A abrir o menu de partilha',
+  'groups.share.opening_action': 'A abrir o menu de partilha…',
   'groups.share.share_again': 'partilhar novamente',
   'groups.share.message':
-    'Junte‑se a mim no Menta. Use este ligação e crie sua primeira promessa para concluir a indicação.\n\n{link}',
+    'Junte-se a mim na Menta. Use este link e crie a sua primeira promessa para concluir a indicação.\n\n{link}',
   'groups.join.clipboard_empty': 'Área de transferência vazia',
   'groups.join.clipboard_empty_detail':
     'Copie um código de convite, volte e cole aqui.',
@@ -911,51 +909,51 @@ export const fullGroupsPtPT = {
   'groups.join.check_code': 'Verifique antes de entrar.',
   'groups.join.paste_failed': 'Falha ao colar',
   'groups.join.clipboard_error':
-    'Menta não conseguiu ler sua área de transferência. Introduza o código de convite.',
-  'groups.share.limit_reached': 'A pessoa atingiu seu limite de recompensas',
-  'groups.share.both_earn': 'A pessoas dois podem ganhar {amount} Momenta',
+    'A Menta não conseguiu ler a sua área de transferência. Introduza o código do convite.',
+  'groups.share.limit_reached': 'Atingiu o seu limite de recompensas',
+  'groups.share.both_earn': 'Os dois podem ganhar {amount} Momenta',
   'groups.share.limit_detail':
-    'Usou todas as {limit} recompensas de indicação disponíveis este ano. Um novo membro elegível ainda pode ganhar {amount} Momenta ao usar seu ligação e criar a primeira promessa, enquanto as recompensas estiverem ativas. Pode ganhar novamente a partir de {date}.',
+    'Usou todas as {limit} recompensas de indicação disponíveis este ano. Um novo membro elegível ainda pode ganhar {amount} Momenta ao usar o seu link e criar a primeira promessa, enquanto as recompensas estiverem ativas. Pode voltar a ganhar a partir de {date}.',
   'groups.share.eligible_detail':
-    'Um novo membro elegível usa seu ligação e cria a primeira promessa. Se as recompensas ainda estiverem ativas, cada um ganha {amount} Momenta. Pode ganhar até {limit} recompensas de indicação por ano.',
+    'Um novo membro elegível usa o seu link e cria a primeira promessa. Se as recompensas ainda estiverem ativas, cada um ganha {amount} Momenta. Pode ganhar até {limit} recompensas de indicação por ano.',
   'groups.navigation.no_saved_title': 'Nenhum convite guardado',
   'groups.navigation.no_saved_detail':
-    'Cole um código ou abra um novo ligação de convite.',
+    'Cole um código ou abra um novo link de convite.',
   'groups.navigation.ready_title': 'Convite pronto para verificação',
   'groups.navigation.promise_ready_detail':
-    'Veja a promessa e seus termos de entrada antes de qualquer mudança.',
+    'Veja a promessa e as condições de entrada antes de qualquer alteração.',
   'groups.navigation.group_ready_detail':
     'Veja o grupo antes de decidir entrar.',
   'groups.navigation.invalid_title': 'Convite não é mais válido',
   'groups.navigation.invalid_detail':
-    'O código guardado não pode ser usado. Peça um novo ligação de convite.',
+    'O código guardado não pode ser usado. Peça um novo link de convite.',
   'groups.navigation.cleared_title': 'Convite guardado removido',
-  'groups.navigation.cleared_detail': 'Menta aguardará um novo ligação.',
+  'groups.navigation.cleared_detail': 'A Menta fica à espera de um novo link.',
   'groups.navigation.sign_in_title': 'sessão obrigatório',
   'groups.navigation.sign_in_detail':
     'Inicie sessão antes de abrir este convite.',
   'groups.funding.terms_mismatch':
-    'Menta devolveu termos de entrada para outro desafio.',
+    'A Menta devolveu termos de entrada para outro desafio.',
   'groups.funding.quote_unavailable':
-    'Menta não pôde carregar os termos de entrada.',
+    'A Menta não conseguiu carregar os termos de entrada.',
   'groups.funding.quote_unavailable_detail':
     'Os detalhes da entrada não carregaram. Tente novamente antes de entrar.',
   'groups.funding.already_member':
     'A associação já existe. Nenhum débito ou recibo de entrada foi registado.',
   'groups.funding.receipt_mismatch':
-    'Menta devolveu um recibo de entrada que não corresponde a este pedido.',
+    'A Menta devolveu um recibo de entrada que não corresponde a este pedido.',
   'groups.funding.status_receipt_mismatch':
-    'Menta devolveu um recibo de entrada que não corresponde a esta verificação de estado.',
+    'A Menta devolveu um recibo de entrada que não corresponde a esta verificação de estado.',
   'groups.funding.join_unknown':
-    'Menta não pôde confirmar se a pessoa entrou. Verifique sua associação antes de tentar novamente.',
+    'A Menta não conseguiu confirmar se entrou. Verifique a sua participação antes de tentar novamente.',
   'groups.funding.status_membership_mismatch':
-    'Menta devolveu um estado de associação para outro desafio.',
+    'A Menta devolveu um estado de associação para outro desafio.',
   'groups.funding.status_unknown':
-    'Menta ainda não pôde verificar sua associação. Tente novamente.',
+    'A Menta ainda não conseguiu verificar a sua participação. Tente novamente.',
   'groups.funding.status_unavailable':
-    'Menta ainda não pôde verificar esta entrada.',
+    'A Menta ainda não pôde verificar esta entrada.',
   'groups.funding.member_without_receipt':
-    'A associação está confirmada, mas não há recibo de débito de entrada. Nenhuma cobrança de Momenta está sendo feita.',
+    'A participação está confirmada, mas não há recibo de débito da entrada. Não está a ser cobrado nenhum Momenta.',
   'groups.funding.no_receipt':
     'Nenhuma associação ou recibo de entrada encontrado. Pode reenviar a mesmo pedido com segurança.',
   'groups.source.accountability.saved_group_picker.open_action':
@@ -968,7 +966,7 @@ export const fullGroupsPtPT = {
   'groups.source.accountability.saved_group_picker.load_error_title':
     'Não foi possível carregar os seus grupos',
   'groups.source.accountability.saved_group_picker.load_error_detail':
-    'A sua promessa continua privada. Tente carregar os seus grupos novamente.',
+    'A sua promessa continua privada. Tente carregar novamente os seus grupos.',
   'groups.source.accountability.saved_group_picker.empty_title':
     'Ainda não existem grupos guardados',
   'groups.source.accountability.saved_group_picker.empty_detail':
@@ -1022,16 +1020,31 @@ export const fullGroupsPtPT = {
     '{group} foi criado e inclui agora a sua promessa.',
   'groups.create.promise_link.linking_title': 'A adicionar a sua promessa…',
   'groups.create.promise_link.linking_detail':
-    '{group} está pronto. A Menta está a confirmar a ligação da promessa.',
+    '{group} está pronto. A Menta está a confirmar o link da promessa.',
   'groups.create.promise_link.linking_button': 'A adicionar promessa…',
   'groups.create.promise_link.unknown_title':
-    'Grupo criado. A ligação precisa de ser verificada.',
+    'Grupo criado. O link precisa de ser verificada.',
   'groups.create.promise_link.unknown_detail':
     '{group} está pronto, mas a Menta não confirmou se a promessa foi adicionada. Verifique novamente com o mesmo pedido.',
   'groups.create.promise_link.failed_title':
     'Grupo criado. Promessa não adicionada.',
   'groups.create.promise_link.failed_detail':
     '{group} está pronto e nada foi partilhado. Volte à promessa para escolher o próximo passo.',
-  'groups.create.promise_link.check_again': 'Verificar ligação da promessa',
+  'groups.create.promise_link.check_again': 'Verificar link da promessa',
   'groups.create.promise_link.return_to_promise': 'Voltar à promessa',
+  'groups.share.pass_title': 'Ajudas-me a cumprir?',
+  'groups.share.pass_from': 'De {name}',
+  'groups.share.pitch_title': 'Chama alguém que te vá acompanhar.',
+  'groups.share.pitch_proof':
+    'A pessoa vê o seu comprovativo e confirma com um toque. Demora segundos.',
+  'groups.share.pitch_reward':
+    'Quando a pessoa fizer a primeira promessa, ambos recebem {amount} Momenta.',
+  'groups.share.pitch_link': 'Este link basta para a pessoa entrar.',
+  'groups.share.sent_step_join': 'A pessoa abre e entra na Menta.',
+  'groups.share.sent_step_promise': 'A pessoa faz a primeira promessa.',
+  'groups.share.sent_step_reward':
+    'A pessoa faz a primeira promessa e ambos recebem {amount} Momenta.',
+  'groups.share.you': 'Tu',
+  'groups.share.checker': 'Quem confirma',
+  'groups.share.sent_title': 'Enviaste? Vê o que acontece a seguir.',
 } as const satisfies Partial<Pick<EnglishCatalogue, FullGroupsKey>>;

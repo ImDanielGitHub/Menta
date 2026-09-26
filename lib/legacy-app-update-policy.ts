@@ -19,14 +19,23 @@ export type LegacyUpdateDecision =
       storeUrl: string;
     };
 
-const IOS_STORE_URL = 'https://apps.apple.com/app/id6747362646';
+const IOS_STORE_URL = process.env.EXPO_PUBLIC_IOS_STORE_URL?.trim() ?? '';
 const ANDROID_STORE_URL =
-  'https://play.google.com/store/apps/details?id=com.anekedigitalapps.lockedinpro';
+  process.env.EXPO_PUBLIC_ANDROID_STORE_URL?.trim() ?? '';
 
 const EXEMPT_PATHS = new Set([
   '/auth-required',
   '/login',
   '/email-auth',
+  '/email-confirmation',
+  '/invite-activation',
+  '/join',
+  '/join-group',
+  '/join-promise',
+  '/join-event',
+  '/join-funding',
+  '/group-invite',
+  '/share-invite',
   '/register',
   '/password-recovery',
   '/password-recovery/callback',
@@ -44,10 +53,13 @@ export const shouldPresentLegacyUpdate = (
   if (mode === 'optional') {
     return pathname === '/' || pathname === '/(tabs)';
   }
-  return !EXEMPT_PATHS.has(pathname);
+  return !Array.from(EXEMPT_PATHS).some(
+    path => pathname === path || pathname.startsWith(`${path}/`)
+  );
 };
 
-const parseVersion = (value: string): number[] | null => {
+const parseVersion = (value: unknown): number[] | null => {
+  if (typeof value !== 'string') return null;
   const normalized = value.trim().split('-')[0];
   if (!/^\d+(?:\.\d+){0,3}$/.test(normalized)) return null;
   return normalized.split('.').map(part => Number.parseInt(part, 10));
@@ -80,7 +92,7 @@ export const resolveLegacyUpdateDecision = ({
   platform: LegacyUpdatePlatform;
   row: LegacyPolicyRow | null;
 }): LegacyUpdateDecision => {
-  if (!row || row.schema_version !== 1 || row.release !== '1.9.2') {
+  if (!row || row.schema_version !== 1 || !parseVersion(row.release)) {
     return { status: 'authority_unknown' };
   }
   if (!row.enabled) return { status: 'kill_switch' };
@@ -93,6 +105,9 @@ export const resolveLegacyUpdateDecision = ({
   const storeAvailable =
     platform === 'ios' ? row.ios_store_available : row.android_store_available;
   if (!storeAvailable) return { status: 'authority_unknown' };
+  if (!(platform === 'ios' ? IOS_STORE_URL : ANDROID_STORE_URL)) {
+    return { status: 'authority_unknown' };
+  }
 
   const comparison = compareLegacyAppVersions(currentVersion, minimumVersion);
   if (comparison === null) return { status: 'authority_unknown' };

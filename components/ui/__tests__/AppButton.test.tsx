@@ -42,6 +42,11 @@ describe('AppButton', () => {
     fireEvent.press(button);
     expect(onPress).toHaveBeenCalledTimes(1);
     expect(emitHaptic).not.toHaveBeenCalled();
+
+    // A filled action gives one light tap as the finger lands.
+    fireEvent(button, 'pressIn');
+    expect(emitHaptic).toHaveBeenCalledTimes(1);
+    expect(emitHaptic).toHaveBeenCalledWith({ type: 'press' });
   });
 
   it('inherits a measurable viewport text envelope', () => {
@@ -71,9 +76,12 @@ describe('AppButton', () => {
       />
     );
 
+    fireEvent(screen.getByTestId('replace-invite-haptic'), 'pressIn');
     fireEvent.press(screen.getByTestId('replace-invite-haptic'));
 
     expect(onPress).toHaveBeenCalledTimes(1);
+    // The chosen intent replaces the touch-down tap rather than doubling it.
+    expect(emitHaptic).toHaveBeenCalledTimes(1);
     expect(emitHaptic).toHaveBeenCalledWith({ type: 'warning' });
   });
 

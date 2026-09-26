@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import {
   Pressable,
   RefreshControl,
@@ -38,7 +38,9 @@ type IpadEventsWorkspaceProps = {
   authoredLabel: string;
   upcomingLabel: string;
   onRefresh: () => void;
+  onSelectedKeyChange: (key: string) => void;
   refreshing: boolean;
+  selectedKey: string | null;
 };
 
 const EventRow = ({
@@ -79,11 +81,10 @@ export function IpadEventsWorkspace({
   authoredLabel,
   upcomingLabel,
   onRefresh,
+  onSelectedKeyChange,
   refreshing,
+  selectedKey,
 }: IpadEventsWorkspaceProps) {
-  const [selectedKey, setSelectedKey] = useState<string | null>(
-    items[0]?.key ?? null
-  );
   const selectedItem = useMemo(
     () => items.find(item => item.key === selectedKey) ?? items[0] ?? null,
     [items, selectedKey]
@@ -116,7 +117,7 @@ export function IpadEventsWorkspace({
                 <EventRow
                   item={item}
                   key={item.key}
-                  onSelect={() => setSelectedKey(item.key)}
+                  onSelect={() => onSelectedKeyChange(item.key)}
                   selected={selectedItem.key === item.key}
                 />
               ))}
@@ -130,7 +131,7 @@ export function IpadEventsWorkspace({
                 <EventRow
                   item={item}
                   key={item.key}
-                  onSelect={() => setSelectedKey(item.key)}
+                  onSelect={() => onSelectedKeyChange(item.key)}
                   selected={selectedItem.key === item.key}
                 />
               ))}
@@ -193,7 +194,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     flex: 1,
     gap: 0,
-    minHeight: 560,
+    minHeight: 0,
     overflow: 'hidden',
   },
   masterPane: {

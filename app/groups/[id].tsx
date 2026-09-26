@@ -39,6 +39,7 @@ import {
 } from '@/components/ui/icons';
 import {
   mentaColors,
+  mentaHeadingRoles,
   mentaLayout,
   mentaRadii,
   mentaSpacing,
@@ -1452,15 +1453,6 @@ const styles = StyleSheet.create({
   failedActions: {
     gap: mentaSpacing[3],
   },
-  centered: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: mentaSpacing[3],
-  },
-  centeredText: {
-    fontSize: 14,
-  },
   loadingBoard: {
     gap: mentaSpacing[3],
     borderWidth: StyleSheet.hairlineWidth,
@@ -1482,12 +1474,12 @@ const styles = StyleSheet.create({
   loadingRowIcon: {
     width: 34,
     height: 34,
-    borderRadius: 17,
+    borderRadius: mentaRadii.round,
   },
   loadingAvatar: {
     width: 34,
     height: 34,
-    borderRadius: 17,
+    borderRadius: mentaRadii.round,
   },
   loadingRowCopy: {
     flex: 1,
@@ -1503,28 +1495,6 @@ const styles = StyleSheet.create({
   description: {
     ...mentaTypography.body,
   },
-  reviewPrompt: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    gap: 16,
-    paddingVertical: mentaSpacing[4],
-  },
-  reviewPromptCopy: {
-    flex: 1,
-    minWidth: 0,
-    gap: 6,
-  },
-  reviewPromptTitle: {
-    ...mentaTypography.title,
-  },
-  reviewPromptBody: {
-    ...mentaTypography.body,
-  },
-  reviewPromptActions: {
-    gap: 10,
-  },
   createdReceipt: {
     gap: 16,
     borderWidth: StyleSheet.hairlineWidth,
@@ -1539,7 +1509,7 @@ const styles = StyleSheet.create({
   createdReceiptIcon: {
     width: 34,
     height: 34,
-    borderRadius: 17,
+    borderRadius: mentaRadii.round,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: mentaColors.paper,
@@ -1555,52 +1525,6 @@ const styles = StyleSheet.create({
   createdReceiptBody: {
     ...mentaTypography.body,
   },
-  createdReceiptBoard: {
-    gap: 10,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 18,
-    padding: 14,
-  },
-  createdReceiptBoardHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  createdReceiptBoardCopy: {
-    flex: 1,
-    minWidth: 0,
-    gap: 3,
-  },
-  createdReceiptBoardTitle: {
-    fontSize: 16,
-    lineHeight: 20,
-    fontWeight: '700',
-  },
-  createdReceiptBoardMeta: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  createdReceiptBoardMetaStrong: {
-    fontSize: 13,
-    lineHeight: 18,
-    fontWeight: '700',
-  },
-  createdReceiptJoined: {
-    flexShrink: 0,
-    fontSize: 13,
-    lineHeight: 18,
-    fontWeight: '700',
-  },
-  createdReceiptMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  createdReceiptActions: {
-    gap: 10,
-  },
   createdReceiptSecondaryActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1615,14 +1539,11 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   actionNoticeTitle: {
-    fontSize: 14,
-    lineHeight: 19,
-    fontWeight: '700',
+    ...mentaTypography.bodySmallMedium,
   },
   actionNoticeMessage: {
-    marginTop: 2,
-    fontSize: 13,
-    lineHeight: 18,
+    ...mentaTypography.caption,
+    marginTop: mentaSpacing[1],
   },
   metric: {
     flex: 1,
@@ -1630,101 +1551,19 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     paddingVertical: 14,
   },
-  metricValue: {
-    ...mentaTypography.control,
-  },
   metricLabel: {
     marginTop: 4,
     ...mentaTypography.micro,
   },
   sheetTitle: {
-    fontSize: 24,
-    lineHeight: 30,
-    fontWeight: '700',
-  },
-  sheetHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: 12,
-  },
-  inviteEyebrow: {
-    marginTop: 2,
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: '800',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
+    ...mentaHeadingRoles.section,
   },
   sheetBody: {
-    marginTop: 8,
-    fontSize: 15,
-    lineHeight: 21,
-  },
-  inviteCard: {
-    marginTop: 18,
-    borderWidth: 1,
-    borderRadius: 18,
-    padding: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-  },
-  inviteQrSlot: {
-    width: 126,
-    flexShrink: 0,
-  },
-  inviteQrPlaceholder: {
-    width: 126,
-    height: 126,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  inviteQrPlaceholderText: {
-    fontSize: 16,
-    lineHeight: 22,
-    fontWeight: '800',
-    letterSpacing: 1,
-  },
-  inviteCardCopy: {
-    flex: 1,
-    minWidth: 0,
-    gap: 8,
-  },
-  inviteCodeLabel: {
-    fontSize: 11,
-    lineHeight: 14,
-    fontWeight: '800',
-    letterSpacing: 1.1,
-    textTransform: 'uppercase',
-  },
-  inviteText: {
-    fontSize: 28,
-    lineHeight: 34,
-    fontWeight: '800',
-    letterSpacing: 2,
-  },
-  inviteCardNote: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  sheetActionsRow: {
-    marginTop: 18,
-    flexDirection: 'row',
-    gap: 10,
+    ...mentaTypography.bodySmall,
+    marginTop: mentaSpacing[2],
   },
   leaveSheetActions: {
-    gap: 10,
-    marginTop: 18,
-  },
-  sheetActionButton: {
-    flex: 1,
-  },
-  inviteFooter: {
-    marginTop: 12,
-    fontSize: 12,
-    lineHeight: 17,
-    textAlign: 'center',
+    gap: mentaSpacing[3],
+    marginTop: mentaSpacing[5],
   },
 });

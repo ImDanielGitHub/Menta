@@ -29,18 +29,14 @@ describe('legacy app update policy', () => {
     expect(compareLegacyAppVersions('unknown', '1.9.2')).toBeNull();
   });
 
-  it('requires the iOS update only when fresh public authority enables it', () => {
+  it('leaves public installations open without their own iOS store link', () => {
     expect(
       resolveLegacyUpdateDecision({
         currentVersion: '1.9.0',
         platform: 'ios',
         row: policy(),
       })
-    ).toMatchObject({
-      status: 'offer',
-      mode: 'required',
-      minimumVersion: '1.9.2',
-    });
+    ).toEqual({ status: 'authority_unknown' });
 
     expect(
       resolveLegacyUpdateDecision({
@@ -48,7 +44,7 @@ describe('legacy app update policy', () => {
         platform: 'ios',
         row: policy(),
       })
-    ).toEqual({ status: 'current' });
+    ).toEqual({ status: 'authority_unknown' });
   });
 
   it('fails open for missing, disabled, malformed or unavailable authority', () => {
@@ -91,5 +87,45 @@ describe('legacy app update policy', () => {
       false
     );
     expect(shouldPresentLegacyUpdate('/support', 'required')).toBe(false);
+  });
+
+  it.each([
+    '/email-confirmation',
+    '/email-confirmation/callback',
+    '/invite-activation',
+    '/join',
+    '/join-group',
+    '/join-event',
+    '/join-promise',
+    '/join-funding',
+    '/group-invite',
+    '/share-invite',
+    '/password-recovery/callback',
+    '/onboarding',
+  ])('keeps %s reachable during a mandatory native update', pathname => {
+    expect(shouldPresentLegacyUpdate(pathname, 'required')).toBe(false);
+  });
+
+  it.each(['1.9.2', '1.9.5'])(
+    'accepts a 1.9.5 minimum with compatible or current release metadata %s',
+    release => {
+      expect(
+        resolveLegacyUpdateDecision({
+          currentVersion: '1.9.4',
+          platform: 'ios',
+          row: policy({ release, ios_minimum_version: '1.9.5' }),
+        })
+      ).toEqual({ status: 'authority_unknown' });
+    }
+  );
+
+  it('rejects invalid release metadata instead of inventing an update requirement', () => {
+    expect(
+      resolveLegacyUpdateDecision({
+        currentVersion: '1.9.4',
+        platform: 'ios',
+        row: policy({ release: 'next release', ios_minimum_version: '1.9.5' }),
+      })
+    ).toEqual({ status: 'authority_unknown' });
   });
 });

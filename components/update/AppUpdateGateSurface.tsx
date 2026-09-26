@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppScaledText as Text } from '@/components/ui/AppScaledText';
 import { ExternalLinkIcon, RefreshCcwIcon } from '@/components/ui/icons';
-import ModalCard from '@/components/ui/modal/ModalCard';
+import Modal from '@/components/ui/modal/ModalCard';
 import {
   mentaColors,
   mentaRadii,
@@ -25,6 +25,7 @@ type AppUpdateGateSurfaceProps = {
   onGetHelp: () => void;
   onUpdate: () => void;
   visible: boolean;
+  storeOpenFailed?: boolean;
 };
 
 export const AppUpdateGateSurface = ({
@@ -36,6 +37,7 @@ export const AppUpdateGateSurface = ({
   onGetHelp,
   onUpdate,
   visible,
+  storeOpenFailed = false,
 }: AppUpdateGateSurfaceProps) => {
   const { width } = useWindowDimensions();
   const { t } = useTranslation();
@@ -46,7 +48,7 @@ export const AppUpdateGateSurface = ({
   const required = mode === 'required';
 
   return (
-    <ModalCard
+    <Modal
       accessibilityLabel={
         required
           ? t('shared.accessibility.updateRequired')
@@ -83,7 +85,7 @@ export const AppUpdateGateSurface = ({
               <Text accessibilityRole="header" style={styles.title}>
                 {required
                   ? t('shared.update.required.title')
-                  : t('shared.update.optional.title')}
+                  : t('sourceGate.legacyUpdate.titleAvailable')}
               </Text>
               <Text style={styles.body}>
                 {required
@@ -114,6 +116,15 @@ export const AppUpdateGateSurface = ({
             </View>
 
             <View style={styles.actions}>
+              {storeOpenFailed ? (
+                <Text
+                  accessibilityRole="alert"
+                  style={styles.body}
+                  testID="app-update-store-error"
+                >
+                  {t('shared.error.generic.title')}
+                </Text>
+              ) : null}
               <AppButton
                 accessibilityHint={t('shared.update.openStoreHint')}
                 fullWidth
@@ -127,7 +138,11 @@ export const AppUpdateGateSurface = ({
                 onPress={onUpdate}
                 size="large"
                 testID="app-update-open-store"
-                title={t('shared.update.update')}
+                title={
+                  storeOpenFailed
+                    ? t('shared.action.tryAgain')
+                    : t('shared.update.update')
+                }
               />
               {required ? (
                 <AppButton
@@ -152,7 +167,7 @@ export const AppUpdateGateSurface = ({
           </View>
         </View>
       </SafeAreaView>
-    </ModalCard>
+    </Modal>
   );
 };
 

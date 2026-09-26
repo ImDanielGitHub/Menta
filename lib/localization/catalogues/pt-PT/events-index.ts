@@ -14,7 +14,7 @@ export const eventsIndexPtPT = {
   'events.index.visibility.unlisted': 'Não listado',
   'events.index.visibility.public': 'Público',
   'events.index.error.organiser_detail':
-    'A Menta não conseguiu carregar suas ferramentas de organização guardadas.',
+    'A Menta não conseguiu carregar as suas ferramentas de organização guardadas.',
   'events.index.back': 'Voltar',
   'events.index.title': 'Eventos',
   'events.index.create_hint': 'Abre o formulário para criar um evento.',
@@ -25,11 +25,11 @@ export const eventsIndexPtPT = {
   'events.index.error.refresh_detail':
     'A Menta não conseguiu carregar os próximos eventos. Tente novamente.',
   'events.index.error.organiser_title':
-    'Não foi possível carregar suas ferramentas de organização',
-  'events.index.yours': 'Seus eventos',
+    'Não foi possível carregar as suas ferramentas de organização',
+  'events.index.yours': 'Os seus eventos',
   'events.index.organiser_open': 'Abrir passe de organização de {event}',
   'events.index.organiser_hint':
-    'Abre o ligação do evento e o código de entrada do organizador guardados neste telemóvel',
+    'Abre o link do evento e o código de entrada do organizador guardados neste telemóvel',
   'events.index.organiser_meta': '{visibility} · Passe de organização',
   'events.index.empty_title': 'Nenhum evento próximo',
   'events.index.empty_detail': 'Os eventos públicos aparecerão aqui.',

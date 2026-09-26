@@ -230,12 +230,6 @@
 	<key>NSPrivacyTrackingDomains</key>
 	<array>
 		<string>ep1.facebook.com</string>
-		<string>ep2.facebook.com</string>
-		<string>ep3.facebook.com</string>
-		<string>ep4.facebook.com</string>
-		<string>ep5.facebook.com</string>
-		<string>ep6.facebook.com</string>
-		<string>ep7.facebook.com</string>
 	</array>
 </dict>
 </plist>

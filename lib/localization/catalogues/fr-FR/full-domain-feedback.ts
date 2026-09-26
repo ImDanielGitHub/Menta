@@ -23,299 +23,300 @@ export const fullDomainFeedbackFrFR = {
     'Échec de la vérification. Réessayez ou contactez le support.',
   'domain.error.database':
     'Problème de synchronisation des données. Réessayez dans un instant.',
-  'domain.error.challenge':
-    'Problème d’état de la promesse. Actualisez et réessayez.',
+  'domain.error.challenge': 'Problème d’état du défi. Actualisez et réessayez.',
   'domain.error.group': 'L’action du groupe a échoué. Réessayez.',
   'domain.error.unknown': 'Un problème est survenu. Réessayez.',
   'domain.error.title.network': 'Erreur de connexion',
   'domain.error.title.authentication': 'Authentification nécessaire',
-  'domain.error.title.permission': 'Nécessite autorisation',
+  'domain.error.title.permission': 'Autorisation requise',
   'domain.error.title.validation': 'Entrée invalide',
   'domain.error.title.camera': 'Erreur de caméra',
-  'domain.error.title.upload': 'Erreur de téléchargement',
-  'domain.error.title.submission': 'Erreur de soumission',
+  'domain.error.title.upload': 'Échec de l’envoi',
+  'domain.error.title.submission': 'Échec de l’envoi',
   'domain.error.title.review': 'Erreur de vérification',
   'domain.error.title.database': 'Erreur de synchronisation',
-  'domain.error.title.challenge': 'Erreur de test',
+  'domain.error.title.challenge': 'Erreur de défi',
   'domain.error.title.group': 'Erreur de groupe',
   'domain.error.title.unknown': 'Erreur',
-  'domain.error.connection_tips': 'Suggestions pour les connexions',
+  'domain.error.connection_tips': 'Conseils de connexion',
   'domain.error.connection_tips_body':
-    'Essayez de changer entre une connexion Wi-Fi et une connexion mobile ou de vous déplacer dans une zone avec une meilleure signal.',
+    'Essayez de passer du Wi-Fi aux données mobiles, ou déplacez-vous vers un endroit où le signal est meilleur.',
   'domain.error.camera_permissions': 'Autorisations de la caméra',
   'domain.error.camera_permissions_body':
-    "Assurez-vous que Menta a la autorisation d'accès à la caméra dans les réglages de votre appareil.",
-  'domain.action.try_again': 'Réessayez',
-  'domain.action.check_connection': 'Vérifiez votre connexion',
+    'Assurez-vous que Menta a accès à la caméra dans les réglages de votre appareil.',
+  'domain.action.try_again': 'Réessayer',
+  'domain.action.check_connection': 'Vérifier la connexion',
   'domain.action.log_in': 'Se connecter',
-  'domain.action.grant_permissions': 'Grant Autorisations',
-  'domain.action.open_settings': 'Ouvrir Réglages',
-  'domain.action.check_permissions': 'Vérifiez les autorisations',
-  'domain.action.save_draft': 'Enregistrer le document',
+  'domain.action.grant_permissions': 'Accorder les autorisations',
+  'domain.action.open_settings': 'Ouvrir les réglages',
+  'domain.action.check_permissions': 'Vérifier les autorisations',
+  'domain.action.save_draft': 'Enregistrer le brouillon',
   'domain.action.retry_submission': 'Réessayer l’envoi',
   'domain.action.save_for_later': 'Enregistrer pour plus tard',
   'domain.challenge.proof_default.fitness.photo':
-    'Présentez pendant ou après votre entraînement une photo montrant ce que vous avez fait.',
+    'Prenez une photo pendant ou après votre séance qui montre ce que vous avez fait.',
   'domain.challenge.proof_default.fitness.video':
-    'Enregistrez un court morceau de vidéo d’une pratique que vous avez terminée.',
+    'Enregistrez une courte vidéo de la séance que vous avez terminée.',
   'domain.challenge.proof_default.fitness.text':
-    'Écrivez ce que vous avez fait de l’exercice et pour combien de temps.',
+    'Écrivez quel exercice vous avez fait et pendant combien de temps.',
   'domain.challenge.proof_default.fitness.none':
     'Marquez l’entraînement comme terminé après l’avoir fini. Aucun envoi n’est requis.',
   'domain.challenge.proof_default.mindfulness.photo':
-    'Présentez une photo de la pièce ou de la configuration que vous avez utilisée pour la pratique.',
+    'Prenez une photo de l’endroit ou de l’installation utilisés pour votre pratique.',
   'domain.challenge.proof_default.mindfulness.video':
-    'Enregistrez une réflexion courte sur la pratique que vous avez terminée.',
+    'Enregistrez une courte réflexion sur la pratique que vous avez terminée.',
   'domain.challenge.proof_default.mindfulness.text':
-    'Écrivez ce que vous avez fait de la pratique et pour combien de temps.',
+    'Écrivez quelle pratique vous avez faite et pendant combien de temps.',
   'domain.challenge.proof_default.mindfulness.none':
     'Marquez la pratique comme terminée après l’avoir finie. Aucun envoi n’est requis.',
   'domain.challenge.proof_default.learning.photo':
-    'Présentez une photo de vos notes, de livre ou de travail que vous avez terminé.',
+    'Prenez une photo des notes, du livre ou du travail que vous avez terminés.',
   'domain.challenge.proof_default.learning.video':
-    'Enregistrez un court morceau de vidéo expliquant ce que vous avez appris.',
+    'Enregistrez une courte vidéo où vous expliquez ce que vous avez appris.',
   'domain.challenge.proof_default.learning.text':
-    'Écrivez ce que vous avez étudié et une chose que vous avez appris.',
+    'Écrivez ce que vous avez étudié et une chose que vous avez apprise.',
   'domain.challenge.proof_default.learning.none':
     'Marquez la séance d’étude comme terminée après l’avoir finie. Aucun envoi n’est requis.',
   'domain.challenge.proof_default.productivity.photo':
-    'Pose une photo de votre travail terminé ou de votre liste de tâches terminées.',
+    'Prenez une photo du travail terminé ou de la liste de tâches accomplies.',
   'domain.challenge.proof_default.productivity.video':
     'Enregistrez une courte vidéo montrant votre travail terminé.',
   'domain.challenge.proof_default.productivity.text':
-    'Écrivez quelle tâche vous avez terminé.',
+    'Écrivez quelles tâches vous avez terminées.',
   'domain.challenge.proof_default.productivity.none':
     'Marquez les tâches comme terminées après les avoir finies. Aucun envoi n’est requis.',
   'domain.challenge.proof_default.health.photo':
-    "Pose une photo qui montre la chose que vous avez fait ou que vous avez choisie aujourd'hui.",
+    'Prenez une photo qui montre le choix sain que vous avez fait.',
   'domain.challenge.proof_default.health.video':
-    "Enregistrez une courte vidéo décrivant la chose que vous avez fait ou que vous avez choisie aujourd'hui.",
+    'Enregistrez une courte vidéo où vous décrivez le choix sain que vous avez fait.',
   'domain.challenge.proof_default.health.text':
-    "Écrivez ce que vous avez fait aujourd'hui.",
+    'Écrivez quel choix sain vous avez fait aujourd’hui.',
   'domain.challenge.proof_default.health.none':
-    'Marquez le choix santé comme terminé après l’avoir fait. Aucun envoi n’est requis.',
+    'Marquez le choix sain comme accompli une fois fait. Aucun envoi n’est requis.',
   'domain.challenge.proof_default.creativity.photo':
-    "Pose une photo de ce que vous avez fait ou de la manière dont vous l'avez accompli.",
+    'Prenez une photo de ce que vous avez créé ou de votre façon de faire.',
   'domain.challenge.proof_default.creativity.video':
-    'Enregistrez une courte vidéo de votre processus ou de votre travail terminé.',
+    'Enregistrez une courte vidéo de votre démarche ou de votre travail terminé.',
   'domain.challenge.proof_default.creativity.text':
-    "Écrivez ce que vous avez fait et comment vous l'avez accompli.",
+    'Écrivez ce que vous avez créé et comment vous y avez travaillé.',
   'domain.challenge.proof_default.creativity.none':
     'Marquez le travail créatif comme terminé après l’avoir fini. Aucun envoi n’est requis.',
   'domain.challenge.proof_default.social.photo':
-    'Ouvrez une photo de votre temps passé ensemble.',
+    'Si tout le monde est d’accord, prenez une photo du moment passé ensemble.',
   'domain.challenge.proof_default.social.video':
-    'Entrez une courte réflexion personnelle sur les moments passés ensemble.',
+    'Enregistrez une courte réflexion personnelle sur le moment passé ensemble.',
   'domain.challenge.proof_default.social.text':
-    'Écrivez qui vous avez passé de temps et ce qui vous avez fait ensemble.',
+    'Écrivez avec qui vous avez passé du temps et ce que vous avez fait ensemble.',
   'domain.challenge.proof_default.social.none':
     'Marquez la promesse sociale comme terminée après l’avoir tenue. Aucun envoi n’est requis.',
   'domain.challenge.proof_default.fallback.photo':
-    'Ouvrez une photo qui montre que votre promesse sociale a été achevée.',
+    'Prenez une photo qui montre que la promesse du jour est tenue.',
   'domain.challenge.proof_default.fallback.video':
-    'Faites valider votre clip vidéo qui montre que votre promesse sociale a été achevée.',
+    'Enregistrez une courte vidéo qui montre que la promesse du jour est tenue.',
   'domain.challenge.proof_default.fallback.text':
     "Écrivez ce que vous avez accompli aujourd'hui.",
   'domain.challenge.proof_default.fallback.none':
     'Marquez la promesse d’aujourd’hui comme terminée après l’avoir tenue. Aucun envoi n’est requis.',
   'domain.auth.user_not_authenticated': 'Utilisateur non authentifié',
-  'domain.auth.session_validation_failed': 'Validation du session non valide',
+  'domain.auth.session_validation_failed':
+    'La validation de la session a échoué',
   'domain.auth.no_valid_session': 'Aucune session valide trouvée',
-  'domain.auth.user_id_mismatch': 'Une ID utilisateur ne correspond pas',
-  'domain.auth.validation_failed': "Validation d'authentification échouée",
+  'domain.auth.user_id_mismatch': 'L’ID utilisateur ne correspond pas',
+  'domain.auth.validation_failed':
+    'La validation de l’authentification a échoué',
   'domain.auth.authentication_required': 'Authentification requise',
   'domain.monitoring.login_again': 'Veuillez vous reconnecter pour continuer',
   'domain.monitoring.more_momenta':
     'Vous avez besoin de plus de Momenta pour terminer cette action',
   'domain.monitoring.network':
-    'Erreur réseau. Veuillez vérifier votre connexion et essayer à nouveau',
-  'domain.monitoring.duration_range': 'La durée doit être entre 1 et 365 jours',
-  'domain.monitoring.name_range': 'Le nom doit être entre 3 et 50 caractères',
+    'Erreur réseau. Vérifiez votre connexion et réessayez',
+  'domain.monitoring.duration_range':
+    'La durée doit être comprise entre 1 et 365 jours',
+  'domain.monitoring.name_range':
+    'Le nom doit comporter entre 3 et 50 caractères',
   'domain.monitoring.invalid_values':
-    'Une ou plusieurs valeurs ne répondent pas aux exigences. Vérifiez vos entrées',
+    'Une ou plusieurs valeurs ne respectent pas les exigences. Vérifiez vos saisies.',
   'domain.monitoring.group_name_exists':
-    'Un groupe avec ce nom existe déjà. Choisissez un nom différent',
+    'Un groupe porte déjà ce nom. Choisissez-en un autre.',
   'domain.monitoring.invite_code_exists':
-    "Ce code d'invitation est déjà utilisé. Veuillez essayez de nouveau",
+    'Ce code d’invitation est déjà utilisé. Réessayez.',
   'domain.monitoring.already_exists':
-    'Cette valeur existe déjà. Essayez une autre valeur',
+    'Cette valeur existe déjà. Essayez-en une autre.',
   'domain.monitoring.referenced_item_missing':
-    "L'article requis n'existe plus. Veuillez accéder à la fonctionnalité.",
+    'L’élément concerné n’existe plus. Actualisez et réessayez.',
   'domain.monitoring.required_missing':
-    'Les informations requises ne sont pas disponibles. Veuillez remplir toutes les cases.',
-  'domain.monitoring.access_denied':
-    "Vous n'avez pas accès à cette action. Veuillez vérifier.",
+    'Des informations obligatoires manquent. Remplissez tous les champs.',
+  'domain.monitoring.access_denied': 'Vous n’avez pas accès à cette action.',
   'domain.monitoring.permission_denied':
-    "Vous n'êtes pas autorisé à effectuer cette action. Veuillez vérifier les réglages.",
+    'Vous n’êtes pas autorisé à effectuer cette action.',
   'domain.monitoring.rate_limited':
-    'Vous faites ça de manière trop rapide. Veuillez patienter une seconde et réessayez.',
+    'Vous allez trop vite. Patientez un instant et réessayez.',
   'domain.monitoring.usage_limit':
-    'Vous avez atteint votre limite de utilisation. Démarrer Pro pour plus de promesses et de groupes, ainsi que des abonnements mensuels Momenta.',
-  'domain.monitoring.generic':
-    "Une erreur technique s'est produite. Veuillez réessayer.",
+    'Vous avez atteint votre limite d’utilisation. Passez à Pro pour plus de promesses et de groupes, et des Momenta chaque mois.',
+  'domain.monitoring.generic': 'Un problème est survenu. Réessayez',
   'domain.network.no_connection':
-    "Il n'y a pas de connexion Internet. Veuillez vérifier votre réseau et réessayez.",
-  'domain.network.request_timed_out': 'Request timeout. Veuillez réessayer.',
+    'Pas de connexion Internet. Vérifiez votre réseau et réessayez.',
+  'domain.network.request_timed_out': 'Délai de la requête dépassé. Réessayez.',
   'domain.network.error':
-    'Erreur de connexion réseau. Veuillez vérifier votre connexion.',
-  'domain.network.try_later':
-    'Erreur de connexion réseau. Veuillez réessayer plus tard.',
+    'Une erreur réseau est survenue. Vérifiez votre connexion.',
+  'domain.network.try_later': 'Erreur réseau. Réessayez plus tard.',
   'domain.network.service_unavailable':
-    'Le service est actuellement indisponible. Veuillez réessayer dans un court-temps.',
+    'Le service est temporairement indisponible. Réessayez dans un instant.',
   'domain.network.unknown_error': 'Erreur inconnue',
   'domain.network.generic_error': 'Une erreur est survenue. Réessayez.',
   'domain.oauth.offline':
-    "Vous n'êtes pas connecté. Rendez-vous en ligne et réessayez.",
+    'Vous êtes hors ligne. Reconnectez-vous et réessayez.',
   'domain.oauth.google_unavailable':
-    "L’authentification avec Google n'est pas disponible dans cette version de Menta. Utilisez un e-mail.",
+    'La connexion avec Google n’est pas disponible dans cette version de Menta. Utilisez plutôt l’adresse e-mail.',
   'domain.oauth.google_finish':
-    "Authentification avec Google n'a pas pu se finaliser. Réessayez.",
+    'La connexion avec Google n’a pas pu aboutir. Réessayez.',
   'domain.oauth.apple_unavailable':
-    "L’authentification avec Apple n'est pas disponible sur ce appareil. Utilisez un e-mail.",
+    'La connexion avec Apple n’est pas disponible sur cet appareil. Utilisez plutôt l’adresse e-mail.',
   'domain.oauth.apple_finish':
-    "Authentification avec Apple n'a pas pu se finaliser. Réessayez.",
-  'domain.oauth.google_cancelled': 'Authentification annulée',
-  'domain.oauth.apple_cancelled': 'Authentification annulée',
+    'La connexion avec Apple n’a pas pu aboutir. Réessayez.',
+  'domain.oauth.google_cancelled': 'Connexion annulée',
+  'domain.oauth.apple_cancelled': 'Connexion annulée',
   'domain.oauth.google_failed':
-    "Authentification avec Google n'a pas pu se finaliser. Réessayez ou utilisez un e-mail.",
+    'Impossible de vous connecter avec Google. Réessayez ou utilisez l’adresse e-mail.',
   'domain.oauth.google_already_open':
-    'Authentification avec Google est déjà ouverte.',
+    'La connexion avec Google est déjà ouverte.',
   'domain.oauth.google_device_unavailable':
-    "Authentification avec Google n'est pas disponible sur ce appareil. Utilisez un e-mail.",
+    'La connexion avec Google n’est pas disponible sur cet appareil. Utilisez plutôt l’adresse e-mail.',
   'domain.oauth.google_open':
-    "Authentification Google n'a pas réussi. Réessayez ou utilisez le e-mail.",
+    'La connexion avec Google n’a pas pu s’ouvrir. Réessayez ou utilisez l’adresse e-mail.',
   'domain.oauth.google_not_finished':
-    "Authentification Google n'a pas été finie. Retournez à Menta et réessayez.",
+    'La connexion avec Google n’a pas abouti. Revenez dans Menta et réessayez.',
   'domain.oauth.google_unsafe':
-    "Authentification Google n'a pas été finie de manière sûre. Commencez à nouveau de Menta.",
+    'La connexion avec Google n’a pas pu aboutir en toute sécurité. Recommencez depuis Menta.',
   'domain.oauth.google_unauthorised':
-    "Authentification Google n'a pas été autorisée. Réessayez ou utilisez le e-mail.",
+    'La connexion avec Google n’a pas été autorisée. Réessayez ou utilisez l’adresse e-mail.',
   'domain.oauth.google_return':
-    "Authentification Google n'a pas été finie. Réessayez ou utilisez le e-mail.",
+    'La connexion avec Google n’a pas pu aboutir. Réessayez ou utilisez l’adresse e-mail.',
   'domain.oauth.apple_open':
-    "Authentification Apple n'a pas réussi. Réessayez ou utilisez le e-mail.",
+    'La connexion avec Apple n’a pas pu s’ouvrir. Réessayez ou utilisez l’adresse e-mail.',
   'domain.oauth.apple_not_finished':
-    "Authentification Apple n'a pas été finie. Retournez à Menta et réessayez.",
+    'La connexion avec Apple n’a pas abouti. Revenez dans Menta et réessayez.',
   'domain.oauth.apple_unsafe':
-    "Authentification Apple n'a pas été finie de manière sûre. Commencez à nouveau de Menta.",
+    'La connexion avec Apple n’a pas pu aboutir en toute sécurité. Recommencez depuis Menta.',
   'domain.oauth.apple_unauthorised':
-    "Authentification Apple n'a pas été autorisée. Réessayez ou utilisez le e-mail.",
+    'La connexion avec Apple n’a pas été autorisée. Réessayez ou utilisez l’adresse e-mail.',
   'domain.oauth.apple_return':
-    "Authentification Apple n'a pas été finie. Réessayez ou utilisez le e-mail.",
+    'La connexion avec Apple n’a pas pu aboutir. Réessayez ou utilisez l’adresse e-mail.',
   'domain.edge.failed':
-    "S'agissant de {functionName}, quelque chose a échoué. Veuillez réessayez.",
+    'Un problème est survenu avec {functionName}. Réessayez.',
   'domain.edge.maintenance_failed':
-    'Opération de maintenance a échouée. Veuillez contacter le support si cette situation persiste.',
+    'L’opération de maintenance a échoué. Contactez le support si le problème persiste.',
   'domain.edge.user_failed':
     'Impossible de {displayName}. Vérifiez votre connexion et réessayez.',
   'domain.events.saved_photo_unavailable':
-    "Le photo enregistré n'est plus disponible sur ce appareil.",
+    'La photo enregistrée n’est plus disponible sur cet appareil.',
   'domain.events.saved_photo_changed':
-    "Le photo enregistré a changé avant d'être envoyée.",
+    'La photo enregistrée a changé avant de pouvoir être envoyée.',
   'domain.events.photo_arrival_unknown':
-    "Nous ne pouvons pas déterminer s'il a bien reçu cette photo. Vérifiez cette photo avant de réenvoyer une photo.",
+    'Nous ne savons pas si la photo est arrivée. Vérifiez-la avant d’en envoyer une autre.',
   'domain.events.photo_status_updating':
-    "La photo a été envoyée, mais son état de l'événement est toujours en cours de mise à jour.",
+    'La photo a été envoyée, mais son état dans l’événement est encore en cours de mise à jour.',
   'domain.events.date_format':
-    'Utilisez YYYY-MM-DD pour la date et 24 heures HH:MM pour la heure.',
-  'domain.events.invalid_date_time': 'Choisissez une date et heure valides.',
+    'Utilisez AAAA-MM-JJ pour la date et HH:MM au format 24 heures pour l’heure.',
+  'domain.events.invalid_date_time':
+    'Choisissez une date et une heure locales valides.',
   'domain.events.future_start': 'Choisissez une heure de début dans le futur.',
   'domain.eventStore.publishing_account_changed':
-    "Vous avez changé d'identités pendant que Menta a publié cet événement. Reconnectez-vous à nouveau sur l'ancienne compte et vérifiez cette même photo de cet événement.",
+    'Vous avez changé de compte pendant que Menta publiait. Reconnectez-vous au compte d’origine et vérifiez ce même événement.',
   'domain.eventStore.event_other_account':
-    "Cet événement appartient à un autre compte signé. Assurez-vous d'aller dans la section 'Organiseur' et de publier.",
+    'Cet événement appartient à un autre compte connecté. Connectez-vous en tant qu’organisateur avant de publier.',
   'domain.eventStore.photo_other_account':
-    "Cette photo enregistrée de l'événement appartient à un autre compte signé.",
+    'Cette photo d’événement enregistrée appartient à un autre compte connecté.',
   'domain.eventStore.checking_saved_photo':
-    "Vous avez changé d'identités pendant que Menta vérifiait la photo enregistrée de cet événement.",
+    'Vous avez changé de compte pendant que Menta vérifiait la photo d’événement enregistrée.',
   'domain.eventStore.prepare_photo_account_changed':
-    "Vous avez changé d'comptes avant que Menta puisse préparer l'image de l'événement.",
+    'Vous avez changé de compte avant que Menta puisse préparer la photo de l’événement.',
   'domain.eventStore.send_photo_account_changed':
-    "Vous avez changé d'comptes avant que Menta puisse envoyer l'image de l'événement.",
+    'Vous avez changé de compte avant que Menta puisse envoyer la photo de l’événement.',
   'domain.eventStore.checking_photo_arrival':
-    "Vous avez changé d'comptes pendant que Menta vérifiait si l'image arrivait.",
+    'Vous avez changé de compte pendant que Menta vérifiait si la photo était arrivée.',
   'domain.eventStore.photo_status_updating':
-    "Vous avez changé d'comptes pendant que l'état de l'image de l'événement était mis à jour.",
+    'Vous avez changé de compte pendant la mise à jour de l’état de la photo de l’événement.',
   'domain.eventStore.event_open_account_changed':
-    "Vous avez changé d'comptes pendant que l'image de l'événement était ouverte. Réessayez.",
+    'Vous avez changé de compte pendant l’ouverture de l’événement. Réessayez.',
   'domain.eventStore.event_load_account_changed':
-    "Vous avez changé d'comptes pendant que l'image de l'événement était chargée. Réessayez.",
+    'Vous avez changé de compte pendant le chargement de l’événement. Réessayez.',
   'domain.eventStore.details_open_account_changed':
-    "Vous avez changé d'comptes pendant que les détailss de l'événement étaient ouverts. Réessayez.",
+    'Vous avez changé de compte pendant l’ouverture des détails de l’événement. Réessayez.',
   'domain.eventStore.details_load_account_changed':
-    "Vous avez changé d'comptes pendant que les détailss de l'événement étaient chargés. Réessayez.",
+    'Vous avez changé de compte pendant le chargement des détails de l’événement. Réessayez.',
   'domain.eventStore.album_open_account_changed':
-    "Vous avez changé d'comptes pendant que l'album des invités était ouvert. Réessayez.",
+    'Vous avez changé de compte pendant l’ouverture de l’album des participants. Réessayez.',
   'domain.eventStore.sign_in_album':
     "Connectez-vous pour ouvrir l'album des invités.",
   'domain.eventStore.album_load_account_changed':
-    "Vous avez changé d'comptes pendant que l'album des invités était chargé. Réessayez.",
+    'Vous avez changé de compte pendant le chargement de l’album des participants. Réessayez.',
   'domain.eventStore.review_open_account_changed':
-    "Vous avez changé d'comptes pendant que la vérification de l'organisateur était ouverte. Réessayez.",
+    'Vous avez changé de compte pendant l’ouverture de la vérification de l’organisateur. Réessayez.',
   'domain.eventStore.sign_in_review':
     'Insérez-vous pour consulter les photos des participants.',
   'domain.eventStore.review_load_account_changed':
-    "Vous avez changé d'comptes pendant que la récapitulation de l'événement était en cours. Réessayez.",
+    'Vous avez changé de compte pendant le chargement de la vérification de l’organisateur. Réessayez.',
   'domain.eventStore.recap_open_account_changed':
-    "Vous avez changé d'comptes pendant que la récapitulation de l'événement était ouverte. Réessayez.",
+    'Vous avez changé de compte pendant l’ouverture du récapitulatif de l’événement. Réessayez.',
   'domain.eventStore.sign_in_recap':
     "Insérez-vous pour ouvrir la récapitulation de l'événement.",
   'domain.eventStore.recap_load_account_changed':
-    "Vous avez changé d'comptes pendant que la récapitulation de l'événement était en cours. Réessayez.",
+    'Vous avez changé de compte pendant le chargement du récapitulatif de l’événement. Réessayez.',
   'domain.eventStore.join_start_account_changed':
-    "Vous avez changé d'comptes avant que l'événement ne commençât. Réessayez.",
+    'Vous avez changé de compte avant le début de l’inscription. Réessayez.',
   'domain.eventStore.join_save_account_changed':
-    "Vous avez changé d'comptes avant de rejoindre commencé. Réessayez.",
+    'Vous avez changé de compte pendant que Menta enregistrait votre place. Reconnectez-vous et vérifiez votre présence.',
   'domain.eventStore.leave_start_account_changed':
-    "Vous avez changé d'comptes avant de quitter commencé. Réessayez.",
+    'Vous avez changé de compte avant le début de la désinscription. Réessayez.',
   'domain.eventStore.leave_update_account_changed':
-    "Vous avez changé d'comptes pendant que Menta était enregistrant votre place. Veuillez réinsérer et vérifier l'inscription.",
+    'Vous avez changé de compte pendant que Menta mettait à jour votre place. Reconnectez-vous et vérifiez votre présence.',
   'domain.eventStore.checkin_start_account_changed':
-    "Vous avez changé d'comptes avant que la photo du groupe ne soit envoyée. Réessayez.",
+    'Vous avez changé de compte avant le début de l’enregistrement. Réessayez.',
   'domain.eventStore.checkin_finish_account_changed':
-    "Vous avez changé d'comptes pendant que la photographie du groupe était en cours. Réessayez.",
+    'Vous avez changé de compte pendant la finalisation de l’enregistrement. Reconnectez-vous et vérifiez votre présence.',
   'domain.eventStore.photo_send_start_account_changed':
-    "Vous avez changé d'comptes avant que la photo du groupe ne soit envoyée. Réessayez.",
+    'Vous avez changé de compte avant l’envoi de la photo de l’événement. Réessayez.',
   'domain.eventStore.sign_in_send_photo':
     "Connectez-vous avant de poster une photo d'un événement.",
   'domain.eventStore.photo_status_check_account_changed':
-    "Vous avez changé d'comptes pendant que l'état de photo sauvegardée était en cours d'actualisation. Reconnectez-vous à nouveau et vérifiez la photo.",
+    'Vous avez changé de compte pendant la mise à jour de l’état de la photo de l’événement. Reconnectez-vous et vérifiez la photo.',
   'domain.eventStore.saved_photo_continue_account_changed':
-    "Vous avez changé d'comptes avant que la sauvegarde photo ne puisse continuer. Réessayez.",
+    'Vous avez changé de compte avant que la photo enregistrée de l’événement puisse continuer. Réessayez.',
   'domain.eventStore.sign_in_resume_photo':
     "Connectez-vous avant de reprendre une photo d'événement.",
   'domain.eventStore.saved_photo_unavailable':
     "La sauvegarde photo sauvegardée n'est plus disponible sur ce appareil.",
   'domain.eventStore.saved_photo_status_account_changed':
-    "Vous avez changé d'comptes pendant que l'état des photos sauvegardées était en cours d'actualisation. Reconnectez-vous à nouveau et vérifiez la photo.",
+    'Vous avez changé de compte pendant la mise à jour de l’état de la photo enregistrée. Reconnectez-vous et vérifiez la photo.',
   'domain.eventStore.saved_photos_status_account_changed':
-    "Vous avez changé d'comptes pendant que les états des photos sauvegardées étaient en cours d'actualisation.",
+    'Vous avez changé de compte pendant la mise à jour de l’état des photos enregistrées.',
   'domain.eventStore.photo_review_start_account_changed':
-    "Vous avez changé d'comptes avant que la décision photo ne commence. Réessayez.",
+    'Vous avez changé de compte avant le début de la vérification de la photo. Réessayez.',
   'domain.eventStore.photo_decision_account_changed':
-    "Vous avez changé d'comptes pendant que la décision photo était en cours d'actualisation. Vérifiez la photo avant de décider à nouveau.",
+    'Vous avez changé de compte pendant la mise à jour de la décision sur la photo. Vérifiez la photo avant de décider à nouveau.',
   'domain.eventStore.organiser_decision_start_account_changed':
-    "Vous avez changé d'comptes avant que la décision de la photo ne commence. Réessayez.",
+    'Vous avez changé de compte avant le début de la décision de l’organisateur. Réessayez.',
   'domain.eventStore.organiser_decision_account_changed':
-    "Vous avez changé d'comptes pendant que la décision de la photo était en cours d'actualisation. Vérifiez la photo avant de décider à nouveau.",
+    'Vous avez changé de compte pendant la mise à jour de la décision de l’organisateur. Vérifiez la photo avant de décider à nouveau.',
   'domain.eventStore.photo_delete_start_account_changed':
-    "Vous avez changé d'comptes avant que la décision photo ne commence. Réessayez.",
+    'Vous avez changé de compte avant le début de la suppression de la photo. Réessayez.',
   'domain.eventStore.photo_delete_finish_account_changed':
-    "Vous avez changé d'identité pendant que le supprimé des photos se terminait. Vérifiez si le photo est toujours présent.",
-  'domain.handoff.invite_saved': 'Invitation sauvegardée',
-  'domain.handoff.referral_saved': 'Code de parrainage sauvegardé',
+    'Vous avez changé de compte pendant la suppression de la photo. Vérifiez si la photo est toujours là.',
+  'domain.handoff.invite_saved': 'Invitation enregistrée',
+  'domain.handoff.referral_saved': 'Code de parrainage enregistré',
   'domain.handoff.invite_description':
-    '{action} et Menta ouvriront votre invitation sauvegardée {inviteType}.',
+    '{action} et Menta ouvrira votre invitation {inviteType} enregistrée.',
   'domain.handoff.referral_login_description':
-    "Si c'est une nouvelle compte, Menta vérifiera le code après l'inscription. Toute récompense disponible apparaîtra dans votre compte.",
+    'S’il s’agit d’un nouveau compte, Menta vérifiera le code après la connexion. Toute récompense disponible apparaîtra dans votre compte.',
   'domain.handoff.referral_signup_description':
-    'Créez votre compte et Menta vérifiera si le code est qualifié pour une récompense.',
+    'Créez votre compte et Menta vérifiera si le code donne droit à une récompense.',
   'domain.handoff.referral_login_new_description':
-    "Si c'est une nouvelle compte, Menta vérifiera le code après l'inscription.",
+    'S’il s’agit d’un nouveau compte, Menta vérifiera le code après la connexion.',
   'domain.handoff.referral_finish_description':
-    'Terminé de la mise en place et Menta vérifiera si le code est qualifié pour une récompense.',
+    'Terminez la configuration et Menta vérifiera si le code donne droit à une récompense.',
   'domain.handoff.referral_setup_description':
-    'Créez votre compte et Menta vérifiera le code après la mise en place.',
+    'Créez votre compte et Menta vérifiera le code après la configuration.',
   'domain.handoff.next': 'Suivant',
   'domain.handoff.then': 'Ensuite',
   'domain.handoff.step_one': 'Étape 1',
@@ -344,12 +345,12 @@ export const fullDomainFeedbackFrFR = {
   'domain.handoff.finish_setup': 'Terminer la configuration',
   'domain.handoff.create_your_account': 'Créer votre compte',
   'domain.handoff.complete_sign_in': 'Terminer la connexion',
-  'domain.handoff.sign_in': 'Connectez-vous',
+  'domain.handoff.sign_in': 'Se connecter',
   'domain.coach.default_promise': 'votre promesse',
-  'domain.coach.default_due_time': '18:00',
+  'domain.coach.default_due_time': '20:00',
   'domain.coach.proof_due': 'La preuve est attendue.',
   'domain.coach.proof_due_body':
-    'Ajoutez la preuve avant {proofDueLabel} pour terminer le suivi d’aujourd’hui.',
+    'Ajoutez la preuve avant {proofDueLabel} pour terminer le suivi du jour.',
   'domain.coach.today_counts': 'Aujourd’hui compte toujours.',
   'domain.coach.hours_left':
     'Il reste {hours} {hourLabel} pour envoyer la preuve d’aujourd’hui.',
@@ -357,17 +358,17 @@ export const fullDomainFeedbackFrFR = {
     'Ajoutez la preuve d’aujourd’hui avant la fin de la journée.',
   'domain.coach.log_proof': 'Ajoutez la preuve d’aujourd’hui.',
   'domain.coach.promises_need_proof':
-    '{count} {promiseLabel} ont encore besoin d’une preuve. Commencez par une promesse.',
-  'domain.coach.add_to_finish': "Notez le preuve pour finir aujourd'hui.",
+    '{count} {promiseLabel} ont encore besoin d’une preuve. Commencez par l’une d’elles.',
+  'domain.coach.add_to_finish': 'Ajoutez la preuve pour terminer la journée.',
   'domain.coach.still_time': 'Il reste du temps aujourd’hui.',
   'domain.coach.proof_open_until':
     'La preuve d’aujourd’hui reste ouverte jusqu’à {proofDueLabel}.',
-  'domain.coach.proof_still_open': 'La preuve de demain reste ouverte.',
+  'domain.coach.proof_still_open': 'La preuve du jour est toujours ouverte.',
   'domain.coach.completed_add_proof':
-    'Si vous avez complété votre promesse, ajoutez la preuve avant la fin de la journée.',
-  'domain.coach.next_small_step': 'Choisissez le prochain pas petit.',
+    'Si vous avez tenu votre promesse, ajoutez la preuve avant la fin de la journée.',
+  'domain.coach.next_small_step': 'Choisissez la prochaine petite étape.',
   'domain.coach.proof_remains_open':
-    'La preuve de demain reste ouverte jusqu’à la fin de la journée.',
+    'La preuve du jour reste ouverte jusqu’à la fin de la journée.',
   'domain.coach.hour_count': '{count} {hourLabel}',
   'domain.coach.hour_count.one': '{count} heure',
   'domain.coach.hour_count.other': '{count} heures',
@@ -378,76 +379,80 @@ export const fullDomainFeedbackFrFR = {
   'domain.coach.hours': 'heures',
   'domain.coach.promise': 'promesse',
   'domain.coach.promises': 'promesses',
-  'domain.report.draft_saved':
-    'Les déclarations ont été sauvegardées sur cette application',
-  'domain.report.nothing_sent': "Aucune réponse de support n'a été envoyée.",
-  'domain.report.sending': 'Envoyer la vérification',
+  'domain.report.draft_saved': 'Brouillon enregistré sur ce téléphone',
+  'domain.report.nothing_sent': 'Rien n’a été envoyé au support.',
+  'domain.report.sending': 'Envoi du signalement',
   'domain.report.waiting_confirmation':
-    'Menta attend que le serveur confirme cette exacte vérification.',
-  'domain.report.not_sent': "La vérification n'a pas été envoyée",
+    'Menta attend que le serveur confirme ce signalement précis.',
+  'domain.report.not_sent': 'Signalement non envoyé',
   'domain.report.remains_on_phone':
-    "La vérification reste sur cette application. Aucune réponse de support n'a été envoyée.",
-  'domain.report.result_unknown': 'La réponse à la vérification est inconnue',
+    'Votre signalement reste sur ce téléphone. Rien n’a été transmis au support.',
+  'domain.report.result_unknown': 'Résultat de l’envoi inconnu',
   'domain.report.could_not_confirm':
-    'Menta ne peut pas confirmer la réponse du serveur. Retournez utiliser le même identifiant de vérification.',
-  'domain.report.received': 'La vérification a été reçue',
+    'Menta n’a pas pu confirmer la réponse du serveur. Réessayer utilise la même référence de signalement.',
+  'domain.report.received': 'Signalement reçu',
   'domain.report.confirmed':
-    'Menta a confirmé que la vérification a été envoyée au serveur.',
-  'domain.commitment.move_daily': 'Mettez-vous en mouvement une fois par jour.',
+    'Menta a confirmé que le signalement est bien arrivé sur le serveur.',
+  'domain.commitment.move_daily': 'Bouger chaque jour',
   'domain.commitment.move_daily_description':
-    'Mettez-vous en mouvement une fois par jour. Un petit déplacement, une activité physique, une détente ou une activité physique toutes comptent.',
-  'domain.commitment.move_daily_promise':
-    'J’irai me faire un peu exercer chaque jour.',
+    'Bougez un moment chaque jour. Une marche, une séance, des étirements ou un sport, tout compte.',
+  'domain.commitment.move_daily_promise': 'Je vais bouger chaque jour.',
   'domain.commitment.move_daily_verification':
-    "Envoie-moi une photo claire après avoir fini. Elle indique la façon dont vous avez fait la marche, l'exercice, la route, la matrice, le gymnase ou le résultat.",
+    'Envoyez une photo claire une fois terminé. Montrez la marche, la séance, le parcours, le tapis, la salle ou le résultat.',
   'domain.commitment.move_daily_submission':
-    "Explicite ce que vous avez fait aujourd'hui et combien de temps vous avez passé en mouvement.",
-  'domain.commitment.daily_movement_group': 'Séance de sport',
-  'domain.commitment.fitness': 'sport',
-  'domain.commitment.focused_study': 'étude concentrée',
+    'Dites ce que vous avez fait aujourd’hui et combien de temps vous avez bougé.',
+  'domain.commitment.daily_movement_group': 'Groupe Bouger chaque jour',
+  'domain.commitment.fitness': 'forme',
+  'domain.commitment.focused_study': 'Étude concentrée',
   'domain.commitment.focused_study_description':
-    "Terminez une séance d'étude concentrée chaque jour et note ce que vous avez travaillé.",
+    'Terminez chaque jour une séance d’étude concentrée et notez sur quoi vous avez travaillé.',
   'domain.commitment.focused_study_promise':
-    "Je terminerai une séance d'étude concentrée chaque jour.",
+    'Je vais terminer une séance d’étude concentrée chaque jour.',
   'domain.commitment.focused_study_verification':
     'Notez ce que vous avez étudié, combien de temps vous avez consacré à l’étude et une chose que vous comprenez mieux maintenant.',
   'domain.commitment.focused_study_submission':
     'Indiquez le sujet étudié, votre temps de concentration et une chose que vous comprenez mieux maintenant.',
-  'domain.commitment.learning': 'apprendre',
-  'domain.commitment.morning_walk': 'passe-partout',
+  'domain.commitment.learning': 'apprentissage',
+  'domain.commitment.morning_walk': 'Marche matinale',
   'domain.commitment.morning_walk_description':
-    "Découvrez votre manière d'apprendre",
-  'domain.commitment.morning_walk_promise': 'Apprenez à apprendre',
+    'Faites une courte marche en début de journée.',
+  'domain.commitment.morning_walk_promise':
+    'Je vais faire une courte marche le matin.',
   'domain.commitment.morning_walk_verification':
-    'Téléchargez et installez votre app',
-  'domain.commitment.morning_walk_submission': 'Enregistrer vos notes',
-  'domain.commitment.morning_walk_group': 'Apprenez à apprendre',
-  'domain.commitment.sleep_reset': 'Apprenez à apprendre',
-  'domain.commitment.sleep_reset_description': 'Apprenez à apprendre',
-  'domain.commitment.sleep_reset_promise': 'Apprenez à apprendre',
-  'domain.commitment.sleep_reset_verification': 'Apprenez à apprendre',
-  'domain.commitment.sleep_reset_submission': 'Apprenez à apprendre',
-  'domain.commitment.sleep_reset_group': 'Réinitialisation du sommeil groupe',
-  'domain.commitment.no_sugar': 'Sans sucre ajouté',
+    'Envoyez une photo de la marche. Une rue, un chemin, vos chaussures, une montre ou le ciel suffisent.',
+  'domain.commitment.morning_walk_submission':
+    'Dites où vous avez marché et une chose que vous avez remarquée.',
+  'domain.commitment.morning_walk_group': 'Groupe Marche matinale',
+  'domain.commitment.sleep_reset': 'Mieux dormir',
+  'domain.commitment.sleep_reset_description':
+    'Commencez à décompresser avant de vous coucher chaque soir.',
+  'domain.commitment.sleep_reset_promise':
+    'Je vais commencer à décompresser avant de me coucher.',
+  'domain.commitment.sleep_reset_verification':
+    'Écrivez ce que vous avez fait pour décompresser et l’heure à laquelle vous avez commencé.',
+  'domain.commitment.sleep_reset_submission':
+    'Ajoutez l’étape de routine que vous avez faite et ce qui a rendu la soirée plus facile ou plus difficile.',
+  'domain.commitment.sleep_reset_group': 'Groupe Mieux dormir',
+  'domain.commitment.no_sugar': 'Pause sans sucre',
   'domain.commitment.no_sugar_description':
-    'Maintenez une seule règle de alimentation claire pour sept jours: sans ajout de sucre.',
-  'domain.commitment.no_sugar_hub': 'Sans ajout de sucre',
+    'Tenez une règle alimentaire claire pendant sept jours : pas de sucre ajouté.',
+  'domain.commitment.no_sugar_hub': 'Sans sucre',
   'domain.commitment.no_sugar_promise':
-    "Je vais éviter l'addition de sucre aujourd'hui.",
+    'Je vais éviter le sucre ajouté aujourd’hui.',
   'domain.commitment.no_sugar_verification':
     'Écrivez si vous avez respecté la règle et notez les moments où cela a été difficile.',
   'domain.commitment.no_sugar_submission':
-    'Ajoutez le moment le plus difficile et ce que vous avez choisi en lieu de place.',
-  'domain.commitment.no_sugar_group': 'Groupe sans ajout de sucre',
+    'Ajoutez le moment le plus difficile et ce que vous avez choisi à la place.',
+  'domain.commitment.no_sugar_group': 'Groupe Sans sucre',
   'domain.commitment.creative_minutes': 'Minutes créatives',
   'domain.commitment.creative_minutes_description':
-    'Passer 20 minutes à faire quelque chose ou à améliorer chaque jour.',
+    'Passez 20 minutes par jour à créer ou améliorer quelque chose.',
   'domain.commitment.creative_minutes_promise':
-    'Je vais passer 20 minutes à faire quelque chose.',
+    'Je vais passer 20 minutes à créer quelque chose.',
   'domain.commitment.creative_minutes_verification':
-    "Envoyez une photo ou un capture d'écran de votre travail réalisé ou modifié aujourd'hui, par exemple, un brouillon, une esquisse, un chronogramme ou des notes de texte.",
+    'Envoyez une photo ou une capture d’écran du travail que vous avez réalisé ou modifié aujourd’hui : brouillon, croquis, chronologie ou notes.',
   'domain.commitment.creative_minutes_submission':
-    'Écrivez ce que vous avez fait ou amélioré pendant les 20 minutes',
+    'Dites ce que vous avez créé ou amélioré pendant ces 20 minutes.',
   'domain.commitment.creativity': 'créativité',
   'domain.commitment.health': 'santé',
   'domain.commitment.creative_minutes_group': 'Groupe de minutes créatives',
@@ -455,34 +460,34 @@ export const fullDomainFeedbackFrFR = {
   'domain.intensity.standard': 'Normal',
   'domain.intensity.fixed': 'Fixe',
   'domain.intensity.shop_note':
-    'Un prolongement de 12 heures ou un gel des série est acheté dans le magasin, non choisi ici.',
-  'domain.intensity.flexible_note': 'Mieux pour un semaine bien chargée.',
-  'domain.intensity.standard_note': 'Un avertissement quotidien normal.',
-  'domain.intensity.fixed_note': 'Le plus difficile de trois.',
-  'domain.notifications.channel_updates': 'Mentions Menta',
+    'Une prolongation de 12 heures ou un gel de série s’achète dans la boutique ; cela ne se choisit pas ici.',
+  'domain.intensity.flexible_note':
+    'Plus facile à tenir pendant une semaine chargée.',
+  'domain.intensity.standard_note': 'Une promesse quotidienne normale.',
+  'domain.intensity.fixed_note': 'La plus exigeante des trois.',
+  'domain.notifications.channel_updates': 'Nouveautés de Menta',
   'domain.notifications.channel_reminders':
-    'Remarques avant que la preuve soit due',
+    'Rappels avant l’échéance de la preuve',
   'domain.notifications.channel_groups':
-    'Vos rapports, vérification de vérification requise et changements de groupe',
-  'domain.notifications.channel_progress':
-    'Série, badge, marqué et notifications',
+    'Suivis, demandes de vérification et changements dans les groupes',
+  'domain.notifications.channel_progress': 'Séries, badges, étapes et Momenta',
   'domain.notifications.channel_proof':
-    'Lorsque la preuve est en attente, acceptée ou nécessitant une deuxième tentative',
-  'domain.notifications.new_milestone': 'Nouvelle marque',
+    'Quand une preuve est en attente, acceptée ou doit être refaite',
+  'domain.notifications.new_milestone': 'Nouvelle étape',
   'domain.notifications.group_milestone_named': '{groupName} : {milestone}',
-  'domain.notifications.group_milestone_reached': 'Marque de groupe atteinte',
-  'domain.notifications.proof_due': 'La preuve est due',
+  'domain.notifications.group_milestone_reached': 'Étape de groupe atteinte',
+  'domain.notifications.proof_due': 'Preuve attendue',
   'domain.notifications.proof_for':
     'Envoyez la preuve pour « {challengeTitle} ».',
-  'domain.notifications.group_milestone': 'Marque de groupe atteinte',
-  'domain.notifications.group_activity': 'Nouveau groupe d’activité',
+  'domain.notifications.group_milestone': 'Étape de groupe atteinte',
+  'domain.notifications.group_activity': 'Nouvelle activité dans le groupe',
   'domain.notifications.group_activity_named':
     '{memberName} a une mise à jour dans {groupName}',
   'domain.notifications.proof_due_for':
-    'Le support est nécessaire pour "{challengeTitle}"',
+    'Preuve attendue pour « {challengeTitle} »',
   'domain.notifications.proof_due_promise':
-    'Le support est nécessaire pour votre promesse',
-  'domain.notifications.open_update': 'Ouvrez Menta pour voir l’mise à jour.',
+    'Preuve attendue pour votre promesse',
+  'domain.notifications.open_update': 'Ouvrez Menta pour voir la mise à jour.',
   'domain.notifications.updated': 'Mise à jour de Menta',
   'domain.notifications.streak_updated': 'Série mise à jour',
   'domain.notifications.streak_protected': 'Série protégée',
@@ -490,25 +495,22 @@ export const fullDomainFeedbackFrFR = {
   'domain.notifications.promise_complete': 'Promesse terminée',
   'domain.notifications.promise_ending': 'Promesse qui se termine bientôt',
   'domain.notifications.promise_ended': 'Promesse terminée',
-  'domain.notifications.review_needed':
-    'Le support est nécessaire pour votre vérification',
-  'domain.notifications.proof_waiting':
-    'Le support est nécessaire pour votre vérification en cours',
-  'domain.notifications.proof_approved': 'La preuve est approuvée',
-  'domain.notifications.proof_retry':
-    'La preuve nécessite une nouvelle tentative',
+  'domain.notifications.review_needed': 'Une preuve attend votre vérification',
+  'domain.notifications.proof_waiting': 'Preuve en attente de vérification',
+  'domain.notifications.proof_approved': 'Preuve approuvée',
+  'domain.notifications.proof_retry': 'La preuve doit être refaite',
   'domain.notifications.group_update': 'Mise à jour du groupe',
-  'domain.notifications.group_attention': "Groupe attendu d'attention",
+  'domain.notifications.group_attention': 'Le groupe demande votre attention',
   'domain.notifications.daily_reminder': 'Rappel quotidien',
   'domain.notifications.check_in_reminder': 'Rappel de suivi',
   'domain.notifications.badge_unlocked': 'Badge déverrouillé',
-  'domain.notifications.momenta_added': 'Momenta ajouté',
+  'domain.notifications.momenta_added': 'Momenta ajoutés',
   'domain.notifications.menta_updated': 'Menta mis à jour',
   'domain.notifications.menta_maintenance': 'Maintenance de Menta',
-  'domain.notifications.test': 'Notification test de Menta',
+  'domain.notifications.test': 'Notification de test de Menta',
   'domain.notifications.ending_in': 'Se termine dans {hours} {hourLabel}',
   'domain.notifications.ending_soon': 'Se termine bientôt',
-  'domain.notifications.group_submissions': 'Postes de groupe',
+  'domain.notifications.group_submissions': 'Envois du groupe',
   'domain.notifications.members': 'Membres',
   'domain.notifications.review': 'vérification',
   'domain.notifications.reviews': 'vérifications',

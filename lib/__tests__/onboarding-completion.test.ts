@@ -4,6 +4,7 @@ import {
   getOnboardingReceiptContinuation,
   getValidatedOnboardingReceiptContinuation,
   ONBOARDING_COMPLETION_TTL_MS,
+  shouldResumeOnboardingInvitation,
   useOnboardingCompletionStore,
 } from '@/lib/navigation/onboarding-completion';
 import { useInviteStore } from '@/store/invite-store';
@@ -15,6 +16,109 @@ describe('onboarding completion navigation', () => {
     useOnboardingCompletionStore.setState({ pending: null });
     useInviteStore.setState({ pending: null });
     useProtectedRouteStore.setState({ pending: null });
+  });
+
+  it("recovers only the current account's fresh, unacknowledged invite from the main app", () => {
+    const input = {
+      completion: {
+        ownerUserId: 'user-a',
+        firstPromiseId: 'promise-1',
+        accountabilityChoice: 'new_group' as const,
+        timestamp: Date.now(),
+      },
+      currentSegment: '(tabs)',
+      currentUserId: 'user-a',
+      hasCompletedOnboarding: true,
+      isAuthenticated: true,
+      isInitialized: true,
+    };
+    expect(shouldResumeOnboardingInvitation(input)).toBe(true);
+    expect(
+      shouldResumeOnboardingInvitation({ ...input, currentSegment: 'settings' })
+    ).toBe(true);
+    expect(
+      shouldResumeOnboardingInvitation({ ...input, completion: null })
+    ).toBe(false);
+    expect(
+      shouldResumeOnboardingInvitation({ ...input, currentUserId: 'user-b' })
+    ).toBe(false);
+    expect(
+      shouldResumeOnboardingInvitation({
+        ...input,
+        hasCompletedOnboarding: false,
+      })
+    ).toBe(false);
+    expect(
+      shouldResumeOnboardingInvitation({
+        ...input,
+        currentSegment: 'promise-accountability',
+      })
+    ).toBe(false);
+    expect(
+      shouldResumeOnboardingInvitation({
+        ...input,
+        currentSegment: 'password-recovery',
+      })
+    ).toBe(false);
+    expect(
+      shouldResumeOnboardingInvitation({
+        ...input,
+        completion: {
+          ...input.completion,
+          timestamp: Date.now() - ONBOARDING_COMPLETION_TTL_MS - 1000,
+        },
+      })
+    ).toBe(false);
+    expect(
+      shouldResumeOnboardingInvitation({
+        ...input,
+        completion: { ...input.completion, accountabilityChoice: 'just_me' },
+      })
+    ).toBe(false);
+  });
+
+  it.each(['/(tabs)', '/(tabs)/index', '/settings', '/(tabs)/settings-tab'])(
+    'keeps Invite someone ahead of the %s fallback saved during setup',
+    path => {
+      const destination = chooseOnboardingCompletionDestination({
+        pendingInvite: null,
+        pendingProtectedRoute: { path, source: 'onboarding_gate' },
+        completion: {
+          ownerUserId: 'user-a',
+          firstPromiseId: 'promise-1',
+          accountabilityChoice: 'new_group',
+          timestamp: Date.now(),
+        },
+      });
+      expect(destination).toEqual({
+        kind: 'promise_accountability',
+        href: {
+          pathname: '/promise-accountability',
+          params: {
+            source: 'onboarding',
+            challengeId: 'promise-1',
+          },
+        },
+      });
+    }
+  );
+
+  it('preserves an event link across onboarding even when captured by its gate', () => {
+    expect(
+      chooseOnboardingCompletionDestination({
+        pendingInvite: null,
+        pendingProtectedRoute: {
+          path: '/events/event-1',
+          source: 'onboarding_gate',
+        },
+        completion: {
+          ownerUserId: 'user-a',
+          firstPromiseId: 'promise-1',
+          accountabilityChoice: 'new_group',
+          timestamp: Date.now(),
+        },
+      })
+    ).toEqual({ kind: 'protected_route', href: '/events/event-1' });
   });
 
   it('selects exactly one destination in invite, route, promise, tabs order', () => {

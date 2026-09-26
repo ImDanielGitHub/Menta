@@ -21,11 +21,11 @@ describe('Pro paywall copy', () => {
   });
 
   it('names both free promise caps instead of treating the active cap as monthly', () => {
-    expect(getQuotaLimitCopy('challenge', 2)).toBe(
-      'The free plan includes 2 live promises at a time, and up to 4 new promises each month.'
+    expect(getQuotaLimitCopy('challenge', 3)).toBe(
+      'The free plan includes 3 live promises at a time, and up to 4 new promises each month.'
     );
     expect(getQuotaLimitCopy('challenge', 4)).toBe(
-      'The free plan includes 2 live promises at a time, and up to 4 new promises each month.'
+      'The free plan includes 3 live promises at a time, and up to 4 new promises each month.'
     );
   });
 

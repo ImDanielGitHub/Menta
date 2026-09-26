@@ -2,6 +2,7 @@ export type DeliveryPreference = Readonly<{
   challenge_reminders?: boolean | null;
   device_permission_status?: string | null;
   group_updates?: boolean | null;
+  ignore_coach_until?: string | null;
   push_platform?: 'ios' | 'android' | null;
   push_enabled?: boolean | null;
   quiet_hours_end?: string | null;
@@ -130,6 +131,8 @@ export const evaluateDeliveryGuard = (args: {
   notificationType?: string | null;
   now: Date;
   preference: DeliveryPreference | null;
+  expiresAt?: string | null;
+  notBefore?: string | null;
 }): DeliveryGuardDecision => {
   const preference = args.preference;
   if (!preference) {
@@ -149,6 +152,34 @@ export const evaluateDeliveryGuard = (args: {
   }
   if (!notificationCategoryEnabled(args.notificationType, preference)) {
     return { kind: 'skip', reason: 'SKIPPED_NOTIFICATION_CATEGORY_OFF' };
+  }
+  const expiresAt = args.expiresAt ? Date.parse(args.expiresAt) : null;
+  if (expiresAt !== null && !Number.isFinite(expiresAt)) {
+    return { kind: 'skip', reason: 'SKIPPED_INVALID_MESSAGE_EXPIRY' };
+  }
+  if (expiresAt !== null && expiresAt <= args.now.getTime()) {
+    return { kind: 'skip', reason: 'SKIPPED_MESSAGE_EXPIRED' };
+  }
+  // Re-read snooze at dispatch, including jobs queued before the user paused.
+  // Review requests are independent of the person's own coaching preference.
+  if (args.notificationType === 'streak_reminder') {
+    const snoozedUntil = Date.parse(preference.ignore_coach_until ?? '');
+    if (Number.isFinite(snoozedUntil) && snoozedUntil > args.now.getTime()) {
+      if (expiresAt !== null && snoozedUntil >= expiresAt) {
+        return { kind: 'skip', reason: 'SKIPPED_SNOOZE_WINDOW_EXPIRED' };
+      }
+      return { kind: 'defer', until: new Date(snoozedUntil).toISOString() };
+    }
+  }
+  const notBefore = args.notBefore ? Date.parse(args.notBefore) : null;
+  if (notBefore !== null && !Number.isFinite(notBefore)) {
+    return { kind: 'skip', reason: 'SKIPPED_INVALID_MESSAGE_WINDOW' };
+  }
+  if (notBefore !== null && notBefore > args.now.getTime()) {
+    if (expiresAt !== null && notBefore >= expiresAt) {
+      return { kind: 'skip', reason: 'SKIPPED_MESSAGE_EXPIRED' };
+    }
+    return { kind: 'defer', until: new Date(notBefore).toISOString() };
   }
   // A test is an explicit foreground user action, so it must not wait for the
   // account's automatic quiet-hours window.
@@ -170,9 +201,11 @@ export const evaluateDeliveryGuard = (args: {
       timezone: preference.timezone,
     });
     if (
-      args.notificationType === 'streak_reminder' &&
-      localDateAt(args.now, preference.timezone) !==
-        localDateAt(new Date(until), preference.timezone)
+      (expiresAt !== null && Date.parse(until) >= expiresAt) ||
+      (expiresAt === null &&
+        args.notificationType === 'streak_reminder' &&
+        localDateAt(args.now, preference.timezone) !==
+          localDateAt(new Date(until), preference.timezone))
     ) {
       return {
         kind: 'skip',
@@ -185,4 +218,68 @@ export const evaluateDeliveryGuard = (args: {
     };
   }
   return { kind: 'allow' };
+};
+
+/**
+ * End of the original obligation day, not the preferred reminder hour. Search
+ * real instants so DST and fractional offsets do not assume a 24-hour day.
+ * A purchased extension can lengthen this window but never shorten it.
+ */
+export const getProofDeadline = (
+  localDay: string,
+  timezone: string,
+  extension?: string | null
+): string => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(localDay)) {
+    throw new Error('Invalid proof obligation day.');
+  }
+  const day = new Date(`${localDay}T00:00:00.000Z`);
+  if (
+    !Number.isFinite(day.getTime()) ||
+    day.toISOString().slice(0, 10) !== localDay
+  ) {
+    throw new Error('Invalid proof obligation day.');
+  }
+  // Unknown zones must not manufacture a UTC deadline for a local promise.
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  const nextDay = new Date(day.getTime() + 86_400_000);
+  const target = nextDay.toISOString().slice(0, 10);
+  const dateAt = (timestamp: number): string => {
+    const parts = formatter.formatToParts(new Date(timestamp));
+    const part = (type: string) =>
+      parts.find(value => value.type === type)?.value;
+    return `${part('year')}-${part('month')}-${part('day')}`;
+  };
+  let low = nextDay.getTime() - 36 * 3_600_000;
+  let high = nextDay.getTime() + 36 * 3_600_000;
+  while (high - low > 1000) {
+    const middle = Math.floor((low + high) / 2000) * 1000;
+    if (dateAt(middle) < target) low = middle;
+    else high = middle;
+  }
+  if (extension) {
+    const extended = Date.parse(extension);
+    if (!Number.isFinite(extended))
+      throw new Error('Invalid proof extension deadline.');
+    high = Math.max(high, extended);
+  }
+  return new Date(high).toISOString();
+};
+
+/** Null means the message has expired. Zero requests immediate delivery only. */
+export const remainingPushTtl = (
+  expiresAt: string | null | undefined,
+  now: Date
+): number | null => {
+  if (!expiresAt) return 3600;
+  const expiry = Date.parse(expiresAt);
+  if (!Number.isFinite(expiry)) throw new Error('Invalid notification expiry.');
+  const remaining = expiry - now.getTime();
+  if (remaining <= 0) return null;
+  return Math.min(3600, Math.floor(remaining / 1000));
 };

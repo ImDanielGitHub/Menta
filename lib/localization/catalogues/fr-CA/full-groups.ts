@@ -115,7 +115,7 @@ export const fullGroupsFrCA = {
     'Connectez‑vous avant de créer un groupe. Votre brouillon est toujours ici.',
   'groups.create.promise_unavailable_title': 'Première promesse indisponible',
   'groups.create.promise_unavailable_detail':
-    'Menta ne peut pas connecter ce groupe sans la première promesse confirmée. Votre brouillon de groupe est toujours ici. Retournez à Aujourd’hui et réessayez.',
+    'Menta ne peut pas associer ce groupe sans la première promesse confirmée. Votre brouillon de groupe est toujours là. Revenez à Aujourd’hui et réessayez.',
   'groups.create.name_short_detail': 'Utilisez au moins trois caractères.',
   'groups.create.default_description':
     'Un groupe pour votre première promesse.',
@@ -302,7 +302,7 @@ export const fullGroupsFrCA = {
   'groups.invite.back_group': 'Retour au groupe',
   'groups.invite.loading': 'Chargement de l’invitation active',
   'groups.invite.missing_group':
-    'Cette invitation n’a pas de groupe. Retournez au groupe et réessayez.',
+    'Cette invitation n’est plus liée à son groupe. Revenez au groupe et réessayez.',
   'groups.invite.load_error':
     'Menta n’a pas pu charger cette invitation. Vérifiez votre connexion et réessayez.',
   'groups.invite.copy_link': 'Copier le lien d’invitation',
@@ -574,7 +574,7 @@ export const fullGroupsFrCA = {
     '{member} reviendra à un accès de membre normal.',
   'groups.admin.remove_question': 'Supprimer le membre ?',
   'groups.admin.remove_warning':
-    '{member} perdra l’accès au groupe. Les preuves passées restent dans l’historique du groupe, mais ils ne pourront plus soumettre ou vérifier de nouvelles promesses du groupe.',
+    '{member} perdra l’accès au groupe. Ses preuves passées restent dans l’historique du groupe, mais cette personne ne pourra plus envoyer ni vérifier de nouvelles promesses du groupe.',
 
   'groups.empty.shared_title': 'Aucune promesse partagée pour le moment',
   'groups.empty.shared_detail':
@@ -661,7 +661,7 @@ export const fullGroupsFrCA = {
   'groups.join.try_another': 'Essayer un autre code',
   'groups.join.momenta_needed': 'Momenta requis',
   'groups.join.cost_missing':
-    'Le coût d’adhésion n’a pas chargé. Retournez à l’invitation et vérifiez à nouveau avant de rejoindre.',
+    'Le coût d’adhésion ne s’est pas chargé. Revenez à l’invitation et vérifiez de nouveau avant de rejoindre.',
   'groups.join.watch_ad': 'Regarder une pub pour des Momenta',
   'groups.join.see_pro_options': 'Voir les options Pro',
   'groups.join.cost_needed':
@@ -690,7 +690,7 @@ export const fullGroupsFrCA = {
     'Vérifiez le code ou demandez une nouvelle invitation.',
   'groups.join.sign_in_title': 'Connectez‑vous pour continuer',
   'groups.join.sign_in_detail':
-    'Retournez à cette invitation après vous être connecté.',
+    'Revenez à cette invitation après vous être connecté.',
   'groups.join.preview_unavailable_title':
     'Aperçu de l’invitation indisponible',
   'groups.join.preview_unavailable_detail':
@@ -720,7 +720,7 @@ export const fullGroupsFrCA = {
   'groups.join.how_it_works_detail':
     'Les participants publient une preuve. Un autre participant admissible la vérifie.',
   'groups.join.already_member_detail':
-    'Vous êtes déjà dans ce groupe. Aucun second adhésion ne sera exécutée.',
+    'Vous êtes déjà dans ce groupe. Aucune seconde adhésion ne sera effectuée.',
   'groups.join.inviter_invite': 'Invitation de {inviter}',
   'groups.join.outcome_stale_title': 'Cette invitation n’est plus active',
   'groups.join.outcome_stale_detail':
@@ -846,7 +846,7 @@ export const fullGroupsFrCA = {
   'groups.detail.left_detail': 'Vous n’appartenez plus à ce groupe.',
   'groups.detail.leave_unknown_title': 'Départ non confirmé',
   'groups.detail.leave_unknown_detail':
-    'Menta n’a pas pu confirmer si vous avez quitté. Retournez aux Groupes et vérifiez votre adhésion avant d’essayer à nouveau.',
+    'Menta n’a pas pu confirmer si vous avez quitté le groupe. Revenez à Groupes et vérifiez votre adhésion avant de réessayer.',
   'groups.detail.leave_failed_title': 'Départ non terminé',
   'groups.detail.leave_warning':
     'Vous ne figurerez plus dans ce groupe et ne pourrez plus soumettre ou vérifier de nouvelles promesses du groupe. Les preuves passées restent dans l’historique du groupe.',
@@ -855,7 +855,7 @@ export const fullGroupsFrCA = {
     'Le groupe, ses promesses partagées et son historique de preuves ont été supprimés pour tout le monde.',
   'groups.detail.delete_unknown_title': 'Suppression non confirmée',
   'groups.detail.delete_unknown_detail':
-    'Menta n’a pas pu confirmer si le groupe a été supprimé. Retournez aux Groupes et vérifiez avant d’essayer à nouveau.',
+    'Menta n’a pas pu confirmer si le groupe a été supprimé. Revenez à Groupes et vérifiez avant de réessayer.',
   'groups.detail.delete_failed_title': 'Groupe non supprimé',
   'groups.detail.archive_failed_title': 'Échec de l’archivage',
   'groups.detail.not_archived_title': 'Groupe non archivé',
@@ -889,7 +889,7 @@ export const fullGroupsFrCA = {
   'groups.share.invite_someone_title': 'Inviter quelqu’un à Menta',
   'groups.share.preparing': 'Préparation de votre invitation',
   'groups.share.choose_where': 'Choisissez où partager',
-  'groups.share.ready_after_return': 'Prêt à partager de nouveau',
+  'groups.share.ready_after_return': 'Prêt à partager à nouveau',
   'groups.share.reward_confirmed': '{amount} Momenta ajoutés',
   'groups.share.link_copied': 'Lien copié',
   'groups.share.unavailable': 'Lien d’invitation indisponible',
@@ -941,7 +941,7 @@ export const fullGroupsFrCA = {
   'groups.join.check_code': 'Vérifiez‑le avant de rejoindre.',
   'groups.join.paste_failed': 'Échec du collage',
   'groups.join.clipboard_error':
-    'Menta n’a pas pu lire votre presse‑papier. Tapez le code d’invitation à la place.',
+    'Menta n’a pas pu lire votre presse-papiers. Saisissez plutôt le code d’invitation.',
   'groups.share.limit_reached': 'Vous avez atteint votre limite de récompense',
   'groups.share.both_earn': 'Vous pouvez tous les deux gagner {amount} Momenta',
   'groups.share.limit_detail':
@@ -1087,13 +1087,13 @@ export const fullGroupsFrCA = {
   'groups.source.accountability.saved_group_picker.load_error_title':
     'Impossible de charger vos groupes',
   'groups.source.accountability.saved_group_picker.load_error_detail':
-    'Votre promesse reste privée. Essayez de charger vos groupes de nouveau.',
+    'Votre promesse reste privée. Essayez de charger vos groupes à nouveau.',
   'groups.source.accountability.saved_group_picker.empty_title':
     'Aucun groupe enregistré pour le moment',
   'groups.source.accountability.saved_group_picker.empty_detail':
     'Créez d’abord un groupe, puis revenez ajouter cette promesse.',
   'groups.source.accountability.saved_group_picker.people_unknown':
-    'Nombre de personnes non disponible',
+    'Nombre de personnes indisponible',
   'groups.source.accountability.saved_group_picker.public': 'Public',
   'groups.source.accountability.saved_group_picker.private': 'Privé',
   'groups.source.accountability.saved_group_picker.row_hint':
@@ -1105,7 +1105,7 @@ export const fullGroupsFrCA = {
   'groups.source.accountability.saved_group_picker.unknown_title':
     'Association non confirmée',
   'groups.source.accountability.saved_group_picker.unknown_detail':
-    'Menta a peut-être ajouté la promesse. Vérifiez de nouveau avec la même demande avant toute autre action.',
+    'Menta a peut-être ajouté la promesse. Vérifiez à nouveau avec la même demande avant toute autre action.',
   'groups.source.accountability.saved_group_picker.failed_title':
     'Promesse non ajoutée',
   'groups.source.accountability.saved_group_picker.failed_detail':
@@ -1113,7 +1113,7 @@ export const fullGroupsFrCA = {
   'groups.source.accountability.saved_group_picker.confirmed':
     '{group} comprend maintenant cette promesse.',
   'groups.source.accountability.saved_group_picker.check_again':
-    'Vérifier de nouveau',
+    'Vérifier à nouveau',
   'groups.source.accountability.saved_group_picker.close_for_now':
     'Fermer pour le moment',
   'groups.source.accountability.saved_group_picker.choose_another':
@@ -1132,11 +1132,11 @@ export const fullGroupsFrCA = {
   'groups.source.accountability.saved_group_picker.create_handoff_failed_title':
     'Impossible d’ouvrir la configuration du groupe',
   'groups.source.accountability.saved_group_picker.create_handoff_failed_detail':
-    'Votre promesse reste privée. Essayez d’ouvrir la configuration du groupe de nouveau.',
+    'Votre promesse reste privée. Essayez d’ouvrir la configuration du groupe à nouveau.',
   'groups.create.promise_link.missing_context_title':
-    'Association à la promesse non disponible',
+    'Association à la promesse indisponible',
   'groups.create.promise_link.missing_context_detail':
-    'Retournez à la promesse et ouvrez de nouveau la configuration du groupe. Aucun groupe n’a été créé.',
+    'Revenez à la promesse et ouvrez de nouveau la configuration du groupe. Aucun groupe n’a été créé.',
   'groups.create.promise_link.confirmed_accessibility':
     '{group} a été créé et comprend maintenant votre promesse.',
   'groups.create.promise_link.linking_title': 'Ajout de votre promesse…',
@@ -1146,11 +1146,26 @@ export const fullGroupsFrCA = {
   'groups.create.promise_link.unknown_title':
     'Groupe créé. Association à vérifier.',
   'groups.create.promise_link.unknown_detail':
-    '{group} est prêt, mais Menta n’a pas pu confirmer l’ajout de la promesse. Vérifiez de nouveau avec la même demande.',
+    '{group} est prêt, mais Menta n’a pas pu confirmer l’ajout de la promesse. Vérifiez à nouveau avec la même demande.',
   'groups.create.promise_link.failed_title':
     'Groupe créé. Promesse non ajoutée.',
   'groups.create.promise_link.failed_detail':
-    '{group} est prêt et rien n’a été partagé. Retournez à la promesse pour choisir la suite.',
+    '{group} est prêt et rien n’a été partagé. Revenez à la promesse pour choisir la suite.',
   'groups.create.promise_link.check_again': 'Vérifier l’association',
-  'groups.create.promise_link.return_to_promise': 'Retourner à la promesse',
+  'groups.create.promise_link.return_to_promise': 'Revenir à la promesse',
+  'groups.share.pass_title': 'Vous m’aidez à tenir?',
+  'groups.share.pass_from': 'De {name}',
+  'groups.share.pitch_title': 'Invitez quelqu’un qui prendra de vos nouvelles.',
+  'groups.share.pitch_proof':
+    'Cette personne voit votre preuve et la confirme d’un geste. Ça prend quelques secondes.',
+  'groups.share.pitch_reward':
+    'Dès sa première promesse, vous recevez chacun {amount} Momenta.',
+  'groups.share.pitch_link': 'Ce lien suffit pour rejoindre Menta.',
+  'groups.share.sent_step_join': 'Ils l’ouvrent et rejoignent Menta.',
+  'groups.share.sent_step_promise': 'Ils font leur première promesse.',
+  'groups.share.sent_step_reward':
+    'Ils font leur première promesse et vous recevez chacun {amount} Momenta.',
+  'groups.share.you': 'Vous',
+  'groups.share.checker': 'Votre binôme',
+  'groups.share.sent_title': 'C’est envoyé ? Voici la suite.',
 } as const;

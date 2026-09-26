@@ -1,4 +1,5 @@
 import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -11,6 +12,8 @@ const mockPush = jest.fn();
 const mockReplace = jest.fn();
 const mockSignInWithApple = jest.fn().mockResolvedValue(undefined);
 const mockSignInWithGoogle = jest.fn().mockResolvedValue(undefined);
+const mockRefreshSession = jest.fn().mockResolvedValue(undefined);
+let mockSessionRecoveryRequired = false;
 const mockShowToastError = jest.fn();
 const mockSaveOnboardingDraft = jest.fn().mockResolvedValue(undefined);
 const mockLoadOnboardingDraft = jest.fn().mockResolvedValue(null);
@@ -34,6 +37,7 @@ jest.mock('@/components/ui/icons', () => {
   const Icon = () => React.createElement(View);
   return {
     AlertCircleIcon: Icon,
+    AlertTriangleIcon: Icon,
     AppleIcon: Icon,
     ArrowLeftIcon: Icon,
     CheckCircleIcon: Icon,
@@ -57,6 +61,8 @@ jest.mock('expo-router', () => ({
 jest.mock('@/store/auth-store', () => ({
   useAuthStore: () => ({
     isLoading: false,
+    sessionRecoveryRequired: mockSessionRecoveryRequired,
+    refreshSession: mockRefreshSession,
     signInWithApple: (...args: unknown[]) => mockSignInWithApple(...args),
     signInWithGoogle: (...args: unknown[]) => mockSignInWithGoogle(...args),
   }),
@@ -73,19 +79,25 @@ jest.mock('@/lib/onboarding-draft', () => ({
   saveOnboardingDraft: (...args: unknown[]) => mockSaveOnboardingDraft(...args),
 }));
 
-const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <SafeAreaProvider
-    initialMetrics={{
-      frame: { x: 0, y: 0, width: 430, height: 932 },
-      insets: { top: 0, right: 0, bottom: 0, left: 0 },
-    }}
-  >
-    <ThemeProvider>{children}</ThemeProvider>
-  </SafeAreaProvider>
-);
+const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [queryClient] = React.useState(() => new QueryClient());
+  return (
+    <SafeAreaProvider
+      initialMetrics={{
+        frame: { x: 0, y: 0, width: 430, height: 932 },
+        insets: { top: 0, right: 0, bottom: 0, left: 0 },
+      }}
+    >
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>{children}</ThemeProvider>
+      </QueryClientProvider>
+    </SafeAreaProvider>
+  );
+};
 
 describe('returning login provider methods', () => {
   beforeEach(() => {
+    mockSessionRecoveryRequired = false;
     jest.clearAllMocks();
     mockSignInWithApple.mockResolvedValue(undefined);
     mockSignInWithGoogle.mockResolvedValue(undefined);
@@ -95,6 +107,16 @@ describe('returning login provider methods', () => {
       height: 932,
       fontScale: 1,
     });
+  });
+
+  it('offers profile recovery without sending an existing account into onboarding', async () => {
+    mockSessionRecoveryRequired = true;
+    const screen = render(<LoginScreen />, { wrapper: Wrapper });
+    expect(screen.getByText('Could not check your account')).toBeTruthy();
+    fireEvent.press(screen.getByText('Retry profile'));
+    await waitFor(() => expect(mockRefreshSession).toHaveBeenCalledTimes(1));
+    expect(mockReplace).not.toHaveBeenCalled();
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   it('keeps the 430pt auth lane at canonical gutters and control height', () => {

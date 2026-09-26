@@ -6,6 +6,7 @@ import { formatCost } from '@/lib/momenta-costs';
 import { emitHaptic } from '@/lib/motion/haptics';
 import { useMotionPreferences } from '@/lib/motion/use-motion-preferences';
 import { useTheme } from '@/constants/ThemeContext';
+import { mentaTypography } from '@/constants/MentaDesignSystem';
 import { useTranslation } from '@/lib/localization/use-translation';
 
 type ConfirmActionButtonProps = {
@@ -121,9 +122,8 @@ export const ConfirmActionButton: React.FC<ConfirmActionButtonProps> = ({
         <View style={{ marginBottom: theme.spacing.xs }}>
           <Text
             style={{
+              ...mentaTypography.captionMedium,
               color: theme.colors.text.tertiary,
-              fontSize: theme.typography.sizes.xs,
-              fontWeight: theme.typography.weights.medium,
               textAlign: 'right',
             }}
             numberOfLines={2}

@@ -26,11 +26,12 @@ import {
 type ModalCardProps = {
   visible: boolean;
   onClose: () => void;
+  onDismiss?: ModalProps['onDismiss'];
   children: React.ReactNode;
   maxWidth?: number;
   dismissOnBackdrop?: boolean;
   surface?: ModalSurface;
-  /** Contextual choices stay on the edge; bounded dialogs opt in explicitly. */
+  /** Regular-width iPads default to a bounded task surface. Edge is explicit. */
   presentationRole?: 'edge' | 'bounded';
   animationType?: ModalProps['animationType'];
   accessibilityLabel?: string;
@@ -42,11 +43,12 @@ type ModalCardProps = {
 export const ModalCard: React.FC<ModalCardProps> = ({
   visible,
   onClose,
+  onDismiss,
   children,
   maxWidth = 440,
   dismissOnBackdrop = true,
   surface = 'dialog',
-  presentationRole = 'edge',
+  presentationRole = 'bounded',
   animationType = 'fade',
   accessibilityLabel,
   overlayStyle,
@@ -78,7 +80,18 @@ export const ModalCard: React.FC<ModalCardProps> = ({
       transparent
       animationType={resolvedAnimationType}
       onRequestClose={handleRequestClose}
+      onDismiss={onDismiss}
       presentationStyle="overFullScreen"
+      supportedOrientations={
+        Platform.OS === 'ios' && Platform.isPad
+          ? [
+              'portrait',
+              'portrait-upside-down',
+              'landscape-left',
+              'landscape-right',
+            ]
+          : ['portrait']
+      }
       accessibilityLabel={accessibilityLabel}
       accessibilityViewIsModal
       testID={testID}

@@ -61,13 +61,13 @@ export function MomentaWorkspacePlaceholder({
         <SkeletonLoader
           announce={false}
           width="100%"
-          height={76}
-          borderRadius={mentaRadii.large}
+          height={44}
+          borderRadius={mentaRadii.round}
         />
         <SkeletonLoader
           announce={false}
           width="42%"
-          height={24}
+          height={26}
           borderRadius={mentaRadii.small}
         />
         {[0, 1, 2].map(row => (
@@ -76,7 +76,7 @@ export function MomentaWorkspacePlaceholder({
               announce={false}
               width={64}
               height={64}
-              borderRadius={mentaRadii.medium}
+              borderRadius={18}
             />
             <View style={styles.copy}>
               <SkeletonLoader
@@ -107,7 +107,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: mentaSpacing[4],
-    minHeight: 88,
+    minHeight: 96,
+    borderColor: mentaColors.border,
+    borderRadius: mentaRadii.large,
+    borderWidth: 1,
+    paddingHorizontal: mentaSpacing[4],
   },
   copy: { flex: 1, gap: mentaSpacing[2] },
 });

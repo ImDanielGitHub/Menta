@@ -1,7 +1,11 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- Metro loads its configuration through CommonJS. */
 const { getSentryExpoConfig } = require('@sentry/react-native/metro');
 const {
   getBundleModeMetroConfig,
 } = require('react-native-worklets/bundleMode');
+const {
+  checkNativeImports,
+} = require('./scripts/metro/check-native-imports.cjs');
 
 /** @type {import('expo/metro-config').MetroConfig} */
 const config = getSentryExpoConfig(__dirname);
@@ -44,4 +48,12 @@ config.symbolicator = {
   },
 };
 
-module.exports = getBundleModeMetroConfig(config);
+const nativeConfig = getBundleModeMetroConfig(config);
+const originalSerializerHook =
+  nativeConfig.serializer.experimentalSerializerHook;
+nativeConfig.serializer.experimentalSerializerHook = (graph, delta) => {
+  checkNativeImports(graph, __dirname);
+  originalSerializerHook?.(graph, delta);
+};
+
+module.exports = nativeConfig;

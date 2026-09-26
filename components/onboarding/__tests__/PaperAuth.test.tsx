@@ -331,14 +331,16 @@ describe('Paper auth surfaces', () => {
     expect(screen.getByText('Keep local draft')).toBeTruthy();
     expect(back.props.accessibilityRole).toBe('button');
     expect(back.props.accessibilityLabel).toBe('Choose sign-in method');
-    expect(back).toHaveStyle({
-      minHeight: mentaLayout.minimumTouchTarget,
-      minWidth: mentaLayout.minimumTouchTarget,
-    });
+    expect(
+      StyleSheet.flatten(back.props.style).minHeight
+    ).toBeGreaterThanOrEqual(mentaLayout.minimumTouchTarget);
+    expect(
+      StyleSheet.flatten(back.props.style).minWidth
+    ).toBeGreaterThanOrEqual(mentaLayout.minimumTouchTarget);
     expect(keepDraft.props.accessibilityRole).toBe('button');
-    expect(keepDraft).toHaveStyle({
-      minHeight: mentaLayout.minimumTouchTarget,
-    });
+    expect(
+      StyleSheet.flatten(keepDraft.props.style).minHeight
+    ).toBeGreaterThanOrEqual(mentaLayout.minimumTouchTarget);
     expect(screen.getByText('You’re still signed out.')).toHaveStyle({
       fontSize: 20.8,
       lineHeight: 26,
@@ -623,9 +625,9 @@ describe('Paper auth surfaces', () => {
       disabled: true,
       busy: false,
     });
-    expect(apple).toHaveStyle({ minHeight: 52 });
-    expect(google).toHaveStyle({ minHeight: 52 });
-    expect(email).toHaveStyle({ minHeight: 52 });
+    expect(apple).toHaveStyle({ minHeight: mentaLayout.primaryControlHeight });
+    expect(google).toHaveStyle({ minHeight: mentaLayout.primaryControlHeight });
+    expect(email).toHaveStyle({ minHeight: mentaLayout.primaryControlHeight });
     expect(
       StyleSheet.flatten(screen.getByText('Continue with Google').props.style)
     ).toMatchObject({

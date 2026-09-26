@@ -1,14 +1,27 @@
 import React from 'react';
 import {
   fireEvent,
-  render,
+  render as renderWithProviders,
   screen,
   waitFor,
 } from '@testing-library/react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import EventsIndexScreen from '@/app/events';
 import { listEventPublishRecoveries } from '@/lib/events/publish-recovery';
 import type { EventDiscovery } from '@/types/event';
+
+const render = (ui: React.ReactElement) =>
+  renderWithProviders(
+    <SafeAreaProvider
+      initialMetrics={{
+        frame: { x: 0, y: 0, width: 430, height: 932 },
+        insets: { top: 0, right: 0, bottom: 0, left: 0 },
+      }}
+    >
+      {ui}
+    </SafeAreaProvider>
+  );
 
 const EVENT_ID = '11111111-1111-4111-8111-111111111111';
 const OTHER_EVENT_ID = '55555555-5555-4555-8555-555555555555';

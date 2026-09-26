@@ -150,6 +150,16 @@ describe('promise accountability contract', () => {
     });
   });
 
+  it('keeps a rejected preview request retryable instead of retiring the invite', async () => {
+    mockRpc.mockRejectedValue(new Error('Network request failed'));
+    await expect(
+      loadPromiseAccountabilityInvitePreview('ABCD1234')
+    ).resolves.toEqual({
+      kind: 'retry',
+      message: 'Menta could not check this promise invitation.',
+    });
+  });
+
   it('uses the role-aware leave receipt without calling the legacy mutation', async () => {
     const leaveLegacy = jest.fn();
     mockRpc.mockResolvedValue({
@@ -409,5 +419,35 @@ describe('promise accountability picker contract', () => {
         },
       ])
     ).toEqual([]);
+  });
+
+  it('leaves out promises that have ended even while the server still says active', () => {
+    const now = new Date('2026-09-25T09:00:00.000Z');
+    const row = (id: string, title: string, endDate: string) => ({
+      status: 'active',
+      challenges: {
+        id,
+        title,
+        status: 'active',
+        completion_status: 'active',
+        is_expired: false,
+        end_date: endDate,
+        team_challenges: [],
+      },
+    });
+
+    expect(
+      decodeAccountabilityPickerPromises(
+        [
+          row(
+            PROMISE_ID,
+            'Read for 20 minutes before bed',
+            '2026-09-06T11:59:59Z'
+          ),
+          row(SAVED_PROMISE_ID, 'Walk after work', '2026-10-09T11:59:59Z'),
+        ],
+        now
+      ).map(promise => promise.title)
+    ).toEqual(['Walk after work']);
   });
 });

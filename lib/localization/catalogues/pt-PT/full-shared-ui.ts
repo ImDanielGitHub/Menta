@@ -8,7 +8,7 @@ export const fullSharedUiPtPT = {
   'shared.navigation.settings': 'Definições',
   'shared.redirect.invite.navTitle': 'Convidar',
   'shared.redirect.join.navTitle': 'Participar',
-  'shared.accessibility.primaryNavigation': 'Navegação primária',
+  'shared.accessibility.primaryNavigation': 'Navegação principal',
   'shared.accessibility.tabSelected': '{label} está selecionado.',
   'shared.accessibility.tabOpens': 'Abre {label}.',
   'shared.accessibility.choiceSummary': '{title}. {description}',
@@ -19,10 +19,10 @@ export const fullSharedUiPtPT = {
   'shared.accessibility.dismiss': 'Dispensar',
   'shared.accessibility.dismissSheet': 'Dispensar planilha',
   'shared.accessibility.scrollMore':
-    '{hint}. Deslize para cima para continuar lendo.',
+    '{hint}. Deslize para cima para continuar a ler.',
   'shared.accessibility.scrollHint': 'Role para ver mais',
   'shared.accessibility.loading': 'A carregar conteúdo',
-  'shared.accessibility.mentaLoading': 'Menta está a carregar',
+  'shared.accessibility.mentaLoading': 'A Menta está a carregar',
   'shared.accessibility.loadingRetry':
     'A carregar conteúdo. Toque para tentar novamente.',
   'shared.accessibility.loadingText': 'A carregar texto',
@@ -31,26 +31,26 @@ export const fullSharedUiPtPT = {
   'shared.accessibility.hidePassword': 'Ocultar palavra-passe',
   'shared.accessibility.showPassword': 'Mostrar palavra-passe',
   'shared.accessibility.networkRetry': 'Tentar ligação novamente',
-  'shared.accessibility.updateRequired': 'Atualização do Menta necessária',
-  'shared.accessibility.updateAvailable': 'Atualização do Menta disponível',
+  'shared.accessibility.updateRequired': 'Atualização da Menta necessária',
+  'shared.accessibility.updateAvailable': 'Atualização da Menta disponível',
   'shared.accessibility.referralQr':
-    'Código QR do convite de referência. Digitalize para abrir o ligação do convite.',
+    'Código QR do convite de referência. Digitalize para abrir o link do convite.',
   'shared.accessibility.duplicateInviteQr':
     'Mostrar QR do convite em ecrã cheia. Convide {code}',
 
   'shared.action.tryAgain': 'Tente novamente',
   'shared.action.reportIssue': 'Reportar problema',
   'shared.action.backToday': 'Voltar para hoje',
-  'shared.action.contactSupport': 'Entre em contato com o suporte',
+  'shared.action.contactSupport': 'Contactar o suporte',
   'shared.action.getHelp': 'Obtenha ajuda',
   'shared.action.close': 'Fechar',
   'shared.action.cancel': 'Cancelar',
   'shared.action.confirm': 'Confirmar',
   'shared.action.done': 'Concluído',
   'shared.action.next': 'Próximo',
-  'shared.action.working': 'Funcionando...',
+  'shared.action.working': 'A processar…',
   'shared.action.checkAgain': 'Verifique novamente',
-  'shared.action.keepCurrentScreen': 'Manter a ecrã atual',
+  'shared.action.keepCurrentScreen': 'Manter o ecrã atual',
   'shared.action.retryConnection': 'Tentar novamente a ligação',
   'shared.action.workOffline': 'Trabalhar offline',
   'shared.action.retryUpload': 'Tentar carregar novamente',
@@ -65,7 +65,7 @@ export const fullSharedUiPtPT = {
   'shared.action.goToToday': 'Ir para hoje',
   'shared.action.goBack': 'Voltar',
 
-  'shared.error.network.title': 'Menta não consegue se conectar agora.',
+  'shared.error.network.title': 'A Menta não consegue se conectar agora.',
   'shared.error.network.message':
     'O seu trabalho está seguro. Tente novamente ou trabalhe offline quando esse fluxo permitir.',
   'shared.error.camera.title': 'Permissão da câmara pausada',
@@ -76,62 +76,62 @@ export const fullSharedUiPtPT = {
     'O seu comprovativo ainda está anexada. Tente fazer o envio novamente ou guarde-o para mais tarde, quando esse fluxo oferecer suporte à recuperação offline.',
   'shared.error.auth.title': 'Conta necessária',
   'shared.error.auth.message':
-    'comprovativos guardadas, grupos, avaliações e Momenta precisam de uma conta Menta. Inicie sessão e regresse à ação que a pessoa estava abrindo.',
+    'Os comprovativos guardados, os grupos, as análises e os Momenta precisam de uma conta Menta. Inicie sessão e volte à ação que estava a abrir.',
   'shared.error.submission.title': 'O comprovativo não foi enviada.',
   'shared.error.submission.message':
-    'O seu comprovativo ainda está aqui. Tente enviar novamente, guarde-o para mais tarde ou entre em contato com o suporte se o ciclo de análise estiver bloqueado.',
+    'O seu comprovativo continua aqui. Tente enviar novamente, guarde-o para mais tarde ou contacte o suporte se a análise estiver bloqueada.',
   'shared.error.validation.title': 'Verifique os detalhes',
   'shared.error.generic.title': 'Esta parte precisa de uma nova tentativa',
   'shared.error.generic.message':
-    'Menta não conseguiu terminar aquela ação. Os dados da sua conta estão seguros; tente novamente, volte para Hoje ou entre em contato com o suporte se isso continuar acontecendo.',
-  'shared.error.networkHandler.timeout.title': 'O Menta está demorando muito.',
+    'A Menta não conseguiu terminar essa ação. Os dados da sua conta estão seguros; tente novamente, volte a Hoje ou contacte o suporte se continuar a acontecer.',
+  'shared.error.networkHandler.timeout.title': 'A Menta está a demorar muito',
   'shared.error.networkHandler.network.title':
-    'O Menta não consegue se conectar no momento.',
+    'A Menta não consegue se conectar no momento.',
   'shared.error.networkHandler.timeout.message':
-    'A pedido não foi concluída. Tente novamente antes de alterar as telas para que o comprovativo ou estado da conta mais recente possa ser carregado.',
+    'O pedido não foi concluído. Tente novamente antes de mudar de ecrã para que o estado mais recente do comprovativo ou da conta possa carregar.',
   'shared.error.networkHandler.server.title':
-    'O Menta não conseguiu finalizar o pedido',
+    'A Menta não conseguiu finalizar o pedido',
   'shared.error.networkHandler.server.withStatus':
-    'O servidor devolveu {status}. Tente novamente em alguns instantes; seu lugar em Menta ainda está aqui.',
+    'O servidor devolveu {status}. Tente novamente dentro de instantes; continua no mesmo sítio na Menta.',
   'shared.error.networkHandler.server.withoutStatus':
-    'Menta teve um problema no servidor. Tente novamente em alguns instantes; seu lugar ainda é aqui.',
+    'A Menta teve um problema no servidor. Tente novamente dentro de instantes; continua no mesmo sítio.',
   'shared.error.networkHandler.unknown.title':
     'Esta ação precisa de outra tentativa',
   'shared.error.networkHandler.unknown.message':
-    'Menta manteve seu lugar. Tente novamente quando estiver pronto.',
+    'A Menta guardou o seu lugar. Tente novamente quando estiver pronto.',
   'shared.error.networkHandler.networkMessages':
-    'Menta não consegue se conectar agora. O seu trabalho está seguro; tente novamente quando estiver online novamente.',
+    'A Menta não consegue se conectar agora. O seu trabalho está seguro; tente novamente quando estiver online novamente.',
   'shared.error.networkHandler.timeoutMessage':
-    'Menta está demorando muito. Tente novamente antes de mudar de ecrã.',
+    'A Menta está a demorar muito. Tente novamente antes de mudar de ecrã.',
   'shared.error.networkHandler.serverMessage':
-    'Menta não conseguiu finalizar esso pedido. O seu lugar ainda é aqui.',
+    'A Menta não conseguiu finalizar esso pedido. O seu lugar ainda é aqui.',
   'shared.error.networkHandler.notFoundMessage':
-    'Esse ligação do Menta está obsoleto ou não está mais disponível.',
+    'Este link da Menta está desatualizado ou já não está disponível.',
   'shared.error.networkHandler.unauthorisedMessage':
-    'Inicie sessão novamente para manter suas comprovativos e ações de grupo associadas à sua conta.',
+    'Inicie sessão novamente para manter os seus comprovativos e ações de grupo associados à sua conta.',
   'shared.error.networkHandler.forbiddenMessage':
     'Esta conta não pode fazer essa alteração.',
   'shared.error.networkHandler.badRequestMessage':
     'Verifique os detalhes e tente novamente.',
   'shared.error.networkHandler.unknownMessage':
-    'Menta ficou com o seu lugar. Tente novamente quando estiver pronto.',
+    'A Menta ficou com o seu lugar. Tente novamente quando estiver pronto.',
   'shared.error.debug': 'Depuração: {message}',
 
-  'shared.boundary.critical.title': 'Menta parou inesperadamente.',
+  'shared.boundary.critical.title': 'A Menta parou inesperadamente.',
   'shared.boundary.critical.message':
-    'A sua conta e trabalho guardado ainda estão aqui. Tente novamente. Se isso acontecer novamente, envie um relatório.',
-  'shared.boundary.screen.title': 'Esta ecrã parou de carregar.',
+    'A sua conta e o trabalho guardado continuam aqui. Tente novamente. Se voltar a acontecer, envie um relatório.',
+  'shared.boundary.screen.title': 'Este ecrã deixou de carregar.',
   'shared.boundary.screen.message':
-    'Tente a ecrã novamente ou regresse para Hoje.',
+    'Tente abrir este ecrã novamente ou volte a Hoje.',
   'shared.boundary.component.title': 'Esta seção não pôde ser carregada.',
   'shared.boundary.component.message':
-    'Tente novamente. Se continuar acontecendo, envie um relatório com os detalhes técnicos anexados.',
+    'Tente novamente. Se continuar a acontecer, envie um relatório com os detalhes técnicos anexados.',
   'shared.boundary.errorDetail': 'Detalhe do erro',
   'shared.boundary.errorId': 'ID do erro: {id}',
   'shared.boundary.crashDescription':
-    'Um componente travou enquanto eu estava usando o Menta.',
+    'Um componente falhou enquanto eu usava a Menta.',
   'shared.boundary.expectedBehaviour':
-    'A ecrã deve continuar funcionando ou se recuperar sem perder contexto.',
+    'O ecrã deve continuar a funcionar ou recuperar sem perder o contexto.',
   'shared.boundary.observedBehaviour':
     'A aplicação mostrou um limite de erro de componente.',
   'shared.boundary.boundaryLevel': 'Nível de limite: {level}',
@@ -142,16 +142,16 @@ export const fullSharedUiPtPT = {
   'shared.confirm.unknown.body':
     'A ligação terminou antes que Menta recebesse um resultado confiável. Outro pedido de eliminação é bloqueada até que o estado da conta seja verificado.',
   'shared.confirm.unknown.notice':
-    'Menta não reivindicará sucesso ou falha até que o estado da conta seja confirmado.',
+    'A Menta não reivindicará sucesso ou falha até que o estado da conta seja confirmado.',
   'shared.confirm.failed.heading': 'Nada mudou nesta conta.',
   'shared.confirm.failed.body':
-    'A pedido de eliminação não foi concluída. A sua conta ainda está ligada e nenhuma remoção foi confirmada.',
+    'O pedido de eliminação não foi concluído. A sua sessão continua iniciada e nenhuma remoção foi confirmada.',
   'shared.confirm.failed.notice':
-    'Pode tentar novamente ou entrar em contato com o suporte se isso continuar acontecendo.',
+    'Pode tentar novamente ou contactar o suporte se isto continuar a acontecer.',
   'shared.confirm.typeToConfirm': 'Introduza "{name}" para confirmar.',
   'shared.confirm.typeToConfirmAccessibility':
     'Introduza {name} para confirmar',
-  'shared.confirm.deleting': 'Excluindo...',
+  'shared.confirm.deleting': 'A eliminar...',
   'shared.confirm.tapAgain': 'Toque novamente',
   'shared.confirm.tapAgainWithCost': 'Toque novamente {cost}',
   'shared.confirm.action': '{title}',
@@ -159,7 +159,7 @@ export const fullSharedUiPtPT = {
   'shared.confirm.balance': 'Saldo: {balance} {currency}',
   'shared.confirm.notEnough.title': 'Momenta insuficiente',
   'shared.confirm.notEnough.message':
-    'Esta ação precisa de mais Momenta. Abra a ecrã de propriedade para escolher um caminho de ganho ou recarga.',
+    'Esta ação precisa de mais Momenta. Abra a carteira para ganhar ou carregar Momenta.',
 
   'shared.oauth.continueGoogle': 'Continuar com o Google',
   'shared.oauth.continueApple': 'continuar com Apple',
@@ -173,15 +173,15 @@ export const fullSharedUiPtPT = {
     'Ainda está desligado. Escolha Apple, Google ou e-mail para tentar novamente.',
   'shared.oauth.opening': 'Abrinda sessão {provider}',
   'shared.oauth.pending':
-    'Mantenha o Menta aberto. Quando a sessão terminar, a pessoa regressará ao que estava a fazer.',
+    'Mantenha a Menta aberta. Quando o início de sessão terminar, volta ao que estava a fazer.',
 
-  'shared.update.ready.accessibility': 'Atualização do Menta pronta',
-  'shared.update.ready.title': 'Atualização do Menta pronta',
+  'shared.update.ready.accessibility': 'Atualização da Menta pronta',
+  'shared.update.ready.title': 'Atualização da Menta pronta',
   'shared.update.ready.description':
-    'Reinicie o Menta para usar as correções e melhorias mais recentes.',
-  'shared.update.ready.restart': 'Reinicie o Menta',
+    'Reinicie a Menta para usar as correções e melhorias mais recentes.',
+  'shared.update.ready.restart': 'Reinicie a Menta',
   'shared.update.ready.later': 'Mais tarde',
-  'shared.update.required.title': 'Atualize o Menta para continuar',
+  'shared.update.required.title': 'Atualize a Menta para continuar',
   'shared.update.required.description':
     'Esta versão mantém o comportamento de conta, promessa, comprovativo e notificação sincronizados.',
   'shared.update.optional.title': 'Menta 1.9.2 está pronto',
@@ -196,10 +196,10 @@ export const fullSharedUiPtPT = {
 
   'shared.referral.title': 'Deixe-os digitalizar para ingressar',
   'shared.referral.description':
-    'Peça-lhes para digitalizarem este código. Ele abre seu ligação de referência.',
+    'Peça-lhes para lerem este código. Abre o seu link de indicação.',
   'shared.referral.unavailable':
     'Código QR indisponível. Ainda pode tentar as opções de partilha ou cópia abaixo.',
-  'shared.referral.preparing': 'Preparando seu código QR…',
+  'shared.referral.preparing': 'A preparar o seu código QR…',
 
   'shared.image.notAvailable': 'Imagem não disponível',
   'shared.image.alt': 'Imagem',
@@ -240,7 +240,7 @@ export const fullSharedUiPtPT = {
 
   'shared.notFound.title': 'Esta página não está disponível',
   'shared.notFound.description':
-    'O ligação pode estar desatualizado ou não existir mais. Nada na sua conta mudou.',
+    'O link pode estar desatualizado ou não existir mais. Nada na sua conta mudou.',
   'shared.systemSettings.title': 'Definições do telemóvel',
   'shared.systemSettings.description':
     'Altere as permissões de notificação, câmara, fotografia ou medição de anúncios nas definições do seu telemóvel. Menta não pode alterá-los ou confirmará-los neste ecrã.',
@@ -252,82 +252,81 @@ export const fullSharedUiPtPT = {
   'shared.systemSettings.failed.title':
     'As definições do telemóvel não puderam abrir',
   'shared.systemSettings.failed.description':
-    'Nada mudou no Menta. Abra as definições do seu telemóvel manualmente e regresse à aplicação.',
+    'Nada mudou na Menta. Abra as definições do seu telemóvel manualmente e regresse à aplicação.',
 
   'shared.adTracking.title': 'Medição de anúncios',
   'shared.adTracking.optional': 'Opcional',
   'shared.adTracking.education.title': 'Medir se os meta-anúncios ajudaram?',
   'shared.adTracking.education.body':
-    'O Menta pode avisar o Meta quando alguém que viu um anúncio posteriormente se inscreve, cria um grupo, cria uma promessa ou convida um amigo. O seu telemóvel pedirá permissão a seguir. Pode recusar e ainda usar o Menta.',
+    'A Menta pode avisar o Meta quando alguém que viu um anúncio posteriormente se inscreve, cria um grupo, cria uma promessa ou convida um amigo. O seu telemóvel pedirá permissão a seguir. Pode recusar e ainda usar a Menta.',
   'shared.adTracking.continueHint':
     'Abre o prompt de permissão de rastreamento do seu telemóvel',
   'shared.adTracking.continue': 'Continua para o prompt do telemóvel',
   'shared.adTracking.notNow': 'Agora não',
   'shared.adTracking.granted.title': 'A medição de anúncios está ativada',
   'shared.adTracking.granted.body':
-    'O Menta pode medir se os meta-anúncios ajudaram alguém a se inscrever, criar um grupo, criar uma promessa ou convidar um amigo. Altere isso mais tarde nas definições do seu telemóvel.',
+    'A Menta pode medir se os meta-anúncios ajudaram alguém a se inscrever, criar um grupo, criar uma promessa ou convidar um amigo. Altere isso mais tarde nas definições do seu telemóvel.',
   'shared.adTracking.denied.title': 'A medição de anúncios está desativada',
   'shared.adTracking.denied.body':
-    'O Menta ainda funciona. Se mudar de ideia, abra as definições do telemóvel e permita o rastreamento do Menta.',
+    'A Menta ainda funciona. Se mudar de ideia, abra as definições do telemóvel e permita o rastreamento da Menta.',
   'shared.adTracking.unavailable.title':
     'A medição de anúncios não está disponível',
   'shared.adTracking.unavailable.body':
-    'Menta ainda funciona. Pode tentar novamente mais tarde em Definições.',
+    'A Menta ainda funciona. Pode tentar novamente mais tarde em Definições.',
   'shared.adTracking.promptFailed.title':
     'O prompt do telemóvel não pôde abrir',
   'shared.adTracking.promptFailed.description':
     'Pode continuar sem a medição de anúncios e tentar novamente mais tarde em Definições.',
 
   'shared.redirect.invite.titleMissing':
-    'O ligação de referência precisa de um código',
+    'O link de referência precisa de um código',
   'shared.redirect.invite.titleExisting': 'A referência é para novas contas',
   'shared.redirect.invite.titleOpening': 'Abertura de referência',
   'shared.redirect.invite.subtitleMissing':
-    'Este ligação de referência não inclui o código que Menta precisa.',
+    'Este link de referência não inclui o código que Menta precisa.',
   'shared.redirect.invite.subtitleExisting':
-    'Esta conta já está configurada, portanto o Menta não alterará seu referido.',
+    'Esta conta já está configurada, por isso a Menta não vai alterar a indicação.',
   'shared.redirect.invite.subtitleOpening':
-    'Estamos a guardar a indicação e levando a pessoa de volta para Menta.',
+    'Estamos a guardar a indicação e a levá-lo de volta à Menta.',
   'shared.redirect.invite.missingTitle': 'Código de indicação ausente',
   'shared.redirect.invite.missingDescription':
-    'Peça ao seu amigo para reenviar o ligação de convite ou continuar no Menta sem indicação.',
+    'Peça ao seu amigo para reenviar o link de convite ou continue na Menta sem indicação.',
   'shared.redirect.invite.continueWithout': 'Continuar sem referência',
   'shared.redirect.invite.accountReady': 'Conta já configurada',
   'shared.redirect.invite.accountDescription':
-    'ligações de referência se aplicam ao criar uma nova conta Menta. A sua conta corrente permanece inalterada.',
+    'Os links de indicação aplicam-se ao criar uma nova conta Menta. A sua conta atual não muda.',
   'shared.redirect.invite.continue': 'Continuar para Menta',
   'shared.redirect.invite.saved': 'Indicação guardada',
   'shared.redirect.invite.oneMoment': 'Um momento',
   'shared.redirect.invite.savedDescription':
-    'A indicação é guardada e permanecerá visível enquanto a pessoa entra ou cria sua conta.',
+    'A indicação fica guardada e visível enquanto inicia sessão ou cria a sua conta.',
   'shared.redirect.invite.checking':
-    'Menta está a verificar a referência antes de abrir a aplicação.',
+    'A Menta está a verificar a referência antes de abrir a aplicação.',
 
   'shared.redirect.join.challengeTitle': 'Convite de promessa guardado',
   'shared.redirect.join.challengeSubtitle':
-    'A verificar o ligação da promessa e seu estado de sessão.',
+    'A verificar o link da promessa e o seu estado de sessão.',
   'shared.redirect.join.challengeNoticeTitle': 'Convite guardado',
   'shared.redirect.join.challengeNoticeDescription':
     'A próxima ecrã mostrará o custo de adesão atual antes de qualquer alteração.',
-  'shared.redirect.join.groupTitle': 'Abrindo o convite do grupo',
+  'shared.redirect.join.groupTitle': 'A abrir o convite do grupo',
   'shared.redirect.join.groupSubtitle':
-    'A verificar o convite do grupo e seu sessão.',
+    'A verificar o convite do grupo e a sua sessão.',
   'shared.redirect.join.groupNoticeTitle': 'Convite de grupo encontrado',
   'shared.redirect.join.groupNoticeDescription':
     'Pode ver o grupo antes de decidir se deseja ingressar.',
-  'shared.redirect.join.missingTitle':
-    'O ligação de convite precisa de um código',
+  'shared.redirect.join.missingTitle': 'O link de convite precisa de um código',
   'shared.redirect.join.missingSubtitle':
-    'Este ligação de convite não inclui um grupo ou código de promessa.',
+    'Este link de convite não inclui um grupo ou código de promessa.',
   'shared.redirect.join.missingNoticeTitle': 'Código de convite ausente',
   'shared.redirect.join.missingNoticeDescription':
-    'Solicite um novo ligação de convite ou introduza um código de grupo manualmente.',
+    'Solicite um novo link de convite ou introduza um código de grupo manualmente.',
   'shared.redirect.join.openingTitle': 'Convite de abertura',
   'shared.redirect.join.openingSubtitle':
-    'A verificar o ligação do convite e seu estado de sessão.',
+    'A verificar o link do convite e o seu estado de sessão.',
   'shared.redirect.join.oneMoment': 'Um momento',
   'shared.redirect.join.checking':
-    'Menta está a verificar o código de convite.',
+    'A Menta está a verificar o código de convite.',
   'shared.redirect.join.codeLabel': 'Código de convite',
   'shared.redirect.join.enterCode': 'Introduza o código do grupo',
   'shared.redirect.join.continueWithout': 'Continuar sem convite',
@@ -336,16 +335,16 @@ export const fullSharedUiPtPT = {
   'shared.rootError.description':
     'Tente novamente. Se isso acontecer novamente, abra o formulário de denúncia com a referência de suporte abaixo.',
   'shared.rootError.supportReference': 'Referência de suporte',
-  'shared.rootError.generatingReference': 'Gerando uma referência técnica.',
+  'shared.rootError.generatingReference': 'A gerar uma referência técnica.',
   'shared.rootError.reportIncluded':
     'O formulário de relatório inclui esta referência. Revise o relatório antes de enviá-lo.',
   'shared.rootError.noStateChangedDescription':
     'Tentar novamente não marca nenhum comprovativo ou compra pendente como concluída.',
   'shared.rootError.noStateChanged': 'Nenhum estado alterado',
   'shared.rootError.reportFormOpened': 'Formulário de relatório aberto',
-  'shared.rootError.linkOutOfDate': 'Este ligação está desatualizado.',
+  'shared.rootError.linkOutOfDate': 'Este link está desatualizado.',
   'shared.rootError.linkDidNotChange':
-    'Este ligação não mudou nada. regresse ao suporte e reabra o item no ecrã atual.',
+    'Este link não mudou nada. regresse ao suporte e reabra o item no ecrã atual.',
   'shared.rootError.linkedItemMoved':
     'O grupo associado, promessa, item da loja ou convite pode ter sido movido ou alterado.',
   'shared.rootError.returnSupport': 'regressar ao suporte',
@@ -355,32 +354,31 @@ export const fullSharedUiPtPT = {
   'shared.rootLayout.noProofDue.title': 'Nenhum comprovativo no momento',
   'shared.rootLayout.noProofDue.message':
     'Hoje mostrará a próxima promessa quando o comprovativo for necessário.',
-  'shared.rootLayout.initialising': 'Inicializando Menta...',
   'shared.web.eyebrow': 'aplicação para iPhone necessário',
-  'shared.web.title': 'Abra este ligação no Menta no iPhone',
+  'shared.web.title': 'Abra este link na Menta no iPhone',
   'shared.web.explanation':
-    'O Menta não pode concluir esta ação num navegador da web. Abra o ligação original num iPhone com Menta instalado.',
+    'A Menta não pode concluir esta ação num navegador da web. Abra o link original num iPhone com Menta instalado.',
   'shared.web.nothingChanged': 'Nada mudou',
   'shared.web.waiting': 'O seu convite ou rascunho ainda está a aguardar.',
   'shared.web.continue': 'continuar no iPhone',
-  'shared.web.openOriginal': 'Abra o ligação original novamente no seu iPhone.',
+  'shared.web.openOriginal': 'Abra o link original novamente no seu iPhone.',
 
-  'shared.camera.proofLink': 'ligação de comprovativo',
-  'shared.camera.openingProofCapture': 'Abrindo a captura de comprovativo',
+  'shared.camera.proofLink': 'Link de comprovativo',
+  'shared.camera.openingProofCapture': 'A abrir a captura de comprovativo',
   'shared.camera.needsContext': 'Precisa de contexto',
   'shared.camera.openingProofCaptureTitle':
-    'Abrindo a captura de comprovativo.',
+    'A abrir a captura de comprovativo.',
   'shared.camera.incompleteLinkTitle':
-    'O ligação de comprovativo está incompleto.',
+    'O link de comprovativo está incompleto.',
   'shared.camera.handoffDescription':
-    'Estamos movendo este ligação de câmara antigo para o fluxo de comprovativo atual com a promessa, o tipo de comprovativo e a fonte intactos.',
+    'Estamos a passar este link antigo da câmara para o fluxo de comprovativo atual, mantendo a promessa, o tipo de comprovativo e a origem.',
   'shared.camera.incompleteLinkDescription':
-    'Este ligação de câmara antigo não possui o tipo de promessa ou comprovativo. Volte para Hoje e abra o comprovativo da promessa atual.',
+    'Este link de câmara antigo não possui o tipo de promessa ou comprovativo. Volte para Hoje e abra o comprovativo da promessa atual.',
   'shared.camera.handoffCardTitle': 'Transferência de captura de comprovativo',
   'shared.camera.recoveryPath': 'Caminho de recuperação',
   'shared.camera.noUpload': 'Sem envio',
-  'shared.camera.preparingViewfinder': 'Preparando o visor',
-  'shared.camera.noProofAttached': 'Nenhum comprovativo anexada',
+  'shared.camera.preparingViewfinder': 'A preparar o visor',
+  'shared.camera.noProofAttached': 'Nenhum comprovativo anexado',
   'shared.camera.nextScreenStates':
     'Os estados de câmara, biblioteca e texto ficam na próxima ecrã.',
   'shared.camera.noSubmissionFromRoute':
@@ -403,21 +401,21 @@ export const fullSharedUiPtPT = {
   'shared.camera.savedOnIPad': 'guardado NESTE IPAD',
   'shared.camera.savedOnPhone': 'guardado NESTE telemóvel',
   'shared.camera.notSentYetIPad':
-    'Nada foi enviado ainda. O seu comprovativo permanece neste iPad até que a pessoa decida enviá-la.',
+    'Ainda nada foi enviado. O seu comprovativo fica neste iPad até decidir enviá-lo.',
   'shared.camera.notSentYetPhone':
-    'Nada foi enviado ainda. O seu comprovativo permanece no seu telemóvel até que a pessoa decida enviá-la.',
+    'Ainda nada foi enviado. O seu comprovativo fica no seu telemóvel até decidir enviá-lo.',
   'shared.camera.retakeHintIPad':
-    'Repita se a ação concluída não estiver clara. Esta cópia permanece no seu dispositivo até a pessoa enviá-la.',
+    'Repita se a ação concluída não estiver clara. Esta cópia fica no seu dispositivo até a enviar.',
   'shared.camera.retakeHintPhone':
-    'Repita se a ação concluída não estiver clara. Esta cópia permanece no seu telemóvel até a pessoa enviá-la.',
+    'Repita se a ação concluída não estiver clara. Esta cópia fica no seu telemóvel até a enviar.',
   'shared.camera.retakeProof': 'Repetir o comprovativo',
   'shared.camera.holdToSend': 'Segure para enviar o comprovativo',
-  'shared.camera.keepHolding': 'continuar segurando para enviar…',
+  'shared.camera.keepHolding': 'continue a manter premido para enviar…',
   'shared.camera.releaseToCancel': 'Solte ou deslize para cancelar',
   'shared.camera.sendOneTap': 'Envie comprovativo com um toque',
   'shared.camera.useCameraForProof': 'Use a câmara paro comprovativo',
   'shared.camera.cameraPrimerDescription':
-    'O Menta abre a câmara somente após a pessoa permitir o acesso. Pode escolher um {proofType} guardado.',
+    'A Menta só abre a câmara depois de permitir o acesso. Também pode escolher um {proofType} guardado.',
   'shared.camera.reviewCameraAccess': 'Revise o acesso à câmara',
   'shared.camera.useTextProofInstead': 'Use comprovativo de texto',
   'shared.camera.cameraAccess': 'Câmara',
@@ -430,9 +428,9 @@ export const fullSharedUiPtPT = {
   'shared.camera.enablePermissionsInSettings':
     'Habilite {permissions} em Definições ou escolha um comprovativo da sua biblioteca.',
   'shared.camera.permissionBody':
-    'O acesso {permissions} permite que o Menta capture o comprovativo {proofType} para esta promessa. A pessoa também pode escolher um {proofType} guardado na sua biblioteca.',
-  'shared.camera.openingSettings': 'Abrindo definições...',
-  'shared.camera.requestingAccess': 'Solicitando acesso...',
+    'O acesso a {permissions} permite que a Menta capture o comprovativo {proofType} para esta promessa. Também pode escolher um {proofType} guardado na sua galeria.',
+  'shared.camera.openingSettings': 'A abrir as definições...',
+  'shared.camera.requestingAccess': 'A pedir acesso…',
   'shared.camera.allowPermissions': 'Permitir {permissions}',
   'shared.camera.cameraAccessOff': 'O acesso à câmara está desativado',
   'shared.camera.cameraAccessOffDescription':
@@ -442,16 +440,16 @@ export const fullSharedUiPtPT = {
     'Permita o acesso ao microfone paro comprovativo de vídeo ou envie um comprovativo fotografiagráfica.',
   'shared.camera.permissionCheckFailed': 'Falha na verificação de permissão',
   'shared.camera.permissionCheckFailedDescription':
-    'O Menta não conseguiu abrir o prompt de permissão. Experimente Definições ou escolha na sua biblioteca.',
+    'A Menta não conseguiu abrir o prompt de permissão. Experimente Definições ou escolha na sua biblioteca.',
   'shared.camera.chooseFromLibrary': 'Escolha da biblioteca',
   'shared.camera.cancelProof': 'Cancelar comprovativo',
   'shared.camera.cameraNeedsReset': 'A câmara precisa ser reiniciada',
-  'shared.camera.retryProofCamera': 'Tente novamente a câmara à comprovativo',
+  'shared.camera.retryProofCamera': 'Tentar novamente a câmara do comprovativo',
   'shared.camera.leaveCapture': 'Deixe a captura',
-  'shared.camera.capturePaused': 'A captura à comprovativo está pausada',
+  'shared.camera.capturePaused': 'A captura do comprovativo está em pausa',
   'shared.camera.capturePausedDescription':
     'Traga Menta de volta ao primeiro plano para retomar a câmara.',
-  'shared.camera.wakingCamera': 'Ativando a câmara de comprovativo…',
+  'shared.camera.wakingCamera': 'A ativar a câmara de comprovativo…',
   'shared.camera.switchCamera': 'Alternar câmara',
   'shared.camera.switchCameraHint':
     'Alterna entre as câmeras frontal e traseira.',
@@ -460,26 +458,26 @@ export const fullSharedUiPtPT = {
     'Comece a gravar o vídeo de comprovativo',
   'shared.camera.capturePhoto': 'Capture a fotografia de comprovativo',
   'shared.camera.recordVideoHint':
-    'Grava um pequeno vídeo que mostra sua ação concluída.',
+    'Grava um vídeo curto que mostra a sua ação concluída.',
   'shared.camera.capturePhotoHint':
-    'Tira uma fotografia que mostra sua ação concluída.',
+    'Tira uma fotografia que mostra a sua ação concluída.',
   'shared.camera.cancelCapture': 'Cancela captura de comprovativo',
   'shared.camera.cancelCaptureHint':
     'Fecha a câmara de comprovativo sem enviar comprovativo.',
   'shared.camera.ready': 'pronto',
-  'shared.camera.missing': 'faltando',
+  'shared.camera.missing': 'em falta',
   'shared.camera.scannerClose': 'Fechar scanner de convite',
   'shared.camera.scannerChecking': 'A verificar o acesso à câmara',
   'shared.camera.checkingTakesMoment':
     'Isso geralmente leva apenas alguns minutos.',
   'shared.camera.scannerPreparing':
-    'Menta está preparando o scanner de convites.',
+    'A Menta está a preparar o leitor de convites.',
   'shared.camera.scannerCloseShort': 'Fechar scanner',
   'shared.camera.scannerAccessOff': 'O acesso à câmara está desativado',
   'shared.camera.scannerBlockedDescription':
     'O acesso à câmara está desativado para Menta. Ative-o em Definições para ler códigos QR de convite ou feche este leitor e introduza o código manualmente.',
   'shared.camera.scannerPermissionDescription':
-    'Permita o acesso à câmara para que o Menta possa ler o código QR e abrir o grupo ou promessa certa.',
+    'Permita o acesso à câmara para que a Menta possa ler o código QR e abrir o grupo ou promessa certa.',
   'shared.camera.scanInvite': 'Digitalizar um convite',
   'shared.camera.scannerOpenSettings': 'Abrir Definições',
   'shared.camera.scannerAllowCamera': 'Permitir câmara',
@@ -487,39 +485,41 @@ export const fullSharedUiPtPT = {
   'shared.camera.scannerRetry': 'Tentar novamente o scanner',
   'shared.camera.qrFrame': 'Quadro de digitalização QR',
   'shared.camera.alignQr': 'Alinhe o código QR dentro do quadro',
-  'shared.camera.wakingScanner': 'Ativando o scanner de convite...',
-  'shared.camera.preparingScanner': 'Preparando o scanner de convite...',
+  'shared.camera.wakingScanner': 'A ativar o leitor de convites…',
+  'shared.camera.preparingScanner': 'A preparar o leitor de convites...',
   'shared.camera.scannerPaused':
     'O scanner está pausado. regresse a este ecrã para continuar.',
   'shared.camera.settingsDidNotOpen':
-    'As definições não foram abertas. Abra as definições do dispositivo manualmente e permita o acesso da câmara ao Menta.',
+    'As definições não foram abertas. Abra as definições do dispositivo manualmente e permita o acesso da câmara à Menta.',
   'shared.camera.permissionDidNotOpen':
     'A permissão da câmara não foi aberta. Pode tentar novamente ou inserir o código de convite manualmente.',
   'shared.camera.scannerTimeout':
-    'O scanner de convite está demorando muito para ser ativado. Tente novamente aqui primeiro.',
+    'O leitor de convites está a demorar muito a ativar. Tente novamente aqui primeiro.',
   'shared.camera.scannerMountFailed':
     'O scanner de convite não abriu corretamente. Tente novamente aqui primeiro.',
   'shared.camera.scannerInitialisationFailed':
     'Não foi possível preparar o scanner de convite.',
   'shared.camera.reopenSavedProofFailed':
-    'Menta não conseguiu reabrir o comprovativo guardado neste telemóvel.',
+    'A Menta não conseguiu reabrir o comprovativo guardado neste telemóvel.',
   'shared.camera.proofCameraTimeout':
-    'A câmara de comprovativo está demorando muito para ativar. Tente novamente aqui ou escolha um comprovativo na sua biblioteca.',
+    'A câmara de comprovativo está a demorar muito a ativar. Tente novamente aqui ou escolha um comprovativo da sua galeria.',
   'shared.camera.signInBeforeSending':
     'Inicie sessão novamente antes de enviar o comprovativo.',
   'shared.camera.proofCouldNotOpen': 'Este comprovativo não pôde ser aberta',
   'shared.camera.proofPrepareFailed':
-    'Menta não conseguiu preparar Este comprovativo. Escolha outra captura e tente novamente.',
+    'A Menta não conseguiu preparar Este comprovativo. Escolha outra captura e tente novamente.',
   'shared.camera.videoFinishFailed':
-    'Menta não conseguiu terminar aquele vídeo. Experimente mais um clipe curto.',
-  'shared.camera.videoFileMissing': 'Menta não recebeu um arquivo de vídeo.',
+    'A Menta não conseguiu terminar aquele vídeo. Experimente mais um clipe curto.',
+  'shared.camera.videoFileMissing':
+    'A Menta não recebeu nenhum ficheiro de vídeo.',
   'shared.camera.videoSaveFailed':
-    'Menta não conseguiu guardar esse vídeo. Experimente mais um clipe curto.',
-  'shared.camera.photoFileMissing': 'Menta não recebeu arquivo de fotografia.',
+    'A Menta não conseguiu guardar esse vídeo. Experimente mais um clipe curto.',
+  'shared.camera.photoFileMissing':
+    'A Menta não recebeu nenhum ficheiro de fotografia.',
   'shared.camera.photoCaptureFailed':
-    'Menta não conseguiu capturar essa fotografia. Tente novamente quando a câmara estiver pronta.',
+    'A Menta não conseguiu capturar essa fotografia. Tente novamente quando a câmara estiver pronta.',
   'shared.camera.proofUploadFailed':
-    'O comprovativo não foi carregada. A sua captura guardada ainda está neste telemóvel.',
+    'O comprovativo não foi carregado. A sua captura guardada continua neste telemóvel.',
   'shared.camera.proofCameraMountFailed':
     'A câmara de comprovativo não abriu corretamente. Tente novamente aqui ou escolha um comprovativo na sua biblioteca.',
   'shared.camera.openSettings': 'Abra Definições',
@@ -529,7 +529,7 @@ export const fullSharedUiPtPT = {
   'shared.legal.communityStandardsDescription':
     'Regras para promessas, comprovativos e grupos.',
   'shared.legal.privacy': 'Política de Privacidade',
-  'shared.legal.privacyDescription': 'Como o Menta trata suas informações.',
+  'shared.legal.privacyDescription': 'Como a Menta trata as suas informações.',
   'shared.legal.opensInBrowser': 'Abre no seu navegador',
   'shared.legal.readDocument': 'Ler documento',
   'shared.legal.version': 'Versão {version}',
@@ -538,6 +538,12 @@ export const fullSharedUiPtPT = {
     'Seletor de horário indisponível nesta plataforma.',
   'shared.accessibility.toastCount': '{count}x',
   'shared.update.authorityUnknown': 'autoridade_desconhecida',
+  'shared.rootLayout.initialising': 'A preparar o seu dia…',
+  'shared.launch.tip.small':
+    'As promessas pequenas são as mais fáceis de cumprir.',
+  'shared.launch.tip.friend':
+    'Quem partilha um objetivo com um amigo tem mais hipóteses de o alcançar.',
+  'shared.launch.tip.miss': 'Falhaste um dia? O próximo continua a contar.',
 } as const;
 
 export type FullSharedUiPtPTKey = keyof typeof fullSharedUiPtPT;

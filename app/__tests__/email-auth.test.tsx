@@ -1,4 +1,5 @@
 import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   fireEvent,
   render,
@@ -98,9 +99,11 @@ const renderEmailAuth = () =>
         insets: { top: 0, right: 0, bottom: 0, left: 0 },
       }}
     >
-      <ThemeProvider>
-        <EmailAuthScreen />
-      </ThemeProvider>
+      <QueryClientProvider client={new QueryClient()}>
+        <ThemeProvider>
+          <EmailAuthScreen />
+        </ThemeProvider>
+      </QueryClientProvider>
     </SafeAreaProvider>
   );
 

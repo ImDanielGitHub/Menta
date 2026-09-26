@@ -32,21 +32,7 @@ export const todayStatesPtBR = {
     'O último estado confirmado continua na tela. Nenhum resultado de comprovação ou análise mudou aqui.',
   'today.state.load_failed.detail': 'Verifique sua conexão e tente novamente.',
   'today.state.streak.unavailable': 'Indisponível',
-  'today.state.streak.missed_title': 'Um dia foi perdido. Recomece hoje.',
-  'today.state.streak.weekday_missed_title':
-    'Você perdeu {weekday}. Recomece hoje.',
-  'today.state.streak.previous_detail':
-    'A última sequência terminou em {count} porque a comprovação de {weekday} não chegou a tempo. Seu histórico continua aqui.',
-  'today.state.streak.missed_detail':
-    '{weekday} foi registrado como perdido. Seu histórico continua aqui.',
-  'today.state.streak.return_action': 'Voltar por um dia',
-  'today.state.streak.history_action': 'Ver histórico de {count} dias',
   'today.state.streak.history': 'Ver histórico',
-  'today.state.streak.previous_label': 'Sequência anterior',
-  'today.state.streak.new_label': 'Nova sequência',
-  'today.state.streak.starts_today': 'Começa hoje',
-  'today.state.streak.supporting_note':
-    'Um dia já basta para recomeçar. A Menta não vai apagar a sequência anterior.',
   'today.state.returning.away_days': 'Você não faz um registro há {count}.',
   'today.state.returning.away': 'Você está longe há algum tempo.',
   'today.state.returning.title': 'Comece de onde você está.',
@@ -59,10 +45,6 @@ export const todayStatesPtBR = {
     'Seu histórico continua. A próxima ação é sua.',
   'today.state.returning.supporting_note':
     'Faça uma promessa menor ou abra seu histórico e retome a última.',
-  'today.state.no_promises.title': 'Ainda não há nada pendente.',
-  'today.state.no_promises.detail':
-    'Faça uma promessa e a Menta vai mostrar o que precisa da sua atenção a cada dia.',
-  'today.state.no_promises.join_group': 'Entrar em um grupo existente',
   'today.state.proof_due.text_detail':
     'Adicione a anotação combinada. Só você e a pessoa que analisa podem vê-la.',
   'today.state.proof_due.text_action': 'Adicionar anotação como comprovação',
@@ -137,4 +119,16 @@ export const todayStatesPtBR = {
     'Volte quando uma promessa estiver pendente ou alguém enviar uma comprovação.',
   'today.state.all_clear.review_status':
     'Nenhuma comprovação aguarda sua análise.',
+  'today.state.streak.day_one_title': 'Hoje é o dia 1.',
+  'today.state.streak.day_one_detail':
+    'Adicione a prova de hoje para começar uma nova sequência.',
+  'today.state.streak.bubble_run_ended':
+    '{weekday} ficou sem prova, então a sequência de {count} dias terminou. Ela fica salva no seu histórico.',
+  'today.state.streak.bubble_missed':
+    '{weekday} ficou sem prova. Seu histórico está salvo.',
+  'today.state.streak.see_run': 'Ver a sequência de {count} dias',
+  'today.state.no_promises.title': 'Comece com uma promessa.',
+  'today.state.no_promises.detail':
+    'Escolha uma coisa pequena, mostre uma foto rápida por dia e, se quiser, chame alguém para conferir.',
+  'today.state.no_promises.join_group': 'Tenho um código de convite',
 } as const satisfies Pick<EnglishCatalogue, TodayStateKey>;

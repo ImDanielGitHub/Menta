@@ -19,14 +19,10 @@ import {
 export type PromiseAccountabilityRole = 'partner' | 'reviewer' | 'supporter';
 
 export type PromiseAccountabilityMemberRole =
-  | 'owner'
-  | PromiseAccountabilityRole;
+  'owner' | PromiseAccountabilityRole;
 
 export type PromiseAccountabilityProofStatus =
-  | 'none'
-  | 'pending'
-  | 'approved'
-  | 'rejected';
+  'none' | 'pending' | 'approved' | 'rejected';
 
 export type PromiseAccountabilityMember = {
   id: string;
@@ -487,7 +483,7 @@ export const loadPromiseAccountabilityInvitePreview = async (
   code: string,
   localise: PromiseAccountabilityTranslator = defaultTranslate
 ): Promise<PromiseAccountabilityInvitePreviewResult> => {
-  const { data, error } = await withTimeout(
+  const response = await withTimeout(
     Promise.resolve(
       supabase.rpc('get_promise_accountability_invite_preview_v1', {
         p_invite_code: code,
@@ -495,7 +491,16 @@ export const loadPromiseAccountabilityInvitePreview = async (
     ),
     ACCOUNTABILITY_RPC_TIMEOUT_MS,
     'get_promise_accountability_invite_preview_v1'
-  );
+  ).catch(() => null);
+  // A timeout or rejected transport is not evidence that the invitation was
+  // deleted. Keep the saved link retryable; only the server can retire it.
+  if (!response) {
+    return {
+      kind: 'retry',
+      message: localise('groups.source.accountability.error.invite_check'),
+    };
+  }
+  const { data, error } = response;
   if (error) {
     return {
       kind: 'retry',

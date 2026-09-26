@@ -3,6 +3,13 @@ import type { EnglishCatalogue } from '@/lib/localization/en-NZ';
 type FullAuthAccountKey = Extract<keyof EnglishCatalogue, `fullAuth.${string}`>;
 
 export const fullAuthAccountFrFR = {
+  'fullAuth.tabs_profile.build_your_rhythm': 'Construisez votre rythme',
+  'fullAuth.tabs_profile.rhythm_next_check_in':
+    'Un suivi à la fois. Ouvrez Aujourd’hui pour voir votre prochaine étape. Les preuves en attente de vérification apparaîtront ici une fois acceptées.',
+  'fullAuth.tabs_profile.rhythm_choose_next_promise':
+    'Choisissez une chose que vous pouvez mener à bien. Vos preuves acceptées montreront progressivement vos progrès ici.',
+  'fullAuth.tabs_profile.rhythm_open_today': 'Aller à Aujourd’hui',
+  'fullAuth.tabs_profile.rhythm_view_promises': 'Voir vos promesses',
   'fullAuth.shared.try_again': 'Réessayer',
   'fullAuth.support.untitled_report': 'Rapport sans titre',
   'fullAuth.onboarding.promise_setup_step_one':
@@ -11,7 +18,7 @@ export const fullAuthAccountFrFR = {
     'Configuration de la promesse · 2 sur 2',
   'fullAuth.component_onboarding_paperauthreset.your_account_email':
     'votre adresse e‑mail de compte',
-  'fullAuth.shared.back_to_you': 'Retour à Vous',
+  'fullAuth.shared.back_to_you': 'Retour au profil',
   'fullAuth.shared.promise': 'Promesse',
   'fullAuth.shared.terms': 'Conditions',
   'fullAuth.shared.back_to_settings': 'Retour aux réglages',
@@ -109,7 +116,7 @@ export const fullAuthAccountFrFR = {
   'fullAuth.onboarding.your_saved_draft_is_back_on_this_phone':
     'Votre brouillon enregistré est de nouveau présent sur ce téléphone.',
   'fullAuth.onboarding.saved_privately_on_this_phone_as_you_type':
-    'Enregistré en privé sur ce téléphone pendant que vous tapez.',
+    'Enregistré en privé sur ce téléphone pendant que vous écrivez.',
   'fullAuth.account_deleted.apple_instructions_did_not_open':
     'Les instructions Apple ne se sont pas ouvertes',
   'fullAuth.account_deleted.checking_account_deletion':
@@ -313,7 +320,7 @@ export const fullAuthAccountFrFR = {
   'fullAuth.component_support_supportsurface.title_subtitle_detail':
     '{title}. {subtitle} {detail}',
   'fullAuth.edit_profile.account_required': 'Compte requis',
-  'fullAuth.edit_profile.back_to_you': 'Retour à Vous',
+  'fullAuth.edit_profile.back_to_you': 'Retour au profil',
   'fullAuth.edit_profile.cannot_edit_here': 'Impossible de modifier ici',
   'fullAuth.edit_profile.change_photo': 'Changer la photo',
   'fullAuth.edit_profile.choose_a_different_photo':
@@ -325,8 +332,7 @@ export const fullAuthAccountFrFR = {
   'fullAuth.edit_profile.edit_again': 'Modifier à nouveau',
   'fullAuth.edit_profile.edit_profile': 'Modifier le profil',
   'fullAuth.edit_profile.email': 'E‑mail',
-  'fullAuth.edit_profile.how_it_will_look_on_you':
-    'Comment cela apparaîtra sur Vous',
+  'fullAuth.edit_profile.how_it_will_look_on_you': 'Aperçu dans votre profil',
   'fullAuth.edit_profile.loading_your_profile': 'Chargement de votre profil',
   'fullAuth.edit_profile.name': 'Nom',
   'fullAuth.edit_profile.no_changes_have_been_made_try_loading_your_accou':
@@ -352,7 +358,7 @@ export const fullAuthAccountFrFR = {
   'fullAuth.edit_profile.sign_in_again_before_editing_this_profile':
     'Se reconnecter avant de modifier ce profil.',
   'fullAuth.edit_profile.this_is_how_the_photo_will_look_on_you_it_will_n':
-    "Voici comment la photo apparaîtra sur Vous. Elle ne changera pas tant que vous n'enregistrerez pas.",
+    'Voici comment la photo apparaîtra dans votre profil. Elle ne changera pas tant que vous n’aurez pas enregistré.',
   'fullAuth.edit_profile.try_again': 'Réessayer',
   'fullAuth.edit_profile.try_saving_again': "Réessayer d'enregistrer",
   'fullAuth.edit_profile.username': "Nom d'utilisateur",
@@ -400,7 +406,7 @@ export const fullAuthAccountFrFR = {
   'fullAuth.email_auth.you_example_com': 'vous@exemple.com',
   'fullAuth.legal_acceptance.agree_and_continue': 'Accepter et continuer',
   'fullAuth.legal_acceptance.back': 'Retour',
-  'fullAuth.legal_acceptance.before_you': 'Avant vous',
+  'fullAuth.legal_acceptance.before_you': 'Avant de',
   'fullAuth.legal_acceptance.checking_the_current_legal_documents':
     'Vérification des documents légaux actuels',
   'fullAuth.legal_acceptance.continue': 'continuer.',
@@ -742,7 +748,8 @@ export const fullAuthAccountFrFR = {
   'fullAuth.onboarding.free': 'gratuit.',
   'fullAuth.onboarding.how_long_do_you_want_to_keep_this_promise':
     'Combien de temps souhaitez‑vous garder cette promesse ?',
-  'fullAuth.onboarding.how_will_you_prove_it': 'Comment la prouver ?',
+  'fullAuth.onboarding.how_will_you_prove_it':
+    'Comment montrerez-vous que c’est fait ?',
   'fullAuth.onboarding.i_agree_to_menta_s_terms_of_use_and_community_st':
     "J'accepte les Conditions d'utilisation et les Règles de la communauté de Menta, et je reconnais la Politique de confidentialité.",
   'fullAuth.onboarding.invite': 'Inviter',
@@ -808,7 +815,7 @@ export const fullAuthAccountFrFR = {
   'fullAuth.onboarding.save_your_promise': 'Enregistrez votre promesse',
   'fullAuth.onboarding.schedule': 'Calendrier',
   'fullAuth.onboarding.schedule_every_day': 'Calendrier, Tous les jours',
-  'fullAuth.onboarding.show_another_example': 'Montrer un autre exemple',
+  'fullAuth.onboarding.show_another_example': 'Voir un autre exemple',
   'fullAuth.onboarding.sign_in_to_save_my_promise':
     'Se connecter pour enregistrer ma promesse',
   'fullAuth.onboarding.start_privately_you_can_invite_people_later':
@@ -826,7 +833,7 @@ export const fullAuthAccountFrFR = {
   'fullAuth.onboarding.video': 'Vidéo',
   'fullAuth.onboarding.welcome_momenta': 'Bienvenue Momenta',
   'fullAuth.onboarding.what_s_one_thing_you_want_to_do':
-    'Quelle est la chose que vous voulez faire ?',
+    'Que voulez-vous faire ?',
   'fullAuth.onboarding.who_will_hold_you_accountable':
     'Qui vous tiendra responsable ?',
   'fullAuth.onboarding.write_what_happened': "Écrivez ce qui s'est passé.",
@@ -1002,7 +1009,7 @@ export const fullAuthAccountFrFR = {
     'Les diagnostics avancés restent désactivés. Vérifiez votre connexion et réessayez.',
   'fullAuth.settings.ask_for_help_share_feedback_or_check_a_saved_rep':
     "Demandez de l'aide, partagez vos commentaires ou consultez un rapport enregistré.",
-  'fullAuth.settings.back_to_you': 'Retour à Vous',
+  'fullAuth.settings.back_to_you': 'Retour au profil',
   'fullAuth.settings.before_you_delete_your_account':
     'Avant de supprimer votre compte',
   'fullAuth.settings.check_for_updates': 'Vérifier les mises à jour',
@@ -1080,7 +1087,7 @@ export const fullAuthAccountFrFR = {
     "Mesurer si les publicités Meta ont aidé quelqu'un à utiliser Menta.",
   'fullAuth.settings.membership': 'Abonnement',
   'fullAuth.settings.menta_cannot_check_whether_you_still_own_a_group':
-    "Menta ne peut pas vérifier si vous possédez toujours un groupe. Vérifiez vos groupes avant de supprimer le compte. Supprimer Menta ne résilie pas Menta Pro, gérez l'abonnement via Apple d'abord.",
+    'Menta ne peut pas vérifier si vous possédez encore un groupe. Vérifiez vos groupes avant de supprimer le compte. Supprimer Menta ne résilie pas Menta Pro : gérez d’abord l’abonnement avec Apple.',
   'fullAuth.settings.menta_could_not_check_for_updates':
     "Menta n'a pas pu vérifier les mises à jour",
   'fullAuth.settings.menta_could_not_delete_the_account_check_your_co':
@@ -1159,7 +1166,7 @@ export const fullAuthAccountFrFR = {
   'fullAuth.settings.the_downloaded_update_will_open_automatically':
     "La mise à jour téléchargée s'ouvrira automatiquement.",
   'fullAuth.settings.the_next_screen_asks_you_to_type_delete_before_m':
-    "L’écran suivant vous demande de taper DELETE avant que Menta n'envoie la requête.",
+    'L’écran suivant vous demandera de saisir DELETE avant que Menta envoie la demande.',
   'fullAuth.settings.this_can_use_a_small_amount_of_extra_processing_':
     'Cela peut consommer une petite quantité de ressources supplémentaires, de batterie et de données mobiles tant que Menta reste ouvert. L’enregistrement démarre uniquement sur les écrans concernés. Rouvrez Menta après l’avoir désactivé pour arrêter l’enregistrement Sentry.',
   'fullAuth.settings.this_device_has_the_latest_compatible_update':
@@ -1177,14 +1184,14 @@ export const fullAuthAccountFrFR = {
   'fullAuth.settings.try_loading_your_name_and_profile_photo_again':
     'Réessayer de charger votre nom et votre photo de profil à nouveau.',
   'fullAuth.settings.try_the_account_check_again_before_you_delete_an':
-    'Recommencez la vérification du compte avant de supprimer quoi que ce soit.',
+    'Refaites la vérification du compte avant de supprimer quoi que ce soit.',
   'fullAuth.settings.turn_off_advanced_diagnostics':
     'Désactiver les diagnostics avancés',
   'fullAuth.settings.turn_on_advanced_diagnostics':
     'Activer les diagnostics avancés',
   'fullAuth.settings.type': 'Type',
   'fullAuth.settings.type_delete_to_confirm_account_deletion':
-    'Tapez DELETE pour confirmer la suppression du compte',
+    'Saisissez DELETE pour confirmer la suppression du compte',
   'fullAuth.settings.update_checks_are_unavailable':
     'Les vérifications de mise à jour sont indisponibles',
   'fullAuth.settings.while_enabled_this_can_use_a_small_amount_of_ext':
@@ -1311,14 +1318,15 @@ export const fullAuthAccountFrFR = {
     'La progression commence avec la preuve',
   'fullAuth.tabs_profile.saved': 'Enregistré',
   'fullAuth.tabs_profile.sign_in_again': 'Se reconnecter',
-  'fullAuth.tabs_profile.sign_in_to_see_you': 'Connectez‑vous pour voir Vous',
+  'fullAuth.tabs_profile.sign_in_to_see_you':
+    'Connectez-vous pour voir votre profil',
   'fullAuth.tabs_profile.streaks_and_progress_appear_after_you_send_proof':
     "Les séries et la progression apparaissent après que vous avez envoyé la preuve d'une promesse active.",
   'fullAuth.tabs_profile.the_last_saved_promise_and_group_counts_are_stil':
     'Le dernier compte promesse et le nombre de groupes restent affichés. Les autres actions du profil restent disponibles.',
   'fullAuth.tabs_profile.wallet_shop_and_items':
     'Portefeuille, boutique et objets',
-  'fullAuth.tabs_profile.you': 'Vous',
+  'fullAuth.tabs_profile.you': 'Profil',
   'fullAuth.tabs_profile.your_progress_may_be_out_of_date':
     'Votre progression peut être obsolète',
   'fullAuth.tabs_profile.your_rhythm': 'Votre rythme',
@@ -1451,7 +1459,7 @@ export const fullAuthAccountFrFR = {
   'fullAuth.residual.report.report_context_label': 'le signalement',
   'fullAuth.residual.report.report_label': 'Signaler',
   'fullAuth.residual.report.return_description':
-    'Retournez au support, puis commencez un nouveau signalement pour ce compte.',
+    'Revenez au support, puis commencez un nouveau signalement pour ce compte.',
   'fullAuth.residual.report.screenshot_feedback':
     'Ajoutez une capture d’écran si elle aide à expliquer vos commentaires.',
   'fullAuth.residual.report.screenshot_issue':
@@ -1550,4 +1558,27 @@ export const fullAuthAccountFrFR = {
     'Écrivez l’action que vous voulez prouver.',
   'fullAuth.source.verification_description':
     'Ajoutez une preuve claire qui montre que vous avez tenu votre promesse.',
+  'fullAuth.tabs_profile.since': 'Tient ses promesses depuis {month}',
+  'fullAuth.tabs_profile.stat_day_streak': 'jours de série',
+  'fullAuth.tabs_profile.stat_best_streak': 'meilleure série',
+  'fullAuth.tabs_profile.stat_days_kept': 'jours tenus',
+  'fullAuth.tabs_profile.stat_day_one': 'Jour 1',
+  'fullAuth.tabs_profile.stat_starts_today': 'commence aujourd’hui',
+  'fullAuth.tabs_profile.stats_accessibility':
+    '{current}. Meilleure série : {best} jours. {kept} jours tenus.',
+  'fullAuth.tabs_profile.month_kept': '{count} tenus',
+  'fullAuth.tabs_profile.month_frozen': '{count} protégés',
+  'fullAuth.tabs_profile.month_missed': '{count} manqués',
+  'fullAuth.tabs_profile.month_empty': 'Vos jours s’afficheront ici',
+  'fullAuth.tabs_profile.day_kept': '{day} : tenu',
+  'fullAuth.tabs_profile.day_frozen': '{day} : couvert par un gel de série',
+  'fullAuth.tabs_profile.day_missed': '{day} : manqué',
+  'fullAuth.tabs_profile.day_today': '{day} : aujourd’hui',
+  'fullAuth.tabs_profile.invite_title': 'Invitez un proche sur Menta',
+  'fullAuth.tabs_profile.invite_reward':
+    'Vous recevez chacun {amount} Momenta dès sa première promesse.',
+  'fullAuth.tabs_profile.invite_body': 'On tient mieux ses promesses à deux.',
+  'fullAuth.tabs_profile.invite_action': 'Inviter quelqu’un',
+  'fullAuth.tabs_profile.active_count': '{count} actives',
+  'fullAuth.tabs_profile.invite_accessibility': '{title}. {body}',
 } as const satisfies Pick<EnglishCatalogue, FullAuthAccountKey>;

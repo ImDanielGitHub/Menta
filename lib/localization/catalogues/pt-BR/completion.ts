@@ -54,7 +54,7 @@ export const completionPtBR = {
   'fullAuth.source.error.sign_in_session':
     'O login não retornou uma sessão autenticada.',
   'fullAuth.source.error.claim_draft':
-    'A Menta fez seu login, mas não conseguiu assumir este rascunho. Abra o onboarding novamente para recuperá-lo.',
+    'A Menta fez seu login, mas não conseguiu vincular este rascunho. Abra o onboarding novamente para recuperá-lo.',
   'fullAuth.source.error.confirm_documents':
     'Confirme os documentos obrigatórios antes de continuar.',
   'fullAuth.source.error.provider_sign_in':
@@ -341,7 +341,7 @@ export const completionPtBR = {
   'groups.source.promise.default_subtitle':
     'Abra a regra de comprovação e envie a de hoje.',
   'groups.source.promise.detail_default':
-    'Abra a promessa para ver sua regra de comprovação e seu histórico.',
+    'Abra a promessa para ver a regra de comprovação e o histórico.',
   'groups.source.promise.detail': 'Abrir os detalhes da promessa.',
   'groups.source.review.waiting': '{count} comprovações aguardando análise.',
   'groups.source.review.waiting.one': '{count} comprovação aguardando análise.',
@@ -353,11 +353,11 @@ export const completionPtBR = {
   'groups.source.review.open': 'Analisar {count}',
   'groups.source.member.view_all': 'Ver todos os {count}',
   'groups.source.read_only.ended_on':
-    'Este grupo terminou em {date}. Você pode ver suas promessas, membros e histórico de comprovações.',
+    'Este grupo terminou em {date}. Você pode ver as promessas, os membros e o histórico de comprovações.',
   'groups.source.read_only.failed':
-    'Este grupo terminou sem atingir sua meta. Você pode ver suas promessas, membros e histórico de comprovações.',
+    'Este grupo terminou sem atingir a meta. Você pode ver as promessas, os membros e o histórico de comprovações.',
   'groups.source.read_only.ended':
-    'Este grupo terminou. Você pode ver suas promessas, membros e histórico de comprovações.',
+    'Este grupo terminou. Você pode ver as promessas, os membros e o histórico de comprovações.',
 
   'todayProof.today.last_update_detail':
     'A Menta não conseguiu atualizar esta lista. Suas últimas promessas carregadas continuam visíveis.',

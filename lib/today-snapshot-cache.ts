@@ -47,29 +47,34 @@ const isFreshForDay = (
   cached: CachedTodaySnapshot<unknown>,
   userId: string,
   localDay: string,
-  nowMs: number
+  nowMs: number,
+  timezone?: string
 ): boolean => {
   if (cached.userId !== userId || cached.localDay !== localDay) return false;
+  if (timezone && cached.timezone !== timezone) return false;
   const savedAt = Date.parse(cached.savedAtIso);
   if (!Number.isFinite(savedAt)) return false;
-  return nowMs - savedAt <= MAX_CACHE_AGE_MS;
+  return savedAt <= nowMs && nowMs - savedAt <= MAX_CACHE_AGE_MS;
 };
 
 export const readTodaySnapshotCache = async <TSnapshot>(
   userId: string,
   localDay: string,
-  nowMs: number = Date.now()
+  nowMs: number = Date.now(),
+  timezone?: string
 ): Promise<CachedTodaySnapshot<TSnapshot> | null> => {
-  if (memoryCache && isFreshForDay(memoryCache, userId, localDay, nowMs)) {
+  if (
+    memoryCache &&
+    isFreshForDay(memoryCache, userId, localDay, nowMs, timezone)
+  ) {
     return memoryCache as CachedTodaySnapshot<TSnapshot>;
   }
 
-  const raw = await AsyncStorage.getItem(TODAY_SNAPSHOT_CACHE_KEY);
-  if (!raw) return null;
-
   try {
+    const raw = await AsyncStorage.getItem(TODAY_SNAPSHOT_CACHE_KEY);
+    if (!raw) return null;
     const parsed = parseCachedSnapshot(JSON.parse(raw) as unknown);
-    if (!parsed || !isFreshForDay(parsed, userId, localDay, nowMs)) {
+    if (!parsed || !isFreshForDay(parsed, userId, localDay, nowMs, timezone)) {
       return null;
     }
     memoryCache = parsed;

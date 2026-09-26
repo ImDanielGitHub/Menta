@@ -98,7 +98,7 @@ export const fullGroupsPtBR = {
     'O grupo não pôde ser criado. Tente novamente.',
   'groups.create.name_prompt': 'Como você chamará este grupo?',
   'groups.create.name_help':
-    'Use ao menos três caracteres para que as pessoas saibam o que estão entrando.',
+    'Use pelo menos três caracteres para que as pessoas saibam em que grupo estão entrando.',
   'groups.create.settings_prompt': 'Quem pode encontrar e entrar?',
   'groups.create.review_prompt': 'Pronto para criar este grupo?',
   'groups.create.choose_join': 'Escolha quem pode entrar',
@@ -763,7 +763,7 @@ export const fullGroupsPtBR = {
   'groups.redirect.without_referral': 'Continuar sem indicação',
   'groups.redirect.referral_existing_title': 'Indicação é para contas novas',
   'groups.redirect.referral_existing_subtitle':
-    'Esta conta já está configurada, então a Menta não mudará sua indicação.',
+    'Esta conta já está configurada, então a Menta não vai alterar a indicação.',
   'groups.redirect.account_ready': 'Conta já configurada',
   'groups.redirect.account_ready_detail':
     'Links de indicação valem ao criar uma nova conta Menta. Sua conta atual permanece inalterada.',
@@ -805,9 +805,10 @@ export const fullGroupsPtBR = {
     'Altere o nome, quem pode entrar, convites e controles do dono.',
   'groups.detail.leave': 'Sair do grupo',
   'groups.detail.delete': 'Excluir grupo',
-  'groups.detail.delete_detail': 'Exclui o grupo e seu histórico para todos.',
+  'groups.detail.delete_detail':
+    'Exclui o grupo e o histórico dele para todos.',
   'groups.detail.delete_warning':
-    'Isto exclui permanentemente o grupo, suas promessas compartilhadas, histórico de comprovação e acesso dos membros para todos.',
+    'Isto exclui permanentemente o grupo, as promessas compartilhadas, o histórico de comprovações e o acesso de todos os membros.',
   'groups.detail.cancel': 'Cancelar',
   'groups.detail.sign_in_detail': 'Faça login antes de entrar neste grupo.',
   'groups.detail.joined_title': 'Entrou',
@@ -824,7 +825,7 @@ export const fullGroupsPtBR = {
     'Você deixará de aparecer neste grupo e não poderá enviar ou analisar novas promessas do grupo. Comprovações passadas permanecem no histórico.',
   'groups.detail.deleted_title': 'Grupo excluído',
   'groups.detail.deleted_detail':
-    'O grupo, suas promessas compartilhadas e o histórico de comprovação foram removidos para todos.',
+    'O grupo, as promessas compartilhadas e o histórico de comprovações foram removidos para todos.',
   'groups.detail.delete_unknown_title': 'Exclusão não confirmada',
   'groups.detail.delete_unknown_detail':
     'Menta não pôde confirmar se o grupo foi excluído. Volte a Grupos e verifique antes de tentar novamente.',
@@ -855,7 +856,7 @@ export const fullGroupsPtBR = {
   'groups.detail.no_fixed_streak': 'Sem meta fixa de sequência',
   'groups.detail.review_against_promise':
     'Analisar contra a promessa compartilhada.',
-  'groups.share.back_you': 'De volta a você',
+  'groups.share.back_you': 'Voltar ao Perfil',
   'groups.share.invite_someone': 'Convidar alguém',
   'groups.share.invite_someone_title': 'Convidar alguém para o Menta',
   'groups.share.preparing': 'Preparando seu convite',
@@ -1034,4 +1035,19 @@ export const fullGroupsPtBR = {
     '{group} está pronto e nada foi compartilhado. Volte à promessa para escolher o próximo passo.',
   'groups.create.promise_link.check_again': 'Verificar vínculo da promessa',
   'groups.create.promise_link.return_to_promise': 'Voltar à promessa',
+  'groups.share.pass_title': 'Me ajuda a cumprir?',
+  'groups.share.pass_from': 'De {name}',
+  'groups.share.pitch_title': 'Chame alguém que vai acompanhar você.',
+  'groups.share.pitch_proof':
+    'A pessoa vê sua prova e confirma com um toque. Leva segundos.',
+  'groups.share.pitch_reward':
+    'Quando a pessoa fizer a primeira promessa, vocês dois ganham {amount} Momenta.',
+  'groups.share.pitch_link': 'Esse link basta para a pessoa entrar.',
+  'groups.share.sent_step_join': 'A pessoa abre e entra no Menta.',
+  'groups.share.sent_step_promise': 'A pessoa faz a primeira promessa.',
+  'groups.share.sent_step_reward':
+    'A pessoa faz a primeira promessa e vocês dois ganham {amount} Momenta.',
+  'groups.share.you': 'Você',
+  'groups.share.checker': 'Quem confere',
+  'groups.share.sent_title': 'Enviou? Veja o que acontece agora.',
 } as const satisfies Partial<Pick<EnglishCatalogue, FullGroupsKey>>;

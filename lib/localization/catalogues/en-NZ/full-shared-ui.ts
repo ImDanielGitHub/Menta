@@ -342,7 +342,6 @@ export const fullSharedUiEnNZ = {
   'shared.rootLayout.noProofDue.title': 'No proof due right now',
   'shared.rootLayout.noProofDue.message':
     'Today will show the next promise when proof is needed.',
-  'shared.rootLayout.initialising': 'Initializing Menta...',
   'shared.web.eyebrow': 'iPhone app required',
   'shared.web.title': 'Open this link in Menta on iPhone',
   'shared.web.explanation':
@@ -519,6 +518,11 @@ export const fullSharedUiEnNZ = {
     'Time picker unavailable on this platform.',
   'shared.accessibility.toastCount': '{count}x',
   'shared.update.authorityUnknown': 'authority_unknown',
+  'shared.rootLayout.initialising': 'Getting today ready…',
+  'shared.launch.tip.small': 'Small promises are the easiest ones to keep.',
+  'shared.launch.tip.friend':
+    'People who share a goal with a friend are more likely to reach it.',
+  'shared.launch.tip.miss': 'Missed a day? The next one still counts.',
 } as const;
 
 export type FullSharedUiKey = keyof typeof fullSharedUiEnNZ;

@@ -15,7 +15,11 @@ import {
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 
-import TransactionHistory from '@/components/momenta/TransactionHistory';
+import { TransactionHistory } from '@/components/momenta/TransactionHistory';
+import { MomentaMark } from '@/components/shop/MomentaBalanceChip';
+import { useCountUp } from '@/components/shop/shop-motion';
+import { ShopMascotBubble } from '@/components/shop/ShopMascotBubble';
+import { ShopPressable } from '@/components/shop/ShopPressable';
 import {
   MomentaActionNoticeSheet,
   type MomentaActionNotice,
@@ -26,10 +30,10 @@ import {
   useMomentaPrimaryTab,
   useMomentaSectionNavigation,
 } from '@/components/momenta/MomentaSectionNav';
-import PaywallModal from '@/components/paywall/PaywallModal';
+import { PaywallModal } from '@/components/paywall/PaywallModal';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppScreen } from '@/components/ui/AppShell';
-import SimpleBottomSheet from '@/components/ui/SimpleBottomSheet';
+import { SimpleBottomSheet } from '@/components/ui/SimpleBottomSheet';
 import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import {
   ArrowLeftIcon,
@@ -707,17 +711,7 @@ export default function WalletScreen() {
               <Text style={styles.balanceLabel}>
                 {t('commerce.wallet.balance')}
               </Text>
-              <View
-                accessible
-                accessibilityLabel={t('commerce.wallet.balanceAccessibility', {
-                  balance: balance.toLocaleString(),
-                })}
-                style={styles.balanceValueRow}
-              >
-                <Text style={styles.balanceValue}>
-                  {balance.toLocaleString()}
-                </Text>
-              </View>
+              <WalletBalanceValue balance={balance} />
               <Text style={styles.balanceNote}>{getWalletBalanceNote(t)}</Text>
             </>
           )}
@@ -760,9 +754,11 @@ export default function WalletScreen() {
         <View style={styles.actionGrid}>
           <AppButton
             title={t('commerce.wallet.earn')}
-            variant="primary"
+            variant="accent"
             size="large"
-            icon={<PlusIcon size={17} color={theme.colors.text.inverse} />}
+            haptic
+            hapticIntent="selection"
+            icon={<PlusIcon size={17} color={mentaColors.canvas} />}
             onPress={openEarningOptions}
             fullWidth
           />
@@ -816,15 +812,15 @@ export default function WalletScreen() {
             <Text style={styles.sheetTitle}>
               {getWalletEarnSheetCopy(t).title}
             </Text>
-            <Text style={styles.sheetSubtitle}>
-              {getWalletEarnSheetCopy(t).subtitle}
-            </Text>
+            <ShopMascotBubble
+              message={getWalletEarnSheetCopy(t).subtitle}
+              state="momenta-gift"
+              testID="momenta-earn-bubble"
+            />
 
             <View style={styles.topUpList}>
               <TopUpOptionRow
-                icon={
-                  <UserPlusIcon size={18} color={theme.colors.text.secondary} />
-                }
+                icon={<UserPlusIcon size={18} color={mentaColors.action} />}
                 title={t('commerce.wallet.invite')}
                 meta={
                   getReferralProgrammeRowCopy(referralProgramme, locale, t).meta
@@ -839,12 +835,7 @@ export default function WalletScreen() {
                 }}
               />
               <TopUpOptionRow
-                icon={
-                  <CheckCircleIcon
-                    size={18}
-                    color={theme.colors.text.secondary}
-                  />
-                }
+                icon={<CheckCircleIcon size={18} color={mentaColors.action} />}
                 title={t('commerce.wallet.earnReview')}
                 meta={t('commerce.wallet.reviewMeta', {
                   amount: REVIEW_QUEUE_CLEAR_REWARD_AMOUNT,
@@ -858,9 +849,7 @@ export default function WalletScreen() {
               />
               {canWatchSponsors ? (
                 <TopUpOptionRow
-                  icon={
-                    <GiftIcon size={18} color={theme.colors.text.secondary} />
-                  }
+                  icon={<GiftIcon size={18} color={mentaColors.action} />}
                   title={t('commerce.wallet.watchAd')}
                   meta={t('commerce.wallet.dailyLimits')}
                   value={adReward ? `+${adReward}` : t('commerce.wallet.open')}
@@ -872,9 +861,7 @@ export default function WalletScreen() {
               ) : null}
               {canBuyCredits ? (
                 <TopUpOptionRow
-                  icon={
-                    <CoinsIcon size={18} color={theme.colors.text.secondary} />
-                  }
+                  icon={<CoinsIcon size={18} color={mentaColors.action} />}
                   title={t('commerce.wallet.buyPack')}
                   meta={
                     creditPurchaseReady
@@ -932,6 +919,28 @@ export default function WalletScreen() {
         adRewardAmount={adReward}
       />
     </AppScreen>
+  );
+}
+
+function WalletBalanceValue({ balance }: { balance: number }) {
+  const theme = useTheme();
+  const styles = createStyles(theme);
+  const { locale, t } = useTranslation();
+  const displayed = useCountUp(balance);
+  const format = (value: number) => new Intl.NumberFormat(locale).format(value);
+
+  return (
+    <View
+      accessible
+      accessibilityLabel={t('commerce.wallet.balanceAccessibility', {
+        balance: format(balance),
+      })}
+      style={styles.balanceValueRow}
+      testID="momenta-wallet-balance"
+    >
+      <MomentaMark size={34} />
+      <Text style={styles.balanceValue}>{format(displayed)}</Text>
+    </View>
   );
 }
 
@@ -1004,7 +1013,6 @@ function TopUpOptionRow({
   loading = false,
   meta,
   onPress,
-  showDivider = true,
   title,
   value,
 }: {
@@ -1013,6 +1021,7 @@ function TopUpOptionRow({
   loading?: boolean;
   meta: string;
   onPress: () => void;
+  /** Kept for call-site compatibility; cards separate themselves. */
   showDivider?: boolean;
   title: string;
   value: string;
@@ -1022,18 +1031,17 @@ function TopUpOptionRow({
   const { t } = useTranslation();
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`${title}. ${meta}. ${value}.`}
+    <ShopPressable
+      accessibilityLabel={t('commerce.wallet.earnOptionAccessibility', {
+        title,
+        meta,
+        value,
+      })}
       accessibilityState={{ disabled, busy: loading }}
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.topUpOption,
-        showDivider && styles.topUpOptionDivider,
-        disabled && styles.disabledRow,
-        pressed && styles.pressed,
-      ]}
+      pressedStyle={styles.topUpOptionPressed}
+      style={[styles.topUpOption, disabled && styles.disabledRow]}
     >
       <View style={styles.topUpOptionIcon}>{icon}</View>
       <View style={styles.topUpOptionCopy}>
@@ -1048,7 +1056,7 @@ function TopUpOptionRow({
         <Text style={styles.topUpOptionValue}>{value}</Text>
       )}
       <ChevronRightIcon size={17} color={theme.colors.text.tertiary} />
-    </Pressable>
+    </ShopPressable>
   );
 }
 
@@ -1091,10 +1099,12 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
     },
     balanceBlock: {
       minHeight: 148,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.border.secondary,
-      paddingVertical: mentaSpacing[4],
+      backgroundColor: mentaColors.surface,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      paddingHorizontal: mentaSpacing[5],
+      paddingVertical: mentaSpacing[5],
     },
     balanceUnavailable: {
       flex: 1,
@@ -1126,14 +1136,15 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
       ...mentaTypography.labelBold,
     },
     balanceValueRow: {
-      alignItems: 'baseline',
+      alignItems: 'center',
       flexDirection: 'row',
-      gap: 12,
+      gap: mentaSpacing[3],
       marginTop: 10,
     },
     balanceValue: {
       color: theme.colors.text.primary,
       ...mentaTypography.display,
+      fontVariant: ['tabular-nums'],
     },
     balanceNote: {
       color: theme.colors.text.secondary,
@@ -1198,30 +1209,34 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
     },
     topUpList: {
       width: '100%',
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.border.secondary,
-      overflow: 'hidden',
-      backgroundColor: 'transparent',
+      gap: mentaSpacing[2],
     },
     topUpOption: {
-      minHeight: 72,
+      minHeight: 76,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 12,
-      paddingHorizontal: 14,
-      paddingVertical: 12,
+      gap: mentaSpacing[3],
+      backgroundColor: mentaColors.surface,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      paddingHorizontal: mentaSpacing[4],
+      paddingVertical: mentaSpacing[3],
     },
-    topUpOptionDivider: {
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: theme.colors.border.secondary,
+    topUpOptionPressed: {
+      backgroundColor: mentaColors.actionSoft,
+      borderColor: mentaColors.actionBorder,
     },
     disabledRow: {
       opacity: 0.56,
     },
     topUpOptionIcon: {
-      width: 30,
-      alignItems: 'flex-start',
+      width: 36,
+      height: 36,
+      borderRadius: mentaRadii.small,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: mentaColors.actionSoft,
     },
     topUpOptionCopy: {
       flex: 1,

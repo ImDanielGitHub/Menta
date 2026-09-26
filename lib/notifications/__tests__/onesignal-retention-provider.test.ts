@@ -1,3 +1,5 @@
+import { Linking } from 'react-native';
+
 import {
   isValidOneSignalAppId,
   OneSignalRetentionNotificationProvider,
@@ -142,6 +144,61 @@ describe('OneSignal retention provider', () => {
       ['menta://'],
     ]);
     expect(recordNotificationOpened).toHaveBeenCalledWith(17);
+  });
+
+  it('opens allowlisted destinations through Linking.openURL with Linking as this', async () => {
+    const linking = Linking as typeof Linking & {
+      _validateURL: (url: string) => void;
+    };
+    const opened: string[] = [];
+    linking._validateURL = jest.fn((url: string) => {
+      if (typeof url !== 'string' || url.length === 0) {
+        throw new TypeError('Invalid URL');
+      }
+    });
+    const openURL = jest.spyOn(Linking, 'openURL').mockImplementation(function (
+      this: typeof linking,
+      url: string
+    ) {
+      this._validateURL(url);
+      opened.push(url);
+      return Promise.resolve(true);
+    });
+
+    try {
+      const { sdk, getInAppClick, getNotificationClick } = makeSdk();
+      const provider = new OneSignalRetentionNotificationProvider({
+        appId: APP_ID,
+        loadSdk: jest.fn().mockResolvedValue(sdk as never),
+        platform: 'ios',
+        releaseApproved: true,
+        userDataEnabled: true,
+      });
+      await provider.initialize();
+
+      expect(() => {
+        getNotificationClick()?.({
+          notification: {
+            additionalData: {
+              action: 'open_challenge',
+              challengeId: 'challenge-1',
+            },
+          },
+          result: {},
+        } as never);
+      }).not.toThrow();
+      expect(() => {
+        getInAppClick()?.({
+          result: { actionId: 'open_today' },
+        } as never);
+      }).not.toThrow();
+
+      expect(opened).toEqual(['menta://challenges/challenge-1', 'menta://']);
+      expect(linking._validateURL).toHaveBeenCalledTimes(2);
+    } finally {
+      openURL.mockRestore();
+      delete (linking as { _validateURL?: unknown })._validateURL;
+    }
   });
 
   it('binds identity, sends bounded state, and cleans up owned state', async () => {

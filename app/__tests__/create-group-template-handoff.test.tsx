@@ -88,7 +88,14 @@ jest.mock('@/lib/paywall/revenuecat', () => ({
   },
 }));
 
-jest.mock('@/components/paywall/PaywallModal', () => () => null);
+jest.mock('@/components/paywall/PaywallModal', () => {
+  const mockModule = (
+    () => () =>
+      null
+  )();
+  const mockExport = mockModule?.__esModule ? mockModule.default : mockModule;
+  return { __esModule: true, default: mockExport, PaywallModal: mockExport };
+});
 jest.mock('@/components/ui/MentaMascot', () => ({ MentaMascot: () => null }));
 jest.mock('@/components/groups/GroupCreationStates', () => ({
   FirstGroupCreatedReceipt: () => null,

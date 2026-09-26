@@ -9,6 +9,11 @@ import {
   prepareEventPostUpload,
 } from '@/lib/events/api';
 import { supabase } from '@/lib/supabase';
+import { trackProductEvent } from '@/lib/posthog';
+import { captureError } from '@/lib/sentry';
+
+jest.mock('@/lib/posthog', () => ({ trackProductEvent: jest.fn() }));
+jest.mock('@/lib/sentry', () => ({ captureError: jest.fn() }));
 
 jest.mock('@/lib/supabase', () => ({
   supabase: {
@@ -89,6 +94,14 @@ describe('event edge client', () => {
       'event-participation',
       { body: { action: 'create_event', ...input } }
     );
+    expect(trackProductEvent).toHaveBeenCalledTimes(1);
+    expect(trackProductEvent).toHaveBeenCalledWith('Event Action Outcome', {
+      action: 'create_event',
+      outcome: 'completed',
+      reason: 'none',
+      idempotent: false,
+    });
+    expect(captureError).not.toHaveBeenCalled();
   });
 
   it('does not send a client-controlled storage path when finalising', async () => {
@@ -168,6 +181,14 @@ describe('event edge client', () => {
         },
       }
     );
+    expect(trackProductEvent).toHaveBeenCalledTimes(1);
+    expect(trackProductEvent).toHaveBeenCalledWith('Event Action Outcome', {
+      action: 'check_in',
+      outcome: 'completed',
+      reason: 'none',
+      idempotent: false,
+    });
+    expect(captureError).not.toHaveBeenCalled();
   });
 
   it('turns an unconfirmed Edge transport into an unknown receipt', async () => {
@@ -189,6 +210,55 @@ describe('event edge client', () => {
       code: 'FUNCTION_TRANSPORT_FAILED',
       data: null,
     });
+    expect(trackProductEvent).toHaveBeenCalledWith('Event Action Outcome', {
+      action: 'prepare_post_upload',
+      outcome: 'unknown_result',
+      reason: 'transport',
+      idempotent: false,
+    });
+  });
+
+  it('records a rejected action without sending arbitrary server codes or messages', async () => {
+    mockSupabase.functions.invoke.mockResolvedValue({
+      data: {
+        receipt: {
+          action: 'list_public_events',
+          outcome: 'failed',
+          code: 'private-user@example.com',
+          message: 'An invitation token or customer detail',
+          clientEventId: null,
+          data: null,
+          retryable: false,
+          idempotent: false,
+        },
+      },
+      error: null,
+    });
+    await expect(listPublicEvents()).resolves.toMatchObject({
+      outcome: 'failed',
+    });
+    expect(trackProductEvent).toHaveBeenCalledWith('Event Action Outcome', {
+      action: 'list_public_events',
+      outcome: 'failed',
+      reason: 'server_rejected',
+      idempotent: false,
+    });
+    expect(captureError).not.toHaveBeenCalled();
+  });
+
+  it('preserves a confirmed receipt when the analytics transport throws', async () => {
+    mockSupabase.functions.invoke.mockResolvedValue({
+      data: completedReceipt('list_public_events', null, []),
+      error: null,
+    });
+    (trackProductEvent as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('telemetry unavailable');
+    });
+    await expect(listPublicEvents()).resolves.toMatchObject({
+      outcome: 'completed',
+      data: [],
+    });
+    expect(mockSupabase.functions.invoke).toHaveBeenCalledTimes(1);
   });
 
   it('reads public discovery only through the event receipt boundary', async () => {
@@ -366,6 +436,17 @@ describe('event edge client', () => {
       outcome: 'unknown_result',
       code: 'MALFORMED_SERVER_RECEIPT',
     });
+    expect(trackProductEvent).toHaveBeenCalledWith('Event Action Outcome', {
+      action: 'get_attendee_album',
+      outcome: 'unknown_result',
+      reason: 'invalid_receipt',
+      idempotent: false,
+    });
+    expect(captureError).toHaveBeenCalledTimes(1);
+    expect(captureError).toHaveBeenCalledWith(
+      new Error('Event action returned an invalid server receipt'),
+      { operation: 'get_attendee_album', reason: 'invalid_receipt' }
+    );
   });
 
   it('accepts organiser recap counts only when their invariants hold', async () => {

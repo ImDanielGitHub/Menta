@@ -1,154 +1,192 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useTheme } from '@/constants/ThemeContext';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+
+import { ShopItemArt } from '@/components/shop/ShopItemArt';
+import { ShopPressable } from '@/components/shop/ShopPressable';
+import {
+  mentaColors,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { useTranslation } from '@/lib/localization/use-translation';
 
-type BoostItem = {
+export type BoostsRowItem = {
   sku: string;
   label: string;
-  count?: number;
-  activeUntil?: string | null;
-  onPress?: () => void;
-  disabled?: boolean;
+  /** Visible quantity or state, for example "×2" or "In use". */
+  badge: string;
+  badgeTone?: 'action' | 'success' | 'empty';
+  accessibilityLabel: string;
+  onPress: () => void;
 };
 
 type BoostsRowProps = {
   title?: string;
-  items: BoostItem[];
-  reserveSpace?: boolean;
+  items: readonly BoostsRowItem[];
+  actionLabel?: string;
+  onAction?: () => void;
+  testID?: string;
 };
 
 /**
- * BoostsRow: Consistent chips row anticipating shop features.
- * Reserve height to avoid layout shift when feature flags toggle.
+ * Owned items at a glance: square tiles with large art and the quantity the
+ * account holds. Renders nothing when there is nothing to show, so it never
+ * reserves an empty band on the screen.
  */
 export const BoostsRow: React.FC<BoostsRowProps> = ({
   title,
   items,
-  reserveSpace = true,
+  actionLabel,
+  onAction,
+  testID = 'owned-items-row',
 }) => {
-  const theme = useTheme();
   const { t } = useTranslation();
-  const resolvedTitle = title ?? t('shared.boosts.title');
-  const { colors, borderRadius } = theme;
+  const phoneLayout = usePhoneLayout();
+  if (items.length === 0) return null;
 
-  const content = (
-    <View
-      style={[
-        styles.container,
-        {
-          borderColor: colors.border.primary,
-          backgroundColor: colors.background.card,
-        },
-      ]}
-    >
-      <Text style={[styles.title, { color: colors.text.secondary }]}>
-        {resolvedTitle}
-      </Text>
-      {items.length === 0 ? (
-        <View style={styles.emptyWrap}>
-          <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
-            {t('shared.boosts.empty')}
-          </Text>
-        </View>
-      ) : (
-        <View style={styles.row}>
-          {items.map(it => (
-            <TouchableOpacity
-              key={it.sku}
+  return (
+    <View style={styles.section} testID={testID}>
+      <View style={styles.header}>
+        <Text accessibilityRole="header" style={styles.title}>
+          {title ?? t('shared.boosts.title')}
+        </Text>
+        {actionLabel && onAction ? (
+          <ShopPressable
+            accessibilityRole="link"
+            hitSlop={8}
+            onPress={onAction}
+            pressedStyle={styles.linkPressed}
+            style={styles.link}
+          >
+            <Text style={styles.linkText}>{actionLabel}</Text>
+          </ShopPressable>
+        ) : null}
+      </View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ marginHorizontal: -phoneLayout.screenInset }}
+        contentContainerStyle={[
+          styles.row,
+          { paddingHorizontal: phoneLayout.screenInset },
+        ]}
+      >
+        {items.map(item => (
+          <ShopPressable
+            key={item.sku}
+            accessibilityLabel={item.accessibilityLabel}
+            onPress={item.onPress}
+            pressedStyle={styles.tilePressed}
+            style={styles.tile}
+            testID={`owned-item-${item.sku}`}
+          >
+            <ShopItemArt sku={item.sku} size={56} />
+            <Text numberOfLines={2} style={styles.tileLabel}>
+              {item.label}
+            </Text>
+            <View
               style={[
-                styles.chip,
-                {
-                  backgroundColor: colors.background.secondary,
-                  borderColor: colors.border.primary,
-                  borderRadius: borderRadius.full,
-                },
-                it.disabled && { opacity: 0.5 },
+                styles.badge,
+                item.badgeTone === 'success' && styles.badgeSuccess,
+                item.badgeTone === 'empty' && styles.badgeEmpty,
               ]}
-              onPress={it.onPress}
-              disabled={it.disabled}
-              activeOpacity={0.8}
             >
               <Text
-                style={{
-                  color: colors.text.primary,
-                  fontSize: 13,
-                  fontWeight: '600',
-                }}
+                style={[
+                  styles.badgeText,
+                  item.badgeTone === 'success' && styles.badgeTextSuccess,
+                  item.badgeTone === 'empty' && styles.badgeTextEmpty,
+                ]}
               >
-                {it.label}
+                {item.badge}
               </Text>
-              {typeof it.count === 'number' ? (
-                <View
-                  style={[
-                    styles.count,
-                    {
-                      borderColor: colors.border.primary,
-                      backgroundColor: colors.background.primary,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={{
-                      color: colors.text.secondary,
-                      fontSize: 12,
-                      fontWeight: '700',
-                    }}
-                  >
-                    {it.count}
-                  </Text>
-                </View>
-              ) : null}
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
+            </View>
+          </ShopPressable>
+        ))}
+      </ScrollView>
     </View>
   );
-
-  if (!reserveSpace && items.length === 0) return null;
-  return content;
 };
 
 const styles = StyleSheet.create({
-  container: {
-    marginHorizontal: 16,
-    marginBottom: 12,
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
+  section: {
+    gap: mentaSpacing[3],
+  },
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: mentaSpacing[3],
   },
   title: {
-    fontSize: 14,
-    marginBottom: 8,
+    color: mentaColors.text.primary,
+    ...mentaTypography.title,
+  },
+  link: {
+    justifyContent: 'center',
+    minHeight: 44,
+    paddingHorizontal: mentaSpacing[1],
+  },
+  linkPressed: {
+    opacity: 0.72,
+  },
+  linkText: {
+    color: mentaColors.action,
+    ...mentaTypography.bodySmallMedium,
   },
   row: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+    gap: mentaSpacing[3],
   },
-  emptyWrap: {
-    minHeight: 32,
-    justifyContent: 'center',
-  },
-  emptyText: {
-    fontSize: 13,
-  },
-  chip: {
-    flexDirection: 'row',
+  tile: {
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    backgroundColor: mentaColors.surface,
+    borderColor: mentaColors.border,
+    borderRadius: mentaRadii.large,
     borderWidth: 1,
+    gap: mentaSpacing[2],
+    minHeight: 152,
+    paddingHorizontal: mentaSpacing[3],
+    paddingVertical: mentaSpacing[4],
+    width: 120,
   },
-  count: {
-    minWidth: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+  tilePressed: {
+    backgroundColor: mentaColors.raised,
+  },
+  tileLabel: {
+    color: mentaColors.text.primary,
+    ...mentaTypography.captionMedium,
+    minHeight: mentaTypography.captionMedium.lineHeight * 2,
+    textAlign: 'center',
+  },
+  badge: {
+    backgroundColor: mentaColors.actionSoft,
+    borderColor: mentaColors.actionBorder,
+    borderRadius: mentaRadii.round,
     borderWidth: 1,
+    marginTop: 'auto',
+    paddingHorizontal: mentaSpacing[3],
+    paddingVertical: 2,
+  },
+  badgeSuccess: {
+    backgroundColor: mentaColors.successSoft,
+    borderColor: 'transparent',
+  },
+  badgeEmpty: {
+    backgroundColor: 'transparent',
+    borderColor: mentaColors.border,
+  },
+  badgeText: {
+    color: mentaColors.action,
+    ...mentaTypography.labelBold,
+    fontVariant: ['tabular-nums'],
+  },
+  badgeTextSuccess: {
+    color: mentaColors.success,
+  },
+  badgeTextEmpty: {
+    color: mentaColors.text.muted,
   },
 });
 

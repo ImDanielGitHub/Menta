@@ -27,21 +27,7 @@ export const todayStatesEnNZ = {
     'The last confirmed view is still shown. No proof or review result changed here.',
   'today.state.load_failed.detail': 'Check your connection and try again.',
   'today.state.streak.unavailable': 'Unavailable',
-  'today.state.streak.missed_title': 'A day was missed. Start again today.',
-  'today.state.streak.weekday_missed_title':
-    '{weekday} was missed. Start again today.',
-  'today.state.streak.previous_detail':
-    'The last run ended at {count} because {weekday}’s proof was not received in time. Your history is still here.',
-  'today.state.streak.missed_detail':
-    '{weekday} was recorded as missed. Your history is still here.',
-  'today.state.streak.return_action': 'Start a one-day return',
-  'today.state.streak.history_action': 'View {count}-day history',
   'today.state.streak.history': 'View history',
-  'today.state.streak.previous_label': 'Previous run',
-  'today.state.streak.new_label': 'New run',
-  'today.state.streak.starts_today': 'Starts with today',
-  'today.state.streak.supporting_note':
-    'A one-day return is enough to begin again. Menta will not erase the earlier run.',
   'today.state.returning.away_days':
     'It’s been {count} since your last check-in.',
   'today.state.returning.away': 'It’s been a while since your last check-in.',
@@ -55,10 +41,6 @@ export const todayStatesEnNZ = {
     'Your history stays. Your next action is yours.',
   'today.state.returning.supporting_note':
     'Set a smaller promise, or open your history and return to the last one.',
-  'today.state.no_promises.title': 'Nothing is due yet.',
-  'today.state.no_promises.detail':
-    'Make one promise and Menta will show you what needs attention each day.',
-  'today.state.no_promises.join_group': 'Join an existing group',
   'today.state.proof_due.text_detail':
     'Add the note you agreed on. Only you and the reviewer can see it.',
   'today.state.proof_due.text_action': 'Add note proof',
@@ -130,4 +112,16 @@ export const todayStatesEnNZ = {
   'today.state.all_clear.detail':
     'Come back when a promise is due or someone sends proof.',
   'today.state.all_clear.review_status': 'No proof is waiting for your review.',
+  'today.state.streak.day_one_title': 'Today is day 1.',
+  'today.state.streak.day_one_detail':
+    'Add today’s proof to start a new streak.',
+  'today.state.streak.bubble_run_ended':
+    '{weekday} was missed, so the {count}-day run ended. It’s saved in your history.',
+  'today.state.streak.bubble_missed':
+    '{weekday} was missed. Your history is saved.',
+  'today.state.streak.see_run': 'See the {count}-day run',
+  'today.state.no_promises.title': 'Start with one promise.',
+  'today.state.no_promises.detail':
+    'Pick one small thing, show a quick photo each day, and bring someone to check it if you like.',
+  'today.state.no_promises.join_group': 'I have an invite code',
 } as const;

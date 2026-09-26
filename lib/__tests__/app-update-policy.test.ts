@@ -1,6 +1,5 @@
 import {
   compareAppVersions,
-  getMentaStoreUrl,
   resolveAppUpdateDecision,
   shouldPresentOptionalUpdateOnPath,
   shouldPresentRequiredUpdateOnPath,
@@ -60,7 +59,7 @@ describe('1.9.2 app update policy', () => {
   });
 
   it.each(['optional', 'required'] as const)(
-    'resolves the %s phase only for an older eligible install',
+    'keeps the %s phase closed when this public install has no store link',
     mode => {
       expect(
         resolveAppUpdateDecision({
@@ -70,12 +69,7 @@ describe('1.9.2 app update policy', () => {
           flagValue: mode,
           platform: 'ios',
         })
-      ).toEqual({
-        status: 'offer',
-        mode,
-        minimumVersion: '1.9.2',
-        storeUrl: getMentaStoreUrl('ios'),
-      });
+      ).toEqual({ status: 'authority_unknown' });
     }
   );
 
@@ -88,7 +82,7 @@ describe('1.9.2 app update policy', () => {
         flagValue: 'required',
         platform: 'ios',
       })
-    ).toEqual({ status: 'current' });
+    ).toEqual({ status: 'authority_unknown' });
   });
 
   it('rejects malformed or wrong-release payloads', () => {

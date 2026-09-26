@@ -185,7 +185,9 @@ describe('NotificationPrivacyOnboarding', () => {
   it('educates before calling the native notification permission contract', async () => {
     const { props } = renderOnboarding();
 
-    expect(screen.getByText('Get reminders for your promises?')).toBeTruthy();
+    expect(
+      await screen.findByText('Get reminders for your promises?')
+    ).toBeTruthy();
     expect(
       screen.getByText(
         'Menta can remind you before proof is due and when someone sends proof for review. Your phone will ask for permission next.'
@@ -200,7 +202,7 @@ describe('NotificationPrivacyOnboarding', () => {
     expect(mockedNotificationService.requestPermissions).not.toHaveBeenCalled();
 
     fireEvent.press(
-      screen.getByTestId('notification-privacy-education-continue')
+      await screen.findByTestId('notification-privacy-education-continue')
     );
 
     await waitFor(() => {
@@ -224,8 +226,9 @@ describe('NotificationPrivacyOnboarding', () => {
     expect(props.onComplete).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps reminder content below the top bar with connected actions', () => {
+  it('keeps reminder content below the top bar with connected actions', async () => {
     renderOnboarding({ promptContext: 'first_promise' });
+    await screen.findByTestId('notification-privacy-education-continue');
 
     expect(
       StyleSheet.flatten(
@@ -279,7 +282,7 @@ describe('NotificationPrivacyOnboarding', () => {
     renderOnboarding();
 
     fireEvent.press(
-      screen.getByTestId('notification-privacy-education-continue')
+      await screen.findByTestId('notification-privacy-education-continue')
     );
 
     await waitFor(() => {
@@ -294,7 +297,7 @@ describe('NotificationPrivacyOnboarding', () => {
     renderOnboarding();
 
     fireEvent.press(
-      screen.getByTestId('notification-privacy-education-continue')
+      await screen.findByTestId('notification-privacy-education-continue')
     );
 
     await waitFor(() => {
@@ -311,7 +314,7 @@ describe('NotificationPrivacyOnboarding', () => {
     renderOnboarding();
 
     fireEvent.press(
-      screen.getByTestId('notification-privacy-education-continue')
+      await screen.findByTestId('notification-privacy-education-continue')
     );
     await waitFor(() => {
       expect(screen.getByText('No reminders for now')).toBeTruthy();
@@ -361,7 +364,7 @@ describe('NotificationPrivacyOnboarding', () => {
     renderOnboarding();
 
     fireEvent.press(
-      screen.getByTestId('notification-privacy-education-continue')
+      await screen.findByTestId('notification-privacy-education-continue')
     );
     await waitFor(() => {
       expect(screen.getByText('No reminders for now')).toBeTruthy();
@@ -415,7 +418,7 @@ describe('NotificationPrivacyOnboarding', () => {
     );
 
     fireEvent.press(
-      screen.getByTestId('notification-privacy-education-continue')
+      await screen.findByTestId('notification-privacy-education-continue')
     );
     await waitFor(() => {
       expect(screen.getByText('No reminders for now')).toBeTruthy();
@@ -471,7 +474,7 @@ describe('NotificationPrivacyOnboarding', () => {
     );
 
     fireEvent.press(
-      screen.getByTestId('notification-privacy-education-continue')
+      await screen.findByTestId('notification-privacy-education-continue')
     );
     await waitFor(() => {
       expect(
@@ -534,12 +537,12 @@ describe('NotificationPrivacyOnboarding', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('finishes directly when reminders are skipped', () => {
+  it('finishes directly when reminders are skipped', async () => {
     const onComplete = jest.fn();
     renderOnboarding({ onComplete });
 
     fireEvent.press(
-      screen.getByTestId('notification-privacy-education-not-now')
+      await screen.findByTestId('notification-privacy-education-not-now')
     );
 
     expect(onComplete).toHaveBeenCalledTimes(1);

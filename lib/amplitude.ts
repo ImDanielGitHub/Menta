@@ -1,6 +1,11 @@
 import * as amplitude from '@amplitude/analytics-react-native';
 import { SessionReplayPlugin } from '@amplitude/plugin-session-replay-react-native';
 import { Platform } from 'react-native';
+import {
+  getPaywallAnalyticsProperties,
+  setPaywallAnalyticsOwner,
+  type OnboardingPaywallVariant,
+} from '@/lib/analytics/onboarding-paywall-context';
 
 import {
   MENTA_ANALYTICS_SCHEMA_VERSION,
@@ -16,7 +21,7 @@ export const isAmplitudeReplayEnabled = (): boolean =>
   process.env.EXPO_PUBLIC_AMPLITUDE_REPLAY_ENABLED === 'true';
 
 let initializationStarted = false;
-let identifiedUserId: string | null = null;
+let identifiedUserId: string | null | undefined;
 let replayPlugin: SessionReplayPlugin | null = null;
 let replayPluginReady = false;
 let replayRecording = false;
@@ -127,11 +132,13 @@ export const trackAmplitudeEvent = <TEvent extends MentaAnalyticsEvent>(
   if (!apiKey) return;
 
   try {
-    amplitude.track(event, {
+    const result = amplitude.track(event, {
       event_version: MENTA_ANALYTICS_SCHEMA_VERSION,
       app_platform: appPlatform,
+      ...getPaywallAnalyticsProperties(),
       ...(properties[0] ?? {}),
     });
+    void result?.promise?.catch(() => undefined);
   } catch {}
 };
 
@@ -170,6 +177,12 @@ export const initializeAmplitude = (): void => {
     return;
   }
 
+  // Observe init rejection even when replay is disabled. SDK persistence or
+  // transport failures must not become unhandled application errors.
+  void initialization.promise.catch(() => undefined);
+  // Discard an SDK-persisted former identity before the cold-start event.
+  // The auth boundary identifies the current confirmed account afterwards.
+  setAmplitudeUserId(null);
   trackAmplitudeEvent('App Opened');
 
   if (isAmplitudeReplayEnabled()) {
@@ -195,6 +208,10 @@ export const initializeAmplitude = (): void => {
 
 export const setAmplitudeUserId = (userId: string | null): void => {
   if (!apiKey || identifiedUserId === userId) return;
+  void setPaywallAnalyticsOwner(userId).then(variant => {
+    if (variant && identifiedUserId === userId)
+      setAmplitudePaywallAssignment(variant);
+  });
 
   if (userId) {
     try {
@@ -204,10 +221,32 @@ export const setAmplitudeUserId = (userId: string | null): void => {
     return;
   }
 
-  if (identifiedUserId) {
+  if (identifiedUserId !== null) {
     try {
-      amplitude.reset();
+      if (identifiedUserId === undefined) {
+        // Clear a persisted account at cold start without generating a new
+        // installation identity for every returning anonymous visit.
+        amplitude.setUserId(undefined);
+      } else {
+        amplitude.reset();
+      }
       identifiedUserId = null;
     } catch {}
+  }
+};
+
+export const setAmplitudePaywallAssignment = (
+  variant: OnboardingPaywallVariant
+): void => {
+  if (!apiKey || !identifiedUserId) return;
+  try {
+    const result = amplitude.identify(
+      new amplitude.Identify()
+        .set('onboarding_paywall_experiment', 'onboarding_hard_paywall_v1')
+        .setOnce('onboarding_paywall_variant', variant)
+    );
+    void result?.promise?.catch(() => undefined);
+  } catch {
+    /* Experiment tracking must not interrupt activation. */
   }
 };

@@ -737,7 +737,7 @@ describe('GroupStore', () => {
 
       await act(async () => {
         await expect(
-          result.current.joinGroup('user-1', row.id)
+          result.current.joinGroup('user-1', row.id, 10)
         ).rejects.toThrow(message);
       });
     });
@@ -757,7 +757,7 @@ describe('GroupStore', () => {
 
       await act(async () => {
         await expect(
-          result.current.joinGroup('user-1', 'group-hidden')
+          result.current.joinGroup('user-1', 'group-hidden', 10)
         ).rejects.toThrow(
           'This group is unavailable or invite-only. Refresh groups or use an invite code.'
         );
@@ -782,7 +782,7 @@ describe('GroupStore', () => {
 
       await act(async () => {
         await expect(
-          result.current.joinGroup('user-1', 'group-private')
+          result.current.joinGroup('user-1', 'group-private', 10)
         ).rejects.toThrow(
           'This group is unavailable or invite-only. Refresh groups or use an invite code.'
         );
@@ -798,7 +798,7 @@ describe('GroupStore', () => {
       });
       (mockSupabase.rpc as jest.Mock).mockImplementation((name: string) =>
         Promise.resolve(
-          name === 'join_public_group_v1'
+          name === 'join_public_group_v2'
             ? ok({ success: true, group_id: 'group-1', cost: 10 })
             : ok([])
         )
@@ -815,11 +815,12 @@ describe('GroupStore', () => {
       const { result } = renderHook(() => useGroupStore());
 
       await act(async () => {
-        await result.current.joinGroup('user-2', 'group-1');
+        await result.current.joinGroup('user-2', 'group-1', 10);
       });
 
-      expect(mockSupabase.rpc).toHaveBeenCalledWith('join_public_group_v1', {
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('join_public_group_v2', {
         p_group_id: 'group-1',
+        p_expected_cost: 10,
       });
       expect(result.current.userGroups).toEqual(['group-1']);
       expect(result.current.groups[0].member_count).toBe(3);
@@ -833,7 +834,7 @@ describe('GroupStore', () => {
       mockIsOperationalFeatureEnabled.mockResolvedValueOnce(true);
       (mockSupabase.rpc as jest.Mock).mockImplementation((name: string) =>
         Promise.resolve(
-          name === 'join_public_group_v1'
+          name === 'join_public_group_v2'
             ? ok({ success: true, group_id: 'group-1', cost: 10 })
             : ok([])
         )
@@ -853,7 +854,7 @@ describe('GroupStore', () => {
       const { result } = renderHook(() => useGroupStore());
 
       await act(async () => {
-        await result.current.joinGroup('user-2', 'group-1');
+        await result.current.joinGroup('user-2', 'group-1', 10);
       });
 
       expect(mockIsOperationalFeatureEnabled).toHaveBeenCalledWith(
@@ -880,7 +881,7 @@ describe('GroupStore', () => {
 
       await act(async () => {
         await expect(
-          result.current.joinGroup('user-1', 'group-1')
+          result.current.joinGroup('user-1', 'group-1', 10)
         ).rejects.toMatchObject({ message: 'Already a member' });
       });
     });

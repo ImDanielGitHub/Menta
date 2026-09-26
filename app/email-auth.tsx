@@ -244,6 +244,12 @@ export default function EmailAuthScreen() {
       confirmPassword,
     };
 
+    trackProductEvent('Authentication Result', {
+      flow: mode,
+      method: 'password',
+      outcome: 'started',
+    });
+
     if (invitePreview) {
       trackProductEvent('Promise Invite Journey', {
         action: 'started',
@@ -260,6 +266,14 @@ export default function EmailAuthScreen() {
     try {
       if (mode === 'login') {
         await login(input.email, input.password);
+        const auth = useAuthStore.getState();
+        if (auth.isAuthenticated && auth.user?.id) {
+          trackProductEvent('Authentication Result', {
+            flow: 'login',
+            method: 'password',
+            outcome: 'succeeded',
+          });
+        }
         if (invitePreview) {
           trackProductEvent('Promise Invite Journey', {
             action: 'completed',
@@ -274,6 +288,12 @@ export default function EmailAuthScreen() {
         }
       } else {
         const result = await register(input.email, input.password, input.name);
+        trackProductEvent('Authentication Result', {
+          flow: 'signup',
+          method: 'password',
+          outcome:
+            result.status === 'session_confirmed' ? 'succeeded' : 'handoff',
+        });
         if (result.status === 'confirmation_required') {
           let persistenceFailed = false;
           try {
@@ -313,6 +333,11 @@ export default function EmailAuthScreen() {
         }
       }
     } catch (error: unknown) {
+      trackProductEvent('Authentication Result', {
+        flow: mode,
+        method: 'password',
+        outcome: 'failed',
+      });
       const message = getFailureMessage(error, mode, t);
       if (mode === 'signup' && isDuplicateAccountError(message)) {
         setErrors(current => ({

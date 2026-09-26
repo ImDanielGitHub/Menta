@@ -171,7 +171,7 @@ export const AppTextField = forwardRef<AppTextFieldRef, AppTextFieldProps>(
     const borderColor = resolvedError
       ? theme.colors.status.error
       : focused
-        ? theme.colors.interactive.primary
+        ? theme.colors.border.focus
         : theme.colors.border.primary;
 
     const showExpoField = canUseExpoField({ multiline, editable });
@@ -383,7 +383,7 @@ export const AppSecureField = forwardRef<AppTextFieldRef, AppTextFieldProps>(
     const borderColor = errorText
       ? theme.colors.status.error
       : focused
-        ? theme.colors.interactive.primary
+        ? theme.colors.border.focus
         : theme.colors.border.primary;
 
     const showExpoSecureField =
@@ -568,7 +568,7 @@ export const AppKeyboardDoneAccessory: React.FC<{
           <Text
             style={[
               styles.keyboardAccessoryLabel,
-              { color: theme.colors.interactive.primary },
+              { color: theme.colors.accent.primary },
             ]}
           >
             {resolvedLabel}
@@ -692,7 +692,7 @@ export const AppSwitchRow: React.FC<{
           styles.fakeSwitch,
           {
             backgroundColor: value
-              ? theme.colors.interactive.primary
+              ? theme.colors.accent.primary
               : theme.colors.background.secondary,
           },
         ]}

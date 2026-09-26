@@ -70,30 +70,30 @@ export const fullTodayProofEsES = {
   'todayProof.create.photo_video': 'Foto o vídeo',
   'todayProof.create.photo_video_note':
     'Mejor cuando es necesario ver la acción o el resultado completado.',
-  'todayProof.create.text': 'prueba de texto',
+  'todayProof.create.text': 'Prueba de texto',
   'todayProof.create.text_note':
     'Lo mejor para un breve seguimiento por escrito.',
-  'todayProof.create.promise_question': '¿Qué promesass?',
+  'todayProof.create.promise_question': '¿Qué prometes?',
   'todayProof.create.promise_question_detail':
     'Nombra la acción diaria y di exactamente lo que cuenta como hecho.',
   'todayProof.create.proof_question': 'Elige la prueba',
   'todayProof.create.proof_solo_detail':
     'Elige lo que enviará cuando venza esta promesa.',
   'todayProof.create.proof_group_detail':
-    'Dígales a los revisores del grupo lo que necesitan ver o leer.',
+    'Diles a los revisores del grupo qué necesitan ver o leer.',
   'todayProof.create.flexibility_question': 'Elige flexibilidad',
   'todayProof.create.flexibility_detail':
     'Decide cuánto puede cambiar el horario después de comenzar.',
   'todayProof.create.review_question': 'Comprueba tu promesa',
   'todayProof.create.review_detail':
-    'Revise la promesa, la prueba y el cronograma antes de crearlo.',
+    'Revisa la promesa, la prueba y la frecuencia antes de crearla.',
   'todayProof.create.choose_proof': 'Elige prueba',
   'todayProof.create.choose_schedule': 'Elige horario',
   'todayProof.create.review_promise': 'Promesa de revisión',
-  'todayProof.create.create_promise': 'crear promesa',
+  'todayProof.create.create_promise': 'Crear promesa',
   'todayProof.create.check_today': 'Verifica hoy primero',
   'todayProof.create.choose_return': 'Elige un nuevo comienzo',
-  'todayProof.create.your_promise': 'tu promesa',
+  'todayProof.create.your_promise': 'Tu promesa',
   'todayProof.create.name_promise': 'Nombra la promesa',
   'todayProof.create.name_promise_detail':
     'Usa al menos tres caracteres para que esta promesa sea fácil de encontrar más adelante.',
@@ -102,7 +102,7 @@ export const fullTodayProofEsES = {
     'Añade la regla diaria para que quede claro lo que significa hecho.',
   'todayProof.create.describe_proof': 'Describe la prueba',
   'todayProof.create.describe_proof_detail':
-    'Escriba lo que debe mostrar la prueba antes de que empieza esta promesa.',
+    'Escribe qué debe mostrar la prueba antes de que empiece esta promesa.',
   'todayProof.create.session_expired': 'La sesión expiró',
   'todayProof.create.short_name': 'Usa al menos tres caracteres.',
   'todayProof.create.short_rule':
@@ -134,13 +134,13 @@ export const fullTodayProofEsES = {
     'Una foto de la caminata, del gimnasio, del escritorio o del resultado.',
   'todayProof.create.proof_rule':
     'Escribe la regla que quieres que cumpla la prueba.',
-  'todayProof.create.proof_rule_label': 'regla de prueba',
+  'todayProof.create.proof_rule_label': 'Regla de la prueba',
   'todayProof.create.proof_rule_placeholder':
     'Describe lo que la prueba debe mostrar o decir.',
   'todayProof.create.self_review_rule':
     'Deja clara la regla antes de comenzar. Tu prueba cuenta cuando la envías.',
   'todayProof.create.group_proof_rule':
-    'Dígales a los revisores del grupo qué confirma que esto se hizo.',
+    'Diles a los revisores del grupo qué confirma que se hizo.',
   'todayProof.create.prompt_optional':
     'Aviso mostrado en el seguimiento (opcional)',
   'todayProof.create.prompt_placeholder':
@@ -171,12 +171,12 @@ export const fullTodayProofEsES = {
   'todayProof.create.description_helper':
     'Las reglas específicas son más fáciles de seguir y de revisar.',
   'todayProof.create.loading_groups': 'Cargando tus grupos...',
-  'todayProof.create.keep_solo': 'mantenlo solo',
+  'todayProof.create.keep_solo': 'Hazlo en solitario',
   'todayProof.create.private_streak':
     'Privado. Tu prueba cuenta cuando la envías y se hace seguimiento de tu racha.',
   'todayProof.create.start_solo': 'Empieza solo por ahora',
   'todayProof.create.start_solo_detail':
-    'No necesitas un grupo para comenzar. Haga una promesa personal ahora y luego cree una promesa grupal más adelante si la revisión compartida le resulta útil.',
+    'No necesitas un grupo para empezar. Haz ahora una promesa personal y crea más adelante una promesa de grupo si te ayuda que otros la revisen.',
   'todayProof.create.private_promise':
     'Una promesa privada donde la prueba cuenta cuando la envías.',
   'todayProof.create.want_group': '¿Quieres un grupo más tarde?',
@@ -191,9 +191,9 @@ export const fullTodayProofEsES = {
   'todayProof.create.group_policy':
     'Este grupo tiene como objetivo realizar pruebas el {percent}% de los días y permite {count} perder días seguidos.',
   'todayProof.create.personal_policy':
-    'Esta promesa es sólo para ti. Elige un horario que aún pueda mantener en un día ajetreado.',
+    'Esta promesa es solo para ti. Elige una frecuencia que puedas cumplir incluso en un día ajetreado.',
   'todayProof.create.choose_group_policy':
-    'Elige un grupo para ver tus reglas antes de crear la promesa.',
+    'Elige un grupo para ver sus reglas antes de crear la promesa.',
   'todayProof.create.group_commitment': '{count} compromiso grupal del día',
   'todayProof.create.back_from_creation':
     'De regreso de la creación de promesas',
@@ -217,7 +217,7 @@ export const fullTodayProofEsES = {
   'todayProof.create.close_templates': 'Cerrar plantillas',
   'todayProof.create.use_selected_template': 'Usar plantilla seleccionada',
   'todayProof.create.write_own': 'Escribe mi propia promesa',
-  'todayProof.create.write_promise': 'escribe una promesa',
+  'todayProof.create.write_promise': 'Escribe una promesa',
   'todayProof.create.group_saved': 'Promesa de grupo guardada',
   'todayProof.create.promise_saved': 'Promesa guardada',
   'todayProof.create.group_saved_detail':
@@ -225,19 +225,19 @@ export const fullTodayProofEsES = {
   'todayProof.create.promise_saved_detail':
     'Publique la primera prueba cuando esté listo para comenzar.',
   'todayProof.create.view_created': 'Ver promesa creada',
-  'todayProof.create.first_due': 'primer vencimiento',
+  'todayProof.create.first_due': 'Primer plazo',
   'todayProof.create.schedule_saved': 'Horario guardado',
   'todayProof.create.group_members_review':
     'Revisión de los miembros del grupo.',
   'todayProof.create.proof_counts_when_sent':
     'La prueba cuenta cuando se envía',
   'todayProof.create.group_members': 'Miembros del grupo',
-  'todayProof.create.only_you': 'Sólo tu',
-  'todayProof.create.open_promise': 'abre mi promesa',
-  'todayProof.create.open_group': 'grupo',
+  'todayProof.create.only_you': 'Solo tú',
+  'todayProof.create.open_promise': 'Abrir mi promesa',
+  'todayProof.create.open_group': 'Abrir grupo',
   'todayProof.create.post_first_proof': 'Publicar la primera prueba',
-  'todayProof.create.back_today': 'Volver a hoy',
-  'todayProof.create.invite_people': 'invitar gente',
+  'todayProof.create.back_today': 'Volver a Hoy',
+  'todayProof.create.invite_people': 'Invitar a personas',
   'todayProof.create.set_reminder': 'Establecer un recordatorio',
   'todayProof.solo.back': 'Volver',
   'todayProof.solo.items': 'Tus artículos',
@@ -250,9 +250,9 @@ export const fullTodayProofEsES = {
   'todayProof.solo.completed_under_past':
     'Tus promesas completadas todavía están disponibles en Historial.',
   'todayProof.solo.create_private':
-    'Cree una promesa privada cuando esté listo para comenzar.',
+    'Crea una promesa privada cuando quieras empezar.',
   'todayProof.solo.ended':
-    'Las promesas aparecen aquí una vez finalizado tu plazo confirmado.',
+    'Las promesas aparecen aquí cuando termina su plazo confirmado.',
   'todayProof.solo.view_past': 'Ver promesas pasadas',
   'todayProof.solo.create': 'Crea una promesa',
   'todayProof.solo.showing_last_update': 'Mostrando tu última actualización',
@@ -262,7 +262,7 @@ export const fullTodayProofEsES = {
   'todayProof.solo.loading': 'Cargando tus promesas...',
   'todayProof.solo.no_personal': 'No tienes promesas personales.',
   'todayProof.solo.no_personal_detail':
-    'Una promesa personal es una acción a la que te compromesass, con una prueba fotográfica cada vez que la realizas. Revisas tu propia prueba.',
+    'Una promesa personal es una acción con la que te comprometes, con una prueba con foto cada vez que la haces. Tú revisas tu propia prueba.',
   'todayProof.solo.create_group': 'Haz una promesa con un grupo.',
   'todayProof.solo.active_count': 'Activo {count}',
   'todayProof.solo.past_count': 'Historial {count}',
@@ -274,12 +274,12 @@ export const fullTodayProofEsES = {
   'todayProof.solo.view_correction': 'Ver corrección',
   'todayProof.solo.view_today_proof': 'Ver la prueba de hoy',
   'todayProof.solo.proof_history': 'Historial de pruebas',
-  'todayProof.solo.text_proof': 'prueba de texto',
+  'todayProof.solo.text_proof': 'Prueba de texto',
   'todayProof.solo.video_proof': 'Prueba de vídeo',
   'todayProof.solo.photo_proof': 'Prueba fotográfica',
   'todayProof.solo.past_promise': 'Promesa pasada',
   'todayProof.solo.no_current_streak': 'Sin racha actual',
-  'todayProof.solo.open_promise': 'promesa abierta',
+  'todayProof.solo.open_promise': 'Abrir promesa',
   'todayProof.solo.open_full_promise': 'Abrir promesa completa',
   'todayProof.solo.due_today': 'Vencimiento hoy',
   'todayProof.solo.waiting_review': 'Esperando revisión',
@@ -314,7 +314,7 @@ export const fullTodayProofEsES = {
     'El código de invitación todavía está visible aquí. Intenta copiar de nuevo.',
   'todayProof.promise.share_failed': 'Compartir falló',
   'todayProof.promise.share_failed_detail':
-    'Menta no pudo abrir la menú para compartir. Copia el código o inténtalo de nuevo.',
+    'Menta no pudo abrir el menú para compartir. Copia el código o vuelve a intentarlo.',
   'todayProof.promise.close_invite': 'Cerrar promesa invitación modal',
   'todayProof.promise.copy_invite': 'Copiar código de invitación',
   'todayProof.promise.copy_code': 'Copiar código',
@@ -333,7 +333,7 @@ export const fullTodayProofEsES = {
   'todayProof.promise.try_later': 'Inténtalo de nuevo más tarde.',
   'todayProof.promise.boost_failed': 'La activación del impulso falló:',
   'todayProof.promise.boost_failed_detail':
-    'Menta no pudo confirmar si se agregó tiempo. Verifica de nuevo antes de usar otra extensión.',
+    'Menta no ha podido confirmar si se ha añadido tiempo. Vuelve a comprobarlo antes de usar otra extensión.',
   'todayProof.promise.waiting_review': 'Esperando revisión',
   'todayProof.promise.waiting_review_detail':
     'Tu prueba se ha enviado. No es necesario enviarla dos veces.',
@@ -358,22 +358,22 @@ export const fullTodayProofEsES = {
   'todayProof.promise.submit_clearer': 'Presentar pruebas más claras',
   'todayProof.promise.submit': 'Enviar prueba',
   'todayProof.promise.review': 'Prueba de revisión',
-  'todayProof.promise.done_for_today': 'hecho por hoy',
+  'todayProof.promise.done_for_today': 'Hecho por hoy',
   'todayProof.promise.retry_detail':
     'Un reintento no restablece toda la promesa. Envía prueba que muestre claramente la acción completada.',
   'todayProof.promise.today_counts':
     'Hoy todavía cuenta. Ningún resultado cambia hasta que se resuelva la prueba.',
   'todayProof.promise.reviewed_by': 'Revisado por',
-  'todayProof.promise.only_you': 'Sólo tu',
+  'todayProof.promise.only_you': 'Solo tú',
   'todayProof.promise.group_members': 'Miembros del grupo',
   'todayProof.promise.invite_only': 'Sólo invitación',
   'todayProof.promise.not_checked': 'No comprobado',
-  'todayProof.promise.just_you': 'solo tu',
-  'todayProof.promise.left': 'promesa izquierda',
+  'todayProof.promise.just_you': 'Solo tú',
+  'todayProof.promise.left': 'Dejaste la promesa',
   'todayProof.promise.left_detail': 'Dejaste esta promesa.',
   'todayProof.promise.deleted': 'La promesa fue eliminada.',
   'todayProof.promise.not_changed':
-    'La promesa no fue cambiada. inténtalo de nuevo.',
+    'La promesa no ha cambiado. Vuelve a intentarlo.',
   'todayProof.promise.result_not_confirmed_title': 'Resultado no confirmado',
   'todayProof.promise.not_changed_title': 'Promesa sin cambios',
   'todayProof.promise.check_status': 'Comprobar estado',
@@ -400,7 +400,7 @@ export const fullTodayProofEsES = {
   'todayProof.promise.delete_question': '¿Eliminar esta promesa?',
   'todayProof.promise.leave_question': '¿Dejar esta promesa?',
   'todayProof.promise.delete': 'Eliminar promesa',
-  'todayProof.promise.leave': 'dejar promesa',
+  'todayProof.promise.leave': 'Dejar la promesa',
   'todayProof.promise.delete_detail':
     'Elimina esta promesa, el historial de pruebas, los enlaces de invitación y el contexto de revisión. Sin deshacer.',
   'todayProof.promise.leave_detail':
@@ -414,12 +414,12 @@ export const fullTodayProofEsES = {
   'todayProof.promise.rules_schedule_detail':
     'Qué cuenta, cuándo vence y quién lo revisa.',
   'todayProof.promise.how_works': 'Cómo funciona esta promesa',
-  'todayProof.promise.your_proof': 'tu prueba',
+  'todayProof.promise.your_proof': 'Tu prueba',
   'todayProof.promise.no_proof_you': 'Aún no hay pruebas tuyas',
   'todayProof.promise.other_proof': 'Prueba de otros miembros',
   'todayProof.promise.no_other_proof': 'Aún no hay pruebas de otros miembros',
   'todayProof.promise.other_proof_detail':
-    'Tus seguimientos aprobados y pendientes aparecerán aquí.',
+    'Aquí aparecerán sus registros aprobados y pendientes.',
   'todayProof.promise.preparing_invite': 'Preparando invitación…',
   'todayProof.promise.open_review_queue': 'Abrir lista de revisión',
   'todayProof.promise.report': 'Promesa de informe',
@@ -444,7 +444,7 @@ export const fullTodayProofEsES = {
   'todayProof.promise.people': 'Gente',
   'todayProof.promise.joined': '{count} se unió',
   'todayProof.promise.joined_one': '{count} se unió',
-  'todayProof.promise.private': 'promesa privada',
+  'todayProof.promise.private': 'Promesa privada',
   'todayProof.promise.private_only': 'Solo tú puedes ver esta promesa.',
   'todayProof.promise.no_people': 'Nadie se ha unido todavía.',
   'todayProof.promise.private_proof':
@@ -499,15 +499,15 @@ export const fullTodayProofEsES = {
   'todayProof.proof.waiting_for': 'Esperando {name}',
   'todayProof.promise.video_proof': 'Prueba de vídeo',
   'todayProof.promise.watch_full_screen': 'Ver a pantalla completa',
-  'todayProof.promise.text_proof': 'prueba de texto',
+  'todayProof.promise.text_proof': 'Prueba de texto',
   'todayProof.promise.photo_proof': 'Prueba fotográfica',
   'todayProof.promise.needs_retry': 'Necesita otro intento',
   'todayProof.promise.updated': 'Promesa actualizada',
   'todayProof.promise.updated_accessibility': 'Promesa actualizada. {detail}',
-  'todayProof.promise.notice': 'aviso de promesa',
+  'todayProof.promise.notice': 'Aviso de la promesa',
   'todayProof.promise.refresh_promise': 'No se pudo actualizar la promesa',
   'todayProof.promise.complete_action_failed': 'No se pudo completar eso',
-  'todayProof.promise.try_again': 'Intentar otra vez',
+  'todayProof.promise.try_again': 'Volver a intentarlo',
   'todayProof.promise.video_unavailable': 'Vídeo no disponible',
   'todayProof.promise.video_unavailable_detail':
     'Este vídeo de prueba no está disponible en este momento. Inténtalo de nuevo desde la página de promesa.',
@@ -529,7 +529,7 @@ export const fullTodayProofEsES = {
   'todayProof.proof.send_one_tap': 'Enviar con un toque',
   'todayProof.proof.keep_holding_sentence': 'Sigue presionando para enviar.',
   'todayProof.proof.send': 'Enviar prueba',
-  'todayProof.proof.send_detail': 'Toque para enviar esta prueba ahora.',
+  'todayProof.proof.send_detail': 'Toca para enviar esta prueba ahora.',
   'todayProof.proof.send_now': 'Envía esta prueba ahora.',
   'todayProof.proof.hold_detail':
     'Mantén pulsado durante uno coma tres segundos para enviar. Suelta temprano o deslícese para cancelar.',
@@ -549,7 +549,7 @@ export const fullTodayProofEsES = {
   'todayProof.proof.private_full_detail': 'Prueba privada a la vista',
   'todayProof.proof.sending': 'Envío de prueba',
   'todayProof.proof.meta': '{type} · {time}',
-  'todayProof.proof.private': 'prueba privada',
+  'todayProof.proof.private': 'Prueba privada',
   'todayProof.proof.close': 'Cerrar',
   'todayProof.proof.write': 'Escribe tu prueba',
   'todayProof.proof.write_detail':
@@ -570,7 +570,7 @@ export const fullTodayProofEsES = {
   'todayProof.proof.accepted_detail':
     'Tu prueba fue aprobada y ahora cuenta para la promesa de hoy.',
   'todayProof.proof.unknown_detail':
-    'No pudimos confirmar si se envió la prueba. Comprueba tu estado antes de volver a intentarlo.',
+    'No pudimos confirmar si se envió la prueba. Comprueba su estado antes de volver a intentarlo.',
   'todayProof.proof.failed_detail':
     'No se envió prueba. Comprueba tu conexión y vuelve a intentarlo. Tu borrador permanece aquí si se guardó localmente.',
   'todayProof.proof.share_accepted':
@@ -578,7 +578,7 @@ export const fullTodayProofEsES = {
   'todayProof.proof.share_pending':
     'Envié la prueba de hoy a Menta. Está a la espera de revisión.',
   'todayProof.proof.receipt': 'Prueba',
-  'todayProof.proof.share_title': 'recibo de prueba de menta',
+  'todayProof.proof.share_title': 'Comprobante de prueba de Menta',
   'todayProof.proof.ad_break': 'Pausa publicitaria siguiente',
   'todayProof.proof.ad_break_detail':
     'Es posible que aparezca un anuncio breve después de dejar este recibo. No cambiará tu comprobante ni tu saldo de Momenta.',
@@ -588,7 +588,7 @@ export const fullTodayProofEsES = {
   'todayProof.proof.share_failed': 'Compartir falló',
   'todayProof.proof.share_failed_detail':
     'El recibo todavía está aquí. Intenta compartir de nuevo cuando el dispositivo esté listo.',
-  'todayProof.proof.share_progress': 'progreso mental',
+  'todayProof.proof.share_progress': 'Progreso en Menta',
   'todayProof.proof.milestone_message': 'Llegué a {count} días en Menta.',
   'todayProof.proof.share_progress_detail':
     'Solo se comparte el mensaje de progreso. Tu prueba permanece privada.',
@@ -639,8 +639,8 @@ export const fullTodayProofEsES = {
     'No es necesario rehacer ninguna prueba. Por lo general, eso significa que las presentaciones han sido lo suficientemente claras.',
   'todayProof.review.nothing':
     'Nada que mostrar todavía. Tire para actualizar si esperaba pruebas de esta promesa.',
-  'todayProof.review.back_board': 'volver al tablero',
-  'todayProof.review.back_today': 'Volver a hoy',
+  'todayProof.review.back_board': 'Volver al tablero',
+  'todayProof.review.back_today': 'Volver a Hoy',
   'todayProof.review.error_detail':
     'Las revisiones no se cargaron. Tira para actualizar y vuelve a intentarlo.',
   'todayProof.review.group_reviews': 'Revisiones grupales',
@@ -673,7 +673,7 @@ export const fullTodayProofEsES = {
     'Cambió mientras lo revisabas. No se envió nada. Vuelve a cargarlo antes de decidirte. Tu nota de corrección no enviada: {note}',
   'todayProof.review.current_status': 'Estado actual: {status}',
   'todayProof.review.filter_accessibility': 'Mostrar pruebas {status}',
-  'todayProof.review.back_queue': 'volver a la cola',
+  'todayProof.review.back_queue': 'Volver a la cola',
   'todayProof.review.unsent_note':
     'Tu nota de corrección no enviada permanecerá aquí hasta que recargues o abandones la lista.',
   'todayProof.review.reload': 'Recargar prueba',
@@ -701,7 +701,7 @@ export const fullTodayProofEsES = {
   'todayProof.review.show_all_submissions': 'Mostrar todos los envíos',
   'todayProof.review.ask_new': 'Solicitar nueva prueba',
   'todayProof.review.reject': 'Rechazar envío',
-  'todayProof.review.approve': 'aprobar prueba',
+  'todayProof.review.approve': 'Aprobar prueba',
   'todayProof.review.approve_submission': 'Aprobar envío',
   'todayProof.review.match_promise': '¿Esta prueba coincide con la promesa?',
   'todayProof.review.choose_reason': 'Elige una razón',
@@ -731,18 +731,18 @@ export const fullTodayProofEsES = {
   'todayProof.review.open_again':
     'Intenta abrirlo de nuevo. No se ha guardado ninguna decisión de revisión.',
   'todayProof.review.could_not_open': 'No pudimos abrir esta prueba.',
-  'todayProof.review.return_to_promise': 'volver a la promesa',
+  'todayProof.review.return_to_promise': 'Volver a la promesa',
   'todayProof.review.back_reviews': 'Volver a revisiones',
   'todayProof.review.refresh_needed':
     'La lista de revisión necesita una actualización',
-  'todayProof.streak.missed_day': 'el dia perdido',
+  'todayProof.streak.missed_day': 'El día perdido',
   'todayProof.streak.missed_day_title': 'Se perdió {day}.',
   'todayProof.streak.no_proof_counted':
     'No se cuentan pruebas para {day}. Tu racha anterior finalizó en {streak} y tu historial aún está aquí.',
   'todayProof.streak.previous_days': '{count} día',
   'todayProof.streak.previous_days_other': '{count} días',
   'todayProof.streak.history_action': 'Ver el historial del día {count}',
-  'todayProof.streak.missed': 'día perdido',
+  'todayProof.streak.missed': 'Día perdido',
   'todayProof.streak.missed_day_label': 'Día perdido · {day}',
   'todayProof.streak.day_was_missed': 'Se perdió un día.',
   'todayProof.streak.ready_again': 'Listo para un nuevo seguimiento',
@@ -776,9 +776,9 @@ export const fullTodayProofEsES = {
   'todayProof.streak.recovery_note':
     'Un nuevo registro inicia la siguiente racha. La prueba de hoy cuenta después de la aprobación.',
   'todayProof.streak.current': 'Racha actual',
-  'todayProof.streak.longest': 'más largo',
+  'todayProof.streak.longest': 'Más larga',
   'todayProof.streak.promise_goal': 'Meta prometida',
-  'todayProof.streak.next_target': 'próximo objetivo',
+  'todayProof.streak.next_target': 'Próximo objetivo',
   'todayProof.streak.goal_reached': '{count} días · alcanzado',
   'todayProof.streak.target_days': '{count} días',
   'todayProof.streak.day': '{count} día',
@@ -808,12 +808,12 @@ export const fullTodayProofEsES = {
   'todayProof.streak.reminders_paused':
     'Recordatorios en pausa durante {hours} horas.',
   'todayProof.streak.remind_in': 'Recordármelo en horas {hours}',
-  'todayProof.streak.freeze_title': 'La racha se congela',
+  'todayProof.streak.freeze_title': 'Congelaciones de racha',
   'todayProof.streak.open_items': 'Artículos abiertos',
   'todayProof.streak.freeze_accessibility':
-    'La racha se congela. {available}. Menta usa uno automáticamente después de un día perdido elegible.',
+    'Congelaciones de racha. {available}. Menta usa una automáticamente después de un día perdido que cumpla los requisitos.',
   'todayProof.streak.freeze_copy':
-    'Un día protegido aparece aquí sólo después de que Menta confirma el resultado. La presentación de pruebas hoy no utiliza el congelamiento. {grant}',
+    'Un día protegido solo aparece aquí cuando Menta confirma el resultado. Enviar la prueba hoy no gasta ninguna congelación. {grant}',
   'todayProof.streak.challenge_not_found': 'Reto no encontrado',
   'todayProof.streak.already_checked_in': 'Ya me registré hoy',
   'todayProof.streak.within_grace_period': 'Dentro del periodo de gracia',
@@ -849,17 +849,17 @@ export const fullTodayProofEsES = {
   'todayProof.creation.title': 'Crea una promesa o únete a otros.',
   'todayProof.creation.subtitle':
     'Las promesas en solitario se mantienen en privado. Las promesas grupales comparten el progreso con las personas que elijas.',
-  'todayProof.creation.close_hub': 'Cerrar crear centro',
-  'todayProof.creation.create_options': 'Crear opciones',
+  'todayProof.creation.close_hub': 'Cerrar la creación',
+  'todayProof.creation.create_options': 'Opciones para crear',
   'todayProof.creation.group_promise': 'Añade una promesa a tu grupo',
   'todayProof.creation.group_promise_detail':
-    'Comparta el estado de la promesa y la prueba con el grupo.',
+    'Comparte con el grupo el estado de la promesa y de la prueba.',
   'todayProof.creation.create_group': 'Crear un grupo',
   'todayProof.creation.create_group_detail':
-    'Invite a las personas a un espacio compartido para hacer promesas y pruebas.',
+    'Invita a personas a un espacio compartido para promesas y pruebas.',
   'todayProof.creation.solo_promise': 'Haz una promesa en solitario',
   'todayProof.creation.solo_promise_detail':
-    'Mantenlo en privado y elige la prueba tú mismo.',
+    'Mantenla en privado y elige tú la prueba.',
   'todayProof.creation.saved_invite': 'Abrir invitación guardada',
   'todayProof.creation.saved_invite_detail':
     'El código {code} está guardado en este teléfono.',
@@ -868,11 +868,11 @@ export const fullTodayProofEsES = {
     'Introduce o escanea un código de invitación.',
   'todayProof.creation.browse_events': 'Explorar eventos',
   'todayProof.creation.browse_events_detail':
-    'Encuentre un evento público al que unirse.',
+    'Encuentra un evento público al que unirte.',
   'todayProof.promise.invite_not_confirmed': 'Invitación no confirmada',
   'todayProof.promise.invite_still_available':
     'Menta no puede confirmar que se haya enviado la invitación. La invitación sigue disponible aquí si quieres copiarla o volver más tarde.',
-  'todayProof.residual.share_promise': 'compartir promesa',
+  'todayProof.residual.share_promise': 'Compartir promesa',
   'todayProof.residual.waiting': 'Espera',
   'todayProof.residual.redo': 'Rehacer',
   'todayProof.residual.due': 'Pendiente',
@@ -887,19 +887,19 @@ export const fullTodayProofEsES = {
     'La prueba guardada permanece en este dispositivo hasta que Menta confirme la recepción del servidor.',
   'todayProof.residual.view_proof_history': 'Ver historial de pruebas',
   'todayProof.residual.start_today_s_proof': 'Comienza la prueba de hoy',
-  'todayProof.residual.check_again': 'comprobar de nuevo',
+  'todayProof.residual.check_again': 'Volver a comprobar',
   'todayProof.residual.no_new_proof_was_started':
     'No se inició ninguna nueva prueba.',
   'todayProof.residual.check_the_current_server_status_before_sending_or_retrying_proof':
     'Verifica el estado actual del servidor antes de enviar o volver a intentar la prueba.',
   'todayProof.residual.a_previous_day_was_protected':
-    'Un día anterior estaba protegido.',
+    'Se protegió un día anterior',
   'todayProof.residual.the_protected_day_remains_in_proof_history_today_still_needs_its':
-    'El día protegido permanece en el historial de pruebas. Hoy todavía se necesita tu propia prueba.',
+    'El día protegido sigue en el historial de pruebas. Hoy sigue necesitando su propia prueba.',
   'todayProof.residual.status': 'Estado',
   'todayProof.residual.preparing_invite': 'Preparando invitación...',
   'todayProof.residual.checking': 'Comprobando…',
-  'todayProof.residual.adding_time': 'Agregando tiempo…',
+  'todayProof.residual.adding_time': 'Añadiendo tiempo…',
   'todayProof.residual.add_12_hours': 'Añadir 12 horas',
   'todayProof.residual.keep_current_due_time':
     'Mantener el tiempo de vencimiento actualizado',
@@ -908,7 +908,7 @@ export const fullTodayProofEsES = {
     'Comprobando el estado de la racha',
   'todayProof.residual.network_request_failed_before_a_response_arrived':
     'La solicitud de red falló antes de que llegara una respuesta',
-  'todayProof.residual.momenta': 'momentos',
+  'todayProof.residual.momenta': 'Momenta',
   'todayProof.residual.creating_promise': 'Creando promesa...',
   'todayProof.residual.change': 'Cambiar',
   'todayProof.residual.starter_templates': 'Plantillas de inicio',
@@ -923,7 +923,7 @@ export const fullTodayProofEsES = {
   'todayProof.residual.checking_for_updates': 'Buscando actualizaciones...',
   'todayProof.residual.edit_promise_words': 'Editar palabras de promesa',
   'todayProof.residual.edit_words': 'Editar palabras',
-  'todayProof.residual.who_takes_part': 'quien participa',
+  'todayProof.residual.who_takes_part': 'Quién participa',
   'todayProof.residual.edit_who_takes_part': 'Editar quién participa',
   'todayProof.residual.edit': 'Editar',
   'todayProof.residual.edit_proof_requirements': 'Editar requisitos de prueba',
@@ -964,7 +964,7 @@ export const fullTodayProofEsES = {
   'todayProof.residual.streak_freeze': 'Congelación de rachas',
   'todayProof.residual.added_to_your_inventory_for_keeping_this_streak':
     'Añadido a tu inventario por mantener esta racha',
-  'todayProof.residual.if_you_share': 'si compartes',
+  'todayProof.residual.if_you_share': 'Si compartes',
   'todayProof.residual.your_proof_stays_private': 'Tu prueba permanece privada',
   'todayProof.residual.share_milestone': 'Compartir hito',
   'todayProof.residual.loading_promise_details':
@@ -983,11 +983,11 @@ export const fullTodayProofEsES = {
   'todayProof.residual.newest_first': 'Lo nuevo primero',
   'todayProof.residual.load_earlier_proof': 'Cargar prueba anterior',
   'todayProof.residual.rules_and_people': 'Reglas y personas',
-  'todayProof.residual.what_counts': 'que cuenta',
+  'todayProof.residual.what_counts': 'Qué cuenta',
   'todayProof.residual.proof_receipt': 'Recibo de prueba',
   'todayProof.residual.days_approved': 'Días aprobados',
   'todayProof.residual.share_result': 'Compartir resultado',
-  'todayProof.residual.make_another_promise': 'hacer otra promesa',
+  'todayProof.residual.make_another_promise': 'Hacer otra promesa',
   'todayProof.residual.this_promise_isn_t_available':
     'Esta promesa no está disponible.',
   'todayProof.residual.try_again_before_submitting_or_reviewing_proof':
@@ -1033,7 +1033,7 @@ export const fullTodayProofEsES = {
   'todayProof.residual.promise_could_not_load': 'La promesa no se pudo cargar',
   'todayProof.residual.menta_could_not_refresh_this_promise_retry_before_acting_on_a_mi':
     'Menta no pudo renovar esta promesa. Vuelve a intentarlo antes de actuar sobre una prueba faltante o un estado de revisión.',
-  'todayProof.residual.what_to_change': 'que cambiar',
+  'todayProof.residual.what_to_change': 'Qué cambiar',
   'todayProof.residual.your_last_check_in_needs_a_clearer_follow_up_before_the_day_clos':
     'Tu último seguimiento necesita un seguimiento más claro antes de que cierre el día.',
   'todayProof.residual.saved_on_this_phone': 'Guardado en este teléfono',
@@ -1138,16 +1138,16 @@ export const fullTodayProofEsES = {
   'todayProof.source.outcome.missed':
     'La prueba no se recibió antes de la fecha límite. La racha anterior terminó en {streak}.',
   'todayProof.source.outcome.protected_freeze':
-    'Un protector de racha ha protegido este día. La racha se ha mantenido en {streak}.',
+    'Una congelación de racha protegió este día. La racha se mantuvo en {streak}.',
   'todayProof.source.outcome.protected':
-    'Este día ha quedado protegido. La racha se ha mantenido en {streak}.',
+    'Este día quedó protegido. La racha se mantuvo en {streak}.',
   'todayProof.source.review.changed_detail_with_note_preserved':
     'Ha cambiado mientras la revisabas. No se ha enviado nada. Vuelve a cargarla antes de decidir. Tu nota de corrección sin enviar permanecerá aquí hasta que la cargues o salgas de la cola. Nota: {note}',
   'todayProof.source.review.item_accessibility':
     'Prueba de {name} para {promise}',
   'todayProof.source.streak.day_unit': 'día',
   'todayProof.source.streak.days_unit': 'días',
-  'todayProof.source.streak.day_streak_unit': 'racha de días',
+  'todayProof.source.streak.day_streak_unit': 'días de racha',
   'todayProof.source.streak.minute_unit': 'minuto',
   'todayProof.source.streak.minutes_unit': 'minutos',
   'todayProof.source.verification.missing_promise':
@@ -1161,4 +1161,68 @@ export const fullTodayProofEsES = {
   'todayProof.profile.approved_proof_count': 'Pruebas aprobadas: {count}',
   'todayProof.streak.reminder_row_accessibility':
     'Recordatorios de pruebas. {detail}. Preferencia: {status}.',
+  'todayProof.createFlow.close': 'Cerrar',
+  'todayProof.createFlow.back': 'Atrás',
+  'todayProof.createFlow.promiseBubble': '¿Qué es lo que quieres hacer?',
+  'todayProof.createFlow.promiseLabel': 'Tu promesa',
+  'todayProof.createFlow.draftNote': 'Tu borrador se queda aquí si sales.',
+  'todayProof.createFlow.startFrom': 'O empieza con una de estas',
+  'todayProof.createFlow.proofBubble':
+    'Cuando lo hagas, ¿cómo me lo enseñarás?',
+  'todayProof.createFlow.proofFor': 'Para «{title}»',
+  'todayProof.createFlow.photo': 'Foto',
+  'todayProof.createFlow.photoDetail': 'Haz una foto.',
+  'todayProof.createFlow.note': 'Nota',
+  'todayProof.createFlow.noteDetail': 'Escribe lo que pasó.',
+  'todayProof.createFlow.video': 'Vídeo',
+  'todayProof.createFlow.videoDetail': 'Graba un clip corto.',
+  'todayProof.createFlow.showPhoto': '¿Qué debe mostrar la foto?',
+  'todayProof.createFlow.showNote': '¿Qué debe decir la nota?',
+  'todayProof.createFlow.showVideo': '¿Qué debe mostrar el clip?',
+  'todayProof.createFlow.showHelpShared':
+    'Quien revise tu prueba verá esto, así sabrá qué cuenta.',
+  'todayProof.createFlow.showHelpSolo':
+    'Lo verás cada vez que envíes una prueba.',
+  'todayProof.createFlow.chooseWho': 'Elegir quién la revisa',
+  'todayProof.createFlow.chooseLength': 'Elegir duración',
+  'todayProof.createFlow.whoBubble': '¿Quién debería revisar tu prueba?',
+  'todayProof.createFlow.yourGroups': 'Tus grupos',
+  'todayProof.createFlow.or': 'O',
+  'todayProof.createFlow.friend': 'Un amigo',
+  'todayProof.createFlow.friendDetail':
+    'Envíale una invitación después de guardar',
+  'todayProof.createFlow.justMe': 'Solo yo por ahora',
+  'todayProof.createFlow.justMeDetail': 'Añade a alguien cuando quieras',
+  'todayProof.createFlow.groupMembers.one': '{count} miembro',
+  'todayProof.createFlow.groupMembers.other': '{count} miembros',
+  'todayProof.createFlow.groupMembers': '{count} miembros',
+  'todayProof.createFlow.lengthBubble': '¿Cuánto tiempo quieres mantenerlo?',
+  'todayProof.createFlow.days': '{count} días',
+  'todayProof.createFlow.checkIns.one': '{count} comprobación',
+  'todayProof.createFlow.checkIns.other': '{count} comprobaciones',
+  'todayProof.createFlow.checkIns': '{count} comprobaciones',
+  'todayProof.createFlow.whichDays': '¿Qué días cuentan?',
+  'todayProof.createFlow.everyDay': 'Todos los días',
+  'todayProof.createFlow.weekdays': 'Entre semana',
+  'todayProof.createFlow.pickDays': 'Elegir días',
+  'todayProof.createFlow.pickOneDay': 'Elige al menos un día.',
+  'todayProof.createFlow.useDays': 'Usar {count} días',
+  'todayProof.createFlow.reviewBubble': 'Esta es tu promesa. ¿Está bien?',
+  'todayProof.createFlow.ready': '¿Listo para empezar?',
+  'todayProof.createFlow.almostThere': 'Ya casi',
+  'todayProof.createFlow.photoProof': 'Prueba con foto',
+  'todayProof.createFlow.noteProof': 'Prueba con nota',
+  'todayProof.createFlow.videoProof': 'Prueba con vídeo',
+  'todayProof.createFlow.checkedBy': 'La revisa',
+  'todayProof.createFlow.checkerMe': 'Solo tú',
+  'todayProof.createFlow.checkerFriend': 'Un amigo al que invites',
+  'todayProof.createFlow.checksIt': '{checker} la revisa',
+  'todayProof.createFlow.firstProofDue': 'Primera prueba',
+  'todayProof.createFlow.today': 'Hoy',
+  'todayProof.createFlow.tomorrow': 'Mañana',
+  'todayProof.createFlow.start': 'Empezar mi promesa',
+  'todayProof.createFlow.edit': 'Editar',
+  'todayProof.createFlow.editPromise': 'Editar promesa',
+  'todayProof.createFlow.dayToggle': '{day}, cuenta',
+  'todayProof.createFlow.dayToggleOff': '{day}, día de descanso',
 } as const satisfies Pick<EnglishCatalogue, FullTodayProofKey>;

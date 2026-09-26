@@ -133,7 +133,7 @@ describe('notification pipeline contract', () => {
     expect(expoConfig.android?.permissions).toContain(
       'android.permission.POST_NOTIFICATIONS'
     );
-    expect(packageJson.dependencies?.['expo-notifications']).toBe('~57.0.14');
+    expect(packageJson.dependencies?.['expo-notifications']).toBe('~57.0.15');
   });
 
   it('keeps the approved OneSignal production cut-over single-provider and gated', () => {

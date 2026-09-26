@@ -1,9 +1,10 @@
 import React from 'react';
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import * as Updates from 'expo-updates';
 
 import { OtaUpdateReadyHost } from '@/components/update/OtaUpdateReadyHost';
 import { ThemeProvider } from '@/constants/ThemeContext';
+import { ToastProvider, toastManager } from '@/components/ui/Toast';
 
 jest.mock('expo-updates', () => ({
   isEnabled: true,
@@ -12,25 +13,16 @@ jest.mock('expo-updates', () => ({
   reloadAsync: jest.fn(),
 }));
 
-jest.mock('@/components/ui/modal/ModalCard', () => ({
-  ModalCard: ({
-    children,
-    testID,
-    visible,
-  }: {
-    children: React.ReactNode;
-    testID: string;
-    visible: boolean;
-  }) => {
-    const { View } = require('react-native') as typeof import('react-native');
-    return visible ? <View testID={testID}>{children}</View> : null;
-  },
-}));
+jest.mock(
+  'react-native-safe-area-context',
+  () => require('react-native-safe-area-context/jest/mock').default
+);
 
-jest.mock('react-native-safe-area-context', () => {
-  const { View } = require('react-native') as typeof import('react-native');
-  return { SafeAreaView: View };
-});
+const Wrapper = ({ children }: { children: React.ReactNode }) => (
+  <ThemeProvider>
+    <ToastProvider>{children}</ToastProvider>
+  </ThemeProvider>
+);
 
 const mockedUpdates = Updates as jest.Mocked<typeof Updates>;
 
@@ -47,6 +39,7 @@ describe('OtaUpdateReadyHost', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    toastManager.clear();
     mockedUpdates.checkForUpdateAsync.mockResolvedValue({
       isAvailable: false,
       manifest: undefined,
@@ -70,11 +63,7 @@ describe('OtaUpdateReadyHost', () => {
       manifest: {},
     });
 
-    const screen = render(
-      <ThemeProvider>
-        <OtaUpdateReadyHost enabled />
-      </ThemeProvider>
-    );
+    const screen = render(<OtaUpdateReadyHost enabled />, { wrapper: Wrapper });
 
     await waitFor(() => {
       expect(screen.getByText('Menta update ready')).toBeTruthy();
@@ -82,7 +71,7 @@ describe('OtaUpdateReadyHost', () => {
     expect(mockedUpdates.checkForUpdateAsync).toHaveBeenCalledTimes(1);
     expect(mockedUpdates.fetchUpdateAsync).toHaveBeenCalledTimes(1);
 
-    fireEvent.press(screen.getByTestId('ota-update-restart'));
+    fireEvent.press(screen.getByRole('button', { name: 'Restart Menta' }));
 
     await waitFor(() => {
       expect(mockedUpdates.reloadAsync).toHaveBeenCalledTimes(1);
@@ -90,16 +79,40 @@ describe('OtaUpdateReadyHost', () => {
   });
 
   it('stays quiet when the installed update is current', async () => {
-    const screen = render(
-      <ThemeProvider>
-        <OtaUpdateReadyHost enabled />
-      </ThemeProvider>
-    );
+    const screen = render(<OtaUpdateReadyHost enabled />, { wrapper: Wrapper });
 
     await waitFor(() => {
       expect(mockedUpdates.checkForUpdateAsync).toHaveBeenCalledTimes(1);
     });
-    expect(screen.queryByTestId('ota-update-ready')).toBeNull();
+    expect(screen.queryByText('Menta update ready')).toBeNull();
     expect(mockedUpdates.fetchUpdateAsync).not.toHaveBeenCalled();
+  });
+
+  it('waits for setup eligibility before notifying about a download that finished later', async () => {
+    let finish!: (
+      result: Awaited<ReturnType<typeof Updates.fetchUpdateAsync>>
+    ) => void;
+    mockedUpdates.checkForUpdateAsync.mockResolvedValueOnce({
+      isAvailable: true,
+      manifest: {},
+      reason: undefined,
+    });
+    mockedUpdates.fetchUpdateAsync.mockReturnValueOnce(
+      new Promise(resolve => {
+        finish = resolve;
+      })
+    );
+    const screen = render(<OtaUpdateReadyHost enabled />, { wrapper: Wrapper });
+    await waitFor(() =>
+      expect(mockedUpdates.fetchUpdateAsync).toHaveBeenCalledTimes(1)
+    );
+    screen.rerender(<OtaUpdateReadyHost enabled={false} />);
+    await act(async () => {
+      finish({ isNew: true, manifest: {} });
+    });
+    expect(screen.queryByText('Menta update ready')).toBeNull();
+    screen.rerender(<OtaUpdateReadyHost enabled />);
+    expect(await screen.findByText('Menta update ready')).toBeTruthy();
+    expect(mockedUpdates.fetchUpdateAsync).toHaveBeenCalledTimes(1);
   });
 });
