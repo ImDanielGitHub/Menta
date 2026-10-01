@@ -1,3 +1,4 @@
+import { useMentaPalette } from '@/constants/use-menta-palette';
 import React from 'react';
 import {
   type AccessibilityProps,
@@ -10,11 +11,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/constants/ThemeContext';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-} from '@/constants/MentaDesignSystem';
+import { mentaRadii, mentaSpacing } from '@/constants/MentaDesignSystem';
 import { useMotionPreferences } from '@/lib/motion/use-motion-preferences';
 
 export type AppCardVariant =
@@ -61,6 +58,8 @@ export const AppCard: React.FC<AppCardProps> = ({
   accessibilityRole,
   accessibilityState,
 }) => {
+  const mentaColors = useMentaPalette();
+
   const theme = useTheme();
   const motion = useMotionPreferences();
   const resolvedPadding = padding ?? mentaSpacing[5];

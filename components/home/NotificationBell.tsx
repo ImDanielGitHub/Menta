@@ -12,14 +12,14 @@ export const NotificationBell: React.FC = () => {
   const { t } = useTranslation();
 
   const handlePress = () => {
-    router.push('/notification-settings');
+    router.push('/activity-inbox');
   };
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={t('navigation.notifications.accessibility')}
-      accessibilityHint={t('navigation.notifications.hint')}
+      accessibilityLabel={t('notifications.inbox.title')}
+      accessibilityHint={t('notifications.inbox.hint')}
       onPress={handlePress}
       style={({ pressed }) => [
         styles.button,

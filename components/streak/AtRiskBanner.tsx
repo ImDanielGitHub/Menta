@@ -1,15 +1,17 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { FreezeSlots } from '@/components/shop/FreezeSlots';
 import { AppButton } from '@/components/ui/AppButton';
 import { MentaMascot } from '@/components/ui/MentaMascot';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { CoachSnoozeControl } from '@/components/streak/CoachSnoozeControl';
 import { ProofDueCountdown } from '@/components/streak/ProofDueCountdown';
 import { useTranslation } from '@/lib/localization';
@@ -46,6 +48,8 @@ export const AtRiskBanner: React.FC<AtRiskBannerProps> = ({
   onGetFreeze = null,
   onRemindLater = null,
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   if (!visible) return null;
 
@@ -130,51 +134,54 @@ export const AtRiskBanner: React.FC<AtRiskBannerProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  section: {
-    marginHorizontal: mentaSpacing[6],
-    marginTop: mentaSpacing[6],
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.warningBorder,
-    backgroundColor: mentaColors.warningSoft,
-    padding: mentaSpacing[5],
-    gap: mentaSpacing[4],
-  },
-  heroRow: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-  },
-  heroCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  title: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.journeyTitle,
-  },
-  copy: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.body,
-    marginTop: mentaSpacing[2],
-  },
-  mascot: {
-    flexShrink: 0,
-    marginRight: -mentaSpacing[2],
-    marginTop: -mentaSpacing[2],
-  },
-  freezeRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-  },
-  queuedNotice: {
-    borderRadius: mentaRadii.medium,
-    backgroundColor: mentaColors.canvas,
-    padding: mentaSpacing[3],
-  },
-  queuedText: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.bodySmall,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    section: {
+      marginHorizontal: mentaSpacing[6],
+      marginTop: mentaSpacing[6],
+      borderRadius: mentaRadii.large,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.warningBorder,
+      backgroundColor: mentaColors.warningSoft,
+      padding: mentaSpacing[5],
+      gap: mentaSpacing[4],
+    },
+    heroRow: {
+      alignItems: 'flex-start',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+    },
+    heroCopy: {
+      flex: 1,
+      minWidth: 0,
+    },
+    title: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.journeyTitle,
+    },
+    copy: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.body,
+      marginTop: mentaSpacing[2],
+    },
+    mascot: {
+      flexShrink: 0,
+      marginRight: -mentaSpacing[2],
+      marginTop: -mentaSpacing[2],
+    },
+    freezeRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+    },
+    queuedNotice: {
+      borderRadius: mentaRadii.medium,
+      backgroundColor: mentaColors.canvas,
+      padding: mentaSpacing[3],
+    },
+    queuedText: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.bodySmall,
+    },
+  });
+  return { styles };
+};

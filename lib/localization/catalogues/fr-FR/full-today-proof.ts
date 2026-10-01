@@ -298,6 +298,28 @@ export const fullTodayProofFrFR = {
   'todayProof.solo.promise_meta_short': 'promesse de {days} jours · {proof}',
   'todayProof.solo.current_streak': 'série actuelle de {count} jours',
   'todayProof.solo.accepted': 'Acceptée',
+  'todayProof.solo.left_today': "Encore {count} à valider aujourd'hui.",
+  'todayProof.solo.left_today.one': "Encore une à valider aujourd'hui.",
+  'todayProof.solo.left_today.other': "Encore {count} à valider aujourd'hui.",
+  'todayProof.solo.all_checked_in': "Tout est validé pour aujourd'hui.",
+  'todayProof.solo.nothing_running': 'Rien en cours pour le moment.',
+  'todayProof.solo.section_today': "Aujourd'hui",
+  'todayProof.solo.section_week': 'Cette semaine',
+  'todayProof.solo.section_finished': 'Terminées',
+  'todayProof.solo.week_kept': '{kept} jours tenus sur {total}',
+  'todayProof.solo.row_kept': '{kept} sur {total}',
+  'todayProof.solo.day_of': 'Jour {day} sur {total}',
+  'todayProof.solo.day_of_with_streak':
+    'Jour {day} sur {total} · série de {count} jours',
+  'todayProof.solo.check_in_short': 'Valider',
+  'todayProof.solo.log_short': 'Écrire',
+  'todayProof.solo.try_again_short': 'Réessayer',
+  'todayProof.solo.counted_short': 'Compté',
+  'todayProof.solo.waiting_short': 'En attente',
+  'todayProof.solo.action_accessibility': '{action} : {promise}',
+  'todayProof.solo.week_row_accessibility':
+    '{promise} : {kept} jours tenus sur {total} cette semaine',
+  'todayProof.solo.finished_kept': '{kept} jours tenus sur {total}',
   'todayProof.promise.time_unavailable': 'Heure indisponible',
   'todayProof.promise.date_unavailable': 'Date indisponible',
   'todayProof.promise.sent_recently': 'Envoyé récemment',
@@ -400,7 +422,7 @@ export const fullTodayProofFrFR = {
   'todayProof.promise.delete': 'Supprimer la promesse',
   'todayProof.promise.leave': 'Quitter la promesse',
   'todayProof.promise.delete_detail':
-    "Supprime cette promesse, l'historique des preuves, les liens d'invitation et le contexte de vérification. Aucun retour en arrière.",
+    'Supprime définitivement cette promesse, les preuves et les invitations. Elle compte toujours dans la limite mensuelle et ne rétablit pas votre première promesse gratuite.',
   'todayProof.promise.leave_detail':
     "Vous arrêtez d'envoyer des preuves ici. Les preuves existantes restent dans l'historique de la promesse.",
   'todayProof.promise.details': 'Détails de la promesse',
@@ -589,7 +611,7 @@ export const fullTodayProofFrFR = {
   'todayProof.proof.share_title': 'Reçu de preuve Menta',
   'todayProof.proof.ad_break': 'Pause publicitaire suivante',
   'todayProof.proof.ad_break_detail':
-    'Une courte publicité peut apparaître après que vous ayez quitté ce reçu. Elle ne changera pas votre preuve ni votre solde de Momenta.',
+    'Les comptes gratuits ont une courte pause publicitaire toutes les deux nouvelles preuves, si une publicité est disponible. Votre preuve est déjà enregistrée. Votre solde de Momenta reste inchangé.',
   'todayProof.proof.share_opened': 'Menu de partage ouvert',
   'todayProof.proof.share_opened_detail':
     'Choisissez une application et envoyez le reçu pour terminer.',
@@ -1077,7 +1099,8 @@ export const fullTodayProofFrFR = {
   'todayProof.promise.proof_type_approval':
     "{proofType} · un jour ne compte qu'après l'approbation de la preuve",
   'todayProof.promise.extend_question': 'Ajouter 12 heures à {promise} ?',
-  'todayProof.promise.extension_cost': 'Cela utilise un {item}.',
+  'todayProof.promise.extension_cost':
+    'Un peu de répit : utilise un {item} que tu possèdes déjà pour ajouter 12 heures tant que le délai de preuve reste ouvert.',
   'todayProof.promise.active_for': 'Active pendant {duration}',
   'todayProof.promise.available_count': '{count} disponible',
   'todayProof.create.step_progress': 'Étape {current} sur {total}',

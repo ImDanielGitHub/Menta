@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,14 +14,11 @@ import { AppOptionCard } from '@/components/ui/AppChoice';
 import { AppScaledText as Text } from '@/components/ui/AppScaledText';
 import { MentaMascot, type MascotState } from '@/components/ui/MentaMascot';
 import { CheckIcon, CrownIcon, PlayIcon, XIcon } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
+import { formatAdCountdown } from '@/lib/ad-availability';
 import { ECONOMY_CONTRACT_V1 } from '@/lib/economy/contract';
 import { useTranslation } from '@/lib/localization/use-translation';
+import { useTheme } from '@/constants/ThemeContext';
 
 export type MomentaTopUpSubject = 'promise' | 'group' | 'join' | 'general';
 
@@ -34,6 +38,8 @@ type Props = {
   onWatchAd?: () => void;
   adLoading: boolean;
   adRest: MomentaTopUpAdRest;
+  /** When a resting ad can pay out again (epoch ms), for the countdown. */
+  adReadyAt?: number | null;
   /** Momenta confirmed from ads while this sheet has been open. */
   credited: number;
   /** The paywall's ad outcome (receipt or one plain notice), shown under the options. */
@@ -68,16 +74,25 @@ export function MomentaTopUp({
   onWatchAd,
   adLoading,
   adRest,
+  adReadyAt = null,
   credited,
   feedback,
   onGoPro,
   onCheckProof,
   onClose,
 }: Props) {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  // The equipped theme's accent; Menta violet when none is equipped.
+  const accent = useTheme().colors.accent.primary;
   const [guidePage, setGuidePage] = useState<0 | 1 | 2>(0);
   const copy = useSubjectCopy(subject);
+  const cooldownCountdown = useCountdown(
+    adRest === 'cooldown' ? adReadyAt : null
+  );
 
   const remaining =
     shortfall === null ? null : Math.max(0, shortfall - credited);
@@ -86,14 +101,20 @@ export function MomentaTopUp({
 
   const adsToClose =
     remaining !== null && adReward > 0 ? Math.ceil(remaining / adReward) : null;
+  // A short cooldown after an ad this person just watched keeps the ad
+  // selected with a countdown (Paper M06). Opening while ads rest, or hitting
+  // the daily limit, leads with Pro instead (Paper M03).
+  const adResumesSoon =
+    Boolean(onWatchAd) && adRest === 'cooldown' && credited > 0;
   const defaultOption: Option =
-    adUsable && (adsToClose === null || adsToClose <= AD_FIRST_MAX_ADS)
+    (adUsable || adResumesSoon) &&
+    (adsToClose === null || adsToClose <= AD_FIRST_MAX_ADS)
       ? 'ad'
       : 'pro';
   const [selected, setSelected] = useState<Option>(defaultOption);
   useEffect(() => {
-    if (selected === 'ad' && !adUsable) setSelected('pro');
-  }, [adUsable, selected]);
+    if (selected === 'ad' && !adUsable && !adResumesSoon) setSelected('pro');
+  }, [adResumesSoon, adUsable, selected]);
 
   const adsNeeded =
     remaining !== null && adReward > 0 ? Math.ceil(remaining / adReward) : null;
@@ -115,9 +136,9 @@ export function MomentaTopUp({
     ? copy.allSet
     : adLoading
       ? t('commerce.topUp.addingDetail')
-      : adRest && onWatchAd
+      : adRest && onWatchAd && !adResumesSoon
         ? t('commerce.topUp.adsResting')
-        : credited > 0 && adsNeeded !== null && adUsable
+        : credited > 0 && adsNeeded !== null && (adUsable || adResumesSoon)
           ? adsNeeded === 1
             ? t('commerce.topUp.oneMoreAd')
             : t('commerce.topUp.moreAds', { count: adsNeeded })
@@ -160,6 +181,16 @@ export function MomentaTopUp({
     }
     if (adLoading) {
       return { title: t('commerce.topUp.addingCta'), onPress: undefined };
+    }
+    if (selected === 'ad' && onWatchAd && adResumesSoon) {
+      // The server will not pay for another ad until the cooldown ends.
+      return {
+        title: cooldownCountdown
+          ? t('commerce.topUp.watchAnotherIn', { time: cooldownCountdown })
+          : t('commerce.topUp.watchAnotherTitle'),
+        onPress: undefined,
+        icon: <PlayIcon size={16} color={mentaColors.canvas} />,
+      };
     }
     if (selected === 'ad' && onWatchAd) {
       return {
@@ -231,6 +262,7 @@ export function MomentaTopUp({
                 <View
                   style={[
                     styles.meterFill,
+                    { backgroundColor: accent },
                     { width: `${Math.round(meter * 100)}%` },
                   ]}
                 />
@@ -262,7 +294,7 @@ export function MomentaTopUp({
               title={t('commerce.topUp.watchTitle')}
               description={t('commerce.topUp.addingCta')}
               trailing={`+${adReward.toLocaleString()}`}
-              icon={<PlayIcon size={18} color={mentaColors.action} />}
+              icon={<PlayIcon size={18} color={accent} />}
               selected
               disabled
               testID="momenta-top-up-pending"
@@ -284,11 +316,15 @@ export function MomentaTopUp({
                     adRest === 'daily_limit'
                       ? t('commerce.topUp.watchDailyLimit')
                       : adRest === 'cooldown'
-                        ? t('commerce.topUp.watchCooldown')
+                        ? cooldownCountdown
+                          ? t('commerce.topUp.watchReadyIn', {
+                              time: cooldownCountdown,
+                            })
+                          : t('commerce.topUp.watchCooldown')
                         : t('commerce.topUp.watchDetail')
                   }
                   trailing={`+${adReward.toLocaleString()}`}
-                  icon={<PlayIcon size={18} color={mentaColors.action} />}
+                  icon={<PlayIcon size={18} color={accent} />}
                   selected={selected === 'ad'}
                   disabled={!adUsable}
                   onPress={() => setSelected('ad')}
@@ -301,7 +337,7 @@ export function MomentaTopUp({
                   amount: PRO.weeklyCredits.toLocaleString(),
                 })}
                 trailing={`+${PRO.weeklyCredits.toLocaleString()}`}
-                icon={<CrownIcon size={18} color={mentaColors.action} />}
+                icon={<CrownIcon size={18} color={accent} />}
                 selected={selected === 'pro'}
                 onPress={() => setSelected('pro')}
                 testID="momenta-top-up-option-pro"
@@ -349,7 +385,7 @@ export function MomentaTopUp({
                 hitSlop={8}
                 testID="momenta-top-up-guide"
               >
-                <Text style={styles.linkAccent}>
+                <Text style={[styles.linkAccent, { color: accent }]}>
                   {t('commerce.topUp.whatAre')}
                 </Text>
               </Pressable>
@@ -380,6 +416,19 @@ export function MomentaTopUp({
 }
 
 /** Every subject spelled out, so each translation key stays statically provable. */
+/** "1:42" until `readyAt`, ticking each second; null when nothing is resting. */
+function useCountdown(readyAt: number | null): string | null {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (readyAt === null) return undefined;
+    setNow(Date.now());
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [readyAt]);
+  if (readyAt === null || readyAt <= now) return null;
+  return formatAdCountdown(readyAt, now);
+}
+
 function useSubjectCopy(subject: MomentaTopUpSubject) {
   const { t } = useTranslation();
   switch (subject) {
@@ -432,8 +481,12 @@ function MomentaGuide({
   onGoPro,
   onClose,
 }: GuideProps) {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const accent = useTheme().colors.accent.primary;
   const costs = ECONOMY_CONTRACT_V1.costs;
 
   const rows =
@@ -519,8 +572,18 @@ function MomentaGuide({
           <XIcon size={22} color={mentaColors.text.muted} />
         </Pressable>
         <View style={styles.pager} accessibilityElementsHidden>
-          <View style={[styles.pagerDot, page === 1 && styles.pagerActive]} />
-          <View style={[styles.pagerDot, page === 2 && styles.pagerActive]} />
+          <View
+            style={[
+              styles.pagerDot,
+              page === 1 && [styles.pagerActive, { backgroundColor: accent }],
+            ]}
+          />
+          <View
+            style={[
+              styles.pagerDot,
+              page === 2 && [styles.pagerActive, { backgroundColor: accent }],
+            ]}
+          />
         </View>
         <View style={styles.guideClose} />
       </View>
@@ -553,7 +616,7 @@ function MomentaGuide({
               <Text
                 style={[
                   styles.guideRowValue,
-                  page === 2 && styles.guideRowValueEarn,
+                  page === 2 && [styles.guideRowValueEarn, { color: accent }],
                   'free' in row && row.free ? styles.guideRowValueFree : null,
                 ]}
               >
@@ -578,7 +641,7 @@ function MomentaGuide({
         />
         {page === 2 ? (
           <Pressable accessibilityRole="button" onPress={onGoPro} hitSlop={8}>
-            <Text style={styles.linkAccent}>
+            <Text style={[styles.linkAccent, { color: accent }]}>
               {t('commerce.momentaGuide.orPro', {
                 amount: PRO.weeklyCredits.toLocaleString(),
               })}
@@ -594,205 +657,208 @@ const SHEET_RADIUS = 28;
 const MASCOT_SIZE = 180;
 const MASCOT_OVERLAP = 96;
 
-const styles = StyleSheet.create({
-  scrimLayer: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: '#121313',
-    borderTopLeftRadius: SHEET_RADIUS,
-    borderTopRightRadius: SHEET_RADIUS,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-    paddingTop: mentaSpacing[3],
-    paddingHorizontal: mentaSpacing[6],
-    maxHeight: '88%',
-    marginTop: MASCOT_OVERLAP,
-  },
-  grabber: {
-    alignSelf: 'center',
-    width: 40,
-    height: 5,
-    borderRadius: mentaRadii.round,
-    backgroundColor: '#3A3B3B',
-  },
-  close: {
-    position: 'absolute',
-    top: mentaSpacing[4],
-    right: mentaSpacing[5],
-    zIndex: 2,
-  },
-  mascotSlot: {
-    position: 'absolute',
-    top: -MASCOT_OVERLAP,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-  },
-  sheetContent: {
-    paddingTop: MASCOT_SIZE - MASCOT_OVERLAP + mentaSpacing[1],
-    gap: mentaSpacing[5],
-  },
-  headline: {
-    alignItems: 'center',
-    gap: mentaSpacing[2],
-  },
-  title: {
-    ...mentaTypography.paywallHero,
-    color: mentaColors.text.primary,
-    textAlign: 'center',
-  },
-  body: {
-    ...mentaTypography.lead,
-    color: mentaColors.text.secondary,
-    textAlign: 'center',
-  },
-  meterBlock: {
-    gap: mentaSpacing[2],
-  },
-  meterTrack: {
-    height: 12,
-    borderRadius: mentaRadii.round,
-    backgroundColor: '#232424',
-    overflow: 'hidden',
-  },
-  meterFill: {
-    height: 12,
-    borderRadius: mentaRadii.round,
-    backgroundColor: mentaColors.action,
-  },
-  meterLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: mentaSpacing[3],
-  },
-  meterHave: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.text.primary,
-  },
-  meterNeed: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.muted,
-  },
-  options: {
-    gap: mentaSpacing[3],
-  },
-  footer: {
-    gap: mentaSpacing[3],
-    paddingTop: mentaSpacing[5],
-  },
-  hint: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-    textAlign: 'center',
-  },
-  links: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: mentaSpacing[1],
-    minHeight: 44,
-    alignItems: 'center',
-  },
-  linkAccent: {
-    ...mentaTypography.bodyMedium,
-    color: mentaColors.action,
-    textAlign: 'center',
-  },
-  linkQuiet: {
-    ...mentaTypography.bodyMedium,
-    color: mentaColors.text.muted,
-  },
-  guide: {
-    flex: 1,
-    backgroundColor: mentaColors.canvas,
-  },
-  guideHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: mentaSpacing[5],
-    minHeight: 44,
-  },
-  guideClose: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-  },
-  pager: {
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-    alignItems: 'center',
-  },
-  pagerDot: {
-    width: 8,
-    height: 8,
-    borderRadius: mentaRadii.round,
-    backgroundColor: '#3A3B3B',
-  },
-  pagerActive: {
-    width: 22,
-    backgroundColor: mentaColors.action,
-  },
-  guideContent: {
-    paddingHorizontal: mentaSpacing[6],
-    paddingBottom: mentaSpacing[6],
-    gap: mentaSpacing[3],
-  },
-  guideMascot: {
-    alignSelf: 'center',
-  },
-  guideTitle: {
-    ...mentaTypography.paywallHero,
-    color: mentaColors.text.primary,
-    textAlign: 'center',
-  },
-  guideBody: {
-    ...mentaTypography.lead,
-    color: mentaColors.text.secondary,
-    textAlign: 'center',
-  },
-  guideRows: {
-    marginTop: mentaSpacing[4],
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-  },
-  guideRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: mentaSpacing[3],
-    minHeight: 60,
-    paddingVertical: mentaSpacing[2],
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-  },
-  guideRowCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  guideRowLabel: {
-    ...mentaTypography.bodyMedium,
-    color: mentaColors.text.primary,
-  },
-  guideRowDetail: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.muted,
-  },
-  guideRowValue: {
-    ...mentaTypography.control,
-    fontFamily: mentaTypography.labelBold.fontFamily,
-    color: mentaColors.text.primary,
-    flexShrink: 0,
-  },
-  guideRowValueEarn: {
-    color: mentaColors.action,
-  },
-  guideRowValueFree: {
-    color: mentaColors.success,
-  },
-  guideFooter: {
-    paddingHorizontal: mentaSpacing[6],
-    gap: mentaSpacing[4],
-    alignItems: 'center',
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    scrimLayer: {
+      flex: 1,
+      justifyContent: 'flex-end',
+    },
+    sheet: {
+      backgroundColor: '#121313',
+      borderTopLeftRadius: SHEET_RADIUS,
+      borderTopRightRadius: SHEET_RADIUS,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+      paddingTop: mentaSpacing[3],
+      paddingHorizontal: mentaSpacing[6],
+      maxHeight: '88%',
+      marginTop: MASCOT_OVERLAP,
+    },
+    grabber: {
+      alignSelf: 'center',
+      width: 40,
+      height: 5,
+      borderRadius: mentaRadii.round,
+      backgroundColor: '#3A3B3B',
+    },
+    close: {
+      position: 'absolute',
+      top: mentaSpacing[4],
+      right: mentaSpacing[5],
+      zIndex: 2,
+    },
+    mascotSlot: {
+      position: 'absolute',
+      top: -MASCOT_OVERLAP,
+      left: 0,
+      right: 0,
+      alignItems: 'center',
+    },
+    sheetContent: {
+      paddingTop: MASCOT_SIZE - MASCOT_OVERLAP + mentaSpacing[1],
+      gap: mentaSpacing[5],
+    },
+    headline: {
+      alignItems: 'center',
+      gap: mentaSpacing[2],
+    },
+    title: {
+      ...mentaTypography.paywallHero,
+      color: mentaColors.text.primary,
+      textAlign: 'center',
+    },
+    body: {
+      ...mentaTypography.lead,
+      color: mentaColors.text.secondary,
+      textAlign: 'center',
+    },
+    meterBlock: {
+      gap: mentaSpacing[2],
+    },
+    meterTrack: {
+      height: 12,
+      borderRadius: mentaRadii.round,
+      backgroundColor: '#232424',
+      overflow: 'hidden',
+    },
+    meterFill: {
+      height: 12,
+      borderRadius: mentaRadii.round,
+      backgroundColor: mentaColors.action,
+    },
+    meterLabels: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: mentaSpacing[3],
+    },
+    meterHave: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.text.primary,
+    },
+    meterNeed: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.muted,
+    },
+    options: {
+      gap: mentaSpacing[3],
+    },
+    footer: {
+      gap: mentaSpacing[3],
+      paddingTop: mentaSpacing[5],
+    },
+    hint: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+      textAlign: 'center',
+    },
+    links: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingHorizontal: mentaSpacing[1],
+      minHeight: 44,
+      alignItems: 'center',
+    },
+    linkAccent: {
+      ...mentaTypography.bodyMedium,
+      color: mentaColors.action,
+      textAlign: 'center',
+    },
+    linkQuiet: {
+      ...mentaTypography.bodyMedium,
+      color: mentaColors.text.muted,
+    },
+    guide: {
+      flex: 1,
+      backgroundColor: mentaColors.canvas,
+    },
+    guideHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: mentaSpacing[5],
+      minHeight: 44,
+    },
+    guideClose: {
+      width: 44,
+      height: 44,
+      justifyContent: 'center',
+    },
+    pager: {
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+      alignItems: 'center',
+    },
+    pagerDot: {
+      width: 8,
+      height: 8,
+      borderRadius: mentaRadii.round,
+      backgroundColor: '#3A3B3B',
+    },
+    pagerActive: {
+      width: 22,
+      backgroundColor: mentaColors.action,
+    },
+    guideContent: {
+      paddingHorizontal: mentaSpacing[6],
+      paddingBottom: mentaSpacing[6],
+      gap: mentaSpacing[3],
+    },
+    guideMascot: {
+      alignSelf: 'center',
+    },
+    guideTitle: {
+      ...mentaTypography.paywallHero,
+      color: mentaColors.text.primary,
+      textAlign: 'center',
+    },
+    guideBody: {
+      ...mentaTypography.lead,
+      color: mentaColors.text.secondary,
+      textAlign: 'center',
+    },
+    guideRows: {
+      marginTop: mentaSpacing[4],
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+    },
+    guideRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: mentaSpacing[3],
+      minHeight: 60,
+      paddingVertical: mentaSpacing[2],
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+    },
+    guideRowCopy: {
+      flex: 1,
+      minWidth: 0,
+    },
+    guideRowLabel: {
+      ...mentaTypography.bodyMedium,
+      color: mentaColors.text.primary,
+    },
+    guideRowDetail: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.muted,
+    },
+    guideRowValue: {
+      ...mentaTypography.control,
+      fontFamily: mentaTypography.labelBold.fontFamily,
+      color: mentaColors.text.primary,
+      flexShrink: 0,
+    },
+    guideRowValueEarn: {
+      color: mentaColors.action,
+    },
+    guideRowValueFree: {
+      color: mentaColors.success,
+    },
+    guideFooter: {
+      paddingHorizontal: mentaSpacing[6],
+      gap: mentaSpacing[4],
+      alignItems: 'center',
+    },
+  });
+  return { styles };
+};

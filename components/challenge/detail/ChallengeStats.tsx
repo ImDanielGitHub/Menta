@@ -1,12 +1,15 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
 import {
+  type MentaPalette,
   mentaColors,
   mentaLayout,
   mentaRadii,
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 
 type StatRow = {
@@ -28,6 +31,8 @@ export function ChallengeStats({
   rows,
   progress,
 }: ChallengeStatsProps) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const phoneLayout = usePhoneLayout();
   const clampedProgress =
     typeof progress === 'number' ? Math.max(0, Math.min(100, progress)) : null;
@@ -64,59 +69,62 @@ export function ChallengeStats({
   );
 }
 
-const styles = StyleSheet.create({
-  section: {
-    marginHorizontal: mentaLayout.screenInset,
-    marginTop: mentaSpacing[6],
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-    paddingTop: mentaSpacing[4],
-  },
-  sectionTitle: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-    marginBottom: mentaSpacing[3],
-  },
-  progressTrack: {
-    height: 5,
-    borderRadius: mentaRadii.round,
-    overflow: 'hidden',
-    backgroundColor: mentaColors.border,
-    marginBottom: 6,
-  },
-  progressFill: {
-    height: '100%',
-  },
-  rows: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-  },
-  row: {
-    minHeight: 58,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: mentaColors.border,
-    paddingVertical: 10,
-  },
-  rowText: {
-    flex: 1,
-    minWidth: 0,
-    paddingRight: 16,
-  },
-  label: {
-    ...mentaTypography.bodyMedium,
-    color: mentaColors.text.primary,
-  },
-  helper: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-    marginTop: 3,
-  },
-  value: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-    textAlign: 'right',
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    section: {
+      marginHorizontal: mentaLayout.screenInset,
+      marginTop: mentaSpacing[6],
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+      paddingTop: mentaSpacing[4],
+    },
+    sectionTitle: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+      marginBottom: mentaSpacing[3],
+    },
+    progressTrack: {
+      height: 5,
+      borderRadius: mentaRadii.round,
+      overflow: 'hidden',
+      backgroundColor: mentaColors.border,
+      marginBottom: 6,
+    },
+    progressFill: {
+      height: '100%',
+    },
+    rows: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+    },
+    row: {
+      minHeight: 58,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: mentaColors.border,
+      paddingVertical: 10,
+    },
+    rowText: {
+      flex: 1,
+      minWidth: 0,
+      paddingRight: 16,
+    },
+    label: {
+      ...mentaTypography.bodyMedium,
+      color: mentaColors.text.primary,
+    },
+    helper: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+      marginTop: 3,
+    },
+    value: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+      textAlign: 'right',
+    },
+  });
+  return { styles };
+};

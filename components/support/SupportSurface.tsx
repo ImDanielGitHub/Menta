@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import { useTranslation } from '@/lib/localization';
 import React from 'react';
 import {
@@ -10,23 +18,8 @@ import {
 } from 'react-native';
 
 import { ChevronRightIcon } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
 
 type SupportTone = 'action' | 'success' | 'warning' | 'danger' | 'muted';
-
-const toneColors = {
-  action: mentaColors.border,
-  success: mentaColors.success,
-  warning: mentaColors.warning,
-  danger: mentaColors.danger,
-  muted: mentaColors.text.secondary,
-} as const;
 
 export const SupportIconTile = ({
   children,
@@ -38,21 +31,24 @@ export const SupportIconTile = ({
   size?: 28 | 44 | 52 | 72 | 82;
   tone?: SupportTone;
   round?: boolean;
-}) => (
-  <View
-    style={[
-      styles.iconTile,
-      {
-        borderColor: `${toneColors[tone]}66`,
-        borderRadius: round ? mentaRadii.round : mentaRadii.medium,
-        height: size,
-        width: size,
-      },
-    ]}
-  >
-    {children}
-  </View>
-);
+}) => {
+  const { toneColors, styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View
+      style={[
+        styles.iconTile,
+        {
+          borderColor: `${toneColors[tone]}66`,
+          borderRadius: round ? mentaRadii.round : mentaRadii.medium,
+          height: size,
+          width: size,
+        },
+      ]}
+    >
+      {children}
+    </View>
+  );
+};
 
 export const SupportPrimaryAction = ({
   detail,
@@ -71,6 +67,9 @@ export const SupportPrimaryAction = ({
   disabled?: boolean;
   testID?: string;
 }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <Pressable
@@ -121,6 +120,9 @@ export const SupportActionRow = ({
   showDivider?: boolean;
   testID?: string;
 }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <Pressable
@@ -158,108 +160,121 @@ export const SupportLedgerCard = ({
 }: {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
-}) => <View style={[styles.ledgerCard, style]}>{children}</View>;
+}) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return <View style={[styles.ledgerCard, style]}>{children}</View>;
+};
 
-const styles = StyleSheet.create({
-  iconTile: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.raised,
-    borderWidth: 1,
-    justifyContent: 'center',
-  },
-  primaryAction: {
-    alignItems: 'flex-start',
-    backgroundColor: mentaColors.surface,
-    borderColor: mentaColors.action,
-    borderRadius: mentaRadii.large,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 116,
-    paddingHorizontal: mentaSpacing[4],
-    paddingVertical: mentaSpacing[4],
-  },
-  primaryActionPressed: {
-    backgroundColor: mentaColors.raised,
-    transform: [{ scale: 0.995 }],
-  },
-  primaryIcon: {
-    alignItems: 'center',
-    flexShrink: 0,
-    height: 32,
-    justifyContent: 'center',
-    width: 32,
-  },
-  primaryCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  primaryTitle: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.title,
-  },
-  primarySubtitle: {
-    color: mentaColors.text.primary,
-    marginTop: mentaSpacing[1],
-    ...mentaTypography.body,
-  },
-  primaryDetail: {
-    color: mentaColors.text.secondary,
-    marginTop: mentaSpacing[2],
-    ...mentaTypography.caption,
-  },
-  primaryTrailing: {
-    alignItems: 'center',
-    flexShrink: 0,
-    height: 32,
-    justifyContent: 'center',
-    width: 24,
-  },
-  actionRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 72,
-    paddingHorizontal: mentaSpacing[4],
-    paddingVertical: mentaSpacing[3],
-  },
-  actionRowDivider: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  pressed: {
-    opacity: 0.8,
-    transform: [{ scale: 0.99 }],
-  },
-  disabled: { opacity: 0.5 },
-  smallIcon: {
-    alignItems: 'center',
-    flexShrink: 0,
-    height: 24,
-    justifyContent: 'center',
-    width: 24,
-  },
-  actionCopy: { flex: 1, minWidth: 0 },
-  actionTitle: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.bodyMedium,
-  },
-  actionSubtitle: {
-    color: mentaColors.text.secondary,
-    marginTop: mentaSpacing[1],
-    ...mentaTypography.bodySmall,
-  },
-  trailingLane: {
-    alignItems: 'flex-end',
-    flexShrink: 0,
-    justifyContent: 'center',
-    width: mentaLayout.iconLane,
-  },
-  ledgerCard: {
-    backgroundColor: mentaColors.surface,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: 1,
-    padding: mentaSpacing[4],
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const toneColors = {
+    action: mentaColors.border,
+    success: mentaColors.success,
+    warning: mentaColors.warning,
+    danger: mentaColors.danger,
+    muted: mentaColors.text.secondary,
+  } as const;
+  const styles = StyleSheet.create({
+    iconTile: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.raised,
+      borderWidth: 1,
+      justifyContent: 'center',
+    },
+    primaryAction: {
+      alignItems: 'flex-start',
+      backgroundColor: mentaColors.surface,
+      borderColor: mentaColors.action,
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 116,
+      paddingHorizontal: mentaSpacing[4],
+      paddingVertical: mentaSpacing[4],
+    },
+    primaryActionPressed: {
+      backgroundColor: mentaColors.raised,
+      transform: [{ scale: 0.995 }],
+    },
+    primaryIcon: {
+      alignItems: 'center',
+      flexShrink: 0,
+      height: 32,
+      justifyContent: 'center',
+      width: 32,
+    },
+    primaryCopy: {
+      flex: 1,
+      minWidth: 0,
+    },
+    primaryTitle: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.title,
+    },
+    primarySubtitle: {
+      color: mentaColors.text.primary,
+      marginTop: mentaSpacing[1],
+      ...mentaTypography.body,
+    },
+    primaryDetail: {
+      color: mentaColors.text.secondary,
+      marginTop: mentaSpacing[2],
+      ...mentaTypography.caption,
+    },
+    primaryTrailing: {
+      alignItems: 'center',
+      flexShrink: 0,
+      height: 32,
+      justifyContent: 'center',
+      width: 24,
+    },
+    actionRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 72,
+      paddingHorizontal: mentaSpacing[4],
+      paddingVertical: mentaSpacing[3],
+    },
+    actionRowDivider: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+    pressed: {
+      opacity: 0.8,
+      transform: [{ scale: 0.99 }],
+    },
+    disabled: { opacity: 0.5 },
+    smallIcon: {
+      alignItems: 'center',
+      flexShrink: 0,
+      height: 24,
+      justifyContent: 'center',
+      width: 24,
+    },
+    actionCopy: { flex: 1, minWidth: 0 },
+    actionTitle: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.bodyMedium,
+    },
+    actionSubtitle: {
+      color: mentaColors.text.secondary,
+      marginTop: mentaSpacing[1],
+      ...mentaTypography.bodySmall,
+    },
+    trailingLane: {
+      alignItems: 'flex-end',
+      flexShrink: 0,
+      justifyContent: 'center',
+      width: mentaLayout.iconLane,
+    },
+    ledgerCard: {
+      backgroundColor: mentaColors.surface,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      padding: mentaSpacing[4],
+    },
+  });
+  return { toneColors, styles };
+};

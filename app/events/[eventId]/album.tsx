@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   Pressable,
@@ -33,13 +41,7 @@ import {
   ImageIcon,
   ShieldCheckIcon,
 } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { screenInsetPadding } from '@/constants/phone-layout';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { useAuthStore } from '@/store/auth-store';
@@ -59,6 +61,8 @@ const AlbumFactRow = ({
   value: string;
   last?: boolean;
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const phoneLayout = usePhoneLayout();
   const stacked = phoneLayout.isCompactWidth || phoneLayout.fontScale >= 1.2;
   return (
@@ -78,6 +82,9 @@ const AlbumFactRow = ({
 };
 
 export default function EventAttendeeAlbumScreen() {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const phoneLayout = usePhoneLayout();
   const router = useRouter();
@@ -448,111 +455,114 @@ export default function EventAttendeeAlbumScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: mentaColors.canvas },
-  content: {
-    flexGrow: 1,
-    gap: mentaSpacing[5],
-    paddingBottom: mentaSpacing[6],
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingTop: mentaSpacing[6],
-  },
-  topBar: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: mentaLayout.trailingActionLane,
-  },
-  iconButton: {
-    alignItems: 'center',
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.round,
-    borderWidth: StyleSheet.hairlineWidth,
-    height: mentaLayout.trailingActionLane,
-    justifyContent: 'center',
-    width: mentaLayout.trailingActionLane,
-  },
-  pressed: { opacity: 0.72 },
-  topLabel: {
-    ...mentaTypography.labelBold,
-    color: mentaColors.text.secondary,
-  },
-  trailingLane: { width: mentaLayout.trailingActionLane },
-  hero: { gap: mentaSpacing[2] },
-  title: {
-    ...mentaTypography.journeyTitle,
-    color: mentaColors.text.primary,
-  },
-  body: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-  },
-  loadingState: { gap: mentaSpacing[4], paddingTop: mentaSpacing[6] },
-  missingState: {
-    flex: 1,
-    gap: mentaSpacing[4],
-    justifyContent: 'center',
-    padding: mentaLayout.screenInset,
-  },
-  stateSection: { gap: mentaSpacing[4], paddingTop: mentaSpacing[8] },
-  stateTitle: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-  },
-  emptyState: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[3],
-    justifyContent: 'center',
-    minHeight: 176,
-    paddingVertical: mentaSpacing[6],
-  },
-  factRows: {
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  factRow: {
-    alignItems: 'center',
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: 58,
-  },
-  factRowStacked: {
-    alignItems: 'flex-start',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    paddingVertical: mentaSpacing[3],
-  },
-  factRowLast: { borderBottomWidth: 0 },
-  factLabel: {
-    ...mentaTypography.body,
-    color: mentaColors.text.primary,
-  },
-  factValue: {
-    ...mentaTypography.micro,
-    color: mentaColors.text.secondary,
-    maxWidth: 164,
-    textAlign: 'right',
-  },
-  factValueStacked: {
-    maxWidth: '100%',
-    textAlign: 'left',
-  },
-  windowCopy: {
-    ...mentaTypography.micro,
-    color: mentaColors.text.secondary,
-  },
-  footer: {
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[2],
-    justifyContent: 'center',
-    minHeight: 120,
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingVertical: mentaSpacing[3],
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: { flex: 1, backgroundColor: mentaColors.canvas },
+    content: {
+      flexGrow: 1,
+      gap: mentaSpacing[5],
+      paddingBottom: mentaSpacing[6],
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingTop: mentaSpacing[6],
+    },
+    topBar: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      minHeight: mentaLayout.trailingActionLane,
+    },
+    iconButton: {
+      alignItems: 'center',
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.round,
+      borderWidth: StyleSheet.hairlineWidth,
+      height: mentaLayout.trailingActionLane,
+      justifyContent: 'center',
+      width: mentaLayout.trailingActionLane,
+    },
+    pressed: { opacity: 0.72 },
+    topLabel: {
+      ...mentaTypography.labelBold,
+      color: mentaColors.text.secondary,
+    },
+    trailingLane: { width: mentaLayout.trailingActionLane },
+    hero: { gap: mentaSpacing[2] },
+    title: {
+      ...mentaTypography.journeyTitle,
+      color: mentaColors.text.primary,
+    },
+    body: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+    },
+    loadingState: { gap: mentaSpacing[4], paddingTop: mentaSpacing[6] },
+    missingState: {
+      flex: 1,
+      gap: mentaSpacing[4],
+      justifyContent: 'center',
+      padding: mentaLayout.screenInset,
+    },
+    stateSection: { gap: mentaSpacing[4], paddingTop: mentaSpacing[8] },
+    stateTitle: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+    },
+    emptyState: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[3],
+      justifyContent: 'center',
+      minHeight: 176,
+      paddingVertical: mentaSpacing[6],
+    },
+    factRows: {
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+    },
+    factRow: {
+      alignItems: 'center',
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      minHeight: 58,
+    },
+    factRowStacked: {
+      alignItems: 'flex-start',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      paddingVertical: mentaSpacing[3],
+    },
+    factRowLast: { borderBottomWidth: 0 },
+    factLabel: {
+      ...mentaTypography.body,
+      color: mentaColors.text.primary,
+    },
+    factValue: {
+      ...mentaTypography.micro,
+      color: mentaColors.text.secondary,
+      maxWidth: 164,
+      textAlign: 'right',
+    },
+    factValueStacked: {
+      maxWidth: '100%',
+      textAlign: 'left',
+    },
+    windowCopy: {
+      ...mentaTypography.micro,
+      color: mentaColors.text.secondary,
+    },
+    footer: {
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[2],
+      justifyContent: 'center',
+      minHeight: 120,
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingVertical: mentaSpacing[3],
+    },
+  });
+  return { styles };
+};

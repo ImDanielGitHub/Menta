@@ -1,3 +1,6 @@
+jest.mock('@/hooks/usePromiseAccountability', () => ({
+  usePromiseAccountability: () => ({ data: undefined }),
+}));
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { resolvePhoneLayout } from '@/constants/phone-layout';

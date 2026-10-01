@@ -1,14 +1,15 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
-
-import { AppScaledText as Text } from '@/components/ui/AppScaledText';
 import {
-  mentaColors,
+  type MentaPalette,
   mentaLayout,
   mentaRadii,
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
+
+import { AppScaledText as Text } from '@/components/ui/AppScaledText';
 
 const TAIL_SIZE = 14;
 
@@ -26,6 +27,8 @@ export function TodaySpeechBubble({
   text: string;
   testID?: string;
 }) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   return (
     <View style={styles.wrap} testID={testID}>
       <View style={styles.bubble}>
@@ -40,34 +43,37 @@ export function TodaySpeechBubble({
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: {
-    alignItems: 'center',
-    alignSelf: 'center',
-    maxWidth: mentaLayout.readingMeasure,
-  },
-  bubble: {
-    backgroundColor: mentaColors.raised,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: 1,
-    paddingHorizontal: mentaSpacing[5],
-    paddingVertical: mentaSpacing[4],
-  },
-  text: {
-    ...mentaTypography.bodyMedium,
-    color: mentaColors.text.primary,
-    textAlign: 'center',
-  },
-  tail: {
-    backgroundColor: mentaColors.raised,
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: 1,
-    borderRightColor: mentaColors.border,
-    borderRightWidth: 1,
-    height: TAIL_SIZE,
-    marginTop: -TAIL_SIZE / 2,
-    transform: [{ rotate: '45deg' }],
-    width: TAIL_SIZE,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    wrap: {
+      alignItems: 'center',
+      alignSelf: 'center',
+      maxWidth: mentaLayout.readingMeasure,
+    },
+    bubble: {
+      backgroundColor: mentaColors.raised,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      paddingHorizontal: mentaSpacing[5],
+      paddingVertical: mentaSpacing[4],
+    },
+    text: {
+      ...mentaTypography.bodyMedium,
+      color: mentaColors.text.primary,
+      textAlign: 'center',
+    },
+    tail: {
+      backgroundColor: mentaColors.raised,
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: 1,
+      borderRightColor: mentaColors.border,
+      borderRightWidth: 1,
+      height: TAIL_SIZE,
+      marginTop: -TAIL_SIZE / 2,
+      transform: [{ rotate: '45deg' }],
+      width: TAIL_SIZE,
+    },
+  });
+  return { styles };
+};

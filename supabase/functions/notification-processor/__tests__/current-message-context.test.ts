@@ -140,3 +140,68 @@ describe('current proof obligation before dispatch', () => {
     ).toEqual({ skipReason: 'SKIPPED_PROMISE_NOT_ACTIVE' });
   });
 });
+
+describe('queued proof reviewer authority before dispatch', () => {
+  const review = {
+    user_id: 'reviewer-a',
+    notification_type: 'review_reminder',
+    payload: { submissionId: 'proof-a', challengeId: 'promise-a' },
+  };
+  const pending = {
+    id: 'proof-a',
+    status: 'pending',
+    user_id: 'submitter-a',
+    challenge_id: 'promise-a',
+  };
+  const proofFixture = (row: typeof pending | null = pending) => {
+    const query = {
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      maybeSingle: jest.fn().mockResolvedValue({ data: row, error: null }),
+    };
+    mockDatabase.from.mockReturnValue(query);
+  };
+  it('checks the authoritative recipient function for an individual queued proof', async () => {
+    proofFixture();
+    mockDatabase.rpc.mockResolvedValue({ data: true, error: null });
+    expect(await loadContext(review, now)).toEqual({ pendingReviews: 1 });
+    expect(mockDatabase.rpc).toHaveBeenCalledWith(
+      'is_challenge_review_recipient_v1',
+      {
+        p_challenge_id: 'promise-a',
+        p_submitter_id: 'submitter-a',
+        p_reviewer_id: 'reviewer-a',
+      }
+    );
+  });
+  it.each([false, null])(
+    'skips when current authority no longer permits the reviewer: %s',
+    data => {
+      proofFixture();
+      mockDatabase.rpc.mockResolvedValue({ data, error: null });
+      return expect(loadContext(review, now)).resolves.toEqual({
+        skipReason: 'SKIPPED_REVIEWER_NOT_ALLOWED',
+      });
+    }
+  );
+  it('retries an authority lookup failure without sending', async () => {
+    proofFixture();
+    mockDatabase.rpc.mockResolvedValue({
+      data: null,
+      error: new Error('unavailable'),
+    });
+    await expect(loadContext(review, now)).rejects.toThrow(
+      'Could not re-check review permission.'
+    );
+  });
+  it.each(['approved', 'rejected'])(
+    'still stops immediately after proof review is %s',
+    async status => {
+      proofFixture({ ...pending, status });
+      expect(await loadContext(review, now)).toEqual({
+        skipReason: 'SKIPPED_REVIEW_ALREADY_RESOLVED',
+      });
+      expect(mockDatabase.rpc).not.toHaveBeenCalled();
+    }
+  );
+});

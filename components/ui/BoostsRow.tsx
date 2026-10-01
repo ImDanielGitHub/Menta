@@ -1,14 +1,16 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { ShopItemArt } from '@/components/shop/ShopItemArt';
 import { ShopPressable } from '@/components/shop/ShopPressable';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { useTranslation } from '@/lib/localization/use-translation';
 
@@ -42,6 +44,8 @@ export const BoostsRow: React.FC<BoostsRowProps> = ({
   onAction,
   testID = 'owned-items-row',
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const phoneLayout = usePhoneLayout();
   if (items.length === 0) return null;
@@ -110,84 +114,87 @@ export const BoostsRow: React.FC<BoostsRowProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  section: {
-    gap: mentaSpacing[3],
-  },
-  header: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: mentaSpacing[3],
-  },
-  title: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.title,
-  },
-  link: {
-    justifyContent: 'center',
-    minHeight: 44,
-    paddingHorizontal: mentaSpacing[1],
-  },
-  linkPressed: {
-    opacity: 0.72,
-  },
-  linkText: {
-    color: mentaColors.action,
-    ...mentaTypography.bodySmallMedium,
-  },
-  row: {
-    gap: mentaSpacing[3],
-  },
-  tile: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.surface,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: 1,
-    gap: mentaSpacing[2],
-    minHeight: 152,
-    paddingHorizontal: mentaSpacing[3],
-    paddingVertical: mentaSpacing[4],
-    width: 120,
-  },
-  tilePressed: {
-    backgroundColor: mentaColors.raised,
-  },
-  tileLabel: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.captionMedium,
-    minHeight: mentaTypography.captionMedium.lineHeight * 2,
-    textAlign: 'center',
-  },
-  badge: {
-    backgroundColor: mentaColors.actionSoft,
-    borderColor: mentaColors.actionBorder,
-    borderRadius: mentaRadii.round,
-    borderWidth: 1,
-    marginTop: 'auto',
-    paddingHorizontal: mentaSpacing[3],
-    paddingVertical: 2,
-  },
-  badgeSuccess: {
-    backgroundColor: mentaColors.successSoft,
-    borderColor: 'transparent',
-  },
-  badgeEmpty: {
-    backgroundColor: 'transparent',
-    borderColor: mentaColors.border,
-  },
-  badgeText: {
-    color: mentaColors.action,
-    ...mentaTypography.labelBold,
-    fontVariant: ['tabular-nums'],
-  },
-  badgeTextSuccess: {
-    color: mentaColors.success,
-  },
-  badgeTextEmpty: {
-    color: mentaColors.text.muted,
-  },
-});
-
 export default BoostsRow;
+
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    section: {
+      gap: mentaSpacing[3],
+    },
+    header: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: mentaSpacing[3],
+    },
+    title: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.title,
+    },
+    link: {
+      justifyContent: 'center',
+      minHeight: 44,
+      paddingHorizontal: mentaSpacing[1],
+    },
+    linkPressed: {
+      opacity: 0.72,
+    },
+    linkText: {
+      color: mentaColors.action,
+      ...mentaTypography.bodySmallMedium,
+    },
+    row: {
+      gap: mentaSpacing[3],
+    },
+    tile: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.surface,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      gap: mentaSpacing[2],
+      minHeight: 152,
+      paddingHorizontal: mentaSpacing[3],
+      paddingVertical: mentaSpacing[4],
+      width: 120,
+    },
+    tilePressed: {
+      backgroundColor: mentaColors.raised,
+    },
+    tileLabel: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.captionMedium,
+      minHeight: mentaTypography.captionMedium.lineHeight * 2,
+      textAlign: 'center',
+    },
+    badge: {
+      backgroundColor: mentaColors.actionSoft,
+      borderColor: mentaColors.actionBorder,
+      borderRadius: mentaRadii.round,
+      borderWidth: 1,
+      marginTop: 'auto',
+      paddingHorizontal: mentaSpacing[3],
+      paddingVertical: 2,
+    },
+    badgeSuccess: {
+      backgroundColor: mentaColors.successSoft,
+      borderColor: 'transparent',
+    },
+    badgeEmpty: {
+      backgroundColor: 'transparent',
+      borderColor: mentaColors.border,
+    },
+    badgeText: {
+      color: mentaColors.action,
+      ...mentaTypography.labelBold,
+      fontVariant: ['tabular-nums'],
+    },
+    badgeTextSuccess: {
+      color: mentaColors.success,
+    },
+    badgeTextEmpty: {
+      color: mentaColors.text.muted,
+    },
+  });
+  return { styles };
+};

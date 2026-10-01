@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, {
   useCallback,
   useEffect,
@@ -27,13 +35,7 @@ import {
 import { AppScaledText } from '@/components/ui/AppScaledText';
 import { AppSegmentedControl } from '@/components/ui/AppSegmentedControl';
 import { ChevronRightIcon, ClockIcon, PlusIcon } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { IPAD_MAX_CONTENT_WIDTH } from '@/constants/responsive-layout';
 import { useTheme } from '@/constants/ThemeContext';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
@@ -77,6 +79,9 @@ type JoinNotice = {
 } | null;
 
 export default function GroupsScreen() {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const router = useRouter();
   const { t } = useTranslation();
   const { colors } = useTheme();
@@ -668,78 +673,81 @@ export default function GroupsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    width: '100%',
-    alignSelf: 'center',
-    gap: mentaSpacing[6],
-  },
-  iPadContent: {
-    maxWidth: IPAD_MAX_CONTENT_WIDTH,
-  },
-  listLane: {
-    alignSelf: 'stretch',
-    width: '100%',
-  },
-  header: {
-    minHeight: mentaSpacing[12],
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: mentaSpacing[3],
-  },
-  title: {
-    ...mentaTypography.heading,
-    flex: 1,
-    minWidth: 0,
-    color: mentaColors.text.primary,
-  },
-  headerActions: {
-    flexShrink: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: mentaSpacing[2],
-  },
-  archiveAction: {
-    width: mentaLayout.minimumTouchTarget,
-    height: mentaLayout.minimumTouchTarget,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: mentaRadii.round,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  createAction: {
-    borderRadius: mentaRadii.round,
-    paddingHorizontal: mentaSpacing[4],
-  },
-  pressed: { opacity: 0.72 },
-  inviteRow: {
-    minHeight: 70,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: mentaSpacing[3],
-    paddingVertical: mentaSpacing[3],
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  inviteCopy: { flex: 1, minWidth: 0, gap: mentaSpacing[1] },
-  inviteTitle: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  inviteDescription: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-  inviteTrailing: {
-    minWidth: mentaLayout.trailingActionLane,
-    minHeight: mentaLayout.minimumTouchTarget,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: mentaSpacing[1],
-  },
-  inviteActionLabel: {
-    ...mentaTypography.bodySmallMedium,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    content: {
+      width: '100%',
+      alignSelf: 'center',
+      gap: mentaSpacing[6],
+    },
+    iPadContent: {
+      maxWidth: IPAD_MAX_CONTENT_WIDTH,
+    },
+    listLane: {
+      alignSelf: 'stretch',
+      width: '100%',
+    },
+    header: {
+      minHeight: mentaSpacing[12],
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: mentaSpacing[3],
+    },
+    title: {
+      ...mentaTypography.heading,
+      flex: 1,
+      minWidth: 0,
+      color: mentaColors.text.primary,
+    },
+    headerActions: {
+      flexShrink: 0,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: mentaSpacing[2],
+    },
+    archiveAction: {
+      width: mentaLayout.minimumTouchTarget,
+      height: mentaLayout.minimumTouchTarget,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: mentaRadii.round,
+      borderWidth: StyleSheet.hairlineWidth,
+    },
+    createAction: {
+      borderRadius: mentaRadii.round,
+      paddingHorizontal: mentaSpacing[4],
+    },
+    pressed: { opacity: 0.72 },
+    inviteRow: {
+      minHeight: 70,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: mentaSpacing[3],
+      paddingVertical: mentaSpacing[3],
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+    inviteCopy: { flex: 1, minWidth: 0, gap: mentaSpacing[1] },
+    inviteTitle: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    inviteDescription: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+    inviteTrailing: {
+      minWidth: mentaLayout.trailingActionLane,
+      minHeight: mentaLayout.minimumTouchTarget,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+      gap: mentaSpacing[1],
+    },
+    inviteActionLabel: {
+      ...mentaTypography.bodySmallMedium,
+    },
+  });
+  return { styles };
+};

@@ -1,14 +1,16 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '@/components/ui/Avatar';
 import { AppButton, SkeletonLoader } from '@/components/ui';
 import { useLargeTypeLineLimit } from '@/lib/accessibility';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useTranslation } from '@/lib/localization';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 
@@ -35,6 +37,8 @@ export function ChallengeParticipants({
   inviteLoading = false,
   onInvite,
 }: ChallengeParticipantsProps) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t, locale } = useTranslation();
   const phoneLayout = usePhoneLayout();
   const nameLines = useLargeTypeLineLimit(1);
@@ -142,6 +146,8 @@ export function ChallengeParticipants({
 }
 
 const PeopleLoadingState = () => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <View
@@ -170,98 +176,101 @@ const PeopleLoadingState = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  section: {
-    marginTop: mentaSpacing[6],
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-    paddingTop: mentaSpacing[4],
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'space-between',
-    gap: mentaSpacing[4],
-    marginBottom: 10,
-  },
-  sectionTitle: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-    flex: 1,
-  },
-  sectionCount: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-    textAlign: 'right',
-  },
-  list: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-  },
-  row: {
-    minHeight: 64,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: mentaColors.border,
-    paddingVertical: 10,
-  },
-  personText: {
-    flex: 1,
-    minWidth: 0,
-    marginLeft: 12,
-  },
-  name: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  meta: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-    marginTop: 2,
-  },
-  streakValue: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.secondary,
-    flexShrink: 0,
-    marginLeft: mentaSpacing[3],
-  },
-  empty: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-    paddingVertical: 22,
-  },
-  emptyTitle: {
-    ...mentaTypography.control,
-    color: mentaColors.text.primary,
-  },
-  emptyText: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-    marginTop: 6,
-  },
-  loadingState: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-  },
-  loadingList: {
-    borderTopWidth: 0,
-  },
-  loadingRow: {
-    minHeight: 64,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: mentaColors.border,
-    paddingVertical: 10,
-  },
-  loadingCopy: {
-    flex: 1,
-    marginLeft: 12,
-    gap: 7,
-  },
-  inviteButton: {
-    marginTop: mentaSpacing[5],
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    section: {
+      marginTop: mentaSpacing[6],
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+      paddingTop: mentaSpacing[4],
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      justifyContent: 'space-between',
+      gap: mentaSpacing[4],
+      marginBottom: 10,
+    },
+    sectionTitle: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+      flex: 1,
+    },
+    sectionCount: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+      textAlign: 'right',
+    },
+    list: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+    },
+    row: {
+      minHeight: 64,
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: mentaColors.border,
+      paddingVertical: 10,
+    },
+    personText: {
+      flex: 1,
+      minWidth: 0,
+      marginLeft: 12,
+    },
+    name: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    meta: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+      marginTop: 2,
+    },
+    streakValue: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.secondary,
+      flexShrink: 0,
+      marginLeft: mentaSpacing[3],
+    },
+    empty: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+      paddingVertical: 22,
+    },
+    emptyTitle: {
+      ...mentaTypography.control,
+      color: mentaColors.text.primary,
+    },
+    emptyText: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+      marginTop: 6,
+    },
+    loadingState: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+    },
+    loadingList: {
+      borderTopWidth: 0,
+    },
+    loadingRow: {
+      minHeight: 64,
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: mentaColors.border,
+      paddingVertical: 10,
+    },
+    loadingCopy: {
+      flex: 1,
+      marginLeft: 12,
+      gap: 7,
+    },
+    inviteButton: {
+      marginTop: mentaSpacing[5],
+    },
+  });
+  return { styles };
+};

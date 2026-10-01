@@ -17,17 +17,14 @@ export const getOnboardingDraftKeyForUser = (userId: string): string =>
 
 export type OnboardingProofType = 'photo' | 'video' | 'note';
 export type OnboardingDuration = 7 | 14 | 30;
-export type OnboardingAccountabilityChoice = 'just_me' | 'new_group';
+export type OnboardingAccountabilityChoice = 'just_me' | 'new_group' | 'menta';
 export type OnboardingLegalConsentVersions = {
   terms: string;
   privacy: string;
   communityStandards: string;
 };
 export type OnboardingResumeStep =
-  | 'preview'
-  | 'auth_method'
-  | 'auth_cancelled'
-  | 'legal_acceptance';
+  'preview' | 'auth_method' | 'auth_cancelled' | 'legal_acceptance';
 
 export type OnboardingDraft = {
   version: 3;
@@ -58,6 +55,7 @@ type LegacyOnboardingDraft = Omit<
 const proofTypes: OnboardingProofType[] = ['photo', 'video', 'note'];
 const durations: OnboardingDuration[] = [7, 14, 30];
 const accountabilityChoices: OnboardingAccountabilityChoice[] = [
+  'menta',
   'just_me',
   'new_group',
 ];
@@ -161,9 +159,11 @@ const parseDraft = (value: unknown): OnboardingDraft | null => {
       proofType: candidate.proofType ?? null,
       durationDays: candidate.durationDays as OnboardingDuration,
       accountabilityChoice:
-        candidate.accountabilityChoice === 'new_group'
-          ? 'new_group'
-          : 'just_me',
+        candidate.accountabilityChoice === 'menta'
+          ? 'menta'
+          : candidate.accountabilityChoice === 'new_group'
+            ? 'new_group'
+            : 'just_me',
       accountabilityChoiceConfirmed:
         candidate.accountabilityChoiceConfirmed === true ||
         candidate.resumeStep != null,
@@ -365,9 +365,10 @@ export const loadOnboardingDraftForUser = async (options: {
     const userId = normaliseOwnerUserId(options.userId);
 
     if (options.hasCompletedOnboarding) {
-      if (userId) {
-        await removeScopedDraft(userId);
-      }
+      // Profile completion is not a receipt for this local draft. A returning
+      // account or a profile refresh racing activation must not erase it.
+      // Only the confirmed activation path explicitly clears the owned draft.
+      // Do not claim anonymous drafts or restart onboarding for completed users.
       return null;
     }
 

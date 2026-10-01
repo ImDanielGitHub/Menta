@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -9,16 +17,10 @@ import {
   GroupSectionHeader,
 } from '@/components/group/GroupAdminPrimitives';
 import { AppButton, AppInlineNotice } from '@/components/ui';
-import ConfirmDestructiveSheet from '@/components/ui/ConfirmDestructiveSheet';
+import DestructiveSheet from '@/components/ui/ConfirmDestructiveSheet';
 import { SimpleBottomSheet } from '@/components/ui/SimpleBottomSheet';
 import { RefreshCcwIcon } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import {
   groupMemberRoleCopy,
   groupMemberRoleRank,
@@ -37,6 +39,9 @@ import { useGroupMemberActions } from '@/components/group/admin/useGroupMemberAc
 import { backOrReplace } from '@/lib/navigation/safe-back';
 import { useTranslation } from '@/lib/localization';
 export default function GroupMembersScreen() {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -405,7 +410,7 @@ export default function GroupMembersScreen() {
         }
       />
       {pendingAction?.type === 'remove' ? (
-        <ConfirmDestructiveSheet
+        <DestructiveSheet
           confirmLabel={t('groups.admin.remove_member')}
           description={t('groups.admin.remove_warning', {
             member: getMemberName(pendingAction.member),
@@ -422,20 +427,23 @@ export default function GroupMembersScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  section: { gap: mentaSpacing[3] },
-  inviteButton: { minWidth: 112 },
-  headerAction: {
-    alignItems: 'center',
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.round,
-    borderWidth: StyleSheet.hairlineWidth,
-    height: mentaLayout.minimumTouchTarget,
-    justifyContent: 'center',
-    width: mentaLayout.minimumTouchTarget,
-  },
-  sheetCopy: { gap: mentaSpacing[2], paddingBottom: mentaSpacing[2] },
-  sheetActions: { gap: mentaSpacing[4] },
-  sheetTitle: { ...mentaTypography.title, color: mentaColors.text.primary },
-  sheetDetail: { ...mentaTypography.body, color: mentaColors.text.secondary },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    section: { gap: mentaSpacing[3] },
+    inviteButton: { minWidth: 112 },
+    headerAction: {
+      alignItems: 'center',
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.round,
+      borderWidth: StyleSheet.hairlineWidth,
+      height: mentaLayout.minimumTouchTarget,
+      justifyContent: 'center',
+      width: mentaLayout.minimumTouchTarget,
+    },
+    sheetCopy: { gap: mentaSpacing[2], paddingBottom: mentaSpacing[2] },
+    sheetActions: { gap: mentaSpacing[4] },
+    sheetTitle: { ...mentaTypography.title, color: mentaColors.text.primary },
+    sheetDetail: { ...mentaTypography.body, color: mentaColors.text.secondary },
+  });
+  return { styles };
+};

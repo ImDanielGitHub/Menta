@@ -1,24 +1,19 @@
+import {
+  type MentaPalette,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { MentaMascot } from '@/components/ui/MentaMascot';
-import {
-  mentaColors,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { mentaFonts } from '@/lib/menta-fonts';
 import type {
   StreakWidgetSnapshot,
   WidgetStatusTone,
 } from '@/lib/widgets/widget-model';
-
-const STATUS_COLOR: Record<WidgetStatusTone, string> = {
-  action: mentaColors.action,
-  warning: mentaColors.warning,
-  success: mentaColors.success,
-  muted: mentaColors.text.secondary,
-};
 
 /** In-app mirror of the Home Screen widget (Paper 19 / W02). */
 export function StreakWidgetPreview({
@@ -30,6 +25,9 @@ export function StreakWidgetPreview({
   large?: boolean;
   size?: 'small' | 'medium' | 'large';
 }) {
+  const mentaColors = useMentaPalette();
+  const { STATUS_COLOR, styles } = useMentaStyles(createPaletteStyles);
+
   const variant = size ?? (large ? 'large' : 'medium');
   const status = snapshot.status || snapshot.action;
   const statusColor = STATUS_COLOR[snapshot.statusTone ?? 'action'];
@@ -150,65 +148,74 @@ export function StreakWidgetPreview({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: mentaColors.raised,
-    borderRadius: 24,
-    padding: 16,
-  },
-  small: { aspectRatio: 1, width: '100%' },
-  medium: { minHeight: 170, width: '100%' },
-  large: {
-    alignSelf: 'center',
-    gap: mentaSpacing[3],
-    maxWidth: 430,
-    minHeight: 350,
-    width: '100%',
-  },
-  mediumRow: { flexDirection: 'row', gap: mentaSpacing[4] },
-  mediumLeft: { width: 92 },
-  mediumRight: { flex: 1, gap: 4 },
-  row: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  flex: { flex: 1, minHeight: 8 },
-  number: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.newsreader.semibold,
-    fontSize: 56,
-    letterSpacing: -1.6,
-    lineHeight: 60,
-  },
-  numberSmall: { fontSize: 44, lineHeight: 48 },
-  numberLarge: { fontSize: 82, lineHeight: 86 },
-  risk: { color: mentaColors.warning },
-  label: { ...mentaTypography.caption, color: mentaColors.text.secondary },
-  status: {
-    fontFamily: mentaFonts.inter.semibold,
-    fontSize: 14,
-    lineHeight: 18,
-  },
-  promiseLine: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.muted,
-  },
-  promiseTitle: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.newsreader.semibold,
-    fontSize: 20,
-    lineHeight: 24,
-  },
-  invitationHeading: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.newsreader.semibold,
-    fontSize: 22,
-    lineHeight: 26,
-  },
-  detail: { ...mentaTypography.bodySmall, color: mentaColors.text.secondary },
-  mascot: { marginRight: -8, marginTop: -4 },
-  history: { flexDirection: 'row', justifyContent: 'space-between', gap: 6 },
-  day: { alignItems: 'center', flexShrink: 1, gap: 4 },
-  mark: { ...mentaTypography.bodySmall, color: mentaColors.action },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const STATUS_COLOR: Record<WidgetStatusTone, string> = {
+    action: mentaColors.action,
+    warning: mentaColors.warning,
+    success: mentaColors.success,
+    muted: mentaColors.text.secondary,
+  };
+  const styles = StyleSheet.create({
+    card: {
+      backgroundColor: mentaColors.raised,
+      borderRadius: 24,
+      padding: 16,
+    },
+    small: { aspectRatio: 1, width: '100%' },
+    medium: { minHeight: 170, width: '100%' },
+    large: {
+      alignSelf: 'center',
+      gap: mentaSpacing[3],
+      maxWidth: 430,
+      minHeight: 350,
+      width: '100%',
+    },
+    mediumRow: { flexDirection: 'row', gap: mentaSpacing[4] },
+    mediumLeft: { width: 92 },
+    mediumRight: { flex: 1, gap: 4 },
+    row: {
+      alignItems: 'flex-start',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    flex: { flex: 1, minHeight: 8 },
+    number: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.newsreader.semibold,
+      fontSize: 56,
+      letterSpacing: -1.6,
+      lineHeight: 60,
+    },
+    numberSmall: { fontSize: 44, lineHeight: 48 },
+    numberLarge: { fontSize: 82, lineHeight: 86 },
+    risk: { color: mentaColors.warning },
+    label: { ...mentaTypography.caption, color: mentaColors.text.secondary },
+    status: {
+      fontFamily: mentaFonts.inter.semibold,
+      fontSize: 14,
+      lineHeight: 18,
+    },
+    promiseLine: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.muted,
+    },
+    promiseTitle: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.newsreader.semibold,
+      fontSize: 20,
+      lineHeight: 24,
+    },
+    invitationHeading: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.newsreader.semibold,
+      fontSize: 22,
+      lineHeight: 26,
+    },
+    detail: { ...mentaTypography.bodySmall, color: mentaColors.text.secondary },
+    mascot: { marginRight: -8, marginTop: -4 },
+    history: { flexDirection: 'row', justifyContent: 'space-between', gap: 6 },
+    day: { alignItems: 'center', flexShrink: 1, gap: 4 },
+    mark: { ...mentaTypography.bodySmall, color: mentaColors.action },
+  });
+  return { STATUS_COLOR, styles };
+};

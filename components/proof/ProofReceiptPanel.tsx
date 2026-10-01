@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -7,12 +14,7 @@ import { AppScreen } from '@/components/ui/AppShell';
 import { ModalCard } from '@/components/ui/modal/ModalCard';
 import { SignedImage } from '@/components/ui/SignedImage';
 import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { withReadableLeading } from '@/constants/phone-layout';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import {
@@ -65,6 +67,9 @@ function ProofPreview({
   preview: ProofReceiptPreview;
   onReportIssue?: () => void;
 }) {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const [showFullView, setShowFullView] = useState(false);
   const submittedAt = formatReceiptTime(preview.updatedAt);
@@ -204,6 +209,9 @@ export function ProofReceiptPanel({
   showSpinner = false,
   onReportIssue,
 }: ProofReceiptPanelProps) {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const copy = getProofReceiptCopy(status, {
     proofType: preview?.proofType,
@@ -285,85 +293,88 @@ export function ProofReceiptPanel({
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    width: '100%',
-    gap: mentaSpacing[4],
-    alignItems: 'stretch',
-  },
-  title: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-  },
-  detail: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-  },
-  progressRow: {
-    width: '100%',
-    paddingVertical: mentaSpacing[2],
-  },
-  preview: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.medium,
-    overflow: 'hidden',
-    backgroundColor: mentaColors.surface,
-  },
-  previewImage: {
-    width: '100%',
-    height: 176,
-    backgroundColor: mentaColors.canvas,
-  },
-  textPreview: {
-    ...mentaTypography.title,
-    color: mentaColors.text.onPaper,
-    backgroundColor: mentaColors.paper,
-    paddingHorizontal: mentaSpacing[5],
-    paddingTop: mentaSpacing[5],
-    paddingBottom: mentaSpacing[4],
-  },
-  videoPreview: {
-    minHeight: 112,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: mentaSpacing[2],
-    backgroundColor: mentaColors.raised,
-  },
-  videoPreviewText: {
-    ...mentaTypography.bodyMedium,
-    color: mentaColors.text.primary,
-  },
-  previewMeta: {
-    ...mentaTypography.label,
-    color: mentaColors.text.muted,
-    paddingHorizontal: mentaSpacing[4],
-    paddingVertical: mentaSpacing[3],
-  },
-  previewActions: {
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: mentaSpacing[2],
-  },
-  fullView: {
-    gap: mentaSpacing[5],
-    paddingBottom: mentaSpacing[6],
-    paddingTop: mentaSpacing[4],
-  },
-  fullViewTitle: {
-    ...mentaTypography.control,
-    color: mentaColors.text.primary,
-  },
-  fullViewMedia: {
-    height: 360,
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  fullViewImage: {
-    backgroundColor: mentaColors.canvas,
-    height: '100%',
-    width: '100%',
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    root: {
+      width: '100%',
+      gap: mentaSpacing[4],
+      alignItems: 'stretch',
+    },
+    title: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+    },
+    detail: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+    },
+    progressRow: {
+      width: '100%',
+      paddingVertical: mentaSpacing[2],
+    },
+    preview: {
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.medium,
+      overflow: 'hidden',
+      backgroundColor: mentaColors.surface,
+    },
+    previewImage: {
+      width: '100%',
+      height: 176,
+      backgroundColor: mentaColors.canvas,
+    },
+    textPreview: {
+      ...mentaTypography.title,
+      color: mentaColors.text.onPaper,
+      backgroundColor: mentaColors.paper,
+      paddingHorizontal: mentaSpacing[5],
+      paddingTop: mentaSpacing[5],
+      paddingBottom: mentaSpacing[4],
+    },
+    videoPreview: {
+      minHeight: 112,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: mentaSpacing[2],
+      backgroundColor: mentaColors.raised,
+    },
+    videoPreviewText: {
+      ...mentaTypography.bodyMedium,
+      color: mentaColors.text.primary,
+    },
+    previewMeta: {
+      ...mentaTypography.label,
+      color: mentaColors.text.muted,
+      paddingHorizontal: mentaSpacing[4],
+      paddingVertical: mentaSpacing[3],
+    },
+    previewActions: {
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingHorizontal: mentaSpacing[2],
+    },
+    fullView: {
+      gap: mentaSpacing[5],
+      paddingBottom: mentaSpacing[6],
+      paddingTop: mentaSpacing[4],
+    },
+    fullViewTitle: {
+      ...mentaTypography.control,
+      color: mentaColors.text.primary,
+    },
+    fullViewMedia: {
+      height: 360,
+      justifyContent: 'center',
+      overflow: 'hidden',
+    },
+    fullViewImage: {
+      backgroundColor: mentaColors.canvas,
+      height: '100%',
+      width: '100%',
+    },
+  });
+  return { styles };
+};

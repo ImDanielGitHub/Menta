@@ -1,3 +1,12 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
+import { MentaGroupFeedback } from '@/components/menta-check/menta-group-feedback';
 import React, {
   useCallback,
   useEffect,
@@ -16,6 +25,7 @@ import {
 import * as Clipboard from 'expo-clipboard';
 import {
   Stack,
+  useIsFocused,
   useFocusEffect,
   useLocalSearchParams,
   useRouter,
@@ -85,6 +95,7 @@ import {
   powerUpRequiresChallengeId,
 } from '@/lib/shop/powerUpSupport';
 import { buildInviteShareUrl } from '@/lib/invite-links';
+import { usePromiseMutationFlow } from '@/hooks/use-promise-mutation-flow';
 import { useNetworkState } from '@/lib/network';
 import {
   createPromiseDetailLoadFailure,
@@ -129,13 +140,7 @@ import {
   emitHaptic,
 } from '@/lib/motion/haptics';
 import { emitPromiseMutationResultHaptic } from '@/lib/motion/promise-mutation-haptics';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useTheme } from '@/constants/ThemeContext';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import {
@@ -159,12 +164,14 @@ type Localise = (
 ) => string;
 
 type Challenge = Omit<StoreChallenge, 'startDate' | 'endDate'> & {
+  reviewMode?: string;
   startDate?: string | null;
   endDate?: string | null;
   invite_code?: string;
 };
 
 type ChallengeVerification = ChallengeSubmissionPreview & {
+  review_source?: string | null;
   challenge_id: string;
   user_id: string;
   media_url: string | null;
@@ -297,6 +304,7 @@ const mapChallengeRow = (value: unknown): Challenge | null => {
     status: stringValue(value.completion_status ?? value.status, 'active'),
     groupId: teamChallenge ? stringValue(teamChallenge.group_id) : undefined,
     allowSelfReview,
+    reviewMode: stringValue(value.review_mode),
     expectations: parseExpectations(
       value.submission_expectations,
       allowSelfReview
@@ -345,6 +353,7 @@ const mapVerification = (value: unknown): ChallengeVerification | null => {
       return 'photo';
     })(),
     status: verificationStatus,
+    review_source: optionalStringValue(value.review_source) ?? null,
     submission_date: submissionDate,
     local_day: optionalStringValue(value.local_day) ?? null,
     verification_date:
@@ -510,6 +519,9 @@ const QRCodeModal: React.FC<{
   inviteCode: string;
   challengeTitle: string;
 }> = ({ visible, onClose, inviteCode, challengeTitle }) => {
+  const mentaColors = useMentaPalette();
+  const { qrStyles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const inviteUrl = buildInviteShareUrl('challenge', inviteCode);
   const [inviteNotice, setInviteNotice] = useState<{
@@ -654,6 +666,9 @@ const QRCodeModal: React.FC<{
 };
 
 export default function ChallengeDetailScreen() {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t, locale } = useTranslation();
   const phoneLayout = usePhoneLayout();
   const { id, view, proofId, tab } = useLocalSearchParams<{
@@ -755,13 +770,19 @@ export default function ChallengeDetailScreen() {
   const [confirmTarget, setConfirmTarget] = useState<null | 'leave' | 'delete'>(
     null
   );
-  const [workingDestructive, setWorkingDestructive] = useState(false);
+  const isMutationScreenFocused = useIsFocused();
+  const pendingMutationRequest = useRef<{
+    operation: 'leave' | 'delete';
+    challengeId: string;
+    clientEventId: string | null;
+    interaction: 'mutation' | 'recovery';
+  } | null>(null);
   const [promiseMutationRecovery, setPromiseMutationRecovery] =
     useState<Extract<
       PromiseMutationResult,
       { outcome: 'failed' | 'unknown' }
     > | null>(null);
-  const [checkingPromiseMutation, setCheckingPromiseMutation] = useState(false);
+
   const [boostConfirmSku, setBoostConfirmSku] = useState<string | null>(null);
   const [boostClientEventId, setBoostClientEventId] = useState<string | null>(
     null
@@ -1619,16 +1640,22 @@ export default function ChallengeDetailScreen() {
   const activeParticipantCount = participants.filter(
     participant => participant.status === 'active'
   ).length;
-  const isSoloPromise =
-    challenge?.allowSelfReview === true && !challenge?.groupId;
+  // A promise's invitation container is not a saved shared group. Keep its
+  // personal detail presentation even after reviewers or supporters join.
+  const isPersonalPromise =
+    !challenge?.groupId || accountabilitySummary?.group?.kind === 'promise';
+  const isSoloPromise = isPersonalPromise && !accountabilitySummary?.isShared;
 
-  const reviewModelCopy = isSoloPromise
-    ? 'Self-review'
-    : challenge?.expectations?.requiresPeerReview
-      ? `${challenge.expectations.reviewersRequired || 1} peer review${
-          (challenge.expectations.reviewersRequired || 1) === 1 ? '' : 's'
-        }`
-      : 'No peer review';
+  const reviewModelCopy =
+    challenge?.reviewMode === 'menta'
+      ? t('mentaCheck.receipt.checkedBy')
+      : challenge?.allowSelfReview
+        ? 'Self-review'
+        : challenge?.expectations?.requiresPeerReview
+          ? `${challenge.expectations.reviewersRequired || 1} peer review${
+              (challenge.expectations.reviewersRequired || 1) === 1 ? '' : 's'
+            }`
+          : 'No peer review';
   const proofMethodCopy =
     challenge?.verificationType === 'text'
       ? t('todayProof.promise.text_proof')
@@ -1768,6 +1795,65 @@ export default function ChallengeDetailScreen() {
   const handleBack = useCallback(() => {
     backOrReplace(router, '/(tabs)');
   }, [router]);
+
+  const applyPromiseMutationResult = (
+    result: PromiseMutationResult,
+    interaction: 'mutation' | 'recovery'
+  ) => {
+    void emitPromiseMutationResultHaptic(result, interaction);
+
+    if (result.outcome === 'confirmed') {
+      setPromiseMutationRecovery(null);
+      setActionMessage(null);
+      if (result.operation === 'delete') {
+        showToast.success(
+          t('todayProof.promise.deleted'),
+          t('todayProof.promise.deleted')
+        );
+      } else {
+        showToast.success(
+          t('todayProof.promise.left'),
+          t('todayProof.promise.left_detail')
+        );
+      }
+      handleBack();
+      return;
+    }
+
+    setPromiseMutationRecovery(result);
+    setActionMessage({
+      text: result.message,
+      type: result.outcome === 'failed' ? 'error' : 'info',
+    });
+  };
+
+  const destructiveFlow = usePromiseMutationFlow({
+    owner: user?.id,
+    promise: id,
+    active: isMutationScreenFocused,
+    close: () => {
+      setConfirmVisible(false);
+      setConfirmTarget(null);
+    },
+    onResult: result =>
+      applyPromiseMutationResult(
+        result,
+        pendingMutationRequest.current?.interaction ?? 'mutation'
+      ),
+    onError: () =>
+      unknownPromiseMutation({
+        operation: pendingMutationRequest.current?.operation ?? 'delete',
+        challengeId: pendingMutationRequest.current?.challengeId ?? id ?? '',
+        clientEventId: pendingMutationRequest.current?.clientEventId ?? null,
+        message: t(
+          pendingMutationRequest.current?.operation === 'leave'
+            ? 'todayProof.promise.leave_result_unknown'
+            : 'todayProof.promise.delete_result_unknown'
+        ),
+      }),
+  });
+  const workingDestructive = destructiveFlow.busy;
+  const checkingPromiseMutation = destructiveFlow.busy;
 
   const handleDetailRecovery = () => {
     if (detailRecovery.kind === 'session-expired') {
@@ -1950,7 +2036,13 @@ export default function ChallengeDetailScreen() {
           t
         )} · ${formatProofClock(selectedPaperProof.submission_date, locale, t)}`,
         evidenceTitle: verificationMediaLabel(selectedPaperProof, t),
-        reviewerName: selectedPaperProof.reviewer?.username?.trim() || null,
+        reviewerName:
+          selectedPaperProof.review_source === 'menta' ||
+          selectedPaperProof.review_source === 'menta_backup'
+            ? t('mentaCheck.receipt.checkedBy')
+            : selectedPaperProof.review_source === 'self_override'
+              ? t('mentaCheck.status.countedByYou')
+              : selectedPaperProof.reviewer?.username?.trim() || null,
         reviewNotes: selectedPaperProof.review_notes,
       }
     : null;
@@ -1971,6 +2063,11 @@ export default function ChallengeDetailScreen() {
         verification.users?.username?.trim() ||
         t('todayProof.source.accountability.member_fallback'),
       submittedLabel: formatProofDay(verification.submission_date, locale, t),
+      stateLabel:
+        verification.review_source === 'menta' ||
+        verification.review_source === 'menta_backup'
+          ? t('mentaCheck.group.checkedByMentaShort')
+          : undefined,
       state:
         verification.status === 'approved'
           ? 'approved'
@@ -1994,7 +2091,7 @@ export default function ChallengeDetailScreen() {
     },
     {
       label: t('todayProof.promise.reviewed_by'),
-      value: isSoloPromise
+      value: challenge.allowSelfReview
         ? t('todayProof.promise.only_you')
         : namedReviewer || reviewModelCopy,
     },
@@ -2028,6 +2125,7 @@ export default function ChallengeDetailScreen() {
     challengeStatus: challenge.status,
   });
   const showSoloActiveDue = shouldShowSoloActivePromise({
+    isPersonalPromise,
     allowSelfReview: challenge.allowSelfReview,
     groupId: challenge.groupId,
     isUserParticipant,
@@ -2044,15 +2142,21 @@ export default function ChallengeDetailScreen() {
     requestedView: paperDetailView,
     hasSelectedProof: Boolean(selectedPaperProofRecord),
     showWaiting:
-      submissionState.shouldShowPending && isUserParticipant && isSoloPromise,
+      submissionState.shouldShowPending &&
+      isUserParticipant &&
+      isPersonalPromise,
     showComplete: promiseTermComplete && isUserParticipant && !isDetailLoading,
-    showQueued: isSoloPromise && hasQueuedProofForChallenge,
+    showQueued: isPersonalPromise && hasQueuedProofForChallenge,
     showCorrection:
-      isSoloPromise && isUserParticipant && submissionState.shouldShowRejected,
+      isPersonalPromise &&
+      isUserParticipant &&
+      submissionState.shouldShowRejected,
     showApproved:
-      isSoloPromise && isUserParticipant && submissionState.shouldShowApproved,
-    showRecovery: isSoloPromise && showBrokenRecovery,
-    showUnknown: isSoloPromise && submissionStatusUnavailable,
+      isPersonalPromise &&
+      isUserParticipant &&
+      submissionState.shouldShowApproved,
+    showRecovery: isPersonalPromise && showBrokenRecovery,
+    showUnknown: isPersonalPromise && submissionStatusUnavailable,
     showActive: showSoloActiveDue,
   });
 
@@ -2067,132 +2171,95 @@ export default function ChallengeDetailScreen() {
     setConfirmTarget(null);
   };
 
-  const applyPromiseMutationResult = (
-    result: PromiseMutationResult,
-    interaction: 'mutation' | 'recovery'
-  ) => {
-    void emitPromiseMutationResultHaptic(result, interaction);
-
-    if (result.outcome === 'confirmed') {
-      setPromiseMutationRecovery(null);
-      setActionMessage(null);
-      if (result.operation === 'delete') {
-        showToast.success(
-          t('todayProof.promise.deleted'),
-          t('todayProof.promise.deleted')
-        );
-      } else {
-        showToast.success(
-          t('todayProof.promise.left'),
-          t('todayProof.promise.left_detail')
-        );
-      }
-      handleBack();
-      return;
-    }
-
-    setPromiseMutationRecovery(result);
-    setActionMessage({
-      text: result.message,
-      type: result.outcome === 'failed' ? 'error' : 'info',
-    });
-  };
-
   const recoverPromiseMutation = async () => {
     if (!user?.id || !challenge || !promiseMutationRecovery) return;
-    setCheckingPromiseMutation(true);
-    try {
-      const clientEventId = promiseMutationRecovery.clientEventId;
+    const requestOwner = user.id;
+    const requestChallenge = challenge.id;
+    const recovery = promiseMutationRecovery;
+    await destructiveFlow.run(async () => {
+      pendingMutationRequest.current = {
+        operation: recovery.operation,
+        challengeId: requestChallenge,
+        clientEventId: recovery.clientEventId,
+        interaction: 'recovery',
+      };
+      const clientEventId = recovery.clientEventId;
       let result: PromiseMutationResult;
 
       if (
-        promiseMutationRecovery.outcome === 'failed' &&
-        promiseMutationRecovery.safeToRetry &&
+        recovery.outcome === 'failed' &&
+        recovery.safeToRetry &&
         clientEventId
       ) {
         result =
-          promiseMutationRecovery.operation === 'delete'
-            ? await deleteChallenge(challenge.id, clientEventId, t)
+          recovery.operation === 'delete'
+            ? await deleteChallenge(requestChallenge, clientEventId, t)
             : await leavePromiseWithRoleAwareFallback({
-                challengeId: challenge.id,
-                userId: user.id,
+                challengeId: requestChallenge,
+                userId: requestOwner,
                 clientEventId,
                 leaveLegacy: (legacyUserId, legacyChallengeId) =>
                   leaveChallenge(legacyUserId, legacyChallengeId, t),
                 localise: t,
               });
       } else if (
-        promiseMutationRecovery.operation === 'leave' &&
-        promiseMutationRecovery.outcome === 'unknown' &&
-        promiseMutationRecovery.recovery === 'safe-retry'
+        recovery.operation === 'leave' &&
+        recovery.outcome === 'unknown' &&
+        recovery.recovery === 'safe-retry'
       ) {
         // The legacy challenge-leave RPC explicitly returns ALREADY_LEFT, so
         // reusing it after response loss is idempotent and can recover the
         // authoritative receipt without repeating an unsafe mutation.
-        result = await leaveChallenge(user.id, challenge.id, t);
+        result = await leaveChallenge(requestOwner, requestChallenge, t);
       } else if (!clientEventId) {
         result = unknownPromiseMutation({
-          operation: promiseMutationRecovery.operation,
-          challengeId: challenge.id,
+          operation: recovery.operation,
+          challengeId: requestChallenge,
           clientEventId: null,
           message: t('todayProof.promise.check_action_unavailable'),
         });
       } else {
         result =
-          promiseMutationRecovery.operation === 'delete'
-            ? await reconcileDeleteChallenge(challenge.id, clientEventId, t)
+          recovery.operation === 'delete'
+            ? await reconcileDeleteChallenge(requestChallenge, clientEventId, t)
             : await reconcilePromiseAccountabilityLeave(
-                challenge.id,
+                requestChallenge,
                 clientEventId,
                 t
               );
       }
 
-      applyPromiseMutationResult(result, 'recovery');
-    } finally {
-      setCheckingPromiseMutation(false);
-    }
+      return result;
+    }, false);
   };
 
   const confirmDestructiveAction = async () => {
     if (!user?.id || !challenge || !confirmTarget) return;
-    try {
-      setWorkingDestructive(true);
-      const clientEventId = createClientEventId();
-      const result =
-        confirmTarget === 'leave'
-          ? await leavePromiseWithRoleAwareFallback({
-              challengeId: challenge.id,
-              userId: user.id,
-              clientEventId,
-              leaveLegacy: (legacyUserId, legacyChallengeId) =>
-                leaveChallenge(legacyUserId, legacyChallengeId, t),
-              localise: t,
-            })
-          : await deleteChallenge(challenge.id, clientEventId, t);
-      applyPromiseMutationResult(result, 'mutation');
-    } catch (err) {
-      applyPromiseMutationResult(
-        unknownPromiseMutation({
-          operation: confirmTarget,
-          challengeId: challenge.id,
-          clientEventId: null,
-          message:
-            err instanceof Error
-              ? err.message
-              : t('todayProof.promise.not_changed'),
-        }),
-        'mutation'
-      );
-    } finally {
-      setWorkingDestructive(false);
-      setConfirmVisible(false);
-      setConfirmTarget(null);
-    }
+    const request = {
+      operation: confirmTarget,
+      challengeId: challenge.id,
+      clientEventId: createClientEventId(),
+      interaction: 'mutation' as const,
+    };
+    const owner = user.id;
+    await destructiveFlow.run(() => {
+      pendingMutationRequest.current = request;
+      return request.operation === 'leave'
+        ? leavePromiseWithRoleAwareFallback({
+            challengeId: request.challengeId,
+            userId: owner,
+            clientEventId: request.clientEventId,
+            leaveLegacy: (legacyUserId, legacyChallengeId) =>
+              leaveChallenge(legacyUserId, legacyChallengeId, t),
+            localise: t,
+          })
+        : deleteChallenge(request.challengeId, request.clientEventId, t);
+    });
   };
 
   const destructiveConfirmation = (
     <ConfirmDestructiveSheet
+      key="promise-destructive-confirmation"
       visible={confirmVisible}
       title={
         confirmTarget === 'delete'
@@ -2213,6 +2280,7 @@ export default function ChallengeDetailScreen() {
       onClose={closeDestructiveConfirmation}
       onConfirm={confirmDestructiveAction}
       loading={workingDestructive}
+      onDismiss={destructiveFlow.onDismiss}
     />
   );
 
@@ -2337,6 +2405,18 @@ export default function ChallengeDetailScreen() {
           options={{ headerShown: false, title: t('todayProof.proof.receipt') }}
         />
         <PromiseProofDetailState
+          reviewFeedback={
+            selectedPaperProof &&
+            selectedPaperProof.user_id !== user?.id &&
+            ['menta', 'menta_backup'].includes(
+              selectedPaperProof.review_source ?? ''
+            ) ? (
+              <MentaGroupFeedback
+                key={selectedPaperProof.id}
+                submissionId={selectedPaperProof.id}
+              />
+            ) : null
+          }
           proof={selectedPaperProofRecord}
           onProofHistory={() => {
             setSelectedPaperProofId(null);
@@ -2421,9 +2501,12 @@ export default function ChallengeDetailScreen() {
             visibility: isSoloPromise
               ? 'Private'
               : group?.name || 'Group promise',
-            reviewerSummary: isSoloPromise
-              ? 'you reviewed your own proof'
-              : 'the promise group reviewed proof',
+            reviewerSummary:
+              challenge.reviewMode === 'menta'
+                ? t('mentaCheck.group.checkedByMentaShort')
+                : challenge.allowSelfReview
+                  ? 'you reviewed your own proof'
+                  : 'the promise group reviewed proof',
           }}
           onShareResult={() => {
             void Share.share({
@@ -2712,6 +2795,13 @@ export default function ChallengeDetailScreen() {
                 missedLocalDay={streakState!.latestOutcome!.localDay}
                 previousStreak={streakState!.latestOutcome!.previousStreak}
                 resultingStreak={streakState!.latestOutcome!.resultingStreak}
+                remainingDays={
+                  challenge.endDate &&
+                  challenge.status === 'active' &&
+                  challenge.verificationFrequency === 'daily'
+                    ? challengeStats.daysRemaining
+                    : undefined
+                }
                 onStartReturn={handleStartReturnProof}
                 onViewHistory={() => setPaperDetailView('history')}
               />
@@ -3113,6 +3203,9 @@ function SupportSection({
   isStreakStateLoading: boolean;
   streakState: ReturnType<typeof useStreakState>['streakState'];
 }) {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <View style={styles.supportSection}>
@@ -3175,169 +3268,171 @@ function SupportSection({
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    backgroundColor: mentaColors.canvas,
-  },
-  tabs: {
-    marginTop: mentaSpacing[5],
-  },
-  detailNavigation: {
-    marginTop: mentaSpacing[4],
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-  },
-  proofMosaic: {
-    marginTop: mentaSpacing[6],
-  },
-  supportSection: {
-    paddingTop: mentaSpacing[2],
-  },
-  sectionTitle: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-    marginBottom: mentaSpacing[3],
-  },
-  supportRows: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-  },
-  supportRow: {
-    minHeight: 58,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: mentaColors.border,
-    paddingVertical: mentaSpacing[3],
-  },
-  supportText: {
-    flex: 1,
-    minWidth: 0,
-    marginLeft: mentaSpacing[3],
-  },
-  supportTitle: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  supportMeta: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-    marginTop: mentaSpacing[1],
-  },
-  useButton: {
-    marginLeft: mentaSpacing[3],
-  },
-  sheetTitle: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-  },
-  sheetSubtitle: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-    marginTop: mentaSpacing[2],
-    marginBottom: mentaSpacing[4],
-  },
-  boostConfirmError: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.danger,
-    borderRadius: mentaRadii.medium,
-    paddingHorizontal: mentaSpacing[3],
-    paddingVertical: mentaSpacing[3],
-    marginTop: mentaSpacing[3],
-    backgroundColor: mentaColors.surface,
-  },
-  boostConfirmErrorText: {
-    ...mentaTypography.caption,
-    color: mentaColors.danger,
-  },
-  boostConfirmActions: {
-    gap: mentaSpacing[3],
-    marginTop: mentaSpacing[5],
-  },
-  errorShell: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: mentaSpacing[6],
-  },
-  errorTitle: {
-    ...mentaTypography.heading,
-    color: mentaColors.text.primary,
-  },
-  errorText: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-    marginTop: mentaSpacing[3],
-    marginBottom: mentaSpacing[6],
-  },
-  errorActions: {
-    gap: mentaSpacing[3],
-  },
-});
-
-const qrStyles = StyleSheet.create({
-  modalContent: {
-    borderRadius: mentaRadii.large,
-    padding: mentaSpacing[6],
-    minWidth: 300,
-    maxWidth: 420,
-    width: '100%',
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: mentaSpacing[6],
-  },
-  modalTitle: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-  },
-  closeButton: {
-    minWidth: mentaLayout.minimumTouchTarget,
-    minHeight: mentaLayout.minimumTouchTarget,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  qrContainer: {
-    alignItems: 'center',
-    alignSelf: 'center',
-    marginBottom: mentaSpacing[6],
-    padding: mentaSpacing[5],
-    borderRadius: mentaRadii.medium,
-    backgroundColor: mentaColors.paper,
-  },
-  inviteCodeBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: mentaSpacing[4],
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-    marginBottom: mentaSpacing[5],
-  },
-  inviteCodeText: {
-    ...mentaTypography.control,
-    color: mentaColors.text.primary,
-    letterSpacing: 2,
-    flex: 1,
-    textAlign: 'center',
-  },
-  copyIconButton: {
-    padding: mentaSpacing[1],
-  },
-  pressed: {
-    opacity: 0.72,
-  },
-  inviteInlineNotice: {
-    marginBottom: mentaSpacing[4],
-  },
-  modalActions: {
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-  },
-  modalButton: {
-    flex: 1,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: {
+      backgroundColor: mentaColors.canvas,
+    },
+    tabs: {
+      marginTop: mentaSpacing[5],
+    },
+    detailNavigation: {
+      marginTop: mentaSpacing[4],
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+    },
+    proofMosaic: {
+      marginTop: mentaSpacing[6],
+    },
+    supportSection: {
+      paddingTop: mentaSpacing[2],
+    },
+    sectionTitle: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+      marginBottom: mentaSpacing[3],
+    },
+    supportRows: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+    },
+    supportRow: {
+      minHeight: 58,
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: mentaColors.border,
+      paddingVertical: mentaSpacing[3],
+    },
+    supportText: {
+      flex: 1,
+      minWidth: 0,
+      marginLeft: mentaSpacing[3],
+    },
+    supportTitle: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    supportMeta: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+      marginTop: mentaSpacing[1],
+    },
+    useButton: {
+      marginLeft: mentaSpacing[3],
+    },
+    sheetTitle: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+    },
+    sheetSubtitle: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+      marginTop: mentaSpacing[2],
+      marginBottom: mentaSpacing[4],
+    },
+    boostConfirmError: {
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.danger,
+      borderRadius: mentaRadii.medium,
+      paddingHorizontal: mentaSpacing[3],
+      paddingVertical: mentaSpacing[3],
+      marginTop: mentaSpacing[3],
+      backgroundColor: mentaColors.surface,
+    },
+    boostConfirmErrorText: {
+      ...mentaTypography.caption,
+      color: mentaColors.danger,
+    },
+    boostConfirmActions: {
+      gap: mentaSpacing[3],
+      marginTop: mentaSpacing[5],
+    },
+    errorShell: {
+      flex: 1,
+      justifyContent: 'center',
+      paddingHorizontal: mentaSpacing[6],
+    },
+    errorTitle: {
+      ...mentaTypography.heading,
+      color: mentaColors.text.primary,
+    },
+    errorText: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+      marginTop: mentaSpacing[3],
+      marginBottom: mentaSpacing[6],
+    },
+    errorActions: {
+      gap: mentaSpacing[3],
+    },
+  });
+  const qrStyles = StyleSheet.create({
+    modalContent: {
+      borderRadius: mentaRadii.large,
+      padding: mentaSpacing[6],
+      minWidth: 300,
+      maxWidth: 420,
+      width: '100%',
+      borderWidth: StyleSheet.hairlineWidth,
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: mentaSpacing[6],
+    },
+    modalTitle: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+    },
+    closeButton: {
+      minWidth: mentaLayout.minimumTouchTarget,
+      minHeight: mentaLayout.minimumTouchTarget,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    qrContainer: {
+      alignItems: 'center',
+      alignSelf: 'center',
+      marginBottom: mentaSpacing[6],
+      padding: mentaSpacing[5],
+      borderRadius: mentaRadii.medium,
+      backgroundColor: mentaColors.paper,
+    },
+    inviteCodeBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: mentaSpacing[4],
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+      marginBottom: mentaSpacing[5],
+    },
+    inviteCodeText: {
+      ...mentaTypography.control,
+      color: mentaColors.text.primary,
+      letterSpacing: 2,
+      flex: 1,
+      textAlign: 'center',
+    },
+    copyIconButton: {
+      padding: mentaSpacing[1],
+    },
+    pressed: {
+      opacity: 0.72,
+    },
+    inviteInlineNotice: {
+      marginBottom: mentaSpacing[4],
+    },
+    modalActions: {
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+    },
+    modalButton: {
+      flex: 1,
+    },
+  });
+  return { styles, qrStyles };
+};

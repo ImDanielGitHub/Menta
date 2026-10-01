@@ -1,11 +1,12 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-
 import {
-  mentaColors,
+  type MentaPalette,
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+
 import { useTheme } from '@/constants/ThemeContext';
 import { useTranslation } from '@/lib/localization';
 import { mentaFonts } from '@/lib/menta-fonts';
@@ -25,6 +26,8 @@ export function ProfileStatTrio({
   daysKept: number | null;
   hasActivePromise: boolean;
 }) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const { colors } = useTheme();
   const freshStart = currentStreak === 0 && hasActivePromise;
@@ -83,30 +86,33 @@ export function ProfileStatTrio({
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    marginTop: mentaSpacing[6],
-  },
-  stat: {
-    flex: 1,
-    gap: 2,
-    paddingRight: mentaSpacing[3],
-  },
-  statDivided: {
-    borderLeftColor: mentaColors.border,
-    borderLeftWidth: StyleSheet.hairlineWidth,
-    paddingLeft: mentaSpacing[5],
-  },
-  value: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.newsreader.semibold,
-    fontSize: 40,
-    letterSpacing: -0.8,
-    lineHeight: 46,
-  },
-  label: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    row: {
+      flexDirection: 'row',
+      marginTop: mentaSpacing[6],
+    },
+    stat: {
+      flex: 1,
+      gap: 2,
+      paddingRight: mentaSpacing[3],
+    },
+    statDivided: {
+      borderLeftColor: mentaColors.border,
+      borderLeftWidth: StyleSheet.hairlineWidth,
+      paddingLeft: mentaSpacing[5],
+    },
+    value: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.newsreader.semibold,
+      fontSize: 40,
+      letterSpacing: -0.8,
+      lineHeight: 46,
+    },
+    label: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+    },
+  });
+  return { styles };
+};

@@ -1,3 +1,15 @@
+import {
+  loadPromiseCreationDraft,
+  clearPromiseCreationDraft,
+} from '@/lib/promise-creation-draft';
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import * as Clipboard from 'expo-clipboard';
 import * as Updates from 'expo-updates';
@@ -40,13 +52,7 @@ import {
   ShieldIcon,
   UsersIcon,
 } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import {
   promiseAccountabilityQueryKey,
   usePromiseAccountability,
@@ -204,6 +210,9 @@ const MemberRow = ({
   member: PromiseAccountabilityMember;
   onPress?: () => void;
 }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const initials = member.name
     .split(/\s+/u)
@@ -261,6 +270,9 @@ const MemberRow = ({
 };
 
 const SavedGroupThumbnail = ({ group }: { group: AttachableSavedGroup }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const imageUrl = group.imageUrl?.trim() || null;
   const preset = resolveGroupImagePreset(imageUrl);
   const imageSource =
@@ -300,6 +312,9 @@ export function PromisePicker({
   onBack: () => void;
   source?: AccountabilityJourneySource;
 }) {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const router = useRouter();
   const { t } = useTranslation();
   const user = useAuthStore(state => state.user);
@@ -628,6 +643,8 @@ export function PromisePicker({
 }
 
 const PromisePickerLoading = () => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
 
   return (
@@ -679,16 +696,22 @@ const PromisePickerLoading = () => {
   );
 };
 
-const LoadingStatus = ({ label }: { label: string }) => (
-  <View style={styles.loadingStatus}>
-    <View style={styles.loadingStatusMark}>
-      <UsersIcon color={mentaColors.action} size={17} />
+const LoadingStatus = ({ label }: { label: string }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View style={styles.loadingStatus}>
+      <View style={styles.loadingStatusMark}>
+        <UsersIcon color={mentaColors.action} size={17} />
+      </View>
+      <Text style={styles.loadingStatusText}>{label}</Text>
     </View>
-    <Text style={styles.loadingStatusText}>{label}</Text>
-  </View>
-);
+  );
+};
 
 const PromiseAccountabilityLoading = () => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
 
   return (
@@ -719,6 +742,9 @@ const PromiseAccountabilityLoading = () => {
 };
 
 export default function PromiseAccountabilityRoute() {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const router = useRouter();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -727,14 +753,19 @@ export default function PromiseAccountabilityRoute() {
     challengeId?: string | string[];
     source?: string | string[];
     originGroupId?: string | string[];
+    requiredReviewer?: string | string[];
   }>();
   const challengeId = firstParam(params.challengeId);
   const source = firstParam(params.source);
   const originGroupId = firstParam(params.originGroupId);
+  const requiredReviewer = firstParam(params.requiredReviewer) === '1';
+  const inviteRoleOptions = requiredReviewer
+    ? ROLE_OPTIONS.filter(option => option !== 'supporter')
+    : ROLE_OPTIONS;
   const journeySource = accountabilityJourneySource(source);
   const summaryQuery = usePromiseAccountability(challengeId);
   const [role, setRole] = React.useState<PromiseAccountabilityRole | null>(
-    null
+    requiredReviewer ? 'reviewer' : null
   );
   const [showOnboardingQr, setShowOnboardingQr] = React.useState(false);
   const [preparing, setPreparing] = React.useState(false);
@@ -1720,6 +1751,40 @@ export default function PromiseAccountabilityRoute() {
   }, [applyLeaveResult, challengeId, leaveRecovery, leaving, t]);
 
   const summary = summaryQuery.data;
+  const reviewerReady = Boolean(
+    summary?.members.some(
+      member =>
+        member.id !== currentUser?.id &&
+        (member.role === 'reviewer' || member.role === 'partner')
+    )
+  );
+  React.useEffect(() => {
+    if (
+      !requiredReviewer ||
+      !reviewerReady ||
+      !summary?.canInvite ||
+      !currentUser?.id ||
+      !challengeId
+    )
+      return;
+    let active = true;
+    const owner = currentUser.id;
+    void loadPromiseCreationDraft(owner)
+      .then(draft => {
+        if (active && draft?.pendingFriendChallengeId === challengeId)
+          return clearPromiseCreationDraft(owner);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [
+    requiredReviewer,
+    reviewerReady,
+    summary?.canInvite,
+    currentUser?.id,
+    challengeId,
+  ]);
   const viewerMember = summary?.members.find(
     member => member.id === currentUser?.id
   );
@@ -1843,6 +1908,15 @@ export default function PromiseAccountabilityRoute() {
               </View>
             ) : null}
 
+            {requiredReviewer && summary && !reviewerReady ? (
+              <AppInlineNotice
+                title={t('commerce.free.pendingReviewer')}
+                description={t('commerce.free.pendingDetail')}
+                tone="warning"
+                actionLabel={t('groups.source.accountability.common.try_again')}
+                onAction={() => void summaryQuery.refetch()}
+              />
+            ) : null}
             {summaryQuery.isLoading ? (
               <PromiseAccountabilityLoading />
             ) : summaryQuery.isError || !summary ? (
@@ -1954,7 +2028,7 @@ export default function PromiseAccountabilityRoute() {
                   testID="accountability-promise"
                 />
                 <View accessibilityRole="radiogroup" style={styles.roleOptions}>
-                  {ROLE_OPTIONS.map(option => {
+                  {inviteRoleOptions.map(option => {
                     const copy = accountabilityRoleCopy(option, t);
                     return (
                       <AppOptionCard
@@ -2094,7 +2168,7 @@ export default function PromiseAccountabilityRoute() {
                       accessibilityRole="radiogroup"
                       style={styles.roleOptions}
                     >
-                      {ROLE_OPTIONS.map(option => {
+                      {inviteRoleOptions.map(option => {
                         const copy = accountabilityRoleCopy(option, t);
                         return (
                           <AppOptionCard
@@ -2716,380 +2790,383 @@ export default function PromiseAccountabilityRoute() {
   );
 }
 
-const styles = StyleSheet.create({
-  inviteScreenContent: { flex: 1 },
-  inviteScroll: { flex: 1 },
-  inviteFooter: {
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[3],
-    paddingTop: mentaSpacing[3],
-    paddingBottom: mentaSpacing[3],
-  },
-  inviteQrContent: { gap: mentaSpacing[3] },
-  qrDetail: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-  },
-  screenContent: {
-    flexGrow: 1,
-    gap: mentaSpacing[6],
-    paddingBottom: mentaSpacing[10],
-    paddingTop: mentaSpacing[3],
-  },
-  pickerBody: {
-    flexGrow: 1,
-    gap: mentaSpacing[6],
-    paddingTop: mentaSpacing[4],
-    paddingBottom: mentaSpacing[8],
-  },
-  pickerEmpty: { gap: mentaSpacing[3], paddingTop: mentaSpacing[2] },
-  pickerEmptyTitle: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-  },
-  flowStack: { gap: mentaSpacing[6] },
-  onboardingInviteProgress: {
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-    width: '100%',
-  },
-  onboardingInviteProgressActive: {
-    backgroundColor: mentaColors.action,
-    borderRadius: mentaRadii.small,
-    flex: 1,
-    height: 5,
-  },
-  onboardingInviteProgressInactive: {
-    backgroundColor: mentaColors.border,
-    borderRadius: mentaRadii.small,
-    flex: 1,
-    height: 5,
-  },
-  headingBlock: { gap: mentaSpacing[3] },
-  heading: {
-    ...mentaTypography.heading,
-    color: mentaColors.text.primary,
-  },
-  lead: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-    maxWidth: mentaLayout.readingMeasure,
-  },
-  accountabilityTransition: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    minHeight: 360,
-    paddingBottom: mentaSpacing[10],
-  },
-  accountabilityTransitionContent: {
-    gap: mentaSpacing[3],
-    width: '100%',
-  },
-  accountabilityTransitionEyebrow: {
-    color: mentaColors.action,
-    ...mentaTypography.labelBold,
-  },
-  accountabilityTransitionTitle: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.heading,
-  },
-  accountabilityTransitionDetail: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.body,
-  },
-  loadingStatus: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 44,
-  },
-  loadingStatusMark: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.actionSoft,
-    borderRadius: mentaRadii.round,
-    height: 32,
-    justifyContent: 'center',
-    width: 32,
-  },
-  loadingStatusText: {
-    color: mentaColors.text.primary,
-    flex: 1,
-    ...mentaTypography.bodySmallMedium,
-  },
-  promiseList: { gap: mentaSpacing[3] },
-  promiseChoice: {
-    backgroundColor: mentaColors.paper,
-    borderColor: mentaColors.borderPaper,
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    overflow: 'hidden',
-    padding: mentaSpacing[4],
-    transform: [{ rotate: '-0.18deg' }],
-  },
-  promiseChoicePressed: {
-    backgroundColor: mentaColors.paperPressed,
-    transform: [{ rotate: '-0.1deg' }, { scale: 0.995 }],
-  },
-  promiseChoiceLabel: {
-    ...mentaTypography.label,
-    color: mentaColors.text.mutedOnPaper,
-  },
-  promiseChoiceTitle: {
-    ...mentaTypography.title,
-    color: mentaColors.text.onPaper,
-    marginTop: mentaSpacing[2],
-  },
-  promiseChoiceRule: {
-    backgroundColor: mentaColors.actionOnPaper,
-    borderRadius: mentaRadii.round,
-    height: 3,
-    marginTop: mentaSpacing[3],
-    width: 64,
-  },
-  promiseChoiceFooter: {
-    alignItems: 'center',
-    borderTopColor: mentaColors.borderPaper,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    marginTop: mentaSpacing[4],
-    paddingTop: mentaSpacing[3],
-  },
-  promiseChoicePeopleIcon: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(103, 66, 168, 0.11)',
-    borderRadius: mentaRadii.round,
-    height: 38,
-    justifyContent: 'center',
-    width: 38,
-  },
-  promiseChoiceDetail: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.mutedOnPaper,
-    flex: 1,
-    minWidth: 0,
-  },
-  promiseChoiceLoading: {
-    backgroundColor: mentaColors.paper,
-    borderColor: mentaColors.borderPaper,
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[3],
-    padding: mentaSpacing[5],
-    transform: [{ rotate: '-0.18deg' }],
-  },
-  paperSkeleton: {
-    backgroundColor: mentaColors.borderPaper,
-  },
-  promiseChoiceLoadingRule: {
-    backgroundColor: 'rgba(103, 66, 168, 0.46)',
-    borderRadius: mentaRadii.round,
-    height: 3,
-    marginTop: mentaSpacing[1],
-    width: 64,
-  },
-  promiseChoiceLoadingFooter: {
-    alignItems: 'center',
-    borderTopColor: mentaColors.borderPaper,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    marginTop: mentaSpacing[2],
-    paddingTop: mentaSpacing[4],
-  },
-  promiseChoiceLoadingCopy: {
-    flex: 1,
-    gap: mentaSpacing[2],
-  },
-  peopleSection: { gap: mentaSpacing[3] },
-  sectionLabel: {
-    ...mentaTypography.label,
-    color: mentaColors.text.muted,
-    letterSpacing: 0.7,
-  },
-  memberList: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  memberRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 66,
-    paddingVertical: mentaSpacing[3],
-  },
-  memberRowPressed: { backgroundColor: mentaColors.actionSoft },
-  memberAvatar: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.raised,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.round,
-    borderWidth: 1,
-    height: 38,
-    justifyContent: 'center',
-    width: 38,
-  },
-  memberAvatarOwner: { backgroundColor: mentaColors.actionSoft },
-  memberInitials: {
-    ...mentaTypography.label,
-    color: mentaColors.text.primary,
-  },
-  memberCopy: { flex: 1, minWidth: 0 },
-  memberName: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  memberDetail: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-  memberSuccess: {
-    ...mentaTypography.caption,
-    color: mentaColors.success,
-  },
-  memberRole: {
-    ...mentaTypography.label,
-    color: mentaColors.text.muted,
-    maxWidth: 92,
-    textAlign: 'right',
-  },
-  roleSection: { gap: mentaSpacing[4] },
-  sectionTitle: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-  },
-  roleOptions: { gap: mentaSpacing[3] },
-  roleArt: { width: 64, height: 68 },
-  privateNote: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-    justifyContent: 'center',
-  },
-  privateNoteText: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-    flex: 1,
-  },
-  qrShell: {
-    alignItems: 'center',
-    alignSelf: 'center',
-    backgroundColor: mentaColors.paper,
-    borderRadius: mentaRadii.large,
-    padding: mentaSpacing[5],
-  },
-  actions: { gap: mentaSpacing[3] },
-  manageSheet: { gap: mentaSpacing[3] },
-  savedGroupPickerBody: { gap: 18 },
-  savedGroupPickerHeading: { gap: mentaSpacing[2] },
-  savedGroupPickerTitle: {
-    ...mentaTypography.heading,
-    color: mentaColors.text.primary,
-  },
-  savedGroupPickerDetail: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-    maxWidth: mentaLayout.readingMeasure,
-  },
-  savedGroupLoadingList: {
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    overflow: 'hidden',
-  },
-  savedGroupLoadingRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 82,
-    paddingHorizontal: 14,
-    paddingVertical: mentaSpacing[3],
-  },
-  savedGroupLoadingCopy: { flex: 1, gap: mentaSpacing[2] },
-  savedGroupList: {
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    overflow: 'hidden',
-  },
-  savedGroupRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 82,
-    paddingHorizontal: 14,
-    paddingVertical: mentaSpacing[3],
-  },
-  savedGroupRowDivider: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  savedGroupRowPressed: { backgroundColor: mentaColors.actionSoft },
-  savedGroupThumbnail: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.actionSoft,
-    borderRadius: mentaRadii.medium,
-    height: 56,
-    justifyContent: 'center',
-    overflow: 'hidden',
-    width: 56,
-  },
-  savedGroupImage: { height: '100%', width: '100%' },
-  savedGroupCopy: { flex: 1, gap: 3, minWidth: 0 },
-  savedGroupName: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-    fontSize: 21,
-    lineHeight: 26,
-  },
-  savedGroupMeta: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-  savedGroupRadioTarget: {
-    alignItems: 'center',
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
-  },
-  savedGroupRadio: {
-    alignItems: 'center',
-    borderColor: mentaColors.action,
-    borderRadius: mentaRadii.round,
-    borderWidth: 2,
-    height: 24,
-    justifyContent: 'center',
-    width: 24,
-  },
-  savedGroupRadioSelected: { backgroundColor: mentaColors.action },
-  createSavedGroupRow: {
-    alignItems: 'center',
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 64,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  createSavedGroupIcon: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.actionSoft,
-    borderRadius: mentaRadii.round,
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
-  },
-  createSavedGroupTitle: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  createSavedGroupDetail: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    inviteScreenContent: { flex: 1 },
+    inviteScroll: { flex: 1 },
+    inviteFooter: {
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[3],
+      paddingTop: mentaSpacing[3],
+      paddingBottom: mentaSpacing[3],
+    },
+    inviteQrContent: { gap: mentaSpacing[3] },
+    qrDetail: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+    },
+    screenContent: {
+      flexGrow: 1,
+      gap: mentaSpacing[6],
+      paddingBottom: mentaSpacing[10],
+      paddingTop: mentaSpacing[3],
+    },
+    pickerBody: {
+      flexGrow: 1,
+      gap: mentaSpacing[6],
+      paddingTop: mentaSpacing[4],
+      paddingBottom: mentaSpacing[8],
+    },
+    pickerEmpty: { gap: mentaSpacing[3], paddingTop: mentaSpacing[2] },
+    pickerEmptyTitle: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+    },
+    flowStack: { gap: mentaSpacing[6] },
+    onboardingInviteProgress: {
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+      width: '100%',
+    },
+    onboardingInviteProgressActive: {
+      backgroundColor: mentaColors.action,
+      borderRadius: mentaRadii.small,
+      flex: 1,
+      height: 5,
+    },
+    onboardingInviteProgressInactive: {
+      backgroundColor: mentaColors.border,
+      borderRadius: mentaRadii.small,
+      flex: 1,
+      height: 5,
+    },
+    headingBlock: { gap: mentaSpacing[3] },
+    heading: {
+      ...mentaTypography.heading,
+      color: mentaColors.text.primary,
+    },
+    lead: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+      maxWidth: mentaLayout.readingMeasure,
+    },
+    accountabilityTransition: {
+      flexGrow: 1,
+      justifyContent: 'center',
+      minHeight: 360,
+      paddingBottom: mentaSpacing[10],
+    },
+    accountabilityTransitionContent: {
+      gap: mentaSpacing[3],
+      width: '100%',
+    },
+    accountabilityTransitionEyebrow: {
+      color: mentaColors.action,
+      ...mentaTypography.labelBold,
+    },
+    accountabilityTransitionTitle: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.heading,
+    },
+    accountabilityTransitionDetail: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.body,
+    },
+    loadingStatus: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 44,
+    },
+    loadingStatusMark: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.actionSoft,
+      borderRadius: mentaRadii.round,
+      height: 32,
+      justifyContent: 'center',
+      width: 32,
+    },
+    loadingStatusText: {
+      color: mentaColors.text.primary,
+      flex: 1,
+      ...mentaTypography.bodySmallMedium,
+    },
+    promiseList: { gap: mentaSpacing[3] },
+    promiseChoice: {
+      backgroundColor: mentaColors.paper,
+      borderColor: mentaColors.borderPaper,
+      borderRadius: mentaRadii.large,
+      borderWidth: StyleSheet.hairlineWidth,
+      overflow: 'hidden',
+      padding: mentaSpacing[4],
+      transform: [{ rotate: '-0.18deg' }],
+    },
+    promiseChoicePressed: {
+      backgroundColor: mentaColors.paperPressed,
+      transform: [{ rotate: '-0.1deg' }, { scale: 0.995 }],
+    },
+    promiseChoiceLabel: {
+      ...mentaTypography.label,
+      color: mentaColors.text.mutedOnPaper,
+    },
+    promiseChoiceTitle: {
+      ...mentaTypography.title,
+      color: mentaColors.text.onPaper,
+      marginTop: mentaSpacing[2],
+    },
+    promiseChoiceRule: {
+      backgroundColor: mentaColors.actionOnPaper,
+      borderRadius: mentaRadii.round,
+      height: 3,
+      marginTop: mentaSpacing[3],
+      width: 64,
+    },
+    promiseChoiceFooter: {
+      alignItems: 'center',
+      borderTopColor: mentaColors.borderPaper,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      marginTop: mentaSpacing[4],
+      paddingTop: mentaSpacing[3],
+    },
+    promiseChoicePeopleIcon: {
+      alignItems: 'center',
+      backgroundColor: 'rgba(103, 66, 168, 0.11)',
+      borderRadius: mentaRadii.round,
+      height: 38,
+      justifyContent: 'center',
+      width: 38,
+    },
+    promiseChoiceDetail: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.mutedOnPaper,
+      flex: 1,
+      minWidth: 0,
+    },
+    promiseChoiceLoading: {
+      backgroundColor: mentaColors.paper,
+      borderColor: mentaColors.borderPaper,
+      borderRadius: mentaRadii.large,
+      borderWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[3],
+      padding: mentaSpacing[5],
+      transform: [{ rotate: '-0.18deg' }],
+    },
+    paperSkeleton: {
+      backgroundColor: mentaColors.borderPaper,
+    },
+    promiseChoiceLoadingRule: {
+      backgroundColor: 'rgba(103, 66, 168, 0.46)',
+      borderRadius: mentaRadii.round,
+      height: 3,
+      marginTop: mentaSpacing[1],
+      width: 64,
+    },
+    promiseChoiceLoadingFooter: {
+      alignItems: 'center',
+      borderTopColor: mentaColors.borderPaper,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      marginTop: mentaSpacing[2],
+      paddingTop: mentaSpacing[4],
+    },
+    promiseChoiceLoadingCopy: {
+      flex: 1,
+      gap: mentaSpacing[2],
+    },
+    peopleSection: { gap: mentaSpacing[3] },
+    sectionLabel: {
+      ...mentaTypography.label,
+      color: mentaColors.text.muted,
+      letterSpacing: 0.7,
+    },
+    memberList: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+    },
+    memberRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 66,
+      paddingVertical: mentaSpacing[3],
+    },
+    memberRowPressed: { backgroundColor: mentaColors.actionSoft },
+    memberAvatar: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.raised,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.round,
+      borderWidth: 1,
+      height: 38,
+      justifyContent: 'center',
+      width: 38,
+    },
+    memberAvatarOwner: { backgroundColor: mentaColors.actionSoft },
+    memberInitials: {
+      ...mentaTypography.label,
+      color: mentaColors.text.primary,
+    },
+    memberCopy: { flex: 1, minWidth: 0 },
+    memberName: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    memberDetail: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+    memberSuccess: {
+      ...mentaTypography.caption,
+      color: mentaColors.success,
+    },
+    memberRole: {
+      ...mentaTypography.label,
+      color: mentaColors.text.muted,
+      maxWidth: 92,
+      textAlign: 'right',
+    },
+    roleSection: { gap: mentaSpacing[4] },
+    sectionTitle: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+    },
+    roleOptions: { gap: mentaSpacing[3] },
+    roleArt: { width: 64, height: 68 },
+    privateNote: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+      justifyContent: 'center',
+    },
+    privateNoteText: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+      flex: 1,
+    },
+    qrShell: {
+      alignItems: 'center',
+      alignSelf: 'center',
+      backgroundColor: mentaColors.paper,
+      borderRadius: mentaRadii.large,
+      padding: mentaSpacing[5],
+    },
+    actions: { gap: mentaSpacing[3] },
+    manageSheet: { gap: mentaSpacing[3] },
+    savedGroupPickerBody: { gap: 18 },
+    savedGroupPickerHeading: { gap: mentaSpacing[2] },
+    savedGroupPickerTitle: {
+      ...mentaTypography.heading,
+      color: mentaColors.text.primary,
+    },
+    savedGroupPickerDetail: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+      maxWidth: mentaLayout.readingMeasure,
+    },
+    savedGroupLoadingList: {
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: StyleSheet.hairlineWidth,
+      overflow: 'hidden',
+    },
+    savedGroupLoadingRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 82,
+      paddingHorizontal: 14,
+      paddingVertical: mentaSpacing[3],
+    },
+    savedGroupLoadingCopy: { flex: 1, gap: mentaSpacing[2] },
+    savedGroupList: {
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: StyleSheet.hairlineWidth,
+      overflow: 'hidden',
+    },
+    savedGroupRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 82,
+      paddingHorizontal: 14,
+      paddingVertical: mentaSpacing[3],
+    },
+    savedGroupRowDivider: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+    savedGroupRowPressed: { backgroundColor: mentaColors.actionSoft },
+    savedGroupThumbnail: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.actionSoft,
+      borderRadius: mentaRadii.medium,
+      height: 56,
+      justifyContent: 'center',
+      overflow: 'hidden',
+      width: 56,
+    },
+    savedGroupImage: { height: '100%', width: '100%' },
+    savedGroupCopy: { flex: 1, gap: 3, minWidth: 0 },
+    savedGroupName: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+      fontSize: 21,
+      lineHeight: 26,
+    },
+    savedGroupMeta: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+    savedGroupRadioTarget: {
+      alignItems: 'center',
+      height: 44,
+      justifyContent: 'center',
+      width: 44,
+    },
+    savedGroupRadio: {
+      alignItems: 'center',
+      borderColor: mentaColors.action,
+      borderRadius: mentaRadii.round,
+      borderWidth: 2,
+      height: 24,
+      justifyContent: 'center',
+      width: 24,
+    },
+    savedGroupRadioSelected: { backgroundColor: mentaColors.action },
+    createSavedGroupRow: {
+      alignItems: 'center',
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 64,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+    },
+    createSavedGroupIcon: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.actionSoft,
+      borderRadius: mentaRadii.round,
+      height: 44,
+      justifyContent: 'center',
+      width: 44,
+    },
+    createSavedGroupTitle: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    createSavedGroupDetail: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+  });
+  return { styles };
+};

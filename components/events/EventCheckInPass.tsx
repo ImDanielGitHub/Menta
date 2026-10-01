@@ -1,12 +1,14 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import QRCode from 'react-native-qrcode-svg';
 import {
-  mentaColors,
+  type MentaPalette,
   mentaRadii,
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import QRCode from 'react-native-qrcode-svg';
+
 import { useTranslation } from '@/lib/localization';
 
 export function EventCheckInPass({
@@ -16,6 +18,9 @@ export function EventCheckInPass({
   code: string;
   size?: number;
 }) {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const qrSize = Math.min(224, Math.max(208, size));
 
@@ -41,33 +46,36 @@ export function EventCheckInPass({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    alignItems: 'center',
-    alignSelf: 'stretch',
-    backgroundColor: mentaColors.paper,
-    borderColor: mentaColors.borderPaper,
-    borderRadius: mentaRadii.large,
-    borderWidth: 1,
-    gap: mentaSpacing[2],
-    paddingHorizontal: mentaSpacing[4],
-    paddingVertical: mentaSpacing[5],
-    width: '100%',
-  },
-  qrShell: {
-    backgroundColor: mentaColors.paper,
-    borderRadius: mentaRadii.medium,
-    overflow: 'hidden',
-  },
-  label: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.onPaper,
-    marginTop: mentaSpacing[1],
-    textAlign: 'center',
-  },
-  help: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.mutedOnPaper,
-    textAlign: 'center',
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    card: {
+      alignItems: 'center',
+      alignSelf: 'stretch',
+      backgroundColor: mentaColors.paper,
+      borderColor: mentaColors.borderPaper,
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      gap: mentaSpacing[2],
+      paddingHorizontal: mentaSpacing[4],
+      paddingVertical: mentaSpacing[5],
+      width: '100%',
+    },
+    qrShell: {
+      backgroundColor: mentaColors.paper,
+      borderRadius: mentaRadii.medium,
+      overflow: 'hidden',
+    },
+    label: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.onPaper,
+      marginTop: mentaSpacing[1],
+      textAlign: 'center',
+    },
+    help: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.mutedOnPaper,
+      textAlign: 'center',
+    },
+  });
+  return { styles };
+};

@@ -470,6 +470,25 @@ export const fetchPromiseAccountability = async (
       localise('groups.source.accountability.error.people_load')
     );
   }
+  // These HTTP-200 responses are deliberate server denials, not incomplete
+  // summaries. AUTH_REQUIRED can mean a revoked session: keep it denied rather
+  // than refreshing repeatedly. Missing promises and denied access stay opaque.
+  if (isRecord(data) && data.success === false) {
+    if (data.error === 'AUTH_REQUIRED') {
+      throw createAccountabilityRequestError(
+        { code: 'AUTH_REQUIRED', status: 401 },
+        localise('todayProof.residual.sign_in_again')
+      );
+    }
+    if (data.error === 'PROMISE_NOT_FOUND') {
+      throw createAccountabilityRequestError(
+        { code: 'PROMISE_NOT_FOUND', status: 404 },
+        localise(
+          'todayProof.residual.menta_could_not_confirm_that_this_account_can_open_the_promise_a'
+        )
+      );
+    }
+  }
   const summary = decodePromiseAccountabilitySummary(data);
   if (!summary) {
     throw new Error(

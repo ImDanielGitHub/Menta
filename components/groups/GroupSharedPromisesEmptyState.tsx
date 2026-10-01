@@ -1,13 +1,15 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-
-import { AppButton, MentaMascot } from '@/components/ui';
 import {
-  mentaColors,
+  type MentaPalette,
   mentaLayout,
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+
+import { AppButton, MentaMascot } from '@/components/ui';
+
 import { useTranslation } from '@/lib/localization';
 
 export const GroupSharedPromisesEmptyState = ({
@@ -19,6 +21,8 @@ export const GroupSharedPromisesEmptyState = ({
   onAddPromise?: () => void;
   onInvitePeople?: () => void;
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <View style={styles.container} testID="group-shared-promises-empty-state">
@@ -62,33 +66,36 @@ export const GroupSharedPromisesEmptyState = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    alignSelf: 'center',
-    gap: mentaSpacing[5],
-    maxWidth: mentaLayout.taskLane,
-    paddingBottom: mentaSpacing[4],
-    paddingTop: mentaSpacing[5],
-    width: '100%',
-  },
-  orientation: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[4],
-  },
-  mascot: { flexShrink: 0, height: 104, width: 104 },
-  copy: { flex: 1, gap: mentaSpacing[2], minWidth: 0 },
-  title: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-  },
-  body: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-  },
-  actions: { alignSelf: 'stretch', gap: mentaSpacing[2] },
-  note: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.muted,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    container: {
+      alignSelf: 'center',
+      gap: mentaSpacing[5],
+      maxWidth: mentaLayout.taskLane,
+      paddingBottom: mentaSpacing[4],
+      paddingTop: mentaSpacing[5],
+      width: '100%',
+    },
+    orientation: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[4],
+    },
+    mascot: { flexShrink: 0, height: 104, width: 104 },
+    copy: { flex: 1, gap: mentaSpacing[2], minWidth: 0 },
+    title: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+    },
+    body: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+    },
+    actions: { alignSelf: 'stretch', gap: mentaSpacing[2] },
+    note: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.muted,
+    },
+  });
+  return { styles };
+};

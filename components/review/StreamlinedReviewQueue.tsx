@@ -1,4 +1,18 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import { backOrReplace } from '@/lib/navigation/safe-back';
+import { MentaReviewHint } from '@/components/menta-check/menta-review-hint';
+import { ReviewerRoleLine } from '@/components/review/ReviewerRoleLine';
+import { ConfettiBurst } from '@/components/ui/ConfettiBurst';
+import { MentaMascot } from '@/components/ui/MentaMascot';
+import { usePromiseAccountability } from '@/hooks/usePromiseAccountability';
+import { resolveReviewerStance } from '@/lib/proof/proof-roles';
 import { useTranslation } from '@/lib/localization';
 /**
  * Streamlined Review Queue
@@ -66,13 +80,7 @@ import {
 import { ReviewDecisionError } from '@/lib/review-decision';
 import { getReviewEvidenceStatus } from '@/lib/review-evidence';
 import { useLargeTypeLineLimit } from '@/lib/accessibility';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { trackProductEvent } from '@/lib/posthog';
 
 type ReviewStatus = Exclude<ModerationStatus, 'reported'>;
@@ -117,6 +125,7 @@ type LastDecision = {
   username: string;
   challengeTitle: string;
   remainingPending: number;
+  receiptId: string;
 } | null;
 type ReviewRewardState =
   | { status: 'idle' }
@@ -137,6 +146,8 @@ type ReviewUnknownState = {
 };
 
 export const ReviewQueueSkeleton = ({ onBack }: { onBack: () => void }) => {
+  const { reviewQueueSkeletonStyles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <View
@@ -421,6 +432,8 @@ export const StreamlinedReviewQueue: React.FC<StreamlinedReviewQueueProps> = ({
   entryPoint,
   onStatusChange,
 }) => {
+  const mentaColors = useMentaPalette();
+
   const theme = useTheme();
   const { locale, t } = useTranslation();
   const { colors } = theme;
@@ -640,6 +653,20 @@ export const StreamlinedReviewQueue: React.FC<StreamlinedReviewQueueProps> = ({
     );
   }, [activeSubmissionId, filteredSubmissions]);
 
+  const activeAccountability = usePromiseAccountability(
+    activeSubmission?.challenge_id
+  );
+  const activeStance = useMemo(
+    () =>
+      resolveReviewerStance({
+        summary: activeAccountability.data,
+        viewerId: user?.id,
+      }),
+    [activeAccountability.data, user?.id]
+  );
+  // Supporters cheer; they never decide. The server refuses their review too.
+  const canDecideActive = activeStance.kind !== 'supporter';
+
   const activeEvidenceStatus =
     useMemo<ReviewEvidenceAvailability | null>(() => {
       if (!activeSubmission) return null;
@@ -824,6 +851,7 @@ export const StreamlinedReviewQueue: React.FC<StreamlinedReviewQueueProps> = ({
                 username: targetSubmission.user.name,
                 challengeTitle: targetSubmission.challenge.title,
                 remainingPending: Math.max(0, summaryCounts.pending - 1),
+                receiptId: receipt.id,
               }
             : null
         );
@@ -1081,6 +1109,11 @@ export const StreamlinedReviewQueue: React.FC<StreamlinedReviewQueueProps> = ({
           </View>
         </View>
 
+        <ReviewerRoleLine
+          stance={activeStance}
+          submitterName={activeSubmission.user.name}
+        />
+        <MentaReviewHint submissionId={activeSubmission.id} />
         <View style={styles.reviewMediaCard}>
           <View style={styles.mediaFrame}>
             {activeEvidenceStatus === 'unavailable' ? (
@@ -1390,41 +1423,59 @@ export const StreamlinedReviewQueue: React.FC<StreamlinedReviewQueueProps> = ({
           approved ? 'review-approved-receipt' : 'review-correction-receipt'
         }
       >
+        {approved ? (
+          <ConfettiBurst
+            key={lastDecision.receiptId}
+            intensity="small"
+            testID="review-approved-confetti"
+          />
+        ) : null}
         <View style={styles.header}>
           <AppTopBar
-            title={t('todayProof.review.saved')}
+            title={approved ? undefined : t('todayProof.review.saved')}
             onBack={() => setLastDecision(null)}
           />
-          <View style={styles.reviewThesis}>
-            <Text style={[styles.reviewTitle, styles.reviewReceiptTitle]}>
-              {approved
-                ? t('todayProof.review.approved_receipt', {
-                    name: lastDecision.username,
-                  })
-                : t('todayProof.review.retry_receipt', {
-                    name: lastDecision.username,
-                  })}
-            </Text>
-            <Text style={styles.reviewCopy}>
-              {approved
-                ? t('todayProof.review.approved_detail', {
-                    promise: lastDecision.challengeTitle,
-                  })
-                : t('todayProof.review.feedback_sent')}
-            </Text>
-          </View>
+          {approved ? (
+            <View style={styles.approvedHero} accessibilityLiveRegion="polite">
+              <MentaMascot state="menta-check" size="xl" />
+              <Text style={styles.approvedTitle} accessibilityRole="header">
+                {t('proofRoles.review.approved_title', {
+                  name: lastDecision.username,
+                })}
+              </Text>
+              <Text style={styles.approvedDetail}>
+                {t('proofRoles.review.approved_detail', {
+                  name: lastDecision.username,
+                })}
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.reviewThesis}>
+              <Text style={[styles.reviewTitle, styles.reviewReceiptTitle]}>
+                {t('todayProof.review.retry_receipt', {
+                  name: lastDecision.username,
+                })}
+              </Text>
+              <Text style={styles.reviewCopy}>
+                {t('todayProof.review.feedback_sent')}
+              </Text>
+            </View>
+          )}
         </View>
 
-        <View style={styles.errorActions}>
+        <View style={approved ? styles.approvedActions : styles.errorActions}>
           <AppButton
             title={
               lastDecision.remainingPending > 0
-                ? `Review next proof (${lastDecision.remainingPending})`
+                ? t('proofRoles.review.next', {
+                    count: lastDecision.remainingPending,
+                  })
                 : t('todayProof.review.cleared')
             }
             onPress={() => setLastDecision(null)}
             variant="primary"
             size="large"
+            fullWidth={approved}
           />
           <AppButton
             title={
@@ -1435,6 +1486,7 @@ export const StreamlinedReviewQueue: React.FC<StreamlinedReviewQueueProps> = ({
             onPress={returnToOrigin}
             variant="secondary"
             size="large"
+            fullWidth={approved}
           />
         </View>
       </View>
@@ -1609,7 +1661,8 @@ export const StreamlinedReviewQueue: React.FC<StreamlinedReviewQueueProps> = ({
       </ScrollView>
 
       {activeSubmission?.status === 'pending' &&
-      activeEvidenceStatus === 'available' ? (
+      activeEvidenceStatus === 'available' &&
+      canDecideActive ? (
         <View style={styles.bottomAction}>
           <View style={styles.bottomActionCopy}>
             <Text style={styles.bottomActionTitle}>
@@ -1630,7 +1683,7 @@ export const StreamlinedReviewQueue: React.FC<StreamlinedReviewQueueProps> = ({
               }
             />
             <AppButton
-              title={t('todayProof.review.approve')}
+              title={t('proofRoles.review.approve')}
               onPress={() => handleSingleAction(activeSubmission.id, 'approve')}
               variant="accent"
               size="medium"
@@ -1910,64 +1963,6 @@ export const StreamlinedReviewQueue: React.FC<StreamlinedReviewQueueProps> = ({
   );
 };
 
-const reviewQueueSkeletonStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: mentaSpacing[3],
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingTop: mentaSpacing[2],
-  },
-  question: {
-    gap: mentaSpacing[3],
-    paddingBottom: mentaSpacing[2],
-    paddingTop: mentaSpacing[3],
-  },
-  questionMeta: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  questionIdentity: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-  },
-  evidence: {
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    height: 268,
-    overflow: 'hidden',
-  },
-  evidenceFooter: {
-    gap: mentaSpacing[2],
-    padding: mentaSpacing[3],
-  },
-  promise: {
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.medium,
-    borderWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[2],
-    height: 130,
-    paddingHorizontal: mentaSpacing[4],
-    paddingVertical: mentaSpacing[3],
-  },
-  promiseReviewer: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-  },
-  promiseReviewerCopy: {
-    gap: mentaSpacing[1],
-  },
-  decisions: {
-    gap: mentaSpacing[2],
-    marginTop: 'auto',
-    paddingBottom: mentaSpacing[2],
-    paddingTop: mentaSpacing[3],
-  },
-});
-
 const createStyles = (theme: ThemeContextType) => {
   const s = theme.spacing;
   const br = theme.borderRadius;
@@ -2030,6 +2025,27 @@ const createStyles = (theme: ThemeContextType) => {
     },
     reviewReceiptTitle: {
       ...mentaTypography.title,
+    },
+    approvedHero: {
+      alignItems: 'center',
+      gap: s.sm,
+      paddingTop: s.xl,
+    },
+    approvedTitle: {
+      ...mentaTypography.display,
+      color: c.text.primary,
+      textAlign: 'center',
+    },
+    approvedDetail: {
+      ...mentaTypography.lead,
+      color: c.text.secondary,
+      textAlign: 'center',
+      maxWidth: 340,
+    },
+    approvedActions: {
+      marginTop: 'auto',
+      gap: s.sm,
+      paddingBottom: s.lg,
     },
     reviewReputationNote: {
       ...mentaTypography.bodySmall,
@@ -2523,4 +2539,65 @@ const createStyles = (theme: ThemeContextType) => {
       marginTop: s.lg,
     },
   });
+};
+
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const reviewQueueSkeletonStyles = StyleSheet.create({
+    container: {
+      flex: 1,
+      gap: mentaSpacing[3],
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingTop: mentaSpacing[2],
+    },
+    question: {
+      gap: mentaSpacing[3],
+      paddingBottom: mentaSpacing[2],
+      paddingTop: mentaSpacing[3],
+    },
+    questionMeta: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    questionIdentity: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+    },
+    evidence: {
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: StyleSheet.hairlineWidth,
+      height: 268,
+      overflow: 'hidden',
+    },
+    evidenceFooter: {
+      gap: mentaSpacing[2],
+      padding: mentaSpacing[3],
+    },
+    promise: {
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.medium,
+      borderWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[2],
+      height: 130,
+      paddingHorizontal: mentaSpacing[4],
+      paddingVertical: mentaSpacing[3],
+    },
+    promiseReviewer: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+    },
+    promiseReviewerCopy: {
+      gap: mentaSpacing[1],
+    },
+    decisions: {
+      gap: mentaSpacing[2],
+      marginTop: 'auto',
+      paddingBottom: mentaSpacing[2],
+      paddingTop: mentaSpacing[3],
+    },
+  });
+  return { reviewQueueSkeletonStyles };
 };

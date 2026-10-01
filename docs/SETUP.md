@@ -288,6 +288,47 @@ if you need them; none is required for an initial email sign-in and promise.
 Replace the original legal and contact links with your own policies before
 distributing your fork.
 
+### Menta Check and derived-evidence retention
+
+The source includes Menta Check, the optional automated proof reviewer. Use
+peer review for the initial self-hosted smoke test; Menta Check additionally
+requires your own OpenRouter account, server-side `OPENROUTER_API_KEY`, active
+access and explicit in-app consent. Provider requests can incur charges.
+Never put the provider key in app configuration or an `EXPO_PUBLIC_*` value.
+The worker checks the caller's maintenance secret, job authorization and consent
+before disclosing proof to the provider. Do not bypass these checks for a demo.
+
+Deploy or locally serve `menta-check` and supply `DAILY_MAINTENANCE_SECRET`.
+Configure your own authenticated scheduler to call the worker with
+`?batch=10&sweep=1` every minute for retries and group backups. Match the
+`x-maintenance-secret` header; retain the gateway JWT requirements.
+The optional insert wake-up uses your own Vault entries named `project_url`,
+`anon_key` and `daily_maintenance_secret`. An absent wake-up is retried by the
+scheduler; a source checkout alone does not start background work.
+
+Also schedule daily retention in your own database: delete rows older than
+90 days from `private.menta_check_verdicts` and `private.menta_check_feedback`.
+These are derived evidence/feedback; do not delete source photos through this
+job. The public migrations retain all RPC and ownership checks but omit the
+upstream cron registrations. Only the installation owner should configure these
+service-authorized jobs.
+
+### RevenueCat Ads
+
+AdMob supplies the ad; RevenueCat Ads receives impression and revenue events
+through the SDK's manual `adTracker` integration. Configure both your own ad
+network and RevenueCat project. Enable impression-level ad revenue in AdMob
+and verify native SDK support, event delivery and the authoritative reward
+receipt before opening `EXPO_PUBLIC_REVENUECAT_AD_REWARDS_VERIFIED`.
+The checked-in iOS lockfile is not proof of the native versions in a new build.
+Use [RevenueCat's current integration requirements](https://www.revenuecat.com/docs/ad-monetization/manual-integration).
+
+Use [Google's test ads](https://developers.google.com/admob/android/test-ads)
+for development and judge APKs. Do not ask anyone to click live ads. A test ad
+or test revenue event demonstrates integration, not production revenue.
+The public defaults leave ads and reward verification off. This does not
+prevent email sign-in, creating a promise or peer proof review.
+
 ### Your own app store pages
 
 If you publish a fork, set `EXPO_PUBLIC_IOS_STORE_URL` or

@@ -6,6 +6,25 @@ const mockGetCustomerInfo = jest.fn();
 const mockPurchasePackage = jest.fn();
 const mockInvalidateCustomerInfoCache = jest.fn();
 const mockGetMyProAuthority = jest.fn();
+const mockFetchBalance = jest.fn();
+const mockReconcileTrial = jest.fn();
+jest.mock('@/lib/supabase', () => ({
+  supabase: { rpc: (...args: unknown[]) => mockReconcileTrial(...args) },
+}));
+const mockInvalidateQueries = jest.fn();
+const mockWallet = {
+  activeAccountId: 'user-1',
+  accountScopeVersion: 1,
+  fetchBalance: mockFetchBalance,
+};
+jest.mock('@/store/momenta-store', () => ({
+  useMomentaStore: { getState: () => mockWallet },
+}));
+jest.mock('@/lib/queryClient', () => ({
+  queryClient: {
+    invalidateQueries: (...args: unknown[]) => mockInvalidateQueries(...args),
+  },
+}));
 const mockAuth = { user: { id: 'user-1' } };
 const mockGetAppUserID = jest.fn();
 let mockAdTracker:
@@ -99,6 +118,14 @@ describe('RevenueCat authority', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAuth.user = { id: 'user-1' };
+    mockWallet.activeAccountId = 'user-1';
+    mockWallet.accountScopeVersion = 1;
+    mockReconcileTrial.mockResolvedValue({
+      data: { success: true, outcome: 'not_eligible' },
+      error: null,
+    });
+    mockFetchBalance.mockResolvedValue(undefined);
+    mockInvalidateQueries.mockResolvedValue(undefined);
     mockGetAppUserID.mockResolvedValue('user-1');
     mockAdTracker = {
       trackAdDisplayed: jest.fn().mockResolvedValue(undefined),
@@ -310,6 +337,13 @@ describe('RevenueCat authority', () => {
     });
 
     await expect(restorePurchases()).resolves.toEqual({ success: true });
+    expect(mockFetchBalance).toHaveBeenCalledWith('user-1', {
+      throwOnError: true,
+    });
+    expect(mockInvalidateQueries).toHaveBeenCalledWith(
+      { queryKey: ['menta-check', 'user-1'] },
+      { throwOnError: true }
+    );
   });
 
   it('keeps a completed purchase pending while its webhook catches up', async () => {
@@ -338,4 +372,133 @@ describe('RevenueCat authority', () => {
       storeTransactionCompleted: true,
     });
   });
+  it('waits for the confirmed wallet before completing purchase activation', async () => {
+    mockPurchasePackage.mockResolvedValueOnce({
+      customerInfo: proCustomerInfo,
+    });
+    mockGetMyProAuthority.mockResolvedValue({
+      is_pro: true,
+      reconciliation_pending: false,
+    });
+    let releaseWallet!: () => void;
+    mockFetchBalance.mockImplementationOnce(
+      () =>
+        new Promise<void>(resolve => {
+          releaseWallet = resolve;
+        })
+    );
+    let completed = false;
+    const purchase = purchasePlan('monthly').then(result => {
+      completed = true;
+      return result;
+    });
+    for (let turn = 0; turn < 30; turn += 1) await Promise.resolve();
+    expect(mockFetchBalance).toHaveBeenCalledWith('user-1', {
+      throwOnError: true,
+    });
+    expect(completed).toBe(false);
+    releaseWallet();
+    await expect(purchase).resolves.toMatchObject({ success: true });
+    expect(mockInvalidateQueries).toHaveBeenCalledWith(
+      { queryKey: ['menta-check', 'user-1'] },
+      { throwOnError: true }
+    );
+  });
+
+  it('does not refresh or unlock while authoritative entitlement is pending', async () => {
+    mockGetMyProAuthority.mockResolvedValue({
+      is_pro: true,
+      reconciliation_pending: true,
+    });
+    await expect(
+      RevenueCatAPI.confirmServerProAccess({ attempts: 1 })
+    ).resolves.toBe(false);
+    expect(mockFetchBalance).not.toHaveBeenCalled();
+  });
+
+  it('keeps activation pending when wallet readback fails and supports explicit retry', async () => {
+    mockGetMyProAuthority.mockResolvedValue({
+      is_pro: true,
+      reconciliation_pending: false,
+    });
+    mockFetchBalance.mockRejectedValueOnce(new Error('offline'));
+    await expect(
+      RevenueCatAPI.confirmServerProAccess({ attempts: 1 })
+    ).resolves.toBe(false);
+    await expect(
+      RevenueCatAPI.confirmServerProAccess({ attempts: 1 })
+    ).resolves.toBe(true);
+    expect(mockFetchBalance).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not complete activation for an account that changes during wallet refresh', async () => {
+    mockGetMyProAuthority.mockResolvedValue({
+      is_pro: true,
+      reconciliation_pending: false,
+    });
+    mockFetchBalance.mockImplementationOnce(async () => {
+      mockAuth.user = { id: 'other-user' };
+    });
+    await expect(
+      RevenueCatAPI.confirmServerProAccess({ attempts: 1 })
+    ).resolves.toBe(false);
+    expect(mockInvalidateQueries).not.toHaveBeenCalled();
+  });
+  it('keeps activation pending when cached Pro permissions cannot refresh', async () => {
+    mockGetMyProAuthority.mockResolvedValue({
+      is_pro: true,
+      reconciliation_pending: false,
+    });
+    mockInvalidateQueries.mockRejectedValueOnce(
+      new Error('overview unavailable')
+    );
+    await expect(
+      RevenueCatAPI.confirmServerProAccess({ attempts: 1 })
+    ).resolves.toBe(false);
+  });
+  it('reads the wallet only after the server reconciles the recorded initial trial', async () => {
+    mockGetMyProAuthority.mockResolvedValue({
+      is_pro: true,
+      reconciliation_pending: false,
+    });
+    let releaseReceipt!: () => void;
+    mockReconcileTrial.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          releaseReceipt = () =>
+            resolve({
+              data: { success: true, outcome: 'granted' },
+              error: null,
+            });
+        })
+    );
+    const confirmation = RevenueCatAPI.confirmServerProAccess({ attempts: 1 });
+    for (let turn = 0; turn < 30; turn += 1) await Promise.resolve();
+    expect(mockReconcileTrial).toHaveBeenCalledWith(
+      'reconcile_my_initial_pro_trial_v1'
+    );
+    expect(mockFetchBalance).not.toHaveBeenCalled();
+    releaseReceipt();
+    await expect(confirmation).resolves.toBe(true);
+    expect(mockFetchBalance).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    { data: null, error: { message: 'temporarily unavailable' } },
+    { data: { success: false, outcome: 'pending' }, error: null },
+    { data: { success: true }, error: null },
+  ])(
+    'retains pending activation when reconciliation is unconfirmed: %j',
+    async response => {
+      mockGetMyProAuthority.mockResolvedValue({
+        is_pro: true,
+        reconciliation_pending: false,
+      });
+      mockReconcileTrial.mockResolvedValueOnce(response);
+      await expect(
+        RevenueCatAPI.confirmServerProAccess({ attempts: 1 })
+      ).resolves.toBe(false);
+      expect(mockFetchBalance).not.toHaveBeenCalled();
+    }
+  );
 });

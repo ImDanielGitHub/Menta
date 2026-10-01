@@ -1,3 +1,8 @@
+import {
+  mentaColors as defaultMentaColors,
+  mentaRadii,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -15,11 +20,7 @@ import {
   TrendingUpIcon,
 } from '@/components/ui/icons';
 import { useTheme } from '@/constants/ThemeContext';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { describeMomentaTransaction } from '@/lib/momenta/transaction-description';
 import { useTranslation } from '@/lib/localization/use-translation';
 import type { TranslationKey } from '@/lib/localization/en-NZ';
@@ -304,8 +305,9 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({
   );
 };
 
-const createStyles = (theme: ReturnType<typeof useTheme>) =>
-  StyleSheet.create({
+const createStyles = (theme: ReturnType<typeof useTheme>) => {
+  const mentaColors = theme.mentaColors ?? defaultMentaColors;
+  return StyleSheet.create({
     container: {
       gap: 14,
     },
@@ -482,5 +484,6 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
       color: theme.colors.status.error,
     },
   });
+};
 
 export default TransactionHistory;

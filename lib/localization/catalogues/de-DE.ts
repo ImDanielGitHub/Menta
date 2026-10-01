@@ -1,4 +1,5 @@
 import type { CompleteCatalogue } from '@/lib/localization/en-NZ';
+import { mentaCheckDe } from './shared/menta-check-de';
 import { widgetsdeDE } from '@/lib/localization/catalogues/shared/widgets-deDE';
 import { foundationDeDE } from '@/lib/localization/catalogues/de-DE/foundation';
 import { languageDeDE } from '@/lib/localization/catalogues/de-DE/language';
@@ -21,9 +22,18 @@ import { fullCommerceDeDE } from '@/lib/localization/catalogues/de-DE/full-comme
 import { fullDomainFeedbackDeDE } from '@/lib/localization/catalogues/de-DE/full-domain-feedback';
 import { sourceGateDeDE } from '@/lib/localization/catalogues/de-DE/source-gate';
 import { momentaTopUpDeDE } from '@/lib/localization/catalogues/de-DE/momenta-top-up';
+import { cameraAccessDeDE } from '@/lib/localization/catalogues/de-DE/camera-access';
+import { proofRolesDeDE } from '@/lib/localization/catalogues/de-DE/proof-roles';
 
 export const deDE = {
+  'settings.appearance.title': 'Darstellung',
+  'settings.appearance.system': 'System',
+  'settings.appearance.light': 'Hell',
+  'settings.appearance.dark': 'Dunkel',
+  ...mentaCheckDe,
   ...momentaTopUpDeDE,
+  ...cameraAccessDeDE,
+  ...proofRolesDeDE,
   ...widgetsdeDE,
   ...foundationDeDE,
   ...languageDeDE,

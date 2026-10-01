@@ -88,12 +88,54 @@ describe('notification deadline and review regressions', () => {
     });
     assert.deepEqual(result.body.headings, { en: 'A proof needs your review' });
   });
+  it.each([
+    'menta_check_counted',
+    'menta_check_not_yet',
+    'menta_check_stepped_in',
+  ])(
+    'sends safe MentaCheck copy for %s without exposing proof content',
+    type => {
+      const result = request({
+        data: {
+          notificationId: 42,
+          type,
+          action: 'open_challenge',
+          challengeId: 'PRIVATE_PROMISE_ID',
+        },
+      });
+      assert.deepEqual(result.body.data, {
+        notificationId: 42,
+        type,
+        action: 'open_today',
+      });
+      assert.equal(JSON.stringify(result.body).includes('PRIVATE_'), false);
+      assert.notDeepEqual(result.body.headings, { en: 'Menta update' });
+    }
+  );
   it('sets a bounded explicit provider TTL', () => {
     assert.equal(request({ ttlSeconds: 120 }).body.ttl, 120);
     assert.equal(request().body.ttl, 3600);
     for (const ttlSeconds of [-1, 1.5, NaN, Infinity, 2419201])
       assert.throws(() => request({ ttlSeconds }));
   });
+  it.each([
+    'streak_reminder',
+    'challenge_expiring',
+    'low_activity',
+    'daily_inspiration',
+  ])(
+    'honours the smart reminder opt-out for an already queued %s',
+    notificationType => {
+      assert.deepEqual(
+        guard.evaluateDeliveryGuard({
+          notificationType,
+          now,
+          preference: { ...preference, challenge_reminders: false },
+        }),
+        { kind: 'skip', reason: 'SKIPPED_NOTIFICATION_CATEGORY_OFF' }
+      );
+    }
+  );
   it('honours a snooze applied after a coach job was queued', () => {
     assert.deepEqual(
       guard.evaluateDeliveryGuard({

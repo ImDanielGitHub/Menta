@@ -287,6 +287,28 @@ export const fullTodayProofPtPT = {
   'todayProof.solo.promise_meta_short': 'Promessa de {days} dias · {proof}',
   'todayProof.solo.current_streak': 'Sequência atual de {count} dias',
   'todayProof.solo.accepted': 'Aceito',
+  'todayProof.solo.left_today': 'Faltam {count} para registar hoje.',
+  'todayProof.solo.left_today.one': 'Falta uma para registar hoje.',
+  'todayProof.solo.left_today.other': 'Faltam {count} para registar hoje.',
+  'todayProof.solo.all_checked_in': 'Tudo registado por hoje.',
+  'todayProof.solo.nothing_running': 'Nada em curso neste momento.',
+  'todayProof.solo.section_today': 'Hoje',
+  'todayProof.solo.section_week': 'Esta semana',
+  'todayProof.solo.section_finished': 'Concluídas',
+  'todayProof.solo.week_kept': '{kept} de {total} dias cumpridos',
+  'todayProof.solo.row_kept': '{kept} de {total}',
+  'todayProof.solo.day_of': 'Dia {day} de {total}',
+  'todayProof.solo.day_of_with_streak':
+    'Dia {day} de {total} · sequência de {count} dias',
+  'todayProof.solo.check_in_short': 'Registar',
+  'todayProof.solo.log_short': 'Escrever',
+  'todayProof.solo.try_again_short': 'Tentar outra vez',
+  'todayProof.solo.counted_short': 'Contou',
+  'todayProof.solo.waiting_short': 'A aguardar',
+  'todayProof.solo.action_accessibility': '{action}: {promise}',
+  'todayProof.solo.week_row_accessibility':
+    '{promise}: {kept} de {total} dias cumpridos esta semana',
+  'todayProof.solo.finished_kept': 'Cumpriu {kept} de {total} dias',
   'todayProof.promise.time_unavailable': 'Horário indisponível',
   'todayProof.promise.date_unavailable': 'Data indisponível',
   'todayProof.promise.sent_recently': 'Enviado recentemente',
@@ -389,7 +411,7 @@ export const fullTodayProofPtPT = {
   'todayProof.promise.delete': 'eliminar promessa',
   'todayProof.promise.leave': 'Sair da promessa',
   'todayProof.promise.delete_detail':
-    'Exclui esta promessa, histórico de comprovativos, links de convite e contexto de análise. Não há como desfazer.',
+    'Elimina esta promessa, os comprovativos e os convites. Não é possível anular. Continua a contar para o limite mensal e não repõe a tua primeira promessa gratuita.',
   'todayProof.promise.leave_detail':
     'Deixa de enviar comprovativos aqui. Os comprovativos existentes ficam no histórico da promessa.',
   'todayProof.promise.details': 'Detalhes da promessa',
@@ -564,7 +586,7 @@ export const fullTodayProofPtPT = {
   'todayProof.proof.share_title': 'Recibo de comprovativo da Menta',
   'todayProof.proof.ad_break': 'Próximo intervalo publicitário',
   'todayProof.proof.ad_break_detail':
-    'Um anúncio curto pode aparecer ao sair deste recibo. Não altera o seu comprovativo nem o saldo da Momenta.',
+    'As contas gratuitas têm uma pausa publicitária a cada dois novos comprovativos, quando há um anúncio disponível. O teu comprovativo já está guardado. O saldo de Momenta não muda.',
   'todayProof.proof.share_opened': 'ecrã de partilha aberta',
   'todayProof.proof.share_opened_detail':
     'Escolha um app e envie o recibo por ele para concluir.',
@@ -1041,7 +1063,8 @@ export const fullTodayProofPtPT = {
   'todayProof.promise.proof_type_approval':
     '{proofType} · um dia conta só depois que o comprovativo for aprovado',
   'todayProof.promise.extend_question': 'Adicionar 12 h à {promise}?',
-  'todayProof.promise.extension_cost': 'Isso usa um {item}.',
+  'todayProof.promise.extension_cost':
+    'Um pouco de folga: usa um {item} que já tens para adicionar 12 horas enquanto o prazo da prova estiver aberto.',
   'todayProof.promise.active_for': 'Ativo por {duration}',
   'todayProof.promise.available_count': '{count} disponíveis',
   'todayProof.create.step_progress': 'Etapa {current} de {total}',

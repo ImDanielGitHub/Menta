@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypeScale,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -16,13 +24,7 @@ import {
   RefreshCwIcon,
   UsersIcon,
 } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypeScale,
-} from '@/constants/MentaDesignSystem';
+
 import { useTheme } from '@/constants/ThemeContext';
 import { mentaFonts } from '@/lib/menta-fonts';
 import { useLargeTypeLineLimit } from '@/lib/accessibility';
@@ -87,14 +89,6 @@ type Localise = (
   values?: Record<string, string | number>
 ) => string;
 
-const STATUS_COLOURS: Record<GroupBoardProofStatus, string> = {
-  done: mentaColors.success,
-  pending: mentaColors.action,
-  retry: mentaColors.danger,
-  due: mentaColors.warning,
-  nudge: mentaColors.warning,
-};
-
 const boardLaneStyle = (contentWidth?: number) =>
   contentWidth
     ? { maxWidth: Math.min(contentWidth, mentaLayout.immersiveFrameMax) }
@@ -107,6 +101,8 @@ const BoardHeader = ({
   groupName: string;
   roleLabel?: string;
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
 
   return (
@@ -130,6 +126,9 @@ const ProgressSegments = ({
   completed: number;
   total: number;
 }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
 
   return (
@@ -155,6 +154,8 @@ const ProgressSegments = ({
 };
 
 const MemberPulse = ({ member }: { member: GroupBoardMember }) => {
+  const { STATUS_COLOURS, styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const { t } = useTranslation();
   const memberNameLines = useLargeTypeLineLimit(1);
@@ -196,6 +197,8 @@ const PeopleProgress = ({
   snapshot: GroupAccountabilitySnapshot;
   onOpenMembers?: () => void;
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const { t } = useTranslation();
   const visibleMembers = snapshot.members.slice(0, 6);
@@ -283,6 +286,8 @@ const PeopleProgress = ({
 };
 
 const LoadingBoard = ({ contentWidth }: { contentWidth?: number }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const { t } = useTranslation();
 
@@ -341,6 +346,8 @@ const ActiveBoard = ({
   onOpenHistory,
   showHeader = true,
 }: GroupAccountabilityBoardProps & { owner: boolean }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const { locale, t } = useTranslation();
 
@@ -367,6 +374,14 @@ const ActiveBoard = ({
       thumbnailUrl: proof.thumbnailUrl,
       contributorId: proof.contributorId,
       contributorName: proof.contributorName,
+      stateLabel:
+        proof.reviewSource === 'menta' || proof.reviewSource === 'menta_backup'
+          ? t('mentaCheck.group.checkedByMentaShort')
+          : proof.reviewSource === 'self_override'
+            ? t('mentaCheck.group.countedByPerson', {
+                name: proof.contributorName,
+              })
+            : undefined,
       submittedLabel: formatProofRelativeTime(
         proof.submittedAt,
         new Date(),
@@ -538,6 +553,8 @@ const EmptyBoard = ({
   onAddPromise,
   onInvite,
 }: GroupAccountabilityBoardProps) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <View
@@ -574,6 +591,8 @@ const PublicPreview = ({
   showHeader = true,
   contentWidth,
 }: GroupAccountabilityBoardProps) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const { t } = useTranslation();
 
@@ -682,6 +701,8 @@ const ReadOnlyBoard = ({
   showHeader = true,
   contentWidth,
 }: GroupAccountabilityBoardProps) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const { t, locale } = useTranslation();
 
@@ -767,6 +788,8 @@ const ReadOnlyRow = ({
   title: string;
   onPress?: () => void;
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const content = (
     <>
@@ -832,6 +855,8 @@ const StaleBoard = ({
   showHeader = true,
   contentWidth,
 }: GroupAccountabilityBoardProps) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const { t, locale } = useTranslation();
 
@@ -898,6 +923,9 @@ const UnavailableBoard = ({
   onEnterCode,
   contentWidth,
 }: GroupAccountabilityBoardProps) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const { t } = useTranslation();
   const isPermission = unavailableReason === 'permission';
@@ -994,330 +1022,340 @@ export const GroupAccountabilityBoard = (
   }
 };
 
-const styles = StyleSheet.create({
-  board: {
-    gap: mentaSpacing[6],
-    width: '100%',
-    maxWidth: mentaLayout.taskLane,
-    alignSelf: 'center',
-  },
-  stateBoard: {},
-  header: {
-    alignItems: 'flex-start',
-    gap: mentaSpacing[1],
-  },
-  eyebrow: {
-    ...mentaTypeScale.caption,
-    fontFamily: mentaFonts.inter.semibold,
-  },
-  groupName: {
-    ...mentaTypeScale.title,
-    fontFamily: mentaFonts.inter.bold,
-  },
-  roleLabel: {
-    ...mentaTypeScale.caption,
-    fontFamily: mentaFonts.inter.semibold,
-  },
-  promiseContext: {
-    gap: mentaSpacing[2],
-    paddingBottom: mentaSpacing[5],
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  promiseContextMeta: {
-    ...mentaTypeScale.caption,
-    fontFamily: mentaFonts.inter.semibold,
-  },
-  promiseContextTitle: {
-    ...mentaTypeScale.heading,
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.newsreader.medium,
-  },
-  promiseContextDescription: {
-    ...mentaTypeScale.body,
-    fontFamily: mentaFonts.inter.regular,
-  },
-  peopleProgress: {
-    gap: mentaSpacing[3],
-  },
-  peopleProgressHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: mentaSpacing[2],
-    justifyContent: 'space-between',
-    minHeight: mentaLayout.minimumTouchTarget,
-  },
-  peopleProgressTitle: {
-    ...mentaTypeScale.body,
-    fontFamily: mentaFonts.inter.semibold,
-  },
-  peopleProgressCount: {
-    ...mentaTypeScale.caption,
-    fontFamily: mentaFonts.inter.regular,
-  },
-  peopleGrid: {
-    alignItems: 'stretch',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: mentaSpacing[3],
-  },
-  memberPulse: {
-    alignItems: 'center',
-    flexGrow: 1,
-    flexBasis: 86,
-    justifyContent: 'center',
-    minHeight: 92,
-    minWidth: 78,
-  },
-  memberPulseContent: {
-    alignItems: 'center',
-    gap: mentaSpacing[1],
-    minWidth: 0,
-    width: '100%',
-  },
-  memberAvatarRing: {
-    alignItems: 'center',
-    borderRadius: mentaRadii.round,
-    borderWidth: 2,
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
-  },
-  morePeople: {
-    alignItems: 'center',
-    borderRadius: mentaRadii.medium,
-    borderWidth: StyleSheet.hairlineWidth,
-    flexBasis: 86,
-    flexGrow: 1,
-    gap: mentaSpacing[1],
-    justifyContent: 'center',
-    minHeight: 92,
-    minWidth: 78,
-  },
-  morePeopleText: {
-    ...mentaTypeScale.caption,
-    fontFamily: mentaFonts.inter.semibold,
-  },
-  peopleLink: {
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    gap: mentaSpacing[1],
-    minHeight: mentaLayout.minimumTouchTarget,
-  },
-  peopleLinkText: {
-    ...mentaTypeScale.bodySmall,
-    fontFamily: mentaFonts.inter.semibold,
-  },
-  proofEmpty: {
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[2],
-    minHeight: 126,
-    padding: mentaSpacing[5],
-  },
-  proofEmptyTitle: {
-    ...mentaTypeScale.title,
-    fontFamily: mentaFonts.newsreader.medium,
-  },
-  proofEmptyCopy: {
-    ...mentaTypeScale.body,
-    fontFamily: mentaFonts.inter.regular,
-  },
-  primaryAction: {
-    marginTop: mentaSpacing[1],
-  },
-  progressSegments: {
-    flexDirection: 'row',
-    gap: mentaSpacing[1],
-  },
-  progressSegment: {
-    height: mentaSpacing[2],
-    flex: 1,
-    borderRadius: mentaRadii.round,
-  },
-  memberRowPressed: {
-    opacity: 0.72,
-  },
-  memberName: {
-    ...mentaTypeScale.bodySmall,
-    fontFamily: mentaFonts.inter.semibold,
-    textAlign: 'center',
-  },
-  memberStatus: {
-    ...mentaTypeScale.caption,
-    flexShrink: 0,
-    fontFamily: mentaFonts.inter.bold,
-    textAlign: 'center',
-  },
-  loading: {
-    gap: mentaSpacing[6],
-    width: '100%',
-    maxWidth: mentaLayout.taskLane,
-    alignSelf: 'center',
-  },
-  loadingHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: mentaSpacing[3],
-  },
-  loadingHeaderCopy: {
-    flex: 1,
-    gap: mentaSpacing[2],
-  },
-  loadingHero: {
-    minHeight: 188,
-    gap: mentaSpacing[3],
-    padding: mentaSpacing[5],
-    borderRadius: mentaRadii.large,
-  },
-  loadingRows: {
-    gap: mentaSpacing[3],
-  },
-  actions: {
-    gap: mentaSpacing[3],
-  },
-  publicHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: mentaSpacing[4],
-  },
-  publicAvatar: {
-    width: 58,
-    height: 58,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: mentaRadii.large,
-  },
-  publicHeaderCopy: {
-    flex: 1,
-    gap: mentaSpacing[1],
-  },
-  publicMeta: {
-    ...mentaTypeScale.bodySmall,
-    fontFamily: mentaFonts.inter.regular,
-  },
-  publicPromise: {
-    gap: mentaSpacing[3],
-    padding: mentaSpacing[5],
-    borderRadius: mentaRadii.large,
-    backgroundColor: mentaColors.paper,
-  },
-  publicPromiseLabel: {
-    ...mentaTypeScale.eyebrow,
-    color: mentaColors.text.mutedOnPaper,
-    fontFamily: mentaFonts.inter.bold,
-  },
-  publicPromiseTitle: {
-    ...mentaTypeScale.title,
-    color: mentaColors.text.onPaper,
-    fontFamily: mentaFonts.newsreader.medium,
-  },
-  publicPromiseCopy: {
-    ...mentaTypeScale.body,
-    color: mentaColors.text.mutedOnPaper,
-    fontFamily: mentaFonts.inter.regular,
-  },
-  paperDivider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: mentaColors.border,
-  },
-  publicRule: {
-    ...mentaTypeScale.bodySmall,
-    color: mentaColors.text.onPaper,
-    fontFamily: mentaFonts.inter.semibold,
-  },
-  joinCostRow: {
-    alignItems: 'center',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 14,
-  },
-  joinCostLabel: {
-    ...mentaTypeScale.bodySmall,
-    fontFamily: mentaFonts.inter.regular,
-  },
-  joinCostValue: {
-    ...mentaTypeScale.bodySmall,
-    fontFamily: mentaFonts.inter.semibold,
-  },
-  readOnlyPromise: {
-    gap: mentaSpacing[3],
-    minHeight: 160,
-    padding: mentaSpacing[5],
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: mentaRadii.large,
-  },
-  readOnlyTitle: {
-    ...mentaTypeScale.title,
-    fontFamily: mentaFonts.newsreader.medium,
-  },
-  readOnlyCopy: {
-    ...mentaTypeScale.body,
-    fontFamily: mentaFonts.inter.regular,
-  },
-  readOnlyRows: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  readOnlyRow: {
-    alignItems: 'center',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: 62,
-  },
-  readOnlyRowTitle: {
-    ...mentaTypeScale.body,
-    fontFamily: mentaFonts.inter.semibold,
-  },
-  rowPressed: {
-    opacity: 0.72,
-  },
-  knownState: {
-    gap: mentaSpacing[3],
-    padding: mentaSpacing[4],
-    borderRadius: mentaRadii.large,
-  },
-  knownStateTitle: {
-    ...mentaTypeScale.title,
-    fontFamily: mentaFonts.newsreader.medium,
-  },
-  knownStateCopy: {
-    ...mentaTypeScale.body,
-    fontFamily: mentaFonts.inter.regular,
-  },
-  staleFootnote: {
-    ...mentaTypeScale.bodySmall,
-    fontFamily: mentaFonts.inter.regular,
-    textAlign: 'center',
-  },
-  unavailable: {
-    width: '100%',
-    maxWidth: mentaLayout.taskLane,
-    alignSelf: 'center',
-    gap: mentaSpacing[6],
-  },
-  unavailableBody: {
-    minHeight: 260,
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-    gap: mentaSpacing[4],
-  },
-  unavailableIcon: {
-    width: 48,
-    height: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: mentaRadii.large,
-  },
-  unavailableTitle: {
-    ...mentaTypeScale.title,
-    fontFamily: mentaFonts.inter.semibold,
-  },
-  unavailableCopy: {
-    ...mentaTypeScale.body,
-    fontFamily: mentaFonts.inter.regular,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const STATUS_COLOURS: Record<GroupBoardProofStatus, string> = {
+    done: mentaColors.success,
+    pending: mentaColors.action,
+    retry: mentaColors.danger,
+    due: mentaColors.warning,
+    nudge: mentaColors.warning,
+  };
+  const styles = StyleSheet.create({
+    board: {
+      gap: mentaSpacing[6],
+      width: '100%',
+      maxWidth: mentaLayout.taskLane,
+      alignSelf: 'center',
+    },
+    stateBoard: {},
+    header: {
+      alignItems: 'flex-start',
+      gap: mentaSpacing[1],
+    },
+    eyebrow: {
+      ...mentaTypeScale.caption,
+      fontFamily: mentaFonts.inter.semibold,
+    },
+    groupName: {
+      ...mentaTypeScale.title,
+      fontFamily: mentaFonts.inter.bold,
+    },
+    roleLabel: {
+      ...mentaTypeScale.caption,
+      fontFamily: mentaFonts.inter.semibold,
+    },
+    promiseContext: {
+      gap: mentaSpacing[2],
+      paddingBottom: mentaSpacing[5],
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+    promiseContextMeta: {
+      ...mentaTypeScale.caption,
+      fontFamily: mentaFonts.inter.semibold,
+    },
+    promiseContextTitle: {
+      ...mentaTypeScale.heading,
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.newsreader.medium,
+    },
+    promiseContextDescription: {
+      ...mentaTypeScale.body,
+      fontFamily: mentaFonts.inter.regular,
+    },
+    peopleProgress: {
+      gap: mentaSpacing[3],
+    },
+    peopleProgressHeader: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: mentaSpacing[2],
+      justifyContent: 'space-between',
+      minHeight: mentaLayout.minimumTouchTarget,
+    },
+    peopleProgressTitle: {
+      ...mentaTypeScale.body,
+      fontFamily: mentaFonts.inter.semibold,
+    },
+    peopleProgressCount: {
+      ...mentaTypeScale.caption,
+      fontFamily: mentaFonts.inter.regular,
+    },
+    peopleGrid: {
+      alignItems: 'stretch',
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: mentaSpacing[3],
+    },
+    memberPulse: {
+      alignItems: 'center',
+      flexGrow: 1,
+      flexBasis: 86,
+      justifyContent: 'center',
+      minHeight: 92,
+      minWidth: 78,
+    },
+    memberPulseContent: {
+      alignItems: 'center',
+      gap: mentaSpacing[1],
+      minWidth: 0,
+      width: '100%',
+    },
+    memberAvatarRing: {
+      alignItems: 'center',
+      borderRadius: mentaRadii.round,
+      borderWidth: 2,
+      height: 44,
+      justifyContent: 'center',
+      width: 44,
+    },
+    morePeople: {
+      alignItems: 'center',
+      borderRadius: mentaRadii.medium,
+      borderWidth: StyleSheet.hairlineWidth,
+      flexBasis: 86,
+      flexGrow: 1,
+      gap: mentaSpacing[1],
+      justifyContent: 'center',
+      minHeight: 92,
+      minWidth: 78,
+    },
+    morePeopleText: {
+      ...mentaTypeScale.caption,
+      fontFamily: mentaFonts.inter.semibold,
+    },
+    peopleLink: {
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      flexDirection: 'row',
+      gap: mentaSpacing[1],
+      minHeight: mentaLayout.minimumTouchTarget,
+    },
+    peopleLinkText: {
+      ...mentaTypeScale.bodySmall,
+      fontFamily: mentaFonts.inter.semibold,
+    },
+    proofEmpty: {
+      borderRadius: mentaRadii.large,
+      borderWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[2],
+      minHeight: 126,
+      padding: mentaSpacing[5],
+    },
+    proofEmptyTitle: {
+      ...mentaTypeScale.title,
+      fontFamily: mentaFonts.newsreader.medium,
+    },
+    proofEmptyCopy: {
+      ...mentaTypeScale.body,
+      fontFamily: mentaFonts.inter.regular,
+    },
+    primaryAction: {
+      marginTop: mentaSpacing[1],
+    },
+    progressSegments: {
+      flexDirection: 'row',
+      gap: mentaSpacing[1],
+    },
+    progressSegment: {
+      height: mentaSpacing[2],
+      flex: 1,
+      borderRadius: mentaRadii.round,
+    },
+    memberRowPressed: {
+      opacity: 0.72,
+    },
+    memberName: {
+      ...mentaTypeScale.bodySmall,
+      fontFamily: mentaFonts.inter.semibold,
+      textAlign: 'center',
+    },
+    memberStatus: {
+      ...mentaTypeScale.caption,
+      flexShrink: 0,
+      fontFamily: mentaFonts.inter.bold,
+      textAlign: 'center',
+    },
+    loading: {
+      gap: mentaSpacing[6],
+      width: '100%',
+      maxWidth: mentaLayout.taskLane,
+      alignSelf: 'center',
+    },
+    loadingHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: mentaSpacing[3],
+    },
+    loadingHeaderCopy: {
+      flex: 1,
+      gap: mentaSpacing[2],
+    },
+    loadingHero: {
+      minHeight: 188,
+      gap: mentaSpacing[3],
+      padding: mentaSpacing[5],
+      borderRadius: mentaRadii.large,
+    },
+    loadingRows: {
+      gap: mentaSpacing[3],
+    },
+    actions: {
+      gap: mentaSpacing[3],
+    },
+    publicHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: mentaSpacing[4],
+    },
+    publicAvatar: {
+      width: 58,
+      height: 58,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: mentaRadii.large,
+    },
+    publicHeaderCopy: {
+      flex: 1,
+      gap: mentaSpacing[1],
+    },
+    publicMeta: {
+      ...mentaTypeScale.bodySmall,
+      fontFamily: mentaFonts.inter.regular,
+    },
+    publicPromise: {
+      gap: mentaSpacing[3],
+      padding: mentaSpacing[5],
+      borderRadius: mentaRadii.large,
+      backgroundColor: mentaColors.paper,
+    },
+    publicPromiseLabel: {
+      ...mentaTypeScale.eyebrow,
+      color: mentaColors.text.mutedOnPaper,
+      fontFamily: mentaFonts.inter.bold,
+    },
+    publicPromiseTitle: {
+      ...mentaTypeScale.title,
+      color: mentaColors.text.onPaper,
+      fontFamily: mentaFonts.newsreader.medium,
+    },
+    publicPromiseCopy: {
+      ...mentaTypeScale.body,
+      color: mentaColors.text.mutedOnPaper,
+      fontFamily: mentaFonts.inter.regular,
+    },
+    paperDivider: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: mentaColors.border,
+    },
+    publicRule: {
+      ...mentaTypeScale.bodySmall,
+      color: mentaColors.text.onPaper,
+      fontFamily: mentaFonts.inter.semibold,
+    },
+    joinCostRow: {
+      alignItems: 'center',
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingVertical: 14,
+    },
+    joinCostLabel: {
+      ...mentaTypeScale.bodySmall,
+      fontFamily: mentaFonts.inter.regular,
+    },
+    joinCostValue: {
+      ...mentaTypeScale.bodySmall,
+      fontFamily: mentaFonts.inter.semibold,
+    },
+    readOnlyPromise: {
+      gap: mentaSpacing[3],
+      minHeight: 160,
+      padding: mentaSpacing[5],
+      borderWidth: StyleSheet.hairlineWidth,
+      borderRadius: mentaRadii.large,
+    },
+    readOnlyTitle: {
+      ...mentaTypeScale.title,
+      fontFamily: mentaFonts.newsreader.medium,
+    },
+    readOnlyCopy: {
+      ...mentaTypeScale.body,
+      fontFamily: mentaFonts.inter.regular,
+    },
+    readOnlyRows: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+    },
+    readOnlyRow: {
+      alignItems: 'center',
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      minHeight: 62,
+    },
+    readOnlyRowTitle: {
+      ...mentaTypeScale.body,
+      fontFamily: mentaFonts.inter.semibold,
+    },
+    rowPressed: {
+      opacity: 0.72,
+    },
+    knownState: {
+      gap: mentaSpacing[3],
+      padding: mentaSpacing[4],
+      borderRadius: mentaRadii.large,
+    },
+    knownStateTitle: {
+      ...mentaTypeScale.title,
+      fontFamily: mentaFonts.newsreader.medium,
+    },
+    knownStateCopy: {
+      ...mentaTypeScale.body,
+      fontFamily: mentaFonts.inter.regular,
+    },
+    staleFootnote: {
+      ...mentaTypeScale.bodySmall,
+      fontFamily: mentaFonts.inter.regular,
+      textAlign: 'center',
+    },
+    unavailable: {
+      width: '100%',
+      maxWidth: mentaLayout.taskLane,
+      alignSelf: 'center',
+      gap: mentaSpacing[6],
+    },
+    unavailableBody: {
+      minHeight: 260,
+      alignItems: 'flex-start',
+      justifyContent: 'center',
+      gap: mentaSpacing[4],
+    },
+    unavailableIcon: {
+      width: 48,
+      height: 48,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: mentaRadii.large,
+    },
+    unavailableTitle: {
+      ...mentaTypeScale.title,
+      fontFamily: mentaFonts.inter.semibold,
+    },
+    unavailableCopy: {
+      ...mentaTypeScale.body,
+      fontFamily: mentaFonts.inter.regular,
+    },
+  });
+  return { STATUS_COLOURS, styles };
+};

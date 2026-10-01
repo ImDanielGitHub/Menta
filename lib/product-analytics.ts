@@ -30,6 +30,7 @@ export const MENTA_ANALYTICS_EVENT_NAMES = [
   'Notification In-App Outcome',
   'Notification Provider Outcome',
   'Notification Test Journey',
+  'Activity Inbox',
   'App Update Journey',
   'Store Review Request',
   'Feedback Journey',
@@ -253,6 +254,7 @@ export type AnalyticsEventProperties = {
       | 'photo'
       | 'video'
       | 'invite_someone'
+      | 'menta'
       | 'private'
       | 'days_7'
       | 'days_14'
@@ -465,6 +467,9 @@ export type AnalyticsEventProperties = {
     outcome: 'succeeded' | 'not_configured' | 'failed';
     provider: 'onesignal';
   };
+  'Activity Inbox': {
+    stage: 'opened' | 'receipt_opened';
+  };
   'Notification Test Journey': {
     outcome:
       | 'started'
@@ -598,7 +603,13 @@ export type AnalyticsEventProperties = {
       | 'purchase_tapped';
     reason?: 'onboarding_gate' | 'account_changed';
     source?: 'shop' | 'profile';
-    context: 'challenge' | 'group' | 'member' | 'general' | 'onboarding';
+    context:
+      | 'challenge'
+      | 'group'
+      | 'member'
+      | 'general'
+      | 'onboarding'
+      | 'menta_check';
     plan: 'weekly' | 'annual' | 'none';
   };
   'Subscription Started': {

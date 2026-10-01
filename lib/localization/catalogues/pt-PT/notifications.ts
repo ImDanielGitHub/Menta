@@ -6,6 +6,28 @@ type NotificationsKey = Extract<
 >;
 
 export const notificationsPtPT = {
+  'notifications.recovery.restart':
+    'Um dia perdido não conta a história toda. Recomeça com o teu próximo check-in; a prova conta após a aprovação.',
+  'notifications.recovery.month':
+    'Falta cerca de um mês nesta promessa. O teu próximo check-in é um novo começo; a prova conta após a aprovação.',
+
+  'notifications.smart.title': 'Lembretes inteligentes',
+  'notifications.smart.time': 'Hora habitual do lembrete',
+  'notifications.smart.body':
+    'A Menta ajusta os lembretes enquanto uma prova está pendente e para quando a envias. A tua hora habitual orienta os lembretes.',
+  'notifications.smart.advanced': 'Opções avançadas',
+  'notifications.inbox.title': 'Atividade',
+  'notifications.inbox.settings': 'Definições de notificações',
+  'notifications.inbox.error': 'Não foi possível atualizar a atividade',
+  'notifications.inbox.error_body':
+    'Tenta novamente. O teu estado de leitura anterior continua guardado.',
+  'notifications.inbox.loading': 'A carregar atividade',
+  'notifications.inbox.empty': 'Sem atividade recente',
+  'notifications.inbox.empty_body':
+    'As tuas notificações recentes aparecerão aqui. Consulta Hoje para ver o que está pendente.',
+  'notifications.inbox.unread': 'Por ler',
+  'notifications.inbox.hint': 'Abre a tua caixa de atividade',
+
   'notifications.topbar.back': 'Voltar',
   'notifications.topbar.context': 'Opcional',
   'notifications.topbar.title': 'Notificações',

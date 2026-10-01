@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import {
@@ -14,13 +22,7 @@ import {
   CoinsIcon,
 } from '@/components/ui/icons';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import type {
   ChallengeJoinQuote,
   ChallengeJoinReceipt,
@@ -48,14 +50,6 @@ type JoinFrameProps = {
 
 type JoinTone = 'muted' | 'action' | 'success' | 'warning' | 'danger';
 
-const toneColors: Record<JoinTone, string> = {
-  muted: mentaColors.text.muted,
-  action: mentaColors.action,
-  success: mentaColors.success,
-  warning: mentaColors.warning,
-  danger: mentaColors.danger,
-};
-
 const JoinFrame = ({
   title,
   description,
@@ -64,6 +58,8 @@ const JoinFrame = ({
   onBack,
   testID,
 }: JoinFrameProps) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const phoneLayout = usePhoneLayout();
   const { t } = useTranslation();
   return (
@@ -138,6 +134,8 @@ const ReceiptRow = ({
   variant = 'receipt',
   last,
 }: ReceiptRowProps) => {
+  const { toneColors, styles } = useMentaStyles(createPaletteStyles);
+
   const phoneLayout = usePhoneLayout();
   const stacked = phoneLayout.isCompactWidth || phoneLayout.fontScale >= 1.2;
   return (
@@ -177,6 +175,8 @@ const ReceiptRow = ({
 };
 
 export const JoinFundingLoadingState = ({ onBack }: { onBack: () => void }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <JoinFrame
@@ -232,6 +232,9 @@ export const JoinFundingReviewState = ({
   onMaybeLater: () => void;
   onBack: () => void;
 }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const roleCopy = quote.accountabilityRole
     ? accountabilityInviteRoleCopy(quote.accountabilityRole, t)
@@ -368,6 +371,8 @@ export const JoinInsufficientMomentaState = ({
   onKeepCreating: () => void;
   onBack: () => void;
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <JoinFrame
@@ -434,6 +439,9 @@ export const JoinConfirmedReceiptState = ({
   onBackToToday: () => void;
   onBack: () => void;
 }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const roleCopy = receipt.accountabilityRole
     ? accountabilityInviteRoleCopy(receipt.accountabilityRole, t)
@@ -566,6 +574,8 @@ export const JoinResultUnknownRuntimeState = ({
   onBackToSafety: () => void;
   onBack: () => void;
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <JoinFrame
@@ -668,6 +678,8 @@ export const JoinMembershipWithoutReceiptState = ({
   onOpen: () => void;
   onBack: () => void;
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <JoinFrame
@@ -698,150 +710,160 @@ export const JoinMembershipWithoutReceiptState = ({
   );
 };
 
-const styles = StyleSheet.create({
-  screen: {
-    backgroundColor: mentaColors.canvas,
-  },
-  contentFrame: {
-    width: '100%',
-    alignSelf: 'center',
-  },
-  frame: {
-    flex: 1,
-    gap: mentaSpacing[6],
-    minHeight: '100%',
-  },
-  topBar: {
-    minHeight: 56,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: mentaColors.border,
-  },
-  body: {
-    gap: mentaSpacing[6],
-    paddingTop: mentaSpacing[6],
-  },
-  headingBlock: {
-    gap: mentaSpacing[2],
-  },
-  title: {
-    ...mentaTypography.heading,
-    fontSize: 34,
-    lineHeight: 38,
-    color: mentaColors.text.primary,
-  },
-  description: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-    maxWidth: mentaLayout.readingMeasure,
-  },
-  ledger: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-  },
-  promiseInviteReview: {
-    gap: mentaSpacing[4],
-  },
-  receiptBlock: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    backgroundColor: mentaColors.surface,
-    paddingHorizontal: mentaSpacing[4],
-  },
-  receiptLabel: {
-    ...mentaTypography.labelBold,
-    color: mentaColors.text.muted,
-    paddingTop: mentaSpacing[4],
-  },
-  confirmedReceiptBlock: {
-    borderColor: mentaColors.border,
-  },
-  receiptRow: {
-    minHeight: 51,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: mentaSpacing[4],
-    paddingVertical: mentaSpacing[3],
-  },
-  receiptRowStacked: {
-    alignItems: 'flex-start',
-    flexWrap: 'wrap',
-  },
-  ledgerRow: {
-    minHeight: 58,
-    paddingVertical: mentaSpacing[4],
-  },
-  receiptIconLane: {
-    width: mentaLayout.iconLane,
-    height: mentaLayout.iconLane,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  receiptDivider: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: mentaColors.border,
-  },
-  receiptCopy: {
-    flex: 1,
-    gap: mentaSpacing[1],
-  },
-  receiptTitle: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-  receiptSubtitle: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.primary,
-  },
-  receiptValue: {
-    ...mentaTypography.caption,
-    fontFamily: mentaTypography.bodySmallMedium.fontFamily,
-    textAlign: 'right',
-    flexShrink: 0,
-  },
-  receiptValueStacked: {
-    textAlign: 'left',
-    width: '100%',
-  },
-  receiptValueStackedWithIcon: {
-    paddingLeft: mentaLayout.iconLane + mentaSpacing[4],
-  },
-  ledgerTitle: {
-    ...mentaTypography.body,
-    fontSize: 16,
-    lineHeight: 20,
-    color: mentaColors.text.primary,
-  },
-  ledgerValue: {
-    ...mentaTypography.control,
-    textAlign: 'right',
-    flexShrink: 0,
-  },
-  actions: {
-    gap: mentaSpacing[3],
-    paddingTop: mentaSpacing[2],
-    paddingBottom: mentaSpacing[4],
-  },
-  loadingStack: {
-    gap: mentaSpacing[4],
-  },
-  compactPrimaryButton: {
-    minHeight: 54,
-    borderRadius: mentaRadii.small,
-  },
-  safeRecoveryNotice: {
-    borderRadius: mentaRadii.small,
-    paddingHorizontal: 18,
-    paddingVertical: 18,
-  },
-  statusMessage: {
-    ...mentaTypography.caption,
-    color: mentaColors.warning,
-  },
-  boundaryCopy: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const toneColors: Record<JoinTone, string> = {
+    muted: mentaColors.text.muted,
+    action: mentaColors.action,
+    success: mentaColors.success,
+    warning: mentaColors.warning,
+    danger: mentaColors.danger,
+  };
+  const styles = StyleSheet.create({
+    screen: {
+      backgroundColor: mentaColors.canvas,
+    },
+    contentFrame: {
+      width: '100%',
+      alignSelf: 'center',
+    },
+    frame: {
+      flex: 1,
+      gap: mentaSpacing[6],
+      minHeight: '100%',
+    },
+    topBar: {
+      minHeight: 56,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: mentaColors.border,
+    },
+    body: {
+      gap: mentaSpacing[6],
+      paddingTop: mentaSpacing[6],
+    },
+    headingBlock: {
+      gap: mentaSpacing[2],
+    },
+    title: {
+      ...mentaTypography.heading,
+      fontSize: 34,
+      lineHeight: 38,
+      color: mentaColors.text.primary,
+    },
+    description: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+      maxWidth: mentaLayout.readingMeasure,
+    },
+    ledger: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+    },
+    promiseInviteReview: {
+      gap: mentaSpacing[4],
+    },
+    receiptBlock: {
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      backgroundColor: mentaColors.surface,
+      paddingHorizontal: mentaSpacing[4],
+    },
+    receiptLabel: {
+      ...mentaTypography.labelBold,
+      color: mentaColors.text.muted,
+      paddingTop: mentaSpacing[4],
+    },
+    confirmedReceiptBlock: {
+      borderColor: mentaColors.border,
+    },
+    receiptRow: {
+      minHeight: 51,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: mentaSpacing[4],
+      paddingVertical: mentaSpacing[3],
+    },
+    receiptRowStacked: {
+      alignItems: 'flex-start',
+      flexWrap: 'wrap',
+    },
+    ledgerRow: {
+      minHeight: 58,
+      paddingVertical: mentaSpacing[4],
+    },
+    receiptIconLane: {
+      width: mentaLayout.iconLane,
+      height: mentaLayout.iconLane,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+    },
+    receiptDivider: {
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: mentaColors.border,
+    },
+    receiptCopy: {
+      flex: 1,
+      gap: mentaSpacing[1],
+    },
+    receiptTitle: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+    receiptSubtitle: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.primary,
+    },
+    receiptValue: {
+      ...mentaTypography.caption,
+      fontFamily: mentaTypography.bodySmallMedium.fontFamily,
+      textAlign: 'right',
+      flexShrink: 0,
+    },
+    receiptValueStacked: {
+      textAlign: 'left',
+      width: '100%',
+    },
+    receiptValueStackedWithIcon: {
+      paddingLeft: mentaLayout.iconLane + mentaSpacing[4],
+    },
+    ledgerTitle: {
+      ...mentaTypography.body,
+      fontSize: 16,
+      lineHeight: 20,
+      color: mentaColors.text.primary,
+    },
+    ledgerValue: {
+      ...mentaTypography.control,
+      textAlign: 'right',
+      flexShrink: 0,
+    },
+    actions: {
+      gap: mentaSpacing[3],
+      paddingTop: mentaSpacing[2],
+      paddingBottom: mentaSpacing[4],
+    },
+    loadingStack: {
+      gap: mentaSpacing[4],
+    },
+    compactPrimaryButton: {
+      minHeight: 54,
+      borderRadius: mentaRadii.small,
+    },
+    safeRecoveryNotice: {
+      borderRadius: mentaRadii.small,
+      paddingHorizontal: 18,
+      paddingVertical: 18,
+    },
+    statusMessage: {
+      ...mentaTypography.caption,
+      color: mentaColors.warning,
+    },
+    boundaryCopy: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+  });
+  return { toneColors, styles };
+};

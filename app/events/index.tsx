@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypeScale,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, {
   useCallback,
   useEffect,
@@ -15,13 +23,7 @@ import {
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { AppScreen } from '@/components/ui/AppShell';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypeScale,
-} from '@/constants/MentaDesignSystem';
+
 import { screenInsetPadding } from '@/constants/phone-layout';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { mentaFonts } from '@/lib/menta-fonts';
@@ -136,6 +138,9 @@ type AuthoredRecoveryState = {
 };
 
 export default function EventsIndexScreen() {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const phoneLayout = usePhoneLayout();
   const ipadWorkspaceEligible = useIPadPortraitWorkspace();
   const usesIpadWorkspace = ipadWorkspaceEligible && phoneLayout.height >= 600;
@@ -675,171 +680,174 @@ export default function EventsIndexScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: mentaColors.canvas },
-  content: {
-    flexGrow: 1,
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingTop: mentaSpacing[12],
-    paddingBottom: mentaSpacing[12],
-  },
-  header: { gap: mentaSpacing[2], marginBottom: mentaSpacing[8] },
-  createDraftLink: {
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-    marginTop: mentaSpacing[2],
-    minHeight: mentaLayout.minimumTouchTarget,
-  },
-  createDraftCopy: {
-    color: mentaColors.action,
-    fontFamily: mentaFonts.inter.semibold,
-    ...mentaTypeScale.bodySmall,
-  },
-  backButton: {
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.round,
-    borderWidth: StyleSheet.hairlineWidth,
-    height: mentaLayout.minimumTouchTarget,
-    justifyContent: 'center',
-    marginBottom: mentaSpacing[5],
-    width: mentaLayout.minimumTouchTarget,
-  },
-  title: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.newsreader.medium,
-    ...mentaTypeScale.display,
-  },
-  loading: { gap: mentaSpacing[4] },
-  skeletonRow: {
-    alignItems: 'center',
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 88,
-    paddingVertical: mentaSpacing[3],
-  },
-  skeletonCopy: { flex: 1 },
-  list: { gap: mentaSpacing[2] },
-  authoredList: { marginBottom: mentaSpacing[8] },
-  listLabel: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.inter.semibold,
-    marginBottom: mentaSpacing[2],
-    ...mentaTypeScale.bodySmall,
-  },
-  eventRow: {
-    alignItems: 'center',
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 88,
-    paddingVertical: mentaSpacing[3],
-  },
-  dateLane: { alignItems: 'center', width: 48 },
-  dateMonth: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.bold,
-    ...mentaTypeScale.eyebrow,
-  },
-  dateDay: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.newsreader.medium,
-    ...mentaTypeScale.title,
-  },
-  eventCopy: { flex: 1, gap: mentaSpacing[1] },
-  eventTitle: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.inter.semibold,
-    ...mentaTypeScale.body,
-  },
-  eventMeta: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.regular,
-    ...mentaTypeScale.caption,
-  },
-  capacity: {
-    color: mentaColors.success,
-    fontFamily: mentaFonts.inter.medium,
-    ...mentaTypeScale.caption,
-  },
-  organiserMeta: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.medium,
-    ...mentaTypeScale.caption,
-  },
-  trailingLane: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: mentaLayout.trailingActionLane,
-  },
-  emptyState: {
-    alignItems: 'flex-start',
-    gap: mentaSpacing[3],
-    paddingTop: mentaSpacing[6],
-    width: '100%',
-  },
-  stateTitle: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.newsreader.medium,
-    ...mentaTypeScale.title,
-  },
-  stateBody: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.regular,
-    ...mentaTypeScale.bodySmall,
-  },
-  pressed: { opacity: 0.72 },
-  ipadContent: {
-    flex: 1,
-    minHeight: 0,
-    gap: mentaSpacing[5],
-    paddingBottom: mentaSpacing[8],
-    paddingHorizontal: mentaSpacing[8],
-    paddingTop: mentaSpacing[6],
-  },
-  ipadTopBar: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[5],
-  },
-  ipadLoadingWorkspace: {
-    flex: 1,
-    minHeight: 0,
-    flexDirection: 'row',
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    overflow: 'hidden',
-  },
-  ipadLoadingList: {
-    flexBasis: 390,
-    flexShrink: 1,
-    backgroundColor: mentaColors.surface,
-    padding: mentaSpacing[5],
-    gap: mentaSpacing[6],
-  },
-  ipadLoadingRow: {
-    gap: mentaSpacing[3],
-    paddingVertical: mentaSpacing[4],
-  },
-  ipadLoadingDetail: {
-    flex: 1,
-    minWidth: 0,
-    padding: mentaSpacing[6],
-    gap: mentaSpacing[6],
-  },
-  ipadBackButton: { marginBottom: 0 },
-  ipadCreateButton: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-    marginLeft: 'auto',
-    minHeight: mentaLayout.minimumTouchTarget,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: { flex: 1, backgroundColor: mentaColors.canvas },
+    content: {
+      flexGrow: 1,
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingTop: mentaSpacing[12],
+      paddingBottom: mentaSpacing[12],
+    },
+    header: { gap: mentaSpacing[2], marginBottom: mentaSpacing[8] },
+    createDraftLink: {
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+      marginTop: mentaSpacing[2],
+      minHeight: mentaLayout.minimumTouchTarget,
+    },
+    createDraftCopy: {
+      color: mentaColors.action,
+      fontFamily: mentaFonts.inter.semibold,
+      ...mentaTypeScale.bodySmall,
+    },
+    backButton: {
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.round,
+      borderWidth: StyleSheet.hairlineWidth,
+      height: mentaLayout.minimumTouchTarget,
+      justifyContent: 'center',
+      marginBottom: mentaSpacing[5],
+      width: mentaLayout.minimumTouchTarget,
+    },
+    title: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.newsreader.medium,
+      ...mentaTypeScale.display,
+    },
+    loading: { gap: mentaSpacing[4] },
+    skeletonRow: {
+      alignItems: 'center',
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 88,
+      paddingVertical: mentaSpacing[3],
+    },
+    skeletonCopy: { flex: 1 },
+    list: { gap: mentaSpacing[2] },
+    authoredList: { marginBottom: mentaSpacing[8] },
+    listLabel: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.inter.semibold,
+      marginBottom: mentaSpacing[2],
+      ...mentaTypeScale.bodySmall,
+    },
+    eventRow: {
+      alignItems: 'center',
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 88,
+      paddingVertical: mentaSpacing[3],
+    },
+    dateLane: { alignItems: 'center', width: 48 },
+    dateMonth: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.bold,
+      ...mentaTypeScale.eyebrow,
+    },
+    dateDay: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.newsreader.medium,
+      ...mentaTypeScale.title,
+    },
+    eventCopy: { flex: 1, gap: mentaSpacing[1] },
+    eventTitle: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.inter.semibold,
+      ...mentaTypeScale.body,
+    },
+    eventMeta: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.regular,
+      ...mentaTypeScale.caption,
+    },
+    capacity: {
+      color: mentaColors.success,
+      fontFamily: mentaFonts.inter.medium,
+      ...mentaTypeScale.caption,
+    },
+    organiserMeta: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.medium,
+      ...mentaTypeScale.caption,
+    },
+    trailingLane: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: mentaLayout.trailingActionLane,
+    },
+    emptyState: {
+      alignItems: 'flex-start',
+      gap: mentaSpacing[3],
+      paddingTop: mentaSpacing[6],
+      width: '100%',
+    },
+    stateTitle: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.newsreader.medium,
+      ...mentaTypeScale.title,
+    },
+    stateBody: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.regular,
+      ...mentaTypeScale.bodySmall,
+    },
+    pressed: { opacity: 0.72 },
+    ipadContent: {
+      flex: 1,
+      minHeight: 0,
+      gap: mentaSpacing[5],
+      paddingBottom: mentaSpacing[8],
+      paddingHorizontal: mentaSpacing[8],
+      paddingTop: mentaSpacing[6],
+    },
+    ipadTopBar: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[5],
+    },
+    ipadLoadingWorkspace: {
+      flex: 1,
+      minHeight: 0,
+      flexDirection: 'row',
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: StyleSheet.hairlineWidth,
+      overflow: 'hidden',
+    },
+    ipadLoadingList: {
+      flexBasis: 390,
+      flexShrink: 1,
+      backgroundColor: mentaColors.surface,
+      padding: mentaSpacing[5],
+      gap: mentaSpacing[6],
+    },
+    ipadLoadingRow: {
+      gap: mentaSpacing[3],
+      paddingVertical: mentaSpacing[4],
+    },
+    ipadLoadingDetail: {
+      flex: 1,
+      minWidth: 0,
+      padding: mentaSpacing[6],
+      gap: mentaSpacing[6],
+    },
+    ipadBackButton: { marginBottom: 0 },
+    ipadCreateButton: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+      marginLeft: 'auto',
+      minHeight: mentaLayout.minimumTouchTarget,
+    },
+  });
+  return { styles };
+};

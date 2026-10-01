@@ -1,4 +1,5 @@
 import * as Updates from 'expo-updates';
+import { clearInitialURL } from 'expo-linking';
 
 export type OtaUpdateDownloadResult = 'current' | 'ready' | 'unavailable';
 
@@ -14,5 +15,8 @@ export const downloadAvailableOtaUpdate =
   };
 
 export const restartIntoDownloadedOta = async (): Promise<void> => {
+  // A JS reload retains the native linking registry. Do not replay a consumed
+  // widget or other launch URL as a new navigation request after an update.
+  clearInitialURL();
   await Updates.reloadAsync();
 };

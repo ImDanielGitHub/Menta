@@ -130,7 +130,7 @@ jest.mock('@/components/ui/AppFields', () => {
       Pressable,
       {
         testID:
-          title === 'Reminder time'
+          title === 'Usual reminder time'
             ? 'notification-time-row'
             : `notification-time-${title.toLowerCase().replaceAll(' ', '-')}`,
         onPress: () => onChange(new Date('2026-08-05T18:30:00.000Z')),
@@ -279,6 +279,15 @@ const renderNotifications = () =>
     </ThemeProvider>
   );
 
+const openAdvanced = async () => {
+  await waitFor(() =>
+    expect(
+      screen.getByTestId('notification-settings-toggle-advanced')
+    ).toBeTruthy()
+  );
+  fireEvent.press(screen.getByTestId('notification-settings-toggle-advanced'));
+};
+
 describe('NotificationSettingsScreen release-safe feedback', () => {
   const openSettings = jest.spyOn(Linking, 'openSettings');
 
@@ -320,6 +329,26 @@ describe('NotificationSettingsScreen release-safe feedback', () => {
     openSettings.mockResolvedValue(undefined);
   });
 
+  it('keeps only smart reminders and the usual time visible, preserving advanced opt-outs', async () => {
+    renderNotifications();
+    await waitFor(() =>
+      expect(screen.getByText('Smart reminders')).toBeTruthy()
+    );
+    expect(screen.getByText('Usual reminder time')).toBeTruthy();
+    expect(screen.queryByText('Reviews and group activity')).toBeNull();
+    expect(screen.queryByText('Menta product news')).toBeNull();
+    expect(screen.queryByText('Quiet hours start')).toBeNull();
+    expect(
+      mockedNotificationService.updateUserPreferences
+    ).not.toHaveBeenCalled();
+    await openAdvanced();
+    expect(screen.getByText('Reviews and group activity')).toBeTruthy();
+    expect(screen.getByText('Quiet hours start')).toBeTruthy();
+    expect(
+      mockedNotificationService.updateUserPreferences
+    ).not.toHaveBeenCalled();
+  });
+
   it('shows an in-route load notice with a retry action', async () => {
     mockedNotificationService.getUserPreferences.mockRejectedValueOnce(
       new Error('load failed')
@@ -352,6 +381,7 @@ describe('NotificationSettingsScreen release-safe feedback', () => {
     );
 
     renderNotifications();
+    await openAdvanced();
     await waitFor(() => {
       expect(screen.getByText('Promise reminders')).toBeTruthy();
     });
@@ -373,6 +403,7 @@ describe('NotificationSettingsScreen release-safe feedback', () => {
 
   it('links an explicitly consented account email and removes it on opt-out', async () => {
     renderNotifications();
+    await openAdvanced();
     await waitFor(() => {
       expect(screen.getByText('Email updates')).toBeTruthy();
     });
@@ -478,7 +509,7 @@ describe('NotificationSettingsScreen release-safe feedback', () => {
       expect(screen.getByText('Promise reminders')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByTestId('notification-toggle-Proof reminders'));
+    fireEvent.press(screen.getByTestId('notification-toggle-Smart reminders'));
 
     await waitFor(() => {
       expect(screen.getByText('Proof reminders saved')).toBeTruthy();
@@ -500,7 +531,7 @@ describe('NotificationSettingsScreen release-safe feedback', () => {
       expect(screen.getByText('Promise reminders')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByTestId('notification-toggle-Proof reminders'));
+    fireEvent.press(screen.getByTestId('notification-toggle-Smart reminders'));
 
     await waitFor(() => {
       expect(
@@ -599,7 +630,7 @@ describe('NotificationSettingsScreen release-safe feedback', () => {
       expect(screen.getByText('Promise reminders')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByTestId('notification-toggle-Proof reminders'));
+    fireEvent.press(screen.getByTestId('notification-toggle-Smart reminders'));
 
     await waitFor(() => {
       expect(mockRouter.push).toHaveBeenCalledWith('/notification-onboarding');
@@ -689,6 +720,7 @@ describe('NotificationSettingsScreen release-safe feedback', () => {
         'user-2'
       )
     );
+    await openAdvanced();
     await waitFor(() =>
       expect(
         screen.getByTestId('notification-toggle-Reviews and group activity')
@@ -729,6 +761,7 @@ describe('NotificationSettingsScreen release-safe feedback', () => {
     );
 
     const view = renderNotifications();
+    await openAdvanced();
     await waitFor(() =>
       expect(
         screen.getByTestId('notification-toggle-Reviews and group activity')

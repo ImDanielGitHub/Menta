@@ -1,3 +1,12 @@
+import {
+  type MentaPalette,
+  mentaColors,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import { useTranslation } from '@/lib/localization';
 import React, {
   forwardRef,
@@ -41,13 +50,6 @@ import {
   loadOnboardingDraft,
   type OnboardingDraft,
 } from '@/lib/onboarding-draft';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
 
 import { mentaFonts, useMentaFonts } from '@/lib/menta-fonts';
 import { googleProviderLabelTypography } from '@/components/ui/google-provider-style';
@@ -61,6 +63,7 @@ import { scaleTypeMetrics } from '@/constants/phone-layout';
 
 export const paperAuthTokens = {
   canvas: mentaColors.canvas,
+  ink: mentaColors.text.onPaper,
   surface: mentaColors.surface,
   raised: mentaColors.raised,
   border: mentaColors.border,
@@ -127,6 +130,8 @@ export const PaperAuthFrame: React.FC<PaperAuthFrameProps> = ({
   contentContainerStyle,
   testID = 'paper-auth-frame',
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const phoneLayout = usePhoneLayout();
   return (
@@ -169,18 +174,23 @@ export const PaperAuthContextCard: React.FC<{
   detail?: string;
   compact?: boolean;
   testID?: string;
-}> = ({ label, value, detail, compact = false, testID }) => (
-  <View
-    style={[styles.contextCard, compact && styles.contextCardCompact]}
-    testID={testID}
-  >
-    <Text style={styles.contextLabel}>{label}</Text>
-    <Text style={[styles.contextValue, compact && styles.contextValueCompact]}>
-      {value}
-    </Text>
-    {detail ? <Text style={styles.contextDetail}>{detail}</Text> : null}
-  </View>
-);
+}> = ({ label, value, detail, compact = false, testID }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View
+      style={[styles.contextCard, compact && styles.contextCardCompact]}
+      testID={testID}
+    >
+      <Text style={styles.contextLabel}>{label}</Text>
+      <Text
+        style={[styles.contextValue, compact && styles.contextValueCompact]}
+      >
+        {value}
+      </Text>
+      {detail ? <Text style={styles.contextDetail}>{detail}</Text> : null}
+    </View>
+  );
+};
 
 export const PaperAuthPromiseCard: React.FC<{
   draft: OnboardingDraft | null;
@@ -205,24 +215,27 @@ export const PaperAuthHeading: React.FC<{
   subtitle?: string;
   size?: PaperAuthHeadingSize;
   testID?: string;
-}> = ({ title, subtitle, size = 'medium', testID }) => (
-  <View
-    style={[styles.headingBlock, size === 'large' && styles.headingLarge]}
-    testID={testID ? `${testID}-block` : undefined}
-  >
-    <Text
-      style={[
-        styles.heading,
-        size === 'large' && styles.headingLargeText,
-        size === 'check' && styles.headingCheckText,
-      ]}
-      testID={testID}
+}> = ({ title, subtitle, size = 'medium', testID }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View
+      style={[styles.headingBlock, size === 'large' && styles.headingLarge]}
+      testID={testID ? `${testID}-block` : undefined}
     >
-      {title}
-    </Text>
-    {subtitle ? <Text style={styles.headingSubtitle}>{subtitle}</Text> : null}
-  </View>
-);
+      <Text
+        style={[
+          styles.heading,
+          size === 'large' && styles.headingLargeText,
+          size === 'check' && styles.headingCheckText,
+        ]}
+        testID={testID}
+      >
+        {title}
+      </Text>
+      {subtitle ? <Text style={styles.headingSubtitle}>{subtitle}</Text> : null}
+    </View>
+  );
+};
 
 export const PaperAuthButton: React.FC<{
   title: string;
@@ -247,6 +260,8 @@ export const PaperAuthButton: React.FC<{
   icon,
   testID,
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const isDisabled = disabled || loading;
   const visibleTitle = loading ? (loadingTitle ?? title) : title;
   const progress = Math.min(Math.max(loadingProgress ?? 0.56, 0), 1);
@@ -353,6 +368,8 @@ export const PaperAuthTextField = forwardRef<
     },
     ref
   ) => {
+    const { paperAuthTokens, styles } = useMentaStyles(createPaletteStyles);
+
     const { t } = useTranslation();
     const textScale = useAppTextScale();
     const inputRef = useRef<TextInput | null>(null);
@@ -481,6 +498,8 @@ export const PaperAuthNotice: React.FC<{
   tone?: 'error' | 'success' | 'warning';
   testID?: string;
 }> = ({ title, message, tone = 'error', testID = 'paper-auth-notice' }) => {
+  const { paperAuthTokens, styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const color =
     tone === 'success'
@@ -528,6 +547,8 @@ export const PaperOAuthCancelled: React.FC<{
   onKeepDraft,
   testID = 'paper-oauth-cancelled',
 }) => {
+  const { paperAuthTokens, styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.cancelledSafeArea}>
@@ -634,25 +655,30 @@ export const PaperAuthTextLink: React.FC<{
   action: string;
   onPress: () => void;
   testID?: string;
-}> = ({ lead, action, onPress, testID }) => (
-  <Pressable
-    accessibilityRole="button"
-    onPress={onPress}
-    style={({ pressed }) => [
-      styles.textLinkRow,
-      pressed && styles.buttonPressed,
-    ]}
-    testID={testID}
-  >
-    <Text style={styles.textLinkLead}>{lead}</Text>
-    <Text style={styles.textLinkAction}>{action}</Text>
-  </Pressable>
-);
+}> = ({ lead, action, onPress, testID }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.textLinkRow,
+        pressed && styles.buttonPressed,
+      ]}
+      testID={testID}
+    >
+      <Text style={styles.textLinkLead}>{lead}</Text>
+      <Text style={styles.textLinkAction}>{action}</Text>
+    </Pressable>
+  );
+};
 
 export const PaperAuthLegal: React.FC<{
   testID?: string;
   textScale?: number;
 }> = ({ testID = 'paper-auth-legal', textScale }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <View style={styles.legalBlock} testID={testID}>
@@ -755,393 +781,414 @@ export const PaperAuthMascot: React.FC<{
   );
 };
 
-const styles = StyleSheet.create({
-  safeArea: {
-    backgroundColor: paperAuthTokens.canvas,
-    flex: 1,
-  },
-  flex: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 18,
-    paddingHorizontal: 24,
-  },
-  brandRow: {
-    alignItems: 'center',
-    alignSelf: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    maxWidth: mentaLayout.taskLane,
-    paddingTop: 14,
-    width: '100%',
-  },
-  wordmark: {
-    color: paperAuthTokens.text,
-    fontFamily: paperAuthFonts.interBold,
-    fontSize: 17,
-    letterSpacing: -0.34,
-    lineHeight: 24,
-  },
-  cancelledSafeArea: {
-    backgroundColor: paperAuthTokens.canvas,
-    flex: 1,
-  },
-  cancelledPage: {
-    alignSelf: 'center',
-    flexGrow: 1,
-    gap: 20,
-    maxWidth: mentaLayout.phoneFrameMax,
-    paddingBottom: 22,
-    paddingHorizontal: 24,
-    paddingTop: 2,
-    width: '100%',
-  },
-  cancelledHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexShrink: 0,
-    gap: 12,
-  },
-  cancelledBack: {
-    alignItems: 'center',
-    borderColor: paperAuthTokens.border,
-    borderRadius: 4,
-    borderWidth: 1,
-    justifyContent: 'center',
-    minHeight: mentaLayout.minimumTouchTarget,
-    minWidth: mentaLayout.minimumTouchTarget,
-  },
-  cancelledHeaderCopy: {
-    flex: 1,
-  },
-  cancelledHeaderTitle: {
-    color: paperAuthTokens.text,
-    fontFamily: paperAuthFonts.inter,
-    fontSize: 16,
-    lineHeight: 20,
-  },
-  cancelledBody: {
-    flex: 1,
-    gap: 20,
-  },
-  cancelledExplanation: {
-    color: paperAuthTokens.muted,
-    fontFamily: paperAuthFonts.inter,
-    fontSize: 16,
-    lineHeight: 20,
-    maxWidth: 330,
-  },
-  cancelledDraftCard: {
-    backgroundColor: paperAuthTokens.surface,
-    borderColor: paperAuthTokens.border,
-    borderRadius: 6,
-    borderWidth: 1,
-    padding: 18,
-  },
-  cancelledDraftRow: {
-    alignItems: 'flex-start',
-    borderBottomColor: paperAuthTokens.border,
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    gap: 12,
-    paddingVertical: 14,
-  },
-  cancelledLockSlot: {
-    alignItems: 'center',
-    backgroundColor: paperAuthTokens.raised,
-    borderRadius: 6,
-    height: 34,
-    justifyContent: 'center',
-    width: 34,
-  },
-  cancelledDraftCopy: {
-    flex: 1,
-    gap: 3,
-  },
-  cancelledDraftTitle: {
-    color: paperAuthTokens.text,
-    fontFamily: paperAuthFonts.inter,
-    fontSize: 16,
-    lineHeight: 20,
-  },
-  cancelledDraftDetail: {
-    color: paperAuthTokens.muted,
-    fontFamily: paperAuthFonts.inter,
-    fontSize: 16,
-    lineHeight: 20,
-  },
-  cancelledActions: {
-    flexShrink: 0,
-    gap: 10,
-  },
-  cancelledPrimary: {
-    alignItems: 'center',
-    backgroundColor: paperAuthTokens.action,
-    borderBottomColor: '#7750B6',
-    borderBottomWidth: 3,
-    borderRadius: mentaRadii.large,
-    justifyContent: 'center',
-    minHeight: mentaLayout.primaryControlHeight,
-    paddingHorizontal: mentaSpacing[5],
-    paddingVertical: mentaSpacing[3],
-  },
-  cancelledPrimaryText: {
-    color: paperAuthTokens.canvas,
-    ...mentaTypography.control,
-  },
-  cancelledSecondary: {
-    alignItems: 'center',
-    borderColor: paperAuthTokens.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: 1.5,
-    justifyContent: 'center',
-    minHeight: mentaLayout.primaryControlHeight,
-    paddingHorizontal: mentaSpacing[5],
-  },
-  cancelledSecondaryText: {
-    color: paperAuthTokens.action,
-    ...mentaTypography.control,
-  },
-  contextCard: {
-    gap: 4,
-    width: '100%',
-  },
-  contextCardCompact: {
-    gap: 3,
-  },
-  contextLabel: {
-    color: paperAuthTokens.muted,
-    ...mentaTypography.caption,
-  },
-  contextValue: {
-    color: paperAuthTokens.text,
-    ...mentaTypography.bodySmallMedium,
-  },
-  contextValueCompact: {
-    ...mentaTypography.bodySmallMedium,
-  },
-  contextDetail: {
-    color: paperAuthTokens.muted,
-    ...mentaTypography.caption,
-  },
-  headingBlock: {
-    gap: 8,
-    width: '100%',
-  },
-  headingLarge: {
-    gap: 10,
-    maxWidth: 330,
-  },
-  heading: {
-    color: paperAuthTokens.text,
-    ...mentaTypography.heading,
-  },
-  headingLargeText: {
-    ...mentaTypography.display,
-  },
-  headingCheckText: {
-    ...mentaTypography.heading,
-  },
-  headingSubtitle: {
-    color: paperAuthTokens.muted,
-    ...mentaTypography.body,
-  },
-  button: {
-    alignItems: 'center',
-    backgroundColor: paperAuthTokens.action,
-    borderRadius: mentaRadii.large,
-    flexDirection: 'row',
-    gap: 10,
-    justifyContent: 'center',
-    minHeight: mentaLayout.primaryControlHeight,
-    overflow: 'hidden',
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    width: '100%',
-  },
-  buttonPaper: {
-    backgroundColor: paperAuthTokens.paper,
-  },
-  buttonGoogle: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#747775',
-    borderWidth: 1,
-    paddingHorizontal: 16,
-  },
-  buttonMuted: {
-    backgroundColor: paperAuthTokens.raised,
-  },
-  buttonDisabled: {
-    opacity: 0.52,
-  },
-  buttonPressed: {
-    opacity: 0.76,
-  },
-  buttonLoadingAction: {
-    backgroundColor: paperAuthTokens.raised,
-  },
-  buttonProgress: {
-    backgroundColor: paperAuthTokens.action,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-    top: 0,
-  },
-  buttonIconSlot: {
-    alignItems: 'center',
-    height: 20,
-    justifyContent: 'center',
-    width: 20,
-  },
-  buttonGoogleLeadingSlot: {
-    left: 16,
-    position: 'absolute',
-  },
-  buttonGoogleTrailingSlot: {
-    position: 'absolute',
-    right: 16,
-  },
-  buttonText: {
-    color: paperAuthTokens.canvas,
-    ...mentaTypography.control,
-  },
-  buttonPaperText: {
-    color: paperAuthTokens.canvas,
-  },
-  buttonGoogleText: {
-    color: '#1F1F1F',
-    ...googleProviderLabelTypography,
-  },
-  buttonMutedText: {
-    color: paperAuthTokens.muted,
-  },
-  fieldBlock: {
-    gap: 5,
-    width: '100%',
-  },
-  fieldLabelRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: 17,
-  },
-  fieldLabel: {
-    color: paperAuthTokens.text,
-    ...mentaTypography.bodySmallMedium,
-  },
-  fieldLabelAccessory: {
-    alignItems: 'center',
-    flexShrink: 0,
-  },
-  inputShell: {
-    alignItems: 'center',
-    backgroundColor: paperAuthTokens.raised,
-    borderRadius: 12,
-    flexDirection: 'row',
-    minHeight: 48,
-    paddingLeft: 14,
-    paddingRight: 8,
-    width: '100%',
-  },
-  input: {
-    color: paperAuthTokens.text,
-    flex: 1,
-    fontFamily: paperAuthFonts.inter,
-    fontSize: 15,
-    lineHeight: 21,
-    minHeight: 46,
-    paddingHorizontal: 0,
-    paddingVertical: 0,
-  },
-  visibilityButton: {
-    alignItems: 'center',
-    flexShrink: 0,
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
-  },
-  fieldError: {
-    color: paperAuthTokens.danger,
-    ...mentaTypography.caption,
-  },
-  fieldHelper: {
-    color: paperAuthTokens.muted,
-    ...mentaTypography.caption,
-  },
-  notice: {
-    alignItems: 'flex-start',
-    borderRadius: 12,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    width: '100%',
-  },
-  noticeCopy: {
-    flex: 1,
-    gap: 2,
-  },
-  noticeTitle: {
-    ...mentaTypography.bodySmallMedium,
-  },
-  noticeMessage: {
-    color: paperAuthTokens.muted,
-    ...mentaTypography.bodySmall,
-  },
-  textLinkRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 4,
-    justifyContent: 'center',
-    minHeight: 44,
-    paddingHorizontal: 4,
-    width: '100%',
-  },
-  textLinkLead: {
-    color: paperAuthTokens.muted,
-    ...mentaTypography.bodySmall,
-  },
-  textLinkAction: {
-    color: paperAuthTokens.action,
-    ...mentaTypography.bodySmallMedium,
-  },
-  legalBlock: {
-    alignItems: 'center',
-    alignSelf: 'center',
-    gap: 8,
-    marginTop: 'auto',
-    maxWidth: mentaLayout.readingMeasure,
-    paddingTop: 20,
-    width: '100%',
-  },
-  legalCopy: {
-    color: paperAuthTokens.muted,
-    fontFamily: paperAuthFonts.inter,
-    fontSize: 12,
-    lineHeight: 17,
-    maxWidth: 320,
-    textAlign: 'center',
-  },
-  legalLinks: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 24,
-    justifyContent: 'center',
-  },
-  legalLinkHit: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 44,
-    minWidth: 92,
-  },
-  legalLink: {
-    color: paperAuthTokens.action,
-    fontFamily: paperAuthFonts.interBold,
-    fontSize: 13,
-    lineHeight: 18,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const paperAuthTokens = {
+    canvas: mentaColors.canvas,
+    ink: mentaColors.text.onPaper,
+    surface: mentaColors.surface,
+    raised: mentaColors.raised,
+    border: mentaColors.border,
+    paper: mentaColors.paper,
+    text: mentaColors.text.primary,
+    muted: mentaColors.text.secondary,
+    mutedPaper: mentaColors.text.mutedOnPaper,
+    action: mentaColors.action,
+    danger: mentaColors.danger,
+    success: mentaColors.success,
+    successSoft: mentaColors.successSoft,
+    warning: mentaColors.warning,
+  } as const;
+  const styles = StyleSheet.create({
+    safeArea: {
+      backgroundColor: paperAuthTokens.canvas,
+      flex: 1,
+    },
+    flex: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingBottom: 18,
+      paddingHorizontal: 24,
+    },
+    brandRow: {
+      alignItems: 'center',
+      alignSelf: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      maxWidth: mentaLayout.taskLane,
+      paddingTop: 14,
+      width: '100%',
+    },
+    wordmark: {
+      color: paperAuthTokens.text,
+      fontFamily: paperAuthFonts.interBold,
+      fontSize: 17,
+      letterSpacing: -0.34,
+      lineHeight: 24,
+    },
+    cancelledSafeArea: {
+      backgroundColor: paperAuthTokens.canvas,
+      flex: 1,
+    },
+    cancelledPage: {
+      alignSelf: 'center',
+      flexGrow: 1,
+      gap: 20,
+      maxWidth: mentaLayout.phoneFrameMax,
+      paddingBottom: 22,
+      paddingHorizontal: 24,
+      paddingTop: 2,
+      width: '100%',
+    },
+    cancelledHeader: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      flexShrink: 0,
+      gap: 12,
+    },
+    cancelledBack: {
+      alignItems: 'center',
+      borderColor: paperAuthTokens.border,
+      borderRadius: 4,
+      borderWidth: 1,
+      justifyContent: 'center',
+      minHeight: mentaLayout.minimumTouchTarget,
+      minWidth: mentaLayout.minimumTouchTarget,
+    },
+    cancelledHeaderCopy: {
+      flex: 1,
+    },
+    cancelledHeaderTitle: {
+      color: paperAuthTokens.text,
+      fontFamily: paperAuthFonts.inter,
+      fontSize: 16,
+      lineHeight: 20,
+    },
+    cancelledBody: {
+      flex: 1,
+      gap: 20,
+    },
+    cancelledExplanation: {
+      color: paperAuthTokens.muted,
+      fontFamily: paperAuthFonts.inter,
+      fontSize: 16,
+      lineHeight: 20,
+      maxWidth: 330,
+    },
+    cancelledDraftCard: {
+      backgroundColor: paperAuthTokens.surface,
+      borderColor: paperAuthTokens.border,
+      borderRadius: 6,
+      borderWidth: 1,
+      padding: 18,
+    },
+    cancelledDraftRow: {
+      alignItems: 'flex-start',
+      borderBottomColor: paperAuthTokens.border,
+      borderBottomWidth: 1,
+      flexDirection: 'row',
+      gap: 12,
+      paddingVertical: 14,
+    },
+    cancelledLockSlot: {
+      alignItems: 'center',
+      backgroundColor: paperAuthTokens.raised,
+      borderRadius: 6,
+      height: 34,
+      justifyContent: 'center',
+      width: 34,
+    },
+    cancelledDraftCopy: {
+      flex: 1,
+      gap: 3,
+    },
+    cancelledDraftTitle: {
+      color: paperAuthTokens.text,
+      fontFamily: paperAuthFonts.inter,
+      fontSize: 16,
+      lineHeight: 20,
+    },
+    cancelledDraftDetail: {
+      color: paperAuthTokens.muted,
+      fontFamily: paperAuthFonts.inter,
+      fontSize: 16,
+      lineHeight: 20,
+    },
+    cancelledActions: {
+      flexShrink: 0,
+      gap: 10,
+    },
+    cancelledPrimary: {
+      alignItems: 'center',
+      backgroundColor: paperAuthTokens.action,
+      borderBottomColor: '#7750B6',
+      borderBottomWidth: 3,
+      borderRadius: mentaRadii.large,
+      justifyContent: 'center',
+      minHeight: mentaLayout.primaryControlHeight,
+      paddingHorizontal: mentaSpacing[5],
+      paddingVertical: mentaSpacing[3],
+    },
+    cancelledPrimaryText: {
+      color: paperAuthTokens.canvas,
+      ...mentaTypography.control,
+    },
+    cancelledSecondary: {
+      alignItems: 'center',
+      borderColor: paperAuthTokens.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: 1.5,
+      justifyContent: 'center',
+      minHeight: mentaLayout.primaryControlHeight,
+      paddingHorizontal: mentaSpacing[5],
+    },
+    cancelledSecondaryText: {
+      color: paperAuthTokens.action,
+      ...mentaTypography.control,
+    },
+    contextCard: {
+      gap: 4,
+      width: '100%',
+    },
+    contextCardCompact: {
+      gap: 3,
+    },
+    contextLabel: {
+      color: paperAuthTokens.muted,
+      ...mentaTypography.caption,
+    },
+    contextValue: {
+      color: paperAuthTokens.text,
+      ...mentaTypography.bodySmallMedium,
+    },
+    contextValueCompact: {
+      ...mentaTypography.bodySmallMedium,
+    },
+    contextDetail: {
+      color: paperAuthTokens.muted,
+      ...mentaTypography.caption,
+    },
+    headingBlock: {
+      gap: 8,
+      width: '100%',
+    },
+    headingLarge: {
+      gap: 10,
+      maxWidth: 330,
+    },
+    heading: {
+      color: paperAuthTokens.text,
+      ...mentaTypography.heading,
+    },
+    headingLargeText: {
+      ...mentaTypography.display,
+    },
+    headingCheckText: {
+      ...mentaTypography.heading,
+    },
+    headingSubtitle: {
+      color: paperAuthTokens.muted,
+      ...mentaTypography.body,
+    },
+    button: {
+      alignItems: 'center',
+      backgroundColor: paperAuthTokens.action,
+      borderRadius: mentaRadii.large,
+      flexDirection: 'row',
+      gap: 10,
+      justifyContent: 'center',
+      minHeight: mentaLayout.primaryControlHeight,
+      overflow: 'hidden',
+      paddingHorizontal: 18,
+      paddingVertical: 12,
+      width: '100%',
+    },
+    buttonPaper: {
+      backgroundColor: paperAuthTokens.paper,
+      borderColor: paperAuthTokens.border,
+      borderWidth: StyleSheet.hairlineWidth,
+    },
+    buttonGoogle: {
+      backgroundColor: '#FFFFFF',
+      borderColor: '#747775',
+      borderWidth: 1,
+      paddingHorizontal: 16,
+    },
+    buttonMuted: {
+      backgroundColor: paperAuthTokens.raised,
+    },
+    buttonDisabled: {
+      opacity: 0.52,
+    },
+    buttonPressed: {
+      opacity: 0.76,
+    },
+    buttonLoadingAction: {
+      backgroundColor: paperAuthTokens.raised,
+    },
+    buttonProgress: {
+      backgroundColor: paperAuthTokens.action,
+      bottom: 0,
+      left: 0,
+      position: 'absolute',
+      top: 0,
+    },
+    buttonIconSlot: {
+      alignItems: 'center',
+      height: 20,
+      justifyContent: 'center',
+      width: 20,
+    },
+    buttonGoogleLeadingSlot: {
+      left: 16,
+      position: 'absolute',
+    },
+    buttonGoogleTrailingSlot: {
+      position: 'absolute',
+      right: 16,
+    },
+    buttonText: {
+      color: paperAuthTokens.canvas,
+      ...mentaTypography.control,
+    },
+    buttonPaperText: {
+      color: paperAuthTokens.ink,
+    },
+    buttonGoogleText: {
+      color: '#1F1F1F',
+      ...googleProviderLabelTypography,
+    },
+    buttonMutedText: {
+      color: paperAuthTokens.muted,
+    },
+    fieldBlock: {
+      gap: 5,
+      width: '100%',
+    },
+    fieldLabelRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      minHeight: 17,
+    },
+    fieldLabel: {
+      color: paperAuthTokens.text,
+      ...mentaTypography.bodySmallMedium,
+    },
+    fieldLabelAccessory: {
+      alignItems: 'center',
+      flexShrink: 0,
+    },
+    inputShell: {
+      alignItems: 'center',
+      backgroundColor: paperAuthTokens.raised,
+      borderRadius: 12,
+      flexDirection: 'row',
+      minHeight: 48,
+      paddingLeft: 14,
+      paddingRight: 8,
+      width: '100%',
+    },
+    input: {
+      color: paperAuthTokens.text,
+      flex: 1,
+      fontFamily: paperAuthFonts.inter,
+      fontSize: 15,
+      lineHeight: 21,
+      minHeight: 46,
+      paddingHorizontal: 0,
+      paddingVertical: 0,
+    },
+    visibilityButton: {
+      alignItems: 'center',
+      flexShrink: 0,
+      height: 44,
+      justifyContent: 'center',
+      width: 44,
+    },
+    fieldError: {
+      color: paperAuthTokens.danger,
+      ...mentaTypography.caption,
+    },
+    fieldHelper: {
+      color: paperAuthTokens.muted,
+      ...mentaTypography.caption,
+    },
+    notice: {
+      alignItems: 'flex-start',
+      borderRadius: 12,
+      borderWidth: 1,
+      flexDirection: 'row',
+      gap: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      width: '100%',
+    },
+    noticeCopy: {
+      flex: 1,
+      gap: 2,
+    },
+    noticeTitle: {
+      ...mentaTypography.bodySmallMedium,
+    },
+    noticeMessage: {
+      color: paperAuthTokens.muted,
+      ...mentaTypography.bodySmall,
+    },
+    textLinkRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 4,
+      justifyContent: 'center',
+      minHeight: 44,
+      paddingHorizontal: 4,
+      width: '100%',
+    },
+    textLinkLead: {
+      color: paperAuthTokens.muted,
+      ...mentaTypography.bodySmall,
+    },
+    textLinkAction: {
+      color: paperAuthTokens.action,
+      ...mentaTypography.bodySmallMedium,
+    },
+    legalBlock: {
+      alignItems: 'center',
+      alignSelf: 'center',
+      gap: 8,
+      marginTop: 'auto',
+      maxWidth: mentaLayout.readingMeasure,
+      paddingTop: 20,
+      width: '100%',
+    },
+    legalCopy: {
+      color: paperAuthTokens.muted,
+      fontFamily: paperAuthFonts.inter,
+      fontSize: 12,
+      lineHeight: 17,
+      maxWidth: 320,
+      textAlign: 'center',
+    },
+    legalLinks: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 24,
+      justifyContent: 'center',
+    },
+    legalLinkHit: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 44,
+      minWidth: 92,
+    },
+    legalLink: {
+      color: paperAuthTokens.action,
+      fontFamily: paperAuthFonts.interBold,
+      fontSize: 13,
+      lineHeight: 18,
+    },
+  });
+  return { paperAuthTokens, styles };
+};

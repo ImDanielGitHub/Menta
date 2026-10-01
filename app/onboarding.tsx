@@ -1,3 +1,16 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
+import { MentaConsent } from '@/components/menta-check/menta-consent';
+import {
+  getMentaCheckOverview,
+  setPromiseReviewMode,
+} from '@/lib/menta-check/api';
 import React, {
   useCallback,
   useEffect,
@@ -105,13 +118,7 @@ import {
   type LegalAcceptanceStatus,
 } from '@/lib/legal-acceptance';
 import { LegalDocumentLinks } from '@/components/legal/LegalDocumentLinks';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { mentaFonts } from '@/lib/menta-fonts';
 import { trackProductEvent } from '@/lib/posthog';
 import { PaywallModal } from '@/components/paywall/PaywallModal';
@@ -137,26 +144,6 @@ import { useTranslation } from '@/lib/localization';
 import type { TranslationKey } from '@/lib/localization/en-NZ';
 import { shouldUseIPadPortraitWorkspace } from '@/components/ipad/ipad-workspace';
 import { useMotionPreferences } from '@/lib/motion/use-motion-preferences';
-
-const colours = {
-  canvas: mentaColors.canvas,
-  surface: mentaColors.surface,
-  raised: mentaColors.raised,
-  border: mentaColors.border,
-  paper: mentaColors.paper,
-  paperPressed: mentaColors.paperPressed,
-  text: mentaColors.text.primary,
-  mutedInk: mentaColors.text.secondary,
-  mutedPaper: mentaColors.text.mutedOnPaper,
-  action: mentaColors.action,
-  actionOnPaper: mentaColors.actionOnPaper,
-  actionSoft: mentaColors.actionSoft,
-  actionBorder: mentaColors.actionBorder,
-  danger: mentaColors.danger,
-  success: mentaColors.success,
-  successSoft: mentaColors.successSoft,
-  paperDivider: mentaColors.borderPaper,
-};
 
 const fonts = {
   inter: mentaFonts.inter.regular,
@@ -331,8 +318,9 @@ const OnboardingOverflowIndicator = ({
 }: {
   testID: string;
   visible: boolean;
-}) =>
-  visible ? (
+}) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return visible ? (
     <View
       accessible={false}
       pointerEvents="none"
@@ -340,6 +328,7 @@ const OnboardingOverflowIndicator = ({
       testID={testID}
     />
   ) : null;
+};
 
 const accountChangedError = (message: string) => new Error(message);
 
@@ -356,6 +345,8 @@ const MentaHeader = ({
   progress?: number;
   showBrand?: boolean;
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const textScale = usePhoneLayout().textScale;
   const backTextStyle = scaleTypeMetrics(
@@ -441,6 +432,8 @@ const MentaHeader = ({
 };
 
 const StepMeta = ({ counter }: { counter: string }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const textScale = usePhoneLayout().textScale;
   return (
     <View style={styles.stepMeta}>
@@ -470,6 +463,8 @@ const ConsentRow = ({
   testID: string;
   tone?: 'dark' | 'paper';
 }) => {
+  const { colours, styles } = useMentaStyles(createPaletteStyles);
+
   const textScale = usePhoneLayout().textScale;
   return (
     <Pressable
@@ -529,6 +524,8 @@ const PrimaryButton = ({
   loading?: boolean;
   preserveLabelPositionOnLoading?: boolean;
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const textScale = usePhoneLayout().textScale;
   const actionTextScale =
     label === 'Back' || label === 'Edit' ? Math.min(textScale, 1) : textScale;
@@ -551,6 +548,7 @@ const PrimaryButton = ({
       testID={testID}
       textStyle={[
         styles.primaryButtonText,
+        tone === 'paper' && styles.paperButtonText,
         tone === 'ghost' && styles.ghostButtonText,
         tone === 'outline' && styles.outlineButtonText,
       ]}
@@ -580,6 +578,8 @@ const Mascot = ({
   small?: boolean;
   pose?: 'default' | 'gate' | 'welcome';
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <View style={{ width: size, height: size }}>
@@ -621,6 +621,8 @@ const Mascot = ({
 };
 
 export default function OnboardingScreen() {
+  const { colours, styles } = useMentaStyles(createPaletteStyles);
+
   const { t, locale } = useTranslation();
   const promiseExamples = [
     t('fullAuth.source.example.walk'),
@@ -687,12 +689,17 @@ export default function OnboardingScreen() {
     }
   }, [paywallGate, user?.id]);
   const [promise, setPromise] = useState('');
-  const [proofType, setProofType] = useState<OnboardingProofType | null>(null);
+  const [proofType, setProofType] = useState<OnboardingProofType | null>(
+    'photo'
+  );
   const [proofDisclosure, setProofDisclosure] = useState(false);
   const [duration, setDuration] = useState<OnboardingDuration>(14);
   const [accountabilityChoice, setAccountabilityChoice] =
     useState<OnboardingAccountabilityChoice>('new_group');
-  const [accountabilityConfirmed, setAccountabilityConfirmed] = useState(false);
+  const [accountabilityConfirmed, setAccountabilityConfirmed] = useState(true);
+  const [mentaConsentRequest, setMentaConsentRequest] = useState<{
+    skipReferral: boolean;
+  } | null>(null);
   const [validation, setValidation] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [resumeAuthenticatedDraft, setResumeAuthenticatedDraft] =
@@ -1124,11 +1131,11 @@ export default function OnboardingScreen() {
       // an A -> B transition never paints or re-saves account A's local promise.
       setHydrated(false);
       setPromise('');
-      setProofType(null);
+      setProofType('photo');
       setProofDisclosure(false);
       setDuration(14);
       setAccountabilityChoice('new_group');
-      setAccountabilityConfirmed(false);
+      setAccountabilityConfirmed(true);
       restoredEntryRef.current = false;
       draftEditFocusRequestedRef.current = false;
       setValidation(null);
@@ -1154,13 +1161,18 @@ export default function OnboardingScreen() {
         if (!canApplyHydratedNavigation()) return;
         if (draft?.promise.trim()) {
           setPromise(draft.promise);
-          setProofType(draft.proofType);
+          setProofType(draft.proofType ?? 'photo');
           setDuration(draft.durationDays);
           setAccountabilityChoice(
-            draft.accountabilityChoice === 'new_group' ? 'new_group' : 'just_me'
+            draft.accountabilityChoice === 'menta'
+              ? 'menta'
+              : draft.accountabilityChoice === 'new_group'
+                ? 'new_group'
+                : 'just_me'
           );
           setAccountabilityConfirmed(
-            draft.accountabilityChoiceConfirmed === true
+            draft.accountabilityChoiceConfirmed === true ||
+              draft.accountabilityChoice === 'new_group'
           );
           setMarketingOptIn(draft.marketingOptIn);
           const hasFreshConsent =
@@ -1493,6 +1505,9 @@ export default function OnboardingScreen() {
       },
     ],
     [
+      styles.iPadDraftContent,
+      styles.scrollContent,
+      styles.scrollContentCompact,
       actionDockContentClearance,
       compact,
       phoneLayout.screenInset,
@@ -1661,7 +1676,7 @@ export default function OnboardingScreen() {
       void emitHaptic({ type: 'warning' });
       return;
     }
-    setProofDisclosure(Boolean(proofType));
+    setProofDisclosure(false);
     trackOnboardingJourney({
       action: 'continued',
       outcome: 'succeeded',
@@ -1837,6 +1852,20 @@ export default function OnboardingScreen() {
       id: recoveredPromiseId,
       title: recoveredPromiseTitle,
     });
+    if (accountabilityChoice === 'menta') {
+      try {
+        const configured = await setPromiseReviewMode(
+          recoveredPromiseId,
+          'menta'
+        );
+        assertActivationAttemptCurrent(attempt);
+        if (!configured.success) throw new Error('MENTA_SETUP_FAILED');
+      } catch {
+        assertActivationAttemptCurrent(attempt);
+        setFinishError(t('mentaCheck.receipt.selfFallback'));
+        setAccountabilityChoice('just_me');
+      }
+    }
     setActivationReceipt({
       isFirstPromise: true,
       nextDueAt: null,
@@ -1908,6 +1937,28 @@ export default function OnboardingScreen() {
       }
 
       if (!isReplay) {
+        if (accountabilityChoice === 'menta') {
+          const overview = await getMentaCheckOverview();
+          assertActivationAttemptCurrent(attempt);
+          if (!overview?.consented) {
+            setStep('auth_method');
+            setMentaConsentRequest({ skipReferral });
+            return;
+          }
+          if (!overview.isPro) {
+            setStep('auth_method');
+            setPaywallGate({
+              ownerId: attempt.userId,
+              skipReferral,
+              decision: {
+                variant: 'control',
+                enrolled: false,
+                requiresPurchase: true,
+              },
+            });
+            return;
+          }
+        }
         const decision = await resolveOnboardingPaywall(attempt.userId);
         assertActivationAttemptCurrent(attempt);
         if (decision.requiresPurchase) {
@@ -2099,6 +2150,16 @@ export default function OnboardingScreen() {
       const confirmedPromiseId = challenge.id.trim();
       setActivationOwnerId(attempt.userId);
       setCreatedPromise(challenge);
+      if (accountabilityChoice === 'menta') {
+        try {
+          const configured = await setPromiseReviewMode(challenge.id, 'menta');
+          assertActivationAttemptCurrent(attempt);
+          if (!configured.success) throw new Error('MENTA_SETUP_FAILED');
+        } catch {
+          setFinishError(t('mentaCheck.receipt.selfFallback'));
+          setAccountabilityChoice('just_me');
+        }
+      }
       setActivationReceipt(visibleReceipt);
       if (confirmedPromiseId) {
         void emitConfirmedOutcome(
@@ -2439,9 +2500,11 @@ export default function OnboardingScreen() {
       setPromise(claimedDraft.promise);
       setProofType(claimedDraft.proofType);
       setAccountabilityChoice(
-        claimedDraft.accountabilityChoice === 'new_group'
-          ? 'new_group'
-          : 'just_me'
+        claimedDraft.accountabilityChoice === 'menta'
+          ? 'menta'
+          : claimedDraft.accountabilityChoice === 'new_group'
+            ? 'new_group'
+            : 'just_me'
       );
       setAccountabilityConfirmed(true);
       restoredEntryRef.current = true;
@@ -3355,11 +3418,6 @@ export default function OnboardingScreen() {
                         value={promise}
                       />
                       <View style={styles.inputMeta}>
-                        <Text style={styles.localCopy}>
-                          {t(
-                            'fullAuth.onboarding.saved_privately_on_this_phone_as_you_type'
-                          )}
-                        </Text>
                         {promise.length > 0 ? (
                           <Text style={styles.characterCount}>
                             {promise.length} / 160
@@ -3702,6 +3760,11 @@ export default function OnboardingScreen() {
                           {(
                             [
                               {
+                                value: 'menta',
+                                title: t('mentaCheck.option.title'),
+                                detail: t('mentaCheck.option.detail'),
+                              },
+                              {
                                 value: 'new_group',
                                 title: t('onboarding.accountability.trusted'),
                                 detail: t(
@@ -3721,9 +3784,14 @@ export default function OnboardingScreen() {
                               accountabilityConfirmed &&
                               accountabilityChoice === option.value;
                             const recommended = option.value === 'new_group';
+                            const subnote = recommended
+                              ? t('onboarding.accountability.recommended')
+                              : option.value === 'menta'
+                                ? t('mentaCheck.option.requiresPro')
+                                : null;
                             return (
                               <Pressable
-                                accessibilityLabel={`${option.title}. ${option.detail}${recommended ? ` ${t('onboarding.accountability.recommended')}.` : ''}`}
+                                accessibilityLabel={`${option.title}. ${option.detail}${subnote ? ` ${subnote}.` : ''}`}
                                 accessibilityRole="radio"
                                 accessibilityState={{
                                   checked: selected,
@@ -3738,7 +3806,9 @@ export default function OnboardingScreen() {
                                     selection:
                                       option.value === 'new_group'
                                         ? 'invite_someone'
-                                        : 'private',
+                                        : option.value === 'menta'
+                                          ? 'menta'
+                                          : 'private',
                                     stage: 'accountability',
                                   });
                                   void emitHaptic({ type: 'selection' });
@@ -3752,20 +3822,24 @@ export default function OnboardingScreen() {
                                 ]}
                                 testID={`onboarding-accountability-${option.value}`}
                               >
-                                {recommended ? (
+                                {subnote ? (
                                   <View
                                     accessibilityElementsHidden
                                     importantForAccessibility="no-hide-descendants"
                                     style={styles.recommendedTag}
                                   >
                                     <Text style={styles.recommendedTagText}>
-                                      {t(
-                                        'onboarding.accountability.recommended'
-                                      )}
+                                      {subnote}
                                     </Text>
                                   </View>
                                 ) : null}
-                                {recommended ? (
+                                {option.value === 'menta' ? (
+                                  <MentaMascot
+                                    state="menta-check"
+                                    size="sm"
+                                    style={styles.accountabilityArt}
+                                  />
+                                ) : recommended ? (
                                   <Image
                                     accessibilityElementsHidden
                                     importantForAccessibility="no-hide-descendants"
@@ -3854,9 +3928,11 @@ export default function OnboardingScreen() {
                             {t('fullAuth.onboarding.accountability')}
                           </Text>
                           <Text style={styles.iPadSummaryValue}>
-                            {accountabilityChoice === 'new_group'
-                              ? t('onboarding.accountability.trusted')
-                              : t('todayProof.promise.private_only')}
+                            {accountabilityChoice === 'menta'
+                              ? t('mentaCheck.option.title')
+                              : accountabilityChoice === 'new_group'
+                                ? t('onboarding.accountability.trusted')
+                                : t('todayProof.promise.private_only')}
                           </Text>
                         </View>
                       ) : null}
@@ -3891,9 +3967,19 @@ export default function OnboardingScreen() {
             >
               <View style={styles.flexButton}>
                 <PrimaryButton
-                  disabled={!proofType || !accountabilityConfirmed}
-                  label={t('fullAuth.onboarding.choose_length')}
+                  disabled={
+                    !proofType || (proofDisclosure && !accountabilityConfirmed)
+                  }
+                  label={t(
+                    proofDisclosure
+                      ? 'fullAuth.onboarding.choose_length'
+                      : 'todayProof.createFlow.chooseWho'
+                  )}
                   onPress={() => {
+                    if (!proofDisclosure) {
+                      setProofDisclosure(true);
+                      return;
+                    }
                     trackOnboardingJourney({
                       action: 'continued',
                       stage: 'accountability',
@@ -3962,9 +4048,11 @@ export default function OnboardingScreen() {
                         {t('fullAuth.onboarding.days')}
                       </Text>
                       <Text style={styles.reviewAccountability}>
-                        {accountabilityChoice === 'new_group'
-                          ? t('fullAuth.onboarding.create_my_group')
-                          : t('todayProof.promise.private_only')}
+                        {accountabilityChoice === 'menta'
+                          ? t('mentaCheck.option.title')
+                          : accountabilityChoice === 'new_group'
+                            ? t('fullAuth.onboarding.create_my_group')
+                            : t('todayProof.promise.private_only')}
                       </Text>
                     </View>
                   </View>
@@ -4392,9 +4480,11 @@ export default function OnboardingScreen() {
                   {t('fullAuth.onboarding.days')}
                 </Text>
                 <Text style={styles.promiseSummaryMeta}>
-                  {accountabilityChoice === 'new_group'
-                    ? t('fullAuth.onboarding.create_my_group')
-                    : t('todayProof.promise.private_only')}
+                  {accountabilityChoice === 'menta'
+                    ? t('mentaCheck.option.title')
+                    : accountabilityChoice === 'new_group'
+                      ? t('fullAuth.onboarding.create_my_group')
+                      : t('todayProof.promise.private_only')}
                 </Text>
               </View>
               <Text style={styles.gateLocalHelper}>
@@ -4565,6 +4655,13 @@ export default function OnboardingScreen() {
                 >
                   {continuation.message}
                 </Text>
+              ) : null}
+              {accountabilityChoice === 'menta' && receiptConfirmed ? (
+                <MentaNarrator
+                  state="menta-check"
+                  message={t('mentaCheck.receipt.bubble')}
+                  detail={t('mentaCheck.option.addFriendLater')}
+                />
               ) : null}
               {finishError ? (
                 <View
@@ -4896,9 +4993,7 @@ export default function OnboardingScreen() {
                                 authProviderLoading === 'google' ||
                                 emailAuthLoading
                               }
-                              icon={
-                                <AppleIcon size={20} color={colours.canvas} />
-                              }
+                              icon={<AppleIcon size={20} color={colours.ink} />}
                               loading={authProviderLoading === 'apple'}
                               textScale={onboardingTextScale}
                               testID="onboarding-continue-apple"
@@ -5037,1543 +5132,1584 @@ export default function OnboardingScreen() {
           }}
         />
       ) : null}
+      <MentaConsent
+        visible={Boolean(mentaConsentRequest)}
+        source="onboarding"
+        onClose={() => {
+          setMentaConsentRequest(null);
+          setAccountabilityChoice('just_me');
+        }}
+        onAccepted={() => {
+          const request = mentaConsentRequest;
+          setMentaConsentRequest(null);
+          if (request) void continueToFirstPromiseRef.current?.(request);
+        }}
+      />
     </AppTextScaleProvider>
   );
 }
 
-const styles = StyleSheet.create({
-  accountabilityRowArt: {
-    paddingLeft: mentaSpacing[2],
-    paddingTop: mentaSpacing[4],
-  },
-  accountabilityArt: {
-    height: 88,
-    width: 80,
-    flexShrink: 0,
-  },
-  recommendedTag: {
-    position: 'absolute',
-    right: mentaSpacing[4],
-    top: -13,
-    height: 26,
-    justifyContent: 'center',
-    paddingHorizontal: mentaSpacing[3],
-    borderRadius: 999,
-    backgroundColor: colours.action,
-    zIndex: 1,
-  },
-  recommendedTagText: {
-    color: colours.canvas,
-    fontFamily: fonts.interBold,
-    fontSize: 12,
-    letterSpacing: 0.6,
-    lineHeight: 16,
-    textTransform: 'uppercase',
-  },
-  accountabilityNote: {
-    color: mentaColors.text.muted,
-    fontFamily: fonts.inter,
-    fontSize: 15,
-    lineHeight: 21,
-    paddingTop: mentaSpacing[1],
-  },
-  introStage: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  introQuestion: {
-    gap: mentaSpacing[6],
-    paddingTop: mentaSpacing[4],
-  },
-  obstacleList: {
-    gap: mentaSpacing[3],
-  },
-  obstacleRow: {
-    minHeight: 72,
-  },
-  evidenceStack: {
-    gap: mentaSpacing[5],
-    paddingTop: mentaSpacing[4],
-  },
-  evidenceChart: {
-    alignSelf: 'center',
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: mentaSpacing[8],
-    paddingTop: mentaSpacing[1],
-  },
-  evidenceColumn: {
-    alignItems: 'center',
-    gap: mentaSpacing[2],
-    width: 120,
-  },
-  evidenceValue: {
-    color: colours.text,
-    fontFamily: fonts.newsreader,
-    fontSize: 44,
-    letterSpacing: -1,
-    lineHeight: 50,
-  },
-  evidenceValueMuted: {
-    color: colours.mutedInk,
-  },
-  evidenceBarSlot: {
-    alignItems: 'center',
-    gap: mentaSpacing[2],
-    height: 250,
-    justifyContent: 'flex-end',
-    width: 96,
-  },
-  evidenceBar: {
-    backgroundColor: colours.paper,
-    borderBottomLeftRadius: 6,
-    borderBottomRightRadius: 6,
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 18,
-    width: 84,
-  },
-  evidenceBarMuted: {
-    backgroundColor: '#3A3A38',
-  },
-  evidenceBarLabel: {
-    color: colours.text,
-    fontFamily: fonts.interSemibold,
-    fontSize: 15,
-    lineHeight: 21,
-    textAlign: 'center',
-  },
-  evidenceBarLabelMuted: {
-    color: colours.mutedInk,
-    fontFamily: fonts.inter,
-  },
-  evidenceTitle: {
-    color: colours.mutedInk,
-    fontFamily: fonts.inter,
-    fontSize: 17,
-    lineHeight: 25,
-    textAlign: 'center',
-    paddingHorizontal: mentaSpacing[2],
-  },
-  evidenceSource: {
-    color: mentaColors.text.muted,
-    fontFamily: fonts.inter,
-    fontSize: 13,
-    lineHeight: 18,
-    textAlign: 'center',
-  },
-  flex: { flex: 1 },
-  safeArea: { flex: 1, backgroundColor: colours.canvas },
-  routeFrame: { flex: 1, width: '100%' },
-  iPadRouteFrame: { alignSelf: 'center', maxWidth: 1180 },
-  iPadFocusedFrame: { maxWidth: 780 },
-  header: {
-    height: mentaLayout.minimumTouchTarget,
-    paddingHorizontal: mentaLayout.screenInset,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerLabel: {
-    color: colours.text,
-    fontFamily: fonts.interBold,
-    fontSize: 17,
-    letterSpacing: -0.34,
-  },
-  headerBack: {
-    color: colours.text,
-    ...mentaTypography.bodySmallMedium,
-  },
-  headerBackButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: mentaLayout.minimumTouchTarget,
-  },
-  headerSpacer: {
-    minHeight: mentaLayout.minimumTouchTarget,
-    minWidth: mentaLayout.minimumTouchTarget,
-  },
-  journeyProgressTrack: {
-    backgroundColor: colours.border,
-    borderRadius: mentaRadii.small,
-    height: 6,
-    overflow: 'hidden',
-  },
-  journeyProgressFill: {
-    backgroundColor: colours.action,
-    borderRadius: mentaRadii.small,
-    height: 6,
-  },
-  headerCounter: {
-    color: colours.action,
-    ...mentaTypography.bodySmallMedium,
-  },
-  stepMeta: {
-    width: '100%',
-    minHeight: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-  },
-  pressed: { opacity: 0.72, transform: [{ scale: 0.96 }] },
-  welcomeScrollContent: {
-    flexGrow: 1,
-  },
-  welcomeBody: {
-    flexGrow: 1,
-    paddingHorizontal: mentaLayout.screenInset,
-    minHeight: 0,
-    alignItems: 'center',
-    gap: mentaSpacing[3],
-    justifyContent: 'flex-start',
-    paddingTop: mentaSpacing[4],
-  },
-  welcomeBodyCompact: {
-    gap: mentaSpacing[2],
-  },
-  welcomeVisual: { alignItems: 'center', gap: mentaSpacing[3], width: '100%' },
-  iPadWelcomeBody: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: mentaSpacing[8],
-  },
-  iPadWelcomeVisual: { flex: 1, maxWidth: 430 },
-  iPadWelcomeCopy: { alignItems: 'flex-start', flex: 1, maxWidth: 460 },
-  iPadWelcomeTitle: {
-    fontSize: 42,
-    lineHeight: 48,
-    maxWidth: 460,
-    textAlign: 'left',
-  },
-  iPadWelcomeBodyText: {
-    fontSize: 19,
-    lineHeight: 28,
-    maxWidth: 430,
-    textAlign: 'left',
-  },
-  iPadWelcomeFooter: { alignSelf: 'center', maxWidth: 680 },
-  welcomeMascotStage: {
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  welcomeMascotStageCompact: { minHeight: 0 },
-  mascotDisc: { display: 'none' },
-  welcomeCopy: {
-    alignItems: 'center',
-    gap: mentaSpacing[2],
-    marginTop: mentaSpacing[4],
-    width: '100%',
-  },
-  welcomeWordmark: {
-    color: colours.text,
-    fontFamily: fonts.interSemibold,
-    fontSize: 18,
-    letterSpacing: -0.2,
-    lineHeight: 24,
-    textAlign: 'center',
-  },
-  heroTitle: {
-    color: colours.text,
-    textAlign: 'center',
-    maxWidth: 354,
-    ...mentaTypography.display,
-    fontSize: 31,
-    lineHeight: 37,
-  },
-  heroTitleCompact: {
-    ...mentaTypography.heading,
-    fontSize: 26,
-    lineHeight: 32,
-  },
-  heroBody: {
-    color: colours.mutedInk,
-    ...mentaTypography.bodySmall,
-  },
-  welcomeBodyText: { maxWidth: 330, textAlign: 'center' },
-  footerStack: {
-    width: '100%',
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingBottom: mentaSpacing[2],
-    paddingTop: mentaSpacing[4],
-    gap: mentaSpacing[2],
-  },
-  fixedActionDock: {
-    backgroundColor: colours.canvas,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    zIndex: 10,
-  },
-  welcomeFooter: {
-    marginTop: 'auto',
-  },
-  primaryButton: {
-    borderBottomColor: '#7750B6',
-    borderBottomWidth: 3,
-    minHeight: mentaLayout.primaryControlHeight,
-  },
-  compactButton: { minHeight: mentaLayout.minimumTouchTarget },
-  paperButton: {
-    backgroundColor: colours.paper,
-    borderBottomColor: '#C9C5B8',
-  },
-  ghostButton: {
-    backgroundColor: 'transparent',
-    borderBottomWidth: 0,
-  },
-  primaryButtonText: {
-    color: colours.canvas,
-    ...mentaTypography.control,
-  },
-  ghostButtonText: { color: colours.mutedInk },
-  outlineButton: {
-    backgroundColor: 'transparent',
-    borderBottomColor: colours.border,
-    borderBottomWidth: 1,
-    borderColor: colours.border,
-    borderWidth: 1,
-  },
-  outlineButtonText: { color: colours.action },
-  splitFooter: {
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingBottom: mentaSpacing[2],
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: mentaSpacing[3],
-  },
-  secondaryActionSlot: { width: 88 },
-  flexButton: { flex: 1 },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingTop: mentaSpacing[6],
-    paddingBottom: 20,
-    gap: 22,
-  },
-  scrollContentCompact: {
-    paddingTop: mentaSpacing[3],
-    gap: mentaSpacing[4],
-  },
-  draftWorkspace: {
-    width: '100%',
-  },
-  draftFormStack: {
-    gap: 22,
-  },
-  iPadDraftContent: {
-    justifyContent: 'center',
-    paddingTop: mentaSpacing[8],
-  },
-  iPadWorkspace: {
-    alignSelf: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[8],
-    maxWidth: 1240,
-    width: '100%',
-  },
-  iPadStepRail: {
-    alignSelf: 'stretch',
-    flexBasis: 220,
-    flexGrow: 0,
-    flexShrink: 0,
-    justifyContent: 'space-between',
-    minHeight: 500,
-    paddingBottom: mentaSpacing[4],
-    paddingTop: mentaSpacing[2],
-  },
-  iPadRailCopy: {
-    gap: mentaSpacing[3],
-  },
-  iPadRailKicker: {
-    color: colours.action,
-    fontFamily: fonts.interBold,
-    fontSize: 12,
-    letterSpacing: 1.1,
-    lineHeight: 16,
-  },
-  iPadRailTitle: {
-    color: colours.text,
-    fontFamily: fonts.newsreader,
-    fontSize: 30,
-    letterSpacing: -0.6,
-    lineHeight: 36,
-  },
-  iPadStepTrack: {
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-  },
-  iPadStepTrackActive: {
-    backgroundColor: colours.action,
-    borderRadius: mentaRadii.small,
-    flex: 1,
-    height: 5,
-  },
-  iPadStepTrackInactive: {
-    backgroundColor: colours.border,
-    borderRadius: mentaRadii.small,
-    flex: 1,
-    height: 5,
-  },
-  iPadStepTrackComplete: {
-    backgroundColor: colours.success,
-    borderRadius: mentaRadii.small,
-    flex: 1,
-    height: 5,
-  },
-  iPadDraftForm: {
-    alignSelf: 'center',
-    backgroundColor: colours.raised,
-    borderColor: colours.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    flex: 1,
-    gap: mentaSpacing[6],
-    maxWidth: 780,
-    minHeight: 500,
-    padding: mentaSpacing[8],
-  },
-  iPadPromiseTextArea: {
-    minHeight: 226,
-  },
-  iPadDraftFooter: {
-    marginLeft: 284,
-    marginRight: mentaSpacing[8],
-  },
-  draftCopy: { gap: mentaSpacing[2] },
-  draftKicker: {
-    color: colours.action,
-    fontFamily: fonts.interBold,
-    fontSize: 12,
-    letterSpacing: 1.1,
-    lineHeight: 16,
-    textTransform: 'uppercase',
-  },
-  draftTitle: {
-    color: colours.text,
-    fontFamily: fonts.interBold,
-    fontSize: 30,
-    letterSpacing: -0.6,
-    lineHeight: 35,
-  },
-  exampleChoices: { gap: mentaSpacing[3] },
-  exampleHeading: {
-    color: colours.mutedInk,
-    ...mentaTypography.bodySmallMedium,
-  },
-  exampleChipList: { gap: mentaSpacing[2] },
-  exampleChip: {
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: colours.raised,
-    borderColor: colours.border,
-    borderRadius: mentaRadii.medium,
-    borderWidth: StyleSheet.hairlineWidth,
-    justifyContent: 'center',
-    minHeight: mentaLayout.minimumTouchTarget,
-    paddingHorizontal: mentaSpacing[4],
-    paddingVertical: mentaSpacing[2],
-  },
-  exampleChipText: {
-    color: colours.text,
-    ...mentaTypography.bodySmallMedium,
-  },
-  examplesRestore: {
-    alignSelf: 'flex-start',
-    justifyContent: 'center',
-    minHeight: mentaLayout.minimumTouchTarget,
-  },
-  exampleLink: {
-    color: colours.action,
-    ...mentaTypography.bodySmallMedium,
-  },
-  promiseField: { gap: mentaSpacing[2] },
-  promiseFieldShell: {
-    backgroundColor: 'transparent',
-    borderLeftWidth: 0,
-    borderRadius: mentaRadii.none,
-    borderRightWidth: 0,
-    borderTopWidth: 0,
-    minHeight: 82,
-    paddingHorizontal: 0,
-  },
-  draftActionDock: {
-    paddingBottom: mentaSpacing[2],
-  },
-  draftInlineKeyboardAction: {
-    paddingTop: mentaSpacing[4],
-  },
-  draftKeyboardOverlay: {
-    backgroundColor: colours.canvas,
-    borderTopColor: colours.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    left: 0,
-    paddingBottom: mentaSpacing[2],
-    paddingTop: mentaSpacing[2],
-    position: 'absolute',
-    right: 0,
-    zIndex: 20,
-  },
-  draftFooter: {
-    backgroundColor: colours.canvas,
-    bottom: 0,
-    gap: 8,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    zIndex: 10,
-  },
-  draftValidation: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 8,
-    marginHorizontal: 24,
-    minHeight: 22,
-  },
-  draftValidationText: {
-    color: colours.danger,
-    flex: 1,
-    ...mentaTypography.bodySmallMedium,
-    fontFamily: fonts.interSemibold,
-  },
-  fieldLabel: {
-    color: colours.mutedInk,
-    ...mentaTypography.bodySmallMedium,
-  },
-  promiseTextArea: {
-    color: colours.text,
-    fontFamily: fonts.newsreader,
-    fontSize: 29,
-    letterSpacing: -0.4,
-    lineHeight: 35,
-    minHeight: 72,
-    paddingHorizontal: 0,
-    paddingVertical: mentaSpacing[2],
-  },
-  inputMeta: {
-    minHeight: 34,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    paddingTop: 8,
-  },
-  proofContent: {
-    flexGrow: 1,
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingTop: 22,
-    paddingBottom: 16,
-    gap: 16,
-  },
-  proofContentCompact: {
-    paddingTop: mentaSpacing[2],
-    paddingBottom: mentaSpacing[2],
-    gap: mentaSpacing[2],
-  },
-  proofWorkspace: {
-    flex: 1,
-    gap: 16,
-    width: '100%',
-  },
-  proofSelectionColumn: {
-    flex: 1,
-    gap: 16,
-  },
-  iPadProofContent: {
-    justifyContent: 'center',
-    paddingTop: mentaSpacing[6],
-  },
-  iPadProofSelectionColumn: {
-    flex: 1,
-    gap: mentaSpacing[4],
-    minWidth: 0,
-  },
-  iPadPromiseSummary: {
-    alignSelf: 'flex-start',
-    backgroundColor: colours.paper,
-    borderRadius: mentaRadii.large,
-    flexBasis: 248,
-    flexGrow: 0,
-    flexShrink: 0,
-    gap: mentaSpacing[5],
-    minHeight: 360,
-    padding: mentaSpacing[6],
-  },
-  iPadSummaryLabel: {
-    color: colours.mutedPaper,
-    fontFamily: fonts.interBold,
-    fontSize: 12,
-    letterSpacing: 1.1,
-    lineHeight: 16,
-  },
-  iPadSummaryPromise: {
-    color: colours.canvas,
-    fontFamily: fonts.newsreader,
-    fontSize: 28,
-    letterSpacing: -0.56,
-    lineHeight: 34,
-  },
-  iPadSummaryDivider: {
-    backgroundColor: colours.paperDivider,
-    height: StyleSheet.hairlineWidth,
-    width: '100%',
-  },
-  iPadSummaryFact: {
-    gap: mentaSpacing[1],
-  },
-  iPadSummaryValue: {
-    color: colours.canvas,
-    ...mentaTypography.bodySmallMedium,
-  },
-  iPadSummaryNote: {
-    color: colours.mutedPaper,
-    marginTop: 'auto',
-    ...mentaTypography.bodySmall,
-  },
-  iPadProofFooter: {
-    marginLeft: 284,
-    marginRight: 288,
-  },
-  iPadProofFooterWithoutRail: {
-    marginLeft: mentaSpacing[8],
-  },
-  localCopy: {
-    flex: 1,
-    color: colours.mutedInk,
-    ...mentaTypography.bodySmall,
-  },
-  errorCopy: { color: colours.danger },
-  finishError: {
-    color: colours.danger,
-    ...mentaTypography.bodySmallMedium,
-  },
-  finishErrorCard: {
-    gap: 4,
-    marginHorizontal: 24,
-    marginBottom: 8,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: colours.danger,
-    borderRadius: mentaRadii.medium,
-    backgroundColor: colours.raised,
-  },
-  finishErrorTitle: {
-    color: colours.paper,
-    ...mentaTypography.bodySmallMedium,
-  },
-  characterCount: {
-    color: colours.mutedInk,
-    ...mentaTypography.captionMedium,
-  },
-  promiseSummary: {
-    width: '100%',
-    borderRadius: mentaRadii.medium,
-    backgroundColor: 'rgba(24, 25, 25, 0.92)',
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: mentaSpacing[4],
-    paddingVertical: mentaSpacing[3],
-    gap: mentaSpacing[1],
-  },
-  promiseSummaryCompact: {
-    paddingVertical: mentaSpacing[2],
-    gap: mentaSpacing[1],
-  },
-  summaryEyebrow: {
-    color: colours.action,
-    ...mentaTypography.bodySmallMedium,
-  },
-  promiseSummaryText: {
-    color: colours.text,
-    ...mentaTypography.title,
-  },
-  promiseSummaryMeta: {
-    color: colours.mutedPaper,
-    ...mentaTypography.bodySmallMedium,
-  },
-  proofCopy: { gap: 6 },
-  promiseContext: {
-    color: colours.mutedInk,
-    ...mentaTypography.bodySmallMedium,
-  },
-  accountabilityCopy: { gap: 6 },
-  accountabilityCopyCompact: { gap: mentaSpacing[1], marginTop: 0 },
-  disclosureStage: {
-    flex: 1,
-    gap: mentaSpacing[6],
-    justifyContent: 'flex-start',
-    paddingTop: mentaSpacing[4],
-  },
-  accountabilityTitle: {
-    color: colours.text,
-    ...mentaTypography.heading,
-    fontSize: 34,
-    letterSpacing: -0.68,
-    lineHeight: 40,
-  },
-  proofTitle: {
-    color: colours.text,
-    fontFamily: fonts.interBold,
-    fontSize: 30,
-    letterSpacing: -0.6,
-    lineHeight: 36,
-  },
-  proofList: {
-    gap: 10,
-  },
-  proofListInitial: {
-    flex: 1,
-  },
-  accountabilityList: {
-    gap: mentaSpacing[3],
-  },
-  proofRow: {
-    minHeight: 68,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colours.raised,
-    borderColor: colours.border,
-    borderRadius: mentaRadii.medium,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  proofRowInitial: {
-    flex: 1,
-    maxHeight: 124,
-    minHeight: 88,
-  },
-  accountabilityRow: {
-    minHeight: 116,
-    paddingHorizontal: mentaSpacing[5],
-    paddingVertical: mentaSpacing[5],
-  },
-  accountabilityText: {
-    paddingRight: 42,
-  },
-  accountabilityChoiceCheck: {
-    position: 'absolute',
-    right: mentaSpacing[5],
-  },
-  proofRowCompact: {
-    minHeight: 60,
-    paddingVertical: mentaSpacing[1],
-  },
-  proofRowDivider: {
-    borderBottomColor: colours.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  proofRowSelected: {
-    backgroundColor: colours.actionSoft,
-    borderColor: colours.actionBorder,
-    borderWidth: 2,
-  },
-  proofIconSlot: {
-    alignItems: 'center',
-    backgroundColor: colours.actionSoft,
-    borderRadius: mentaRadii.small,
-    flexShrink: 0,
-    height: 32,
-    justifyContent: 'center',
-    marginRight: 12,
-    width: 32,
-  },
-  proofText: { flex: 1, gap: 2, minWidth: 0 },
-  proofChange: {
-    alignItems: 'center',
-    alignSelf: 'center',
-    justifyContent: 'center',
-    minHeight: mentaLayout.minimumTouchTarget,
-    minWidth: mentaLayout.minimumTouchTarget,
-    paddingHorizontal: 0,
-  },
-  proofChangeText: {
-    color: colours.action,
-    ...mentaTypography.bodySmallMedium,
-  },
-  proofRowTitle: {
-    color: colours.text,
-    ...mentaTypography.bodySemibold,
-  },
-  proofRowDetail: {
-    color: colours.mutedInk,
-    ...mentaTypography.bodySmall,
-  },
-  choiceCheck: {
-    alignItems: 'center',
-    backgroundColor: colours.action,
-    borderRadius: mentaRadii.medium,
-    flexShrink: 0,
-    height: 24,
-    justifyContent: 'center',
-    width: 24,
-  },
-  resolvedProofRow: {
-    alignItems: 'center',
-    backgroundColor: 'transparent',
-    borderBottomColor: colours.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: 58,
-    paddingHorizontal: mentaSpacing[3],
-    paddingVertical: mentaSpacing[2],
-  },
-  resolvedProofIdentity: {
-    alignItems: 'center',
-    flex: 1,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minWidth: 0,
-  },
-  resolvedProofIcon: {
-    alignItems: 'center',
-    backgroundColor: colours.actionSoft,
-    borderRadius: mentaRadii.small,
-    flexShrink: 0,
-    height: 32,
-    justifyContent: 'center',
-    width: 32,
-  },
-  resolvedProofText: {
-    color: colours.text,
-    ...mentaTypography.bodySemibold,
-  },
-  proofActionDock: {
-    paddingBottom: mentaSpacing[2],
-  },
-  radio: {
-    width: 22,
-    height: 22,
-    borderRadius: mentaRadii.round,
-    borderWidth: 1.5,
-    borderColor: colours.mutedPaper,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  radioSelected: { borderColor: colours.actionOnPaper },
-  radioDot: {
-    width: 10,
-    height: 10,
-    borderRadius: mentaRadii.round,
-    backgroundColor: colours.actionOnPaper,
-  },
-  previewBody: {
-    flexGrow: 1,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingTop: mentaSpacing[6],
-    paddingBottom: mentaSpacing[8],
-    paddingHorizontal: mentaLayout.screenInset,
-  },
-  previewBodyCompact: {
-    gap: mentaSpacing[4],
-    paddingTop: mentaSpacing[4],
-  },
-  onboardingOverflowStage: {
-    flex: 1,
-    position: 'relative',
-  },
-  onboardingOverflowIndicator: {
-    position: 'absolute',
-    right: 7,
-    top: 16,
-    width: 3,
-    height: 44,
-    borderRadius: mentaRadii.small,
-    backgroundColor: colours.mutedInk,
-    opacity: 0.72,
-  },
-  previewTitle: {
-    color: colours.text,
-    textAlign: 'center',
-    ...mentaTypography.heading,
-    fontSize: 34,
-    lineHeight: 40,
-  },
-  reviewContentStage: {
-    flexGrow: 1,
-    gap: mentaSpacing[5],
-    justifyContent: 'center',
-    width: '100%',
-  },
-  reviewArtefactStage: {
-    alignSelf: 'center',
-    maxWidth: 640,
-    width: '100%',
-  },
-  todayCard: {
-    width: '100%',
-    minHeight: 0,
-    borderRadius: mentaRadii.medium,
-    backgroundColor: colours.paper,
-    justifyContent: 'flex-end',
-    paddingBottom: mentaSpacing[5],
-    paddingHorizontal: mentaSpacing[5],
-    paddingTop: mentaSpacing[6],
-    gap: mentaSpacing[2],
-  },
-  todayCardCompact: {
-    paddingTop: mentaSpacing[5],
-  },
-  todayPromise: {
-    color: colours.canvas,
-    textAlign: 'center',
-    ...mentaTypography.journeyTitle,
-  },
-  reviewMeta: {
-    color: colours.mutedPaper,
-    textAlign: 'center',
-    ...mentaTypography.bodySmallMedium,
-  },
-  reviewAccountability: {
-    color: colours.actionOnPaper,
-    textAlign: 'center',
-    ...mentaTypography.bodySmallMedium,
-  },
-  reviewActionDock: {
-    paddingBottom: mentaSpacing[2],
-  },
-  reviewEditAction: {
-    alignItems: 'center',
-    alignSelf: 'center',
-    justifyContent: 'center',
-    minHeight: mentaLayout.minimumTouchTarget,
-    paddingHorizontal: mentaSpacing[4],
-  },
-  reviewEditText: {
-    color: colours.action,
-    ...mentaTypography.bodySmallMedium,
-  },
-  todayProofRow: {
-    minHeight: 54,
-    borderTopWidth: 1,
-    borderTopColor: colours.paperDivider,
-    paddingTop: 13,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  todayProofLabel: {
-    color: colours.mutedPaper,
-    ...mentaTypography.bodySmall,
-  },
-  todayProofValue: {
-    color: colours.canvas,
-    ...mentaTypography.bodySmallMedium,
-  },
-  previewHelper: {
-    width: '100%',
-    color: colours.mutedInk,
-    ...mentaTypography.bodySmall,
-  },
-  durationBody: {
-    flexGrow: 1,
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingTop: mentaSpacing[6],
-    paddingBottom: mentaSpacing[6],
-    gap: mentaSpacing[5],
-  },
-  durationCopy: { gap: mentaSpacing[2] },
-  durationPromiseStage: {
-    minHeight: 94,
-    width: '100%',
-  },
-  durationPromiseCard: {
-    width: '100%',
-    borderRadius: mentaRadii.medium,
-    backgroundColor: colours.paper,
-    borderColor: colours.paperDivider,
-    borderWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[1],
-    minHeight: 88,
-    paddingHorizontal: mentaSpacing[5],
-    paddingVertical: mentaSpacing[4],
-  },
-  durationPromiseText: {
-    color: colours.canvas,
-    ...mentaTypography.journeyTitle,
-  },
-  durationPromiseMeta: {
-    color: colours.mutedPaper,
-    ...mentaTypography.bodySmall,
-  },
-  durationOptions: {
-    width: '100%',
-    flexDirection: 'column',
-    gap: mentaSpacing[2],
-  },
-  durationOption: {
-    alignItems: 'center',
-    backgroundColor: colours.surface,
-    borderColor: colours.border,
-    borderWidth: 1,
-    borderRadius: mentaRadii.medium,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: 62,
-    paddingHorizontal: mentaSpacing[4],
-  },
-  durationOptionSelected: {
-    borderColor: colours.actionBorder,
-    borderWidth: 2,
-    backgroundColor: colours.raised,
-  },
-  durationOptionText: {
-    color: colours.text,
-    ...mentaTypography.bodySemibold,
-  },
-  durationOptionTextSelected: { color: colours.action },
-  durationOptionMeaning: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-  },
-  durationCheckIns: {
-    color: colours.mutedInk,
-    ...mentaTypography.bodySmall,
-  },
-  durationActionDock: { paddingBottom: mentaSpacing[2] },
-  durationFactRow: {
-    minHeight: mentaLayout.minimumTouchTarget,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: colours.border,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  durationFactValue: {
-    color: colours.text,
-    ...mentaTypography.bodySmallMedium,
-  },
-  momentaGiftBody: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingTop: mentaSpacing[5],
-    gap: mentaSpacing[5],
-  },
-  momentaGiftMascotStage: {
-    width: '100%',
-    height: 180,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  momentaGiftCopy: {
-    alignItems: 'center',
-    gap: mentaSpacing[4],
-    width: '100%',
-  },
-  momentaGiftTitle: {
-    color: colours.text,
-    fontFamily: fonts.newsreader,
-    fontSize: 36,
-    lineHeight: 41,
-    letterSpacing: -0.8,
-    textAlign: 'center',
-  },
-  momentaGiftTitleAccent: { color: colours.action },
-  momentaGiftTitleCompact: {
-    fontSize: 34,
-    letterSpacing: -0.7,
-    lineHeight: 39,
-  },
-  momentaGiftBodyCopy: {
-    color: colours.mutedInk,
-    maxWidth: 350,
-    textAlign: 'center',
-    ...mentaTypography.bodySmall,
-  },
-  momentaGiftFacts: {
-    alignItems: 'center',
-    borderBottomColor: colours.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colours.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: 88,
-    paddingVertical: mentaSpacing[4],
-    width: '100%',
-  },
-  momentaGiftFactsCompact: { minHeight: 82 },
-  momentaGiftFact: {
-    flex: 1,
-    gap: mentaSpacing[1],
-    justifyContent: 'center',
-    minWidth: 0,
-  },
-  momentaGiftJourneyArrow: {
-    alignItems: 'center',
-    backgroundColor: colours.actionSoft,
-    borderRadius: mentaRadii.round,
-    height: 36,
-    justifyContent: 'center',
-    marginHorizontal: mentaSpacing[3],
-    width: 36,
-  },
-  momentaGiftRowLabel: {
-    color: colours.mutedInk,
-    fontFamily: fonts.interBold,
-    fontSize: 11,
-    letterSpacing: 0.9,
-    lineHeight: 15,
-    textTransform: 'uppercase',
-  },
-  momentaGiftFactValue: {
-    color: colours.action,
-    ...mentaTypography.bodySemibold,
-  },
-  momentaGiftTear: {
-    bottom: -7,
-    flexDirection: 'row',
-    height: 14,
-    justifyContent: 'space-around',
-    left: 8,
-    overflow: 'hidden',
-    position: 'absolute',
-    right: 8,
-  },
-  momentaGiftTooth: {
-    backgroundColor: colours.paper,
-    height: 14,
-    transform: [{ rotate: '45deg' }],
-    width: 14,
-  },
-  momentaGiftReward: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[4],
-    paddingHorizontal: mentaSpacing[2],
-  },
-  momentaGiftRewardBadge: {
-    alignItems: 'center',
-    borderColor: colours.border,
-    borderRadius: mentaRadii.round,
-    borderWidth: 1,
-    height: 76,
-    justifyContent: 'center',
-    width: 76,
-  },
-  momentaGiftRewardAmount: {
-    color: colours.action,
-    ...mentaTypography.bodySemibold,
-  },
-  rewardLeaf: { height: 20, position: 'relative', width: 30 },
-  rewardLeafLeft: {
-    backgroundColor: colours.action,
-    borderBottomLeftRadius: 12,
-    borderTopRightRadius: 12,
-    height: 14,
-    left: 2,
-    position: 'absolute',
-    top: 4,
-    transform: [{ rotate: '20deg' }],
-    width: 18,
-  },
-  rewardLeafRight: {
-    backgroundColor: colours.action,
-    borderBottomRightRadius: 12,
-    borderTopLeftRadius: 12,
-    height: 14,
-    position: 'absolute',
-    right: 2,
-    top: 1,
-    transform: [{ rotate: '-20deg' }],
-    width: 18,
-  },
-  referralBody: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingBottom: mentaSpacing[8],
-    gap: mentaSpacing[6],
-  },
-  referralCopy: {
-    width: '100%',
-    gap: mentaSpacing[3],
-  },
-  referralTitle: {
-    color: colours.text,
-    ...mentaTypography.heading,
-    fontFamily: fonts.interBold,
-  },
-  referralDisclosure: {
-    minHeight: 60,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: colours.border,
-    backgroundColor: 'transparent',
-    paddingHorizontal: mentaSpacing[1],
-    paddingVertical: mentaSpacing[2],
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: mentaSpacing[3],
-  },
-  referralDisclosureText: {
-    color: colours.text,
-    ...mentaTypography.bodySemibold,
-  },
-  referralError: {
-    color: colours.danger,
-    ...mentaTypography.bodySmall,
-  },
-  activationBody: {
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingBottom: mentaSpacing[8],
-    gap: mentaSpacing[6],
-  },
-  activationCopy: {
-    alignItems: 'center',
-    gap: mentaSpacing[2],
-  },
-  activationTitle: {
-    color: colours.mutedInk,
-    fontFamily: fonts.interBold,
-    fontSize: 13,
-    letterSpacing: 1.1,
-    lineHeight: 18,
-    textAlign: 'center',
-    textTransform: 'uppercase',
-  },
-  activationBodyText: { maxWidth: 320, textAlign: 'center' },
-  activationDots: {
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-  },
-  activationDot: {
-    backgroundColor: colours.action,
-    borderRadius: mentaRadii.round,
-    height: 8,
-    width: 8,
-  },
-  activationDotMuted: { opacity: 0.55 },
-  activationDotQuiet: { opacity: 0.25 },
-  receiptBody: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingVertical: mentaSpacing[8],
-    gap: mentaSpacing[5],
-  },
-  receiptCopy: {
-    alignItems: 'center',
-    width: '100%',
-    gap: mentaSpacing[2],
-  },
-  receiptCelebrationStage: {
-    alignItems: 'center',
-    alignSelf: 'center',
-    height: 136,
-    justifyContent: 'center',
-    position: 'relative',
-    width: 180,
-  },
-  receiptTitle: {
-    color: colours.text,
-    textAlign: 'center',
-    ...mentaTypography.display,
-  },
-  receiptAchievement: {
-    alignItems: 'center',
-    gap: mentaSpacing[5],
-    width: '100%',
-  },
-  receiptStats: {
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    width: '100%',
-  },
-  receiptStatsCompact: { flexDirection: 'column' },
-  receiptStat: {
-    backgroundColor: colours.raised,
-    borderColor: colours.border,
-    borderRadius: mentaRadii.medium,
-    borderWidth: StyleSheet.hairlineWidth,
-    flex: 1,
-    gap: mentaSpacing[2],
-    minHeight: 88,
-    padding: mentaSpacing[4],
-  },
-  receiptReferralRow: {
-    borderBottomColor: colours.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colours.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[2],
-    paddingVertical: mentaSpacing[3],
-    width: '100%',
-  },
-  receiptCardStage: {
-    width: '100%',
-    position: 'relative',
-    paddingBottom: mentaSpacing[5],
-  },
-  receiptCard: {
-    width: '100%',
-    borderRadius: mentaRadii.large,
-    backgroundColor: colours.paper,
-    overflow: 'hidden',
-  },
-  receiptCheckBadge: {
-    position: 'absolute',
-    right: mentaSpacing[4],
-    bottom: 0,
-    width: 40,
-    height: 40,
-    borderRadius: mentaRadii.round,
-    borderWidth: 4,
-    borderColor: colours.canvas,
-    backgroundColor: colours.action,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  receiptPromiseRow: {
-    padding: mentaSpacing[5],
-    gap: mentaSpacing[2],
-  },
-  receiptLabel: {
-    color: colours.mutedPaper,
-    ...mentaTypography.bodySmallMedium,
-  },
-  receiptPromise: {
-    color: colours.text,
-    maxWidth: 360,
-    textAlign: 'center',
-    ...mentaTypography.display,
-  },
-  receiptMeta: {
-    color: colours.mutedPaper,
-    ...mentaTypography.bodySmall,
-  },
-  receiptFactRow: {
-    minHeight: 58,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colours.paperDivider,
-    paddingHorizontal: mentaSpacing[5],
-    paddingVertical: mentaSpacing[3],
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: mentaSpacing[3],
-  },
-  receiptFactColumn: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colours.paperDivider,
-    paddingHorizontal: mentaSpacing[5],
-    paddingVertical: mentaSpacing[4],
-    gap: mentaSpacing[1],
-  },
-  receiptFactLabel: {
-    color: colours.mutedInk,
-    fontFamily: fonts.interBold,
-    fontSize: 11,
-    letterSpacing: 0.9,
-    lineHeight: 15,
-    textTransform: 'uppercase',
-  },
-  receiptFactValue: {
-    color: colours.text,
-    flexShrink: 1,
-    textAlign: 'left',
-    ...mentaTypography.bodySmallMedium,
-  },
-  receiptFactDetail: {
-    color: colours.text,
-    ...mentaTypography.bodySmall,
-  },
-  receiptContinuation: {
-    color: colours.mutedInk,
-    ...mentaTypography.bodySmall,
-  },
-  gateBody: {
-    flexGrow: 1,
-    gap: mentaSpacing[5],
-    justifyContent: 'center',
-    paddingBottom: 24,
-    paddingHorizontal: mentaLayout.screenInset,
-  },
-  gateIntro: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  gateCopy: { flex: 1, gap: mentaSpacing[3], minWidth: 0 },
-  gateTitle: {
-    color: colours.text,
-    ...mentaTypography.heading,
-    fontFamily: fonts.interBold,
-  },
-  gateBodyCopy: {
-    color: colours.mutedInk,
-    ...mentaTypography.body,
-  },
-  gatePromiseCard: {
-    width: '100%',
-    borderRadius: mentaRadii.large,
-    backgroundColor: colours.paper,
-    padding: mentaSpacing[5],
-    gap: mentaSpacing[3],
-  },
-  gatePromiseText: {
-    color: colours.canvas,
-    ...mentaTypography.title,
-  },
-  gateLocalHelper: {
-    color: colours.mutedInk,
-    ...mentaTypography.bodySmall,
-  },
-  authBody: {
-    alignSelf: 'center',
-    flexGrow: 1,
-    gap: mentaSpacing[5],
-    justifyContent: 'flex-start',
-    maxWidth: mentaLayout.phoneFrameMax,
-    paddingBottom: mentaSpacing[10],
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingTop: mentaSpacing[6],
-    width: '100%',
-  },
-  authBodySignIn: {
-    justifyContent: 'center',
-    paddingTop: 0,
-  },
-  authDisclosureStage: {
-    gap: mentaSpacing[5],
-    width: '100%',
-  },
-  authProviderStack: {
-    flexDirection: 'column-reverse',
-    gap: mentaSpacing[4],
-    width: '100%',
-  },
-  authFooter: {
-    alignItems: 'center',
-    paddingTop: mentaSpacing[1],
-    width: '100%',
-  },
-  legalBody: {
-    alignSelf: 'center',
-    flexGrow: 1,
-    gap: mentaSpacing[5],
-    maxWidth: mentaLayout.phoneFrameMax,
-    paddingTop: 28,
-    width: '100%',
-  },
-  legalBodyCompact: {
-    gap: mentaSpacing[3],
-    paddingTop: mentaSpacing[3],
-  },
-  legalCopy: { gap: 10, width: '100%' },
-  legalDocumentStage: {
-    transform: [{ rotate: '0.35deg' }],
-    width: '100%',
-  },
-  legalConsentSurface: {
-    backgroundColor: colours.paper,
-    borderColor: colours.paperDivider,
-    borderRadius: mentaRadii.medium,
-    borderWidth: 1,
-    gap: mentaSpacing[5],
-    padding: mentaSpacing[5],
-    width: '100%',
-  },
-  legalConsentCopy: {
-    gap: mentaSpacing[2],
-  },
-  legalConsentTitle: {
-    color: colours.canvas,
-    fontFamily: fonts.interBold,
-    fontSize: 28,
-    letterSpacing: -0.56,
-    lineHeight: 34,
-  },
-  legalConsentBody: {
-    color: colours.mutedPaper,
-    ...mentaTypography.bodySmall,
-  },
-  legalConsentPaperRow: {
-    borderBottomColor: colours.paperDivider,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colours.paperDivider,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  legalConsentAction: {
-    backgroundColor: colours.canvas,
-    borderColor: colours.canvas,
-  },
-  legalConsentActionText: {
-    color: colours.paper,
-  },
-  combinedReferralStage: {
-    gap: mentaSpacing[2],
-    width: '100%',
-  },
-  combinedReferralCopy: {
-    flex: 1,
-    gap: 2,
-    minWidth: 0,
-  },
-  combinedReferralRemove: {
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-    minHeight: mentaLayout.minimumTouchTarget,
-  },
-  combinedReferralRemoveText: {
-    color: colours.mutedInk,
-    ...mentaTypography.bodySmallMedium,
-  },
-  authCopy: { width: '100%', gap: 10 },
-  authTitle: {
-    color: colours.text,
-    ...mentaTypography.heading,
-    fontFamily: fonts.interBold,
-    lineHeight: 36,
-  },
-  consentRow: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: mentaLayout.minimumTouchTarget,
-    paddingVertical: mentaSpacing[3],
-  },
-  consentRowPaper: {
-    paddingHorizontal: 0,
-  },
-  consentBox: {
-    alignItems: 'center',
-    borderColor: colours.mutedInk,
-    borderRadius: mentaRadii.small,
-    borderWidth: 1,
-    height: 24,
-    justifyContent: 'center',
-    marginTop: 1,
-    width: 24,
-  },
-  consentBoxChecked: {
-    backgroundColor: colours.action,
-    borderColor: colours.action,
-  },
-  consentBoxPaper: {
-    borderColor: colours.mutedPaper,
-  },
-  consentLabel: {
-    color: colours.text,
-    flex: 1,
-    ...mentaTypography.bodySmall,
-  },
-  consentLabelPaper: {
-    color: colours.canvas,
-  },
-  authButtons: { gap: 12 },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const colours = {
+    canvas: mentaColors.canvas,
+    ink: mentaColors.text.onPaper,
+    surface: mentaColors.surface,
+    raised: mentaColors.raised,
+    border: mentaColors.border,
+    paper: mentaColors.paper,
+    paperPressed: mentaColors.paperPressed,
+    text: mentaColors.text.primary,
+    mutedInk: mentaColors.text.secondary,
+    mutedPaper: mentaColors.text.mutedOnPaper,
+    action: mentaColors.action,
+    actionOnPaper: mentaColors.actionOnPaper,
+    actionSoft: mentaColors.actionSoft,
+    actionBorder: mentaColors.actionBorder,
+    danger: mentaColors.danger,
+    success: mentaColors.success,
+    successSoft: mentaColors.successSoft,
+    paperDivider: mentaColors.borderPaper,
+  };
+  const styles = StyleSheet.create({
+    accountabilityRowArt: {
+      paddingLeft: mentaSpacing[2],
+      paddingTop: mentaSpacing[4],
+    },
+    accountabilityArt: {
+      height: 88,
+      width: 80,
+      flexShrink: 0,
+    },
+    recommendedTag: {
+      position: 'absolute',
+      right: mentaSpacing[4],
+      top: -13,
+      height: 26,
+      justifyContent: 'center',
+      paddingHorizontal: mentaSpacing[3],
+      borderRadius: 999,
+      backgroundColor: colours.action,
+      zIndex: 1,
+    },
+    recommendedTagText: {
+      color: colours.canvas,
+      fontFamily: fonts.interBold,
+      fontSize: 12,
+      letterSpacing: 0.6,
+      lineHeight: 16,
+      textTransform: 'uppercase',
+    },
+    accountabilityNote: {
+      color: mentaColors.text.muted,
+      fontFamily: fonts.inter,
+      fontSize: 15,
+      lineHeight: 21,
+      paddingTop: mentaSpacing[1],
+    },
+    introStage: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    introQuestion: {
+      gap: mentaSpacing[6],
+      paddingTop: mentaSpacing[4],
+    },
+    obstacleList: {
+      gap: mentaSpacing[3],
+    },
+    obstacleRow: {
+      minHeight: 72,
+    },
+    evidenceStack: {
+      gap: mentaSpacing[5],
+      paddingTop: mentaSpacing[4],
+    },
+    evidenceChart: {
+      alignSelf: 'center',
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      gap: mentaSpacing[8],
+      paddingTop: mentaSpacing[1],
+    },
+    evidenceColumn: {
+      alignItems: 'center',
+      gap: mentaSpacing[2],
+      width: 120,
+    },
+    evidenceValue: {
+      color: colours.text,
+      fontFamily: fonts.newsreader,
+      fontSize: 44,
+      letterSpacing: -1,
+      lineHeight: 50,
+    },
+    evidenceValueMuted: {
+      color: colours.mutedInk,
+    },
+    evidenceBarSlot: {
+      alignItems: 'center',
+      gap: mentaSpacing[2],
+      height: 250,
+      justifyContent: 'flex-end',
+      width: 96,
+    },
+    evidenceBar: {
+      backgroundColor: colours.paper,
+      borderBottomLeftRadius: 6,
+      borderBottomRightRadius: 6,
+      borderTopLeftRadius: 18,
+      borderTopRightRadius: 18,
+      width: 84,
+    },
+    evidenceBarMuted: {
+      backgroundColor: colours.raised,
+    },
+    evidenceBarLabel: {
+      color: colours.text,
+      fontFamily: fonts.interSemibold,
+      fontSize: 15,
+      lineHeight: 21,
+      textAlign: 'center',
+    },
+    evidenceBarLabelMuted: {
+      color: colours.mutedInk,
+      fontFamily: fonts.inter,
+    },
+    evidenceTitle: {
+      color: colours.mutedInk,
+      fontFamily: fonts.inter,
+      fontSize: 17,
+      lineHeight: 25,
+      textAlign: 'center',
+      paddingHorizontal: mentaSpacing[2],
+    },
+    evidenceSource: {
+      color: mentaColors.text.muted,
+      fontFamily: fonts.inter,
+      fontSize: 13,
+      lineHeight: 18,
+      textAlign: 'center',
+    },
+    flex: { flex: 1 },
+    safeArea: { flex: 1, backgroundColor: colours.canvas },
+    routeFrame: { flex: 1, width: '100%' },
+    iPadRouteFrame: { alignSelf: 'center', maxWidth: 1180 },
+    iPadFocusedFrame: { maxWidth: 780 },
+    header: {
+      height: mentaLayout.minimumTouchTarget,
+      paddingHorizontal: mentaLayout.screenInset,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    headerLabel: {
+      color: colours.text,
+      fontFamily: fonts.interBold,
+      fontSize: 17,
+      letterSpacing: -0.34,
+    },
+    headerBack: {
+      color: colours.text,
+      ...mentaTypography.bodySmallMedium,
+    },
+    headerBackButton: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: mentaLayout.minimumTouchTarget,
+    },
+    headerSpacer: {
+      minHeight: mentaLayout.minimumTouchTarget,
+      minWidth: mentaLayout.minimumTouchTarget,
+    },
+    journeyProgressTrack: {
+      backgroundColor: colours.border,
+      borderRadius: mentaRadii.small,
+      height: 6,
+      overflow: 'hidden',
+    },
+    journeyProgressFill: {
+      backgroundColor: colours.action,
+      borderRadius: mentaRadii.small,
+      height: 6,
+    },
+    headerCounter: {
+      color: colours.action,
+      ...mentaTypography.bodySmallMedium,
+    },
+    stepMeta: {
+      width: '100%',
+      minHeight: 18,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+    },
+    pressed: { opacity: 0.72, transform: [{ scale: 0.96 }] },
+    welcomeScrollContent: {
+      flexGrow: 1,
+    },
+    welcomeBody: {
+      flexGrow: 1,
+      paddingHorizontal: mentaLayout.screenInset,
+      minHeight: 0,
+      alignItems: 'center',
+      gap: mentaSpacing[3],
+      justifyContent: 'flex-start',
+      paddingTop: mentaSpacing[4],
+    },
+    welcomeBodyCompact: {
+      gap: mentaSpacing[2],
+    },
+    welcomeVisual: {
+      alignItems: 'center',
+      gap: mentaSpacing[3],
+      width: '100%',
+    },
+    iPadWelcomeBody: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: mentaSpacing[8],
+    },
+    iPadWelcomeVisual: { flex: 1, maxWidth: 430 },
+    iPadWelcomeCopy: { alignItems: 'flex-start', flex: 1, maxWidth: 460 },
+    iPadWelcomeTitle: {
+      fontSize: 42,
+      lineHeight: 48,
+      maxWidth: 460,
+      textAlign: 'left',
+    },
+    iPadWelcomeBodyText: {
+      fontSize: 19,
+      lineHeight: 28,
+      maxWidth: 430,
+      textAlign: 'left',
+    },
+    iPadWelcomeFooter: { alignSelf: 'center', maxWidth: 680 },
+    welcomeMascotStage: {
+      width: '100%',
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'relative',
+    },
+    welcomeMascotStageCompact: { minHeight: 0 },
+    mascotDisc: { display: 'none' },
+    welcomeCopy: {
+      alignItems: 'center',
+      gap: mentaSpacing[2],
+      marginTop: mentaSpacing[4],
+      width: '100%',
+    },
+    welcomeWordmark: {
+      color: colours.text,
+      fontFamily: fonts.interSemibold,
+      fontSize: 18,
+      letterSpacing: -0.2,
+      lineHeight: 24,
+      textAlign: 'center',
+    },
+    heroTitle: {
+      color: colours.text,
+      textAlign: 'center',
+      maxWidth: 354,
+      ...mentaTypography.display,
+      fontSize: 31,
+      lineHeight: 37,
+    },
+    heroTitleCompact: {
+      ...mentaTypography.heading,
+      fontSize: 26,
+      lineHeight: 32,
+    },
+    heroBody: {
+      color: colours.mutedInk,
+      ...mentaTypography.bodySmall,
+    },
+    welcomeBodyText: { maxWidth: 330, textAlign: 'center' },
+    footerStack: {
+      width: '100%',
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingBottom: mentaSpacing[2],
+      paddingTop: mentaSpacing[4],
+      gap: mentaSpacing[2],
+    },
+    fixedActionDock: {
+      backgroundColor: colours.canvas,
+      bottom: 0,
+      left: 0,
+      position: 'absolute',
+      right: 0,
+      zIndex: 10,
+    },
+    welcomeFooter: {
+      marginTop: 'auto',
+    },
+    primaryButton: {
+      borderBottomColor: '#7750B6',
+      borderBottomWidth: 3,
+      minHeight: mentaLayout.primaryControlHeight,
+    },
+    compactButton: { minHeight: mentaLayout.minimumTouchTarget },
+    paperButton: {
+      backgroundColor: colours.paper,
+      borderBottomColor: '#C9C5B8',
+    },
+    ghostButton: {
+      backgroundColor: 'transparent',
+      borderBottomWidth: 0,
+    },
+    primaryButtonText: {
+      color: colours.canvas,
+      ...mentaTypography.control,
+    },
+    paperButtonText: { color: colours.ink },
+    ghostButtonText: { color: colours.mutedInk },
+    outlineButton: {
+      backgroundColor: 'transparent',
+      borderBottomColor: colours.border,
+      borderBottomWidth: 1,
+      borderColor: colours.border,
+      borderWidth: 1,
+    },
+    outlineButtonText: { color: colours.action },
+    splitFooter: {
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingBottom: mentaSpacing[2],
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: mentaSpacing[3],
+    },
+    secondaryActionSlot: { width: 88 },
+    flexButton: { flex: 1 },
+    scrollContent: {
+      flexGrow: 1,
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingTop: mentaSpacing[6],
+      paddingBottom: 20,
+      gap: 22,
+    },
+    scrollContentCompact: {
+      paddingTop: mentaSpacing[3],
+      gap: mentaSpacing[4],
+    },
+    draftWorkspace: {
+      width: '100%',
+    },
+    draftFormStack: {
+      gap: 22,
+    },
+    iPadDraftContent: {
+      justifyContent: 'center',
+      paddingTop: mentaSpacing[8],
+    },
+    iPadWorkspace: {
+      alignSelf: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[8],
+      maxWidth: 1240,
+      width: '100%',
+    },
+    iPadStepRail: {
+      alignSelf: 'stretch',
+      flexBasis: 220,
+      flexGrow: 0,
+      flexShrink: 0,
+      justifyContent: 'space-between',
+      minHeight: 500,
+      paddingBottom: mentaSpacing[4],
+      paddingTop: mentaSpacing[2],
+    },
+    iPadRailCopy: {
+      gap: mentaSpacing[3],
+    },
+    iPadRailKicker: {
+      color: colours.action,
+      fontFamily: fonts.interBold,
+      fontSize: 12,
+      letterSpacing: 1.1,
+      lineHeight: 16,
+    },
+    iPadRailTitle: {
+      color: colours.text,
+      fontFamily: fonts.newsreader,
+      fontSize: 30,
+      letterSpacing: -0.6,
+      lineHeight: 36,
+    },
+    iPadStepTrack: {
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+    },
+    iPadStepTrackActive: {
+      backgroundColor: colours.action,
+      borderRadius: mentaRadii.small,
+      flex: 1,
+      height: 5,
+    },
+    iPadStepTrackInactive: {
+      backgroundColor: colours.border,
+      borderRadius: mentaRadii.small,
+      flex: 1,
+      height: 5,
+    },
+    iPadStepTrackComplete: {
+      backgroundColor: colours.success,
+      borderRadius: mentaRadii.small,
+      flex: 1,
+      height: 5,
+    },
+    iPadDraftForm: {
+      alignSelf: 'center',
+      backgroundColor: colours.raised,
+      borderColor: colours.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: StyleSheet.hairlineWidth,
+      flex: 1,
+      gap: mentaSpacing[6],
+      maxWidth: 780,
+      minHeight: 500,
+      padding: mentaSpacing[8],
+    },
+    iPadPromiseTextArea: {
+      minHeight: 226,
+    },
+    iPadDraftFooter: {
+      marginLeft: 284,
+      marginRight: mentaSpacing[8],
+    },
+    draftCopy: { gap: mentaSpacing[2] },
+    draftKicker: {
+      color: colours.action,
+      fontFamily: fonts.interBold,
+      fontSize: 12,
+      letterSpacing: 1.1,
+      lineHeight: 16,
+      textTransform: 'uppercase',
+    },
+    draftTitle: {
+      color: colours.text,
+      fontFamily: fonts.interBold,
+      fontSize: 30,
+      letterSpacing: -0.6,
+      lineHeight: 35,
+    },
+    exampleChoices: { gap: mentaSpacing[3] },
+    exampleHeading: {
+      color: colours.mutedInk,
+      ...mentaTypography.bodySmallMedium,
+    },
+    exampleChipList: { gap: mentaSpacing[2] },
+    exampleChip: {
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      backgroundColor: colours.raised,
+      borderColor: colours.border,
+      borderRadius: mentaRadii.medium,
+      borderWidth: StyleSheet.hairlineWidth,
+      justifyContent: 'center',
+      minHeight: mentaLayout.minimumTouchTarget,
+      paddingHorizontal: mentaSpacing[4],
+      paddingVertical: mentaSpacing[2],
+    },
+    exampleChipText: {
+      color: colours.text,
+      ...mentaTypography.bodySmallMedium,
+    },
+    examplesRestore: {
+      alignSelf: 'flex-start',
+      justifyContent: 'center',
+      minHeight: mentaLayout.minimumTouchTarget,
+    },
+    exampleLink: {
+      color: colours.action,
+      ...mentaTypography.bodySmallMedium,
+    },
+    promiseField: { gap: mentaSpacing[2] },
+    promiseFieldShell: {
+      backgroundColor: 'transparent',
+      borderLeftWidth: 0,
+      borderRadius: mentaRadii.none,
+      borderRightWidth: 0,
+      borderTopWidth: 0,
+      minHeight: 82,
+      paddingHorizontal: 0,
+    },
+    draftActionDock: {
+      paddingBottom: mentaSpacing[2],
+    },
+    draftInlineKeyboardAction: {
+      paddingTop: mentaSpacing[4],
+    },
+    draftKeyboardOverlay: {
+      backgroundColor: colours.canvas,
+      borderTopColor: colours.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      left: 0,
+      paddingBottom: mentaSpacing[2],
+      paddingTop: mentaSpacing[2],
+      position: 'absolute',
+      right: 0,
+      zIndex: 20,
+    },
+    draftFooter: {
+      backgroundColor: colours.canvas,
+      bottom: 0,
+      gap: 8,
+      left: 0,
+      position: 'absolute',
+      right: 0,
+      zIndex: 10,
+    },
+    draftValidation: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 8,
+      marginHorizontal: 24,
+      minHeight: 22,
+    },
+    draftValidationText: {
+      color: colours.danger,
+      flex: 1,
+      ...mentaTypography.bodySmallMedium,
+      fontFamily: fonts.interSemibold,
+    },
+    fieldLabel: {
+      color: colours.mutedInk,
+      ...mentaTypography.bodySmallMedium,
+    },
+    promiseTextArea: {
+      color: colours.text,
+      fontFamily: fonts.newsreader,
+      fontSize: 29,
+      letterSpacing: -0.4,
+      lineHeight: 35,
+      minHeight: 72,
+      paddingHorizontal: 0,
+      paddingVertical: mentaSpacing[2],
+    },
+    inputMeta: {
+      minHeight: 34,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+      gap: 12,
+      paddingTop: 8,
+    },
+    proofContent: {
+      flexGrow: 1,
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingTop: 22,
+      paddingBottom: 16,
+      gap: 16,
+    },
+    proofContentCompact: {
+      paddingTop: mentaSpacing[2],
+      paddingBottom: mentaSpacing[2],
+      gap: mentaSpacing[2],
+    },
+    proofWorkspace: {
+      flex: 1,
+      gap: 16,
+      width: '100%',
+    },
+    proofSelectionColumn: {
+      flex: 1,
+      gap: 16,
+    },
+    iPadProofContent: {
+      justifyContent: 'center',
+      paddingTop: mentaSpacing[6],
+    },
+    iPadProofSelectionColumn: {
+      flex: 1,
+      gap: mentaSpacing[4],
+      minWidth: 0,
+    },
+    iPadPromiseSummary: {
+      alignSelf: 'flex-start',
+      backgroundColor: colours.paper,
+      borderRadius: mentaRadii.large,
+      flexBasis: 248,
+      flexGrow: 0,
+      flexShrink: 0,
+      gap: mentaSpacing[5],
+      minHeight: 360,
+      padding: mentaSpacing[6],
+    },
+    iPadSummaryLabel: {
+      color: colours.mutedPaper,
+      fontFamily: fonts.interBold,
+      fontSize: 12,
+      letterSpacing: 1.1,
+      lineHeight: 16,
+    },
+    iPadSummaryPromise: {
+      color: colours.ink,
+      fontFamily: fonts.newsreader,
+      fontSize: 28,
+      letterSpacing: -0.56,
+      lineHeight: 34,
+    },
+    iPadSummaryDivider: {
+      backgroundColor: colours.paperDivider,
+      height: StyleSheet.hairlineWidth,
+      width: '100%',
+    },
+    iPadSummaryFact: {
+      gap: mentaSpacing[1],
+    },
+    iPadSummaryValue: {
+      color: colours.ink,
+      ...mentaTypography.bodySmallMedium,
+    },
+    iPadSummaryNote: {
+      color: colours.mutedPaper,
+      marginTop: 'auto',
+      ...mentaTypography.bodySmall,
+    },
+    iPadProofFooter: {
+      marginLeft: 284,
+      marginRight: 288,
+    },
+    iPadProofFooterWithoutRail: {
+      marginLeft: mentaSpacing[8],
+    },
+    localCopy: {
+      flex: 1,
+      color: colours.mutedInk,
+      ...mentaTypography.bodySmall,
+    },
+    errorCopy: { color: colours.danger },
+    finishError: {
+      color: colours.danger,
+      ...mentaTypography.bodySmallMedium,
+    },
+    finishErrorCard: {
+      gap: 4,
+      marginHorizontal: 24,
+      marginBottom: 8,
+      padding: 14,
+      borderWidth: 1,
+      borderColor: colours.danger,
+      borderRadius: mentaRadii.medium,
+      backgroundColor: colours.raised,
+    },
+    finishErrorTitle: {
+      color: colours.paper,
+      ...mentaTypography.bodySmallMedium,
+    },
+    characterCount: {
+      color: colours.mutedInk,
+      ...mentaTypography.captionMedium,
+    },
+    promiseSummary: {
+      width: '100%',
+      borderRadius: mentaRadii.medium,
+      backgroundColor: colours.raised,
+      borderColor: colours.border,
+      borderWidth: StyleSheet.hairlineWidth,
+      paddingHorizontal: mentaSpacing[4],
+      paddingVertical: mentaSpacing[3],
+      gap: mentaSpacing[1],
+    },
+    promiseSummaryCompact: {
+      paddingVertical: mentaSpacing[2],
+      gap: mentaSpacing[1],
+    },
+    summaryEyebrow: {
+      color: colours.action,
+      ...mentaTypography.bodySmallMedium,
+    },
+    promiseSummaryText: {
+      color: colours.text,
+      ...mentaTypography.title,
+    },
+    promiseSummaryMeta: {
+      color: colours.mutedPaper,
+      ...mentaTypography.bodySmallMedium,
+    },
+    proofCopy: { gap: 6 },
+    promiseContext: {
+      color: colours.mutedInk,
+      ...mentaTypography.bodySmallMedium,
+    },
+    accountabilityCopy: { gap: 6 },
+    accountabilityCopyCompact: { gap: mentaSpacing[1], marginTop: 0 },
+    disclosureStage: {
+      flex: 1,
+      gap: mentaSpacing[6],
+      justifyContent: 'flex-start',
+      paddingTop: mentaSpacing[4],
+    },
+    accountabilityTitle: {
+      color: colours.text,
+      ...mentaTypography.heading,
+      fontSize: 34,
+      letterSpacing: -0.68,
+      lineHeight: 40,
+    },
+    proofTitle: {
+      color: colours.text,
+      fontFamily: fonts.interBold,
+      fontSize: 30,
+      letterSpacing: -0.6,
+      lineHeight: 36,
+    },
+    proofList: {
+      gap: 10,
+    },
+    proofListInitial: {
+      flex: 1,
+    },
+    accountabilityList: {
+      gap: mentaSpacing[3],
+    },
+    proofRow: {
+      minHeight: 68,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colours.raised,
+      borderColor: colours.border,
+      borderRadius: mentaRadii.medium,
+      borderWidth: StyleSheet.hairlineWidth,
+    },
+    proofRowInitial: {
+      flex: 1,
+      maxHeight: 124,
+      minHeight: 88,
+    },
+    accountabilityRow: {
+      minHeight: 116,
+      paddingHorizontal: mentaSpacing[5],
+      paddingVertical: mentaSpacing[5],
+    },
+    accountabilityText: {
+      paddingRight: 42,
+    },
+    accountabilityChoiceCheck: {
+      position: 'absolute',
+      right: mentaSpacing[5],
+    },
+    proofRowCompact: {
+      minHeight: 60,
+      paddingVertical: mentaSpacing[1],
+    },
+    proofRowDivider: {
+      borderBottomColor: colours.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+    proofRowSelected: {
+      backgroundColor: colours.actionSoft,
+      borderColor: colours.actionBorder,
+      borderWidth: 2,
+    },
+    proofIconSlot: {
+      alignItems: 'center',
+      backgroundColor: colours.actionSoft,
+      borderRadius: mentaRadii.small,
+      flexShrink: 0,
+      height: 32,
+      justifyContent: 'center',
+      marginRight: 12,
+      width: 32,
+    },
+    proofText: { flex: 1, gap: 2, minWidth: 0 },
+    proofChange: {
+      alignItems: 'center',
+      alignSelf: 'center',
+      justifyContent: 'center',
+      minHeight: mentaLayout.minimumTouchTarget,
+      minWidth: mentaLayout.minimumTouchTarget,
+      paddingHorizontal: 0,
+    },
+    proofChangeText: {
+      color: colours.action,
+      ...mentaTypography.bodySmallMedium,
+    },
+    proofRowTitle: {
+      color: colours.text,
+      ...mentaTypography.bodySemibold,
+    },
+    proofRowDetail: {
+      color: colours.mutedInk,
+      ...mentaTypography.bodySmall,
+    },
+    choiceCheck: {
+      alignItems: 'center',
+      backgroundColor: colours.action,
+      borderRadius: mentaRadii.medium,
+      flexShrink: 0,
+      height: 24,
+      justifyContent: 'center',
+      width: 24,
+    },
+    resolvedProofRow: {
+      alignItems: 'center',
+      backgroundColor: 'transparent',
+      borderBottomColor: colours.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      minHeight: 58,
+      paddingHorizontal: mentaSpacing[3],
+      paddingVertical: mentaSpacing[2],
+    },
+    resolvedProofIdentity: {
+      alignItems: 'center',
+      flex: 1,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minWidth: 0,
+    },
+    resolvedProofIcon: {
+      alignItems: 'center',
+      backgroundColor: colours.actionSoft,
+      borderRadius: mentaRadii.small,
+      flexShrink: 0,
+      height: 32,
+      justifyContent: 'center',
+      width: 32,
+    },
+    resolvedProofText: {
+      color: colours.text,
+      ...mentaTypography.bodySemibold,
+    },
+    proofActionDock: {
+      paddingBottom: mentaSpacing[2],
+    },
+    radio: {
+      width: 22,
+      height: 22,
+      borderRadius: mentaRadii.round,
+      borderWidth: 1.5,
+      borderColor: colours.mutedPaper,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+    },
+    radioSelected: { borderColor: colours.actionOnPaper },
+    radioDot: {
+      width: 10,
+      height: 10,
+      borderRadius: mentaRadii.round,
+      backgroundColor: colours.actionOnPaper,
+    },
+    previewBody: {
+      flexGrow: 1,
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      paddingTop: mentaSpacing[6],
+      paddingBottom: mentaSpacing[8],
+      paddingHorizontal: mentaLayout.screenInset,
+    },
+    previewBodyCompact: {
+      gap: mentaSpacing[4],
+      paddingTop: mentaSpacing[4],
+    },
+    onboardingOverflowStage: {
+      flex: 1,
+      position: 'relative',
+    },
+    onboardingOverflowIndicator: {
+      position: 'absolute',
+      right: 7,
+      top: 16,
+      width: 3,
+      height: 44,
+      borderRadius: mentaRadii.small,
+      backgroundColor: colours.mutedInk,
+      opacity: 0.72,
+    },
+    previewTitle: {
+      color: colours.text,
+      textAlign: 'center',
+      ...mentaTypography.heading,
+      fontSize: 34,
+      lineHeight: 40,
+    },
+    reviewContentStage: {
+      flexGrow: 1,
+      gap: mentaSpacing[5],
+      justifyContent: 'center',
+      width: '100%',
+    },
+    reviewArtefactStage: {
+      alignSelf: 'center',
+      maxWidth: 640,
+      width: '100%',
+    },
+    todayCard: {
+      width: '100%',
+      minHeight: 0,
+      borderRadius: mentaRadii.medium,
+      backgroundColor: colours.paper,
+      justifyContent: 'flex-end',
+      paddingBottom: mentaSpacing[5],
+      paddingHorizontal: mentaSpacing[5],
+      paddingTop: mentaSpacing[6],
+      gap: mentaSpacing[2],
+    },
+    todayCardCompact: {
+      paddingTop: mentaSpacing[5],
+    },
+    todayPromise: {
+      color: colours.ink,
+      textAlign: 'center',
+      ...mentaTypography.journeyTitle,
+    },
+    reviewMeta: {
+      color: colours.mutedPaper,
+      textAlign: 'center',
+      ...mentaTypography.bodySmallMedium,
+    },
+    reviewAccountability: {
+      color: colours.actionOnPaper,
+      textAlign: 'center',
+      ...mentaTypography.bodySmallMedium,
+    },
+    reviewActionDock: {
+      paddingBottom: mentaSpacing[2],
+    },
+    reviewEditAction: {
+      alignItems: 'center',
+      alignSelf: 'center',
+      justifyContent: 'center',
+      minHeight: mentaLayout.minimumTouchTarget,
+      paddingHorizontal: mentaSpacing[4],
+    },
+    reviewEditText: {
+      color: colours.action,
+      ...mentaTypography.bodySmallMedium,
+    },
+    todayProofRow: {
+      minHeight: 54,
+      borderTopWidth: 1,
+      borderTopColor: colours.paperDivider,
+      paddingTop: 13,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    todayProofLabel: {
+      color: colours.mutedPaper,
+      ...mentaTypography.bodySmall,
+    },
+    todayProofValue: {
+      color: colours.ink,
+      ...mentaTypography.bodySmallMedium,
+    },
+    previewHelper: {
+      width: '100%',
+      color: colours.mutedInk,
+      ...mentaTypography.bodySmall,
+    },
+    durationBody: {
+      flexGrow: 1,
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingTop: mentaSpacing[6],
+      paddingBottom: mentaSpacing[6],
+      gap: mentaSpacing[5],
+    },
+    durationCopy: { gap: mentaSpacing[2] },
+    durationPromiseStage: {
+      minHeight: 94,
+      width: '100%',
+    },
+    durationPromiseCard: {
+      width: '100%',
+      borderRadius: mentaRadii.medium,
+      backgroundColor: colours.paper,
+      borderColor: colours.paperDivider,
+      borderWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[1],
+      minHeight: 88,
+      paddingHorizontal: mentaSpacing[5],
+      paddingVertical: mentaSpacing[4],
+    },
+    durationPromiseText: {
+      color: colours.ink,
+      ...mentaTypography.journeyTitle,
+    },
+    durationPromiseMeta: {
+      color: colours.mutedPaper,
+      ...mentaTypography.bodySmall,
+    },
+    durationOptions: {
+      width: '100%',
+      flexDirection: 'column',
+      gap: mentaSpacing[2],
+    },
+    durationOption: {
+      alignItems: 'center',
+      backgroundColor: colours.surface,
+      borderColor: colours.border,
+      borderWidth: 1,
+      borderRadius: mentaRadii.medium,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      minHeight: 62,
+      paddingHorizontal: mentaSpacing[4],
+    },
+    durationOptionSelected: {
+      borderColor: colours.actionBorder,
+      borderWidth: 2,
+      backgroundColor: colours.raised,
+    },
+    durationOptionText: {
+      color: colours.text,
+      ...mentaTypography.bodySemibold,
+    },
+    durationOptionTextSelected: { color: colours.action },
+    durationOptionMeaning: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+    },
+    durationCheckIns: {
+      color: colours.mutedInk,
+      ...mentaTypography.bodySmall,
+    },
+    durationActionDock: { paddingBottom: mentaSpacing[2] },
+    durationFactRow: {
+      minHeight: mentaLayout.minimumTouchTarget,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: colours.border,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    durationFactValue: {
+      color: colours.text,
+      ...mentaTypography.bodySmallMedium,
+    },
+    momentaGiftBody: {
+      flexGrow: 1,
+      justifyContent: 'center',
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingTop: mentaSpacing[5],
+      gap: mentaSpacing[5],
+    },
+    momentaGiftMascotStage: {
+      width: '100%',
+      height: 180,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    momentaGiftCopy: {
+      alignItems: 'center',
+      gap: mentaSpacing[4],
+      width: '100%',
+    },
+    momentaGiftTitle: {
+      color: colours.text,
+      fontFamily: fonts.newsreader,
+      fontSize: 36,
+      lineHeight: 41,
+      letterSpacing: -0.8,
+      textAlign: 'center',
+    },
+    momentaGiftTitleAccent: { color: colours.action },
+    momentaGiftTitleCompact: {
+      fontSize: 34,
+      letterSpacing: -0.7,
+      lineHeight: 39,
+    },
+    momentaGiftBodyCopy: {
+      color: colours.mutedInk,
+      maxWidth: 350,
+      textAlign: 'center',
+      ...mentaTypography.bodySmall,
+    },
+    momentaGiftFacts: {
+      alignItems: 'center',
+      borderBottomColor: colours.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colours.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      minHeight: 88,
+      paddingVertical: mentaSpacing[4],
+      width: '100%',
+    },
+    momentaGiftFactsCompact: { minHeight: 82 },
+    momentaGiftFact: {
+      flex: 1,
+      gap: mentaSpacing[1],
+      justifyContent: 'center',
+      minWidth: 0,
+    },
+    momentaGiftJourneyArrow: {
+      alignItems: 'center',
+      backgroundColor: colours.actionSoft,
+      borderRadius: mentaRadii.round,
+      height: 36,
+      justifyContent: 'center',
+      marginHorizontal: mentaSpacing[3],
+      width: 36,
+    },
+    momentaGiftRowLabel: {
+      color: colours.mutedInk,
+      fontFamily: fonts.interBold,
+      fontSize: 11,
+      letterSpacing: 0.9,
+      lineHeight: 15,
+      textTransform: 'uppercase',
+    },
+    momentaGiftFactValue: {
+      color: colours.action,
+      ...mentaTypography.bodySemibold,
+    },
+    momentaGiftTear: {
+      bottom: -7,
+      flexDirection: 'row',
+      height: 14,
+      justifyContent: 'space-around',
+      left: 8,
+      overflow: 'hidden',
+      position: 'absolute',
+      right: 8,
+    },
+    momentaGiftTooth: {
+      backgroundColor: colours.paper,
+      height: 14,
+      transform: [{ rotate: '45deg' }],
+      width: 14,
+    },
+    momentaGiftReward: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[4],
+      paddingHorizontal: mentaSpacing[2],
+    },
+    momentaGiftRewardBadge: {
+      alignItems: 'center',
+      borderColor: colours.border,
+      borderRadius: mentaRadii.round,
+      borderWidth: 1,
+      height: 76,
+      justifyContent: 'center',
+      width: 76,
+    },
+    momentaGiftRewardAmount: {
+      color: colours.action,
+      ...mentaTypography.bodySemibold,
+    },
+    rewardLeaf: { height: 20, position: 'relative', width: 30 },
+    rewardLeafLeft: {
+      backgroundColor: colours.action,
+      borderBottomLeftRadius: 12,
+      borderTopRightRadius: 12,
+      height: 14,
+      left: 2,
+      position: 'absolute',
+      top: 4,
+      transform: [{ rotate: '20deg' }],
+      width: 18,
+    },
+    rewardLeafRight: {
+      backgroundColor: colours.action,
+      borderBottomRightRadius: 12,
+      borderTopLeftRadius: 12,
+      height: 14,
+      position: 'absolute',
+      right: 2,
+      top: 1,
+      transform: [{ rotate: '-20deg' }],
+      width: 18,
+    },
+    referralBody: {
+      flex: 1,
+      justifyContent: 'center',
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingBottom: mentaSpacing[8],
+      gap: mentaSpacing[6],
+    },
+    referralCopy: {
+      width: '100%',
+      gap: mentaSpacing[3],
+    },
+    referralTitle: {
+      color: colours.text,
+      ...mentaTypography.heading,
+      fontFamily: fonts.interBold,
+    },
+    referralDisclosure: {
+      minHeight: 60,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderColor: colours.border,
+      backgroundColor: 'transparent',
+      paddingHorizontal: mentaSpacing[1],
+      paddingVertical: mentaSpacing[2],
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: mentaSpacing[3],
+    },
+    referralDisclosureText: {
+      color: colours.text,
+      ...mentaTypography.bodySemibold,
+    },
+    referralError: {
+      color: colours.danger,
+      ...mentaTypography.bodySmall,
+    },
+    activationBody: {
+      alignItems: 'center',
+      flex: 1,
+      justifyContent: 'center',
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingBottom: mentaSpacing[8],
+      gap: mentaSpacing[6],
+    },
+    activationCopy: {
+      alignItems: 'center',
+      gap: mentaSpacing[2],
+    },
+    activationTitle: {
+      color: colours.mutedInk,
+      fontFamily: fonts.interBold,
+      fontSize: 13,
+      letterSpacing: 1.1,
+      lineHeight: 18,
+      textAlign: 'center',
+      textTransform: 'uppercase',
+    },
+    activationBodyText: { maxWidth: 320, textAlign: 'center' },
+    activationDots: {
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+    },
+    activationDot: {
+      backgroundColor: colours.action,
+      borderRadius: mentaRadii.round,
+      height: 8,
+      width: 8,
+    },
+    activationDotMuted: { opacity: 0.55 },
+    activationDotQuiet: { opacity: 0.25 },
+    receiptBody: {
+      flexGrow: 1,
+      justifyContent: 'center',
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingVertical: mentaSpacing[8],
+      gap: mentaSpacing[5],
+    },
+    receiptCopy: {
+      alignItems: 'center',
+      width: '100%',
+      gap: mentaSpacing[2],
+    },
+    receiptCelebrationStage: {
+      alignItems: 'center',
+      alignSelf: 'center',
+      height: 136,
+      justifyContent: 'center',
+      position: 'relative',
+      width: 180,
+    },
+    receiptTitle: {
+      color: colours.text,
+      textAlign: 'center',
+      ...mentaTypography.display,
+    },
+    receiptAchievement: {
+      alignItems: 'center',
+      gap: mentaSpacing[5],
+      width: '100%',
+    },
+    receiptStats: {
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      width: '100%',
+    },
+    receiptStatsCompact: { flexDirection: 'column' },
+    receiptStat: {
+      backgroundColor: colours.raised,
+      borderColor: colours.border,
+      borderRadius: mentaRadii.medium,
+      borderWidth: StyleSheet.hairlineWidth,
+      flex: 1,
+      gap: mentaSpacing[2],
+      minHeight: 88,
+      padding: mentaSpacing[4],
+    },
+    receiptReferralRow: {
+      borderBottomColor: colours.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colours.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[2],
+      paddingVertical: mentaSpacing[3],
+      width: '100%',
+    },
+    receiptCardStage: {
+      width: '100%',
+      position: 'relative',
+      paddingBottom: mentaSpacing[5],
+    },
+    receiptCard: {
+      width: '100%',
+      borderRadius: mentaRadii.large,
+      backgroundColor: colours.paper,
+      overflow: 'hidden',
+    },
+    receiptCheckBadge: {
+      position: 'absolute',
+      right: mentaSpacing[4],
+      bottom: 0,
+      width: 40,
+      height: 40,
+      borderRadius: mentaRadii.round,
+      borderWidth: 4,
+      borderColor: colours.canvas,
+      backgroundColor: colours.action,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    receiptPromiseRow: {
+      padding: mentaSpacing[5],
+      gap: mentaSpacing[2],
+    },
+    receiptLabel: {
+      color: colours.mutedPaper,
+      ...mentaTypography.bodySmallMedium,
+    },
+    receiptPromise: {
+      color: colours.text,
+      maxWidth: 360,
+      textAlign: 'center',
+      ...mentaTypography.display,
+    },
+    receiptMeta: {
+      color: colours.mutedPaper,
+      ...mentaTypography.bodySmall,
+    },
+    receiptFactRow: {
+      minHeight: 58,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colours.paperDivider,
+      paddingHorizontal: mentaSpacing[5],
+      paddingVertical: mentaSpacing[3],
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: mentaSpacing[3],
+    },
+    receiptFactColumn: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colours.paperDivider,
+      paddingHorizontal: mentaSpacing[5],
+      paddingVertical: mentaSpacing[4],
+      gap: mentaSpacing[1],
+    },
+    receiptFactLabel: {
+      color: colours.mutedInk,
+      fontFamily: fonts.interBold,
+      fontSize: 11,
+      letterSpacing: 0.9,
+      lineHeight: 15,
+      textTransform: 'uppercase',
+    },
+    receiptFactValue: {
+      color: colours.text,
+      flexShrink: 1,
+      textAlign: 'left',
+      ...mentaTypography.bodySmallMedium,
+    },
+    receiptFactDetail: {
+      color: colours.text,
+      ...mentaTypography.bodySmall,
+    },
+    receiptContinuation: {
+      color: colours.mutedInk,
+      ...mentaTypography.bodySmall,
+    },
+    gateBody: {
+      flexGrow: 1,
+      gap: mentaSpacing[5],
+      justifyContent: 'center',
+      paddingBottom: 24,
+      paddingHorizontal: mentaLayout.screenInset,
+    },
+    gateIntro: {
+      width: '100%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+    },
+    gateCopy: { flex: 1, gap: mentaSpacing[3], minWidth: 0 },
+    gateTitle: {
+      color: colours.text,
+      ...mentaTypography.heading,
+      fontFamily: fonts.interBold,
+    },
+    gateBodyCopy: {
+      color: colours.mutedInk,
+      ...mentaTypography.body,
+    },
+    gatePromiseCard: {
+      width: '100%',
+      borderRadius: mentaRadii.large,
+      backgroundColor: colours.paper,
+      padding: mentaSpacing[5],
+      gap: mentaSpacing[3],
+    },
+    gatePromiseText: {
+      color: colours.ink,
+      ...mentaTypography.title,
+    },
+    gateLocalHelper: {
+      color: colours.mutedInk,
+      ...mentaTypography.bodySmall,
+    },
+    authBody: {
+      alignSelf: 'center',
+      flexGrow: 1,
+      gap: mentaSpacing[5],
+      justifyContent: 'flex-start',
+      maxWidth: mentaLayout.phoneFrameMax,
+      paddingBottom: mentaSpacing[10],
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingTop: mentaSpacing[6],
+      width: '100%',
+    },
+    authBodySignIn: {
+      justifyContent: 'center',
+      paddingTop: 0,
+    },
+    authDisclosureStage: {
+      gap: mentaSpacing[5],
+      width: '100%',
+    },
+    authProviderStack: {
+      flexDirection: 'column-reverse',
+      gap: mentaSpacing[4],
+      width: '100%',
+    },
+    authFooter: {
+      alignItems: 'center',
+      paddingTop: mentaSpacing[1],
+      width: '100%',
+    },
+    legalBody: {
+      alignSelf: 'center',
+      flexGrow: 1,
+      gap: mentaSpacing[5],
+      maxWidth: mentaLayout.phoneFrameMax,
+      paddingTop: 28,
+      width: '100%',
+    },
+    legalBodyCompact: {
+      gap: mentaSpacing[3],
+      paddingTop: mentaSpacing[3],
+    },
+    legalCopy: { gap: 10, width: '100%' },
+    legalDocumentStage: {
+      transform: [{ rotate: '0.35deg' }],
+      width: '100%',
+    },
+    legalConsentSurface: {
+      backgroundColor: colours.paper,
+      borderColor: colours.paperDivider,
+      borderRadius: mentaRadii.medium,
+      borderWidth: 1,
+      gap: mentaSpacing[5],
+      padding: mentaSpacing[5],
+      width: '100%',
+    },
+    legalConsentCopy: {
+      gap: mentaSpacing[2],
+    },
+    legalConsentTitle: {
+      color: colours.ink,
+      fontFamily: fonts.interBold,
+      fontSize: 28,
+      letterSpacing: -0.56,
+      lineHeight: 34,
+    },
+    legalConsentBody: {
+      color: colours.mutedPaper,
+      ...mentaTypography.bodySmall,
+    },
+    legalConsentPaperRow: {
+      borderBottomColor: colours.paperDivider,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colours.paperDivider,
+      borderTopWidth: StyleSheet.hairlineWidth,
+    },
+    legalConsentAction: {
+      backgroundColor: colours.ink,
+      borderColor: colours.ink,
+    },
+    legalConsentActionText: {
+      color: colours.paper,
+    },
+    combinedReferralStage: {
+      gap: mentaSpacing[2],
+      width: '100%',
+    },
+    combinedReferralCopy: {
+      flex: 1,
+      gap: 2,
+      minWidth: 0,
+    },
+    combinedReferralRemove: {
+      alignItems: 'flex-start',
+      justifyContent: 'center',
+      minHeight: mentaLayout.minimumTouchTarget,
+    },
+    combinedReferralRemoveText: {
+      color: colours.mutedInk,
+      ...mentaTypography.bodySmallMedium,
+    },
+    authCopy: { width: '100%', gap: 10 },
+    authTitle: {
+      color: colours.text,
+      ...mentaTypography.heading,
+      fontFamily: fonts.interBold,
+      lineHeight: 36,
+    },
+    consentRow: {
+      alignItems: 'flex-start',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: mentaLayout.minimumTouchTarget,
+      paddingVertical: mentaSpacing[3],
+    },
+    consentRowPaper: {
+      paddingHorizontal: 0,
+    },
+    consentBox: {
+      alignItems: 'center',
+      borderColor: colours.mutedInk,
+      borderRadius: mentaRadii.small,
+      borderWidth: 1,
+      height: 24,
+      justifyContent: 'center',
+      marginTop: 1,
+      width: 24,
+    },
+    consentBoxChecked: {
+      backgroundColor: colours.action,
+      borderColor: colours.action,
+    },
+    consentBoxPaper: {
+      borderColor: colours.mutedPaper,
+    },
+    consentLabel: {
+      color: colours.text,
+      flex: 1,
+      ...mentaTypography.bodySmall,
+    },
+    consentLabelPaper: {
+      color: colours.ink,
+    },
+    authButtons: { gap: 12 },
+  });
+  return { colours, styles };
+};

@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import { useTranslation } from '@/lib/localization';
 import React, {
   useCallback,
@@ -32,13 +40,7 @@ import {
   AppTopBar,
 } from '@/components/ui/AppShell';
 import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { useAuthStore } from '@/store/auth-store';
 import {
@@ -95,6 +97,8 @@ const NotificationSettingsLayout = ({
   backLabel,
   centred = false,
 }: NotificationSettingsLayoutProps) => {
+  const { notificationStyles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const phoneLayout = usePhoneLayout();
   return (
@@ -137,14 +141,20 @@ const NotificationSettingsSection = ({
   title: string;
   description: string;
   children: React.ReactNode;
-}) => (
-  <View style={notificationStyles.section}>
-    <AppSectionHeader subtitle={description} title={title} />
-    <AppInsetGroup>{children}</AppInsetGroup>
-  </View>
-);
+}) => {
+  const { notificationStyles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View style={notificationStyles.section}>
+      <AppSectionHeader subtitle={description} title={title} />
+      <AppInsetGroup>{children}</AppInsetGroup>
+    </View>
+  );
+};
 
 export default function NotificationSettingsScreen() {
+  const mentaColors = useMentaPalette();
+  const { notificationStyles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams<{
@@ -1338,19 +1348,15 @@ export default function NotificationSettingsScreen() {
 
       <NotificationSettingsSection
         title={t('fullAuth.notification_settings.promise_reminders')}
-        description={t(
-          'fullAuth.notification_settings.choose_daily_proof_reminders_and_updates_when_a_'
-        )}
+        description={t('notifications.smart.body')}
       >
         <AppSwitchRow
-          title={t('fullAuth.notification_settings.proof_reminders')}
+          title={t('notifications.smart.title')}
           subtitle={
             savingKeys.has('challenge_reminders')
               ? t('fullAuth.notification_settings.saving_your_choice_2')
               : permissionStatus === 'granted'
-                ? t(
-                    'fullAuth.notification_settings.daily_proof_reminders_and_promise_ending_updates'
-                  )
+                ? undefined
                 : t(
                     'fullAuth.notification_settings.saved_but_notifications_are_off_on_this_phone'
                   )
@@ -1361,7 +1367,7 @@ export default function NotificationSettingsScreen() {
           }}
         />
         <AppDateTimeRow
-          title={t('fullAuth.notification_settings.reminder_time')}
+          title={t('notifications.smart.time')}
           subtitle={
             permissionStatus === 'granted'
               ? t(
@@ -1382,80 +1388,13 @@ export default function NotificationSettingsScreen() {
       </NotificationSettingsSection>
 
       <NotificationSettingsSection
-        title={t('fullAuth.notification_settings.people_and_progress')}
-        description={t(
-          'fullAuth.notification_settings.choose_which_group_and_progress_updates_menta_ma'
-        )}
-      >
-        <AppSwitchRow
-          title={t('fullAuth.notification_settings.reviews_and_group_activity')}
-          subtitle={
-            savingKeys.has('group_updates')
-              ? t('fullAuth.notification_settings.saving_your_choice_2')
-              : t(
-                  'fullAuth.notification_settings.new_proof_to_review_review_outcomes_check_ins_an'
-                )
-          }
-          value={preferences.group_updates ?? true}
-          onChange={value => {
-            void updatePreference('group_updates', value);
-          }}
-        />
-        <AppSwitchRow
-          title={t('fullAuth.notification_settings.streaks_and_momenta')}
-          subtitle={
-            savingKeys.has('streak_alerts')
-              ? t('fullAuth.notification_settings.saving_your_choice_2')
-              : t(
-                  'fullAuth.notification_settings.confirmed_milestones_momenta_and_streak_changes'
-                )
-          }
-          value={preferences.streak_alerts ?? true}
-          onChange={value => {
-            void updatePreference('streak_alerts', value);
-          }}
-          showDivider={false}
-        />
-      </NotificationSettingsSection>
-
-      <NotificationSettingsSection
-        title={t('fullAuth.notification_settings.email_updates')}
-        description={t(
-          'fullAuth.notification_settings.optional_menta_product_news_this_is_separate_fro'
-        )}
-      >
-        <AppSwitchRow
-          title={t('fullAuth.notification_settings.menta_product_news')}
-          subtitle={
-            savingKeys.has('marketing_email_opt_in')
-              ? t('fullAuth.notification_settings.saving_your_email_choice')
-              : user?.email
-                ? t(
-                    'fullAuth.notification_settings.occasional_updates_to_email_unsubscribe_here',
-                    {
-                      email: user.email,
-                    }
-                  )
-                : t(
-                    'fullAuth.notification_settings.a_confirmed_account_email_is_required'
-                  )
-          }
-          value={preferences.marketing_email_opt_in ?? false}
-          onChange={value => {
-            void handleMarketingEmailToggle(value);
-          }}
-          showDivider={false}
-        />
-      </NotificationSettingsSection>
-
-      <NotificationSettingsSection
         title={t('fullAuth.notification_settings.delivery_and_timing')}
         description={t(
           'fullAuth.notification_settings.set_quiet_hours_email_and_phone_notification_opt'
         )}
       >
         <AppFieldRow
-          title={t('fullAuth.notification_settings.quiet_hours_and_delivery')}
+          title={t('notifications.smart.advanced')}
           subtitle={t(
             'fullAuth.notification_settings.quiet_hours_formattedquiethours',
             { formattedQuietHours: formattedQuietHours }
@@ -1469,6 +1408,75 @@ export default function NotificationSettingsScreen() {
 
       {showAdvanced ? (
         <>
+          <NotificationSettingsSection
+            title={t('fullAuth.notification_settings.people_and_progress')}
+            description={t(
+              'fullAuth.notification_settings.choose_which_group_and_progress_updates_menta_ma'
+            )}
+          >
+            <AppSwitchRow
+              title={t(
+                'fullAuth.notification_settings.reviews_and_group_activity'
+              )}
+              subtitle={
+                savingKeys.has('group_updates')
+                  ? t('fullAuth.notification_settings.saving_your_choice_2')
+                  : t(
+                      'fullAuth.notification_settings.new_proof_to_review_review_outcomes_check_ins_an'
+                    )
+              }
+              value={preferences.group_updates ?? true}
+              onChange={value => {
+                void updatePreference('group_updates', value);
+              }}
+            />
+            <AppSwitchRow
+              title={t('fullAuth.notification_settings.streaks_and_momenta')}
+              subtitle={
+                savingKeys.has('streak_alerts')
+                  ? t('fullAuth.notification_settings.saving_your_choice_2')
+                  : t(
+                      'fullAuth.notification_settings.confirmed_milestones_momenta_and_streak_changes'
+                    )
+              }
+              value={preferences.streak_alerts ?? true}
+              onChange={value => {
+                void updatePreference('streak_alerts', value);
+              }}
+              showDivider={false}
+            />
+          </NotificationSettingsSection>
+
+          <NotificationSettingsSection
+            title={t('fullAuth.notification_settings.email_updates')}
+            description={t(
+              'fullAuth.notification_settings.optional_menta_product_news_this_is_separate_fro'
+            )}
+          >
+            <AppSwitchRow
+              title={t('fullAuth.notification_settings.menta_product_news')}
+              subtitle={
+                savingKeys.has('marketing_email_opt_in')
+                  ? t('fullAuth.notification_settings.saving_your_email_choice')
+                  : user?.email
+                    ? t(
+                        'fullAuth.notification_settings.occasional_updates_to_email_unsubscribe_here',
+                        {
+                          email: user.email,
+                        }
+                      )
+                    : t(
+                        'fullAuth.notification_settings.a_confirmed_account_email_is_required'
+                      )
+              }
+              value={preferences.marketing_email_opt_in ?? false}
+              onChange={value => {
+                void handleMarketingEmailToggle(value);
+              }}
+              showDivider={false}
+            />
+          </NotificationSettingsSection>
+
           <NotificationSettingsSection
             title={t('fullAuth.notification_settings.quiet_hours')}
             description={t(
@@ -1566,42 +1574,51 @@ export default function NotificationSettingsScreen() {
   );
 }
 
-const SkeletonSwitchRow = ({ last = false }: { last?: boolean }) => (
-  <View
-    style={[
-      notificationSkeletonStyles.switchRow,
-      !last && notificationSkeletonStyles.switchDivider,
-    ]}
-  >
-    <View style={notificationSkeletonStyles.switchCopy}>
-      <SkeletonLoader announce={false} height={14} width="44%" />
-      <SkeletonLoader announce={false} height={11} width="72%" />
+const SkeletonSwitchRow = ({ last = false }: { last?: boolean }) => {
+  const { notificationSkeletonStyles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View
+      style={[
+        notificationSkeletonStyles.switchRow,
+        !last && notificationSkeletonStyles.switchDivider,
+      ]}
+    >
+      <View style={notificationSkeletonStyles.switchCopy}>
+        <SkeletonLoader announce={false} height={14} width="44%" />
+        <SkeletonLoader announce={false} height={11} width="72%" />
+      </View>
+      <SkeletonLoader
+        announce={false}
+        borderRadius={mentaRadii.round}
+        height={28}
+        width={48}
+      />
     </View>
-    <SkeletonLoader
-      announce={false}
-      borderRadius={mentaRadii.round}
-      height={28}
-      width={48}
-    />
-  </View>
-);
+  );
+};
 
-const SkeletonDateTimeRow = ({ last = false }: { last?: boolean }) => (
-  <View
-    style={[
-      notificationSkeletonStyles.switchRow,
-      !last && notificationSkeletonStyles.switchDivider,
-    ]}
-  >
-    <View style={notificationSkeletonStyles.switchCopy}>
-      <SkeletonLoader announce={false} height={14} width="52%" />
-      <SkeletonLoader announce={false} height={11} width="64%" />
+const SkeletonDateTimeRow = ({ last = false }: { last?: boolean }) => {
+  const { notificationSkeletonStyles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View
+      style={[
+        notificationSkeletonStyles.switchRow,
+        !last && notificationSkeletonStyles.switchDivider,
+      ]}
+    >
+      <View style={notificationSkeletonStyles.switchCopy}>
+        <SkeletonLoader announce={false} height={14} width="52%" />
+        <SkeletonLoader announce={false} height={11} width="64%" />
+      </View>
+      <SkeletonLoader announce={false} height={14} width={64} />
     </View>
-    <SkeletonLoader announce={false} height={14} width={64} />
-  </View>
-);
+  );
+};
 
 const NotificationSettingsSkeleton = () => {
+  const { notificationSkeletonStyles, notificationStyles } =
+    useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <View
@@ -1622,30 +1639,6 @@ const NotificationSettingsSkeleton = () => {
         </AppInsetGroup>
       </View>
       <View style={notificationStyles.section}>
-        <SkeletonLoader announce={false} height={18} width="36%" />
-        <SkeletonLoader announce={false} height={12} width="82%" />
-        <AppInsetGroup>
-          <SkeletonDateTimeRow />
-          <SkeletonDateTimeRow last />
-        </AppInsetGroup>
-        <SkeletonLoader
-          announce={false}
-          borderRadius={mentaRadii.medium}
-          height={44}
-          width="100%"
-        />
-      </View>
-      <View style={notificationStyles.section}>
-        <SkeletonLoader announce={false} height={18} width="42%" />
-        <SkeletonLoader announce={false} height={12} width="70%" />
-        <AppInsetGroup>
-          <SkeletonSwitchRow />
-          <SkeletonSwitchRow last />
-        </AppInsetGroup>
-      </View>
-      <View style={notificationStyles.section}>
-        <SkeletonLoader announce={false} height={18} width="28%" />
-        <SkeletonLoader announce={false} height={12} width="54%" />
         <AppInsetGroup>
           <SkeletonSwitchRow last />
         </AppInsetGroup>
@@ -1663,95 +1656,97 @@ const NotificationSettingsSkeleton = () => {
   );
 };
 
-const notificationSkeletonStyles = StyleSheet.create({
-  frame: {
-    gap: mentaSpacing[6],
-  },
-  switchRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 68,
-    paddingVertical: mentaSpacing[3],
-  },
-  switchDivider: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  switchCopy: {
-    flex: 1,
-    gap: mentaSpacing[2],
-  },
-});
-
-const notificationStyles = StyleSheet.create({
-  scrollContent: {
-    flexGrow: 1,
-  },
-  lane: {
-    alignSelf: 'center',
-    gap: mentaSpacing[8],
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingBottom: mentaSpacing[12],
-    paddingTop: mentaSpacing[6],
-    width: '100%',
-  },
-  centredLane: {
-    flexGrow: 1,
-  },
-  centredContent: {
-    flexGrow: 1,
-    gap: mentaSpacing[6],
-    justifyContent: 'center',
-    paddingBottom: mentaSpacing[12],
-  },
-  section: {
-    gap: mentaSpacing[4],
-  },
-  permissionSummary: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.surface,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 112,
-    padding: mentaSpacing[5],
-  },
-  permissionSummaryIcon: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.actionSoft,
-    borderRadius: mentaRadii.round,
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
-  },
-  permissionSummaryCopy: {
-    flex: 1,
-    gap: mentaSpacing[1],
-    minWidth: 0,
-  },
-  permissionSummaryTitle: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.bodySemibold,
-  },
-  permissionSummaryDetail: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.caption,
-  },
-  permissionSummaryValue: {
-    color: mentaColors.action,
-    flexShrink: 0,
-    ...mentaTypography.label,
-  },
-  saveStatus: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-  },
-  saveStatusText: {
-    color: mentaColors.text.muted,
-    ...mentaTypography.caption,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const notificationSkeletonStyles = StyleSheet.create({
+    frame: {
+      gap: mentaSpacing[6],
+    },
+    switchRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 68,
+      paddingVertical: mentaSpacing[3],
+    },
+    switchDivider: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+    switchCopy: {
+      flex: 1,
+      gap: mentaSpacing[2],
+    },
+  });
+  const notificationStyles = StyleSheet.create({
+    scrollContent: {
+      flexGrow: 1,
+    },
+    lane: {
+      alignSelf: 'center',
+      gap: mentaSpacing[8],
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingBottom: mentaSpacing[12],
+      paddingTop: mentaSpacing[6],
+      width: '100%',
+    },
+    centredLane: {
+      flexGrow: 1,
+    },
+    centredContent: {
+      flexGrow: 1,
+      gap: mentaSpacing[6],
+      justifyContent: 'center',
+      paddingBottom: mentaSpacing[12],
+    },
+    section: {
+      gap: mentaSpacing[4],
+    },
+    permissionSummary: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.surface,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 112,
+      padding: mentaSpacing[5],
+    },
+    permissionSummaryIcon: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.actionSoft,
+      borderRadius: mentaRadii.round,
+      height: 44,
+      justifyContent: 'center',
+      width: 44,
+    },
+    permissionSummaryCopy: {
+      flex: 1,
+      gap: mentaSpacing[1],
+      minWidth: 0,
+    },
+    permissionSummaryTitle: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.bodySemibold,
+    },
+    permissionSummaryDetail: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.caption,
+    },
+    permissionSummaryValue: {
+      color: mentaColors.action,
+      flexShrink: 0,
+      ...mentaTypography.label,
+    },
+    saveStatus: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+    },
+    saveStatusText: {
+      color: mentaColors.text.muted,
+      ...mentaTypography.caption,
+    },
+  });
+  return { notificationSkeletonStyles, notificationStyles };
+};

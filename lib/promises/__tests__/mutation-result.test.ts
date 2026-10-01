@@ -143,3 +143,24 @@ describe('promise mutation result contract', () => {
     ).toMatchObject({ outcome: 'unknown', code: 'RECEIPT_MISMATCH' });
   });
 });
+
+it('bounds a pending deletion transport as unknown without issuing another mutation', async () => {
+  jest.useFakeTimers();
+  mockRpc.mockReset().mockImplementation(() => new Promise(() => {}));
+  const deleting = submitReceiptBoundPromiseMutation({
+    ...request,
+    operation: 'delete',
+  });
+  jest.advanceTimersByTime(15_000);
+  const result = await deleting;
+  expect(result).toMatchObject({
+    contract: 'available',
+    result: {
+      outcome: 'unknown',
+      clientEventId: request.clientEventId,
+      recovery: 'status-check',
+    },
+  });
+  expect(mockRpc).toHaveBeenCalledTimes(1);
+  jest.useRealTimers();
+});

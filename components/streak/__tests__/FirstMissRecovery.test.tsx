@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -71,12 +72,72 @@ describe('FirstMissRecovery', () => {
 
     expect(await screen.findByText('Keep your 12-day streak?')).toBeTruthy();
     expect(
-      screen.getByText('Wednesday slipped by. It happens to everyone.')
+      screen.getByText(
+        'Wednesday slipped by. One missed day isn’t the whole story.'
+      )
     ).toBeTruthy();
     expect(screen.getByText('Keep my streak for free')).toBeTruthy();
     expect(screen.getByText('Start over at day 1')).toBeTruthy();
     expect(onVisibilityChange).toHaveBeenLastCalledWith(true);
   });
+
+  it.each([
+    null,
+    { ...offer, expiresAt: '2020-01-01T00:00:00Z' },
+    { ...offer, expiresAt: 'invalid' },
+  ])(
+    'does not offer a gift without current server eligibility',
+    async result => {
+      mockReadOffer.mockResolvedValueOnce(result);
+      render(
+        <FirstMissRecovery
+          ready
+          onRecovered={jest.fn()}
+          onVisibilityChange={jest.fn()}
+        />
+      );
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(mockReadOffer).toHaveBeenCalled();
+      await waitFor(() =>
+        expect(screen.queryByTestId('first-miss-recovery')).toBeNull()
+      );
+      expect(screen.queryByText('Keep my streak for free')).toBeNull();
+    }
+  );
+
+  it.each([false, true])(
+    'removes a gift at its deadline, including a dismissed offer: %s',
+    async dismissed => {
+      jest.useFakeTimers();
+      try {
+        mockReadOffer.mockResolvedValueOnce({
+          ...offer,
+          expiresAt: new Date(Date.now() + 60_000).toISOString(),
+        });
+        const visibility = jest.fn();
+        render(
+          <FirstMissRecovery
+            ready
+            onRecovered={jest.fn()}
+            onVisibilityChange={visibility}
+          />
+        );
+        await act(async () => {
+          await Promise.resolve();
+        });
+        expect(screen.getByText('Keep my streak for free')).toBeTruthy();
+        if (dismissed) fireEvent.press(screen.getByText('Start over at day 1'));
+        act(() => jest.advanceTimersByTime(60_001));
+        expect(screen.queryByTestId('first-miss-recovery')).toBeNull();
+        expect(visibility).toHaveBeenLastCalledWith(false);
+        expect(screen.queryByText('Get your free streak freeze')).toBeNull();
+      } finally {
+        jest.useRealTimers();
+      }
+    }
+  );
 
   it('lets people start over without losing the gift while it is valid', async () => {
     const onVisibilityChange = jest.fn();

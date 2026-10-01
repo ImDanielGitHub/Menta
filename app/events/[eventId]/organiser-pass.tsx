@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React, {
   useCallback,
   useEffect,
@@ -17,13 +25,7 @@ import {
   SkeletonButton,
   SkeletonLoader,
 } from '@/components/ui';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { buildEventLink } from '@/lib/events/links';
 import { holdReturnedEventCapability } from '@/lib/events/protected-auth-handoff';
 import { loadEventPublishRecovery } from '@/lib/events/publish-recovery';
@@ -56,6 +58,8 @@ type RecoveryViewState = {
 };
 
 export default function EventOrganiserPassScreen() {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams<{ eventId?: string | string[] }>();
@@ -361,25 +365,28 @@ export default function EventOrganiserPassScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: mentaColors.canvas },
-  content: {
-    flexGrow: 1,
-    gap: mentaSpacing[6],
-    paddingTop: mentaSpacing[4],
-    paddingBottom: mentaSpacing[12],
-  },
-  lead: { gap: mentaSpacing[3] },
-  body: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-    maxWidth: mentaLayout.readingMeasure,
-  },
-  pass: { gap: mentaSpacing[3] },
-  mainActions: { gap: mentaSpacing[3] },
-  copyNotice: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.success,
-  },
-  copyNoticeError: { color: mentaColors.danger },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: { flex: 1, backgroundColor: mentaColors.canvas },
+    content: {
+      flexGrow: 1,
+      gap: mentaSpacing[6],
+      paddingTop: mentaSpacing[4],
+      paddingBottom: mentaSpacing[12],
+    },
+    lead: { gap: mentaSpacing[3] },
+    body: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+      maxWidth: mentaLayout.readingMeasure,
+    },
+    pass: { gap: mentaSpacing[3] },
+    mainActions: { gap: mentaSpacing[3] },
+    copyNotice: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.success,
+    },
+    copyNoticeError: { color: mentaColors.danger },
+  });
+  return { styles };
+};

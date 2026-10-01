@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaColors,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import {
   Keyboard,
@@ -18,12 +26,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
 import { EditIcon } from '@/components/ui/icons';
 import { useMotionPreferences } from '@/lib/motion/use-motion-preferences';
 import { useTranslation } from '@/lib/localization';
@@ -98,6 +100,8 @@ const CyclingPlaceholder = ({
   style,
   testID,
 }: CyclingPlaceholderProps) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const values = React.useMemo(() => {
     const cleaned = examples?.map(value => value.trim()).filter(Boolean) ?? [];
     return cleaned.length > 0 ? cleaned : [fallback];
@@ -172,6 +176,9 @@ export function PromiseArtefact({
   testID,
   style,
 }: PromiseArtefactProps) {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const motion = useMotionPreferences();
   const countsWhenInputRef = React.useRef<TextInput>(null);
@@ -417,149 +424,152 @@ export function PromiseArtefact({
   );
 }
 
-const styles = StyleSheet.create({
-  paper: {
-    width: '100%',
-    overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.borderPaper,
-    borderRadius: mentaRadii.large,
-    backgroundColor: mentaColors.paper,
-    paddingHorizontal: mentaSpacing[5],
-    paddingTop: mentaSpacing[5],
-    paddingBottom: mentaSpacing[6],
-    transform: [{ rotate: '-0.28deg' }],
-  },
-  paperCompact: {
-    paddingHorizontal: mentaSpacing[4],
-    paddingTop: mentaSpacing[4],
-    paddingBottom: mentaSpacing[5],
-    transform: [{ rotate: '-0.18deg' }],
-  },
-  paperPressed: {
-    backgroundColor: mentaColors.paperPressed,
-    transform: [{ rotate: '-0.18deg' }, { scale: 0.995 }],
-  },
-  disabled: {
-    opacity: 0.68,
-  },
-  labelRow: {
-    minHeight: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: mentaSpacing[3],
-  },
-  label: {
-    ...mentaTypography.label,
-    color: mentaColors.text.mutedOnPaper,
-  },
-  counter: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.mutedOnPaper,
-    fontVariant: ['tabular-nums'],
-  },
-  editCue: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[1],
-  },
-  editCueLabel: {
-    ...mentaTypography.label,
-  },
-  promiseText: {
-    ...mentaTypography.journeyTitle,
-    color: mentaColors.text.onPaper,
-    marginTop: mentaSpacing[2],
-  },
-  promiseTextCompact: {
-    ...mentaTypography.title,
-  },
-  promiseInput: {
-    ...mentaTypography.journeyTitle,
-    minHeight: 78,
-    color: mentaColors.text.onPaper,
-    backgroundColor: 'transparent',
-    borderColor: mentaColors.actionBorder,
-    borderRadius: mentaRadii.small,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: mentaSpacing[3],
-    paddingTop: mentaSpacing[2],
-    paddingBottom: mentaSpacing[2],
-  },
-  promiseInputCompact: {
-    ...mentaTypography.title,
-    minHeight: 64,
-  },
-  inputShell: {
-    position: 'relative',
-  },
-  promiseTypingOverlay: {
-    left: mentaSpacing[3],
-    position: 'absolute',
-    right: mentaSpacing[3],
-    top: mentaSpacing[2],
-  },
-  promiseTypingText: {
-    ...mentaTypography.journeyTitle,
-    color: mentaColors.text.mutedOnPaper,
-  },
-  typingInput: {
-    borderWidth: 0,
-    padding: 0,
-  },
-  actionRule: {
-    width: 64,
-    height: 3,
-    borderRadius: mentaRadii.round,
-    marginTop: mentaSpacing[4],
-  },
-  countsLabelRow: {
-    marginTop: mentaSpacing[5],
-  },
-  countsText: {
-    ...mentaTypography.title,
-    color: mentaColors.text.onPaper,
-    marginTop: mentaSpacing[2],
-  },
-  countsTextCompact: {
-    ...mentaTypography.lead,
-  },
-  countsInput: {
-    ...mentaTypography.title,
-    minHeight: 108,
-    color: mentaColors.text.onPaper,
-    backgroundColor: 'transparent',
-    borderColor: mentaColors.actionBorder,
-    borderRadius: mentaRadii.small,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: mentaSpacing[3],
-    paddingTop: mentaSpacing[2],
-    paddingBottom: 0,
-  },
-  countsInputCompact: {
-    ...mentaTypography.lead,
-    minHeight: 84,
-  },
-  countsTypingOverlay: {
-    left: mentaSpacing[3],
-    position: 'absolute',
-    right: mentaSpacing[3],
-    top: mentaSpacing[2],
-  },
-  countsTypingText: {
-    ...mentaTypography.title,
-    color: mentaColors.text.mutedOnPaper,
-  },
-  proofSection: {
-    marginTop: mentaSpacing[5],
-    paddingTop: mentaSpacing[4],
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.borderPaper,
-    gap: mentaSpacing[2],
-  },
-  proofText: {
-    ...mentaTypography.body,
-    color: mentaColors.text.onPaper,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    paper: {
+      width: '100%',
+      overflow: 'hidden',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.borderPaper,
+      borderRadius: mentaRadii.large,
+      backgroundColor: mentaColors.artefactSurface,
+      paddingHorizontal: mentaSpacing[5],
+      paddingTop: mentaSpacing[5],
+      paddingBottom: mentaSpacing[6],
+      transform: [{ rotate: '-0.28deg' }],
+    },
+    paperCompact: {
+      paddingHorizontal: mentaSpacing[4],
+      paddingTop: mentaSpacing[4],
+      paddingBottom: mentaSpacing[5],
+      transform: [{ rotate: '-0.18deg' }],
+    },
+    paperPressed: {
+      backgroundColor: mentaColors.paperPressed,
+      transform: [{ rotate: '-0.18deg' }, { scale: 0.995 }],
+    },
+    disabled: {
+      opacity: 0.68,
+    },
+    labelRow: {
+      minHeight: 18,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: mentaSpacing[3],
+    },
+    label: {
+      ...mentaTypography.label,
+      color: mentaColors.text.mutedOnPaper,
+    },
+    counter: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.mutedOnPaper,
+      fontVariant: ['tabular-nums'],
+    },
+    editCue: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[1],
+    },
+    editCueLabel: {
+      ...mentaTypography.label,
+    },
+    promiseText: {
+      ...mentaTypography.journeyTitle,
+      color: mentaColors.text.onPaper,
+      marginTop: mentaSpacing[2],
+    },
+    promiseTextCompact: {
+      ...mentaTypography.title,
+    },
+    promiseInput: {
+      ...mentaTypography.journeyTitle,
+      minHeight: 78,
+      color: mentaColors.text.onPaper,
+      backgroundColor: 'transparent',
+      borderColor: mentaColors.actionBorder,
+      borderRadius: mentaRadii.small,
+      borderWidth: StyleSheet.hairlineWidth,
+      paddingHorizontal: mentaSpacing[3],
+      paddingTop: mentaSpacing[2],
+      paddingBottom: mentaSpacing[2],
+    },
+    promiseInputCompact: {
+      ...mentaTypography.title,
+      minHeight: 64,
+    },
+    inputShell: {
+      position: 'relative',
+    },
+    promiseTypingOverlay: {
+      left: mentaSpacing[3],
+      position: 'absolute',
+      right: mentaSpacing[3],
+      top: mentaSpacing[2],
+    },
+    promiseTypingText: {
+      ...mentaTypography.journeyTitle,
+      color: mentaColors.text.mutedOnPaper,
+    },
+    typingInput: {
+      borderWidth: 0,
+      padding: 0,
+    },
+    actionRule: {
+      width: 64,
+      height: 3,
+      borderRadius: mentaRadii.round,
+      marginTop: mentaSpacing[4],
+    },
+    countsLabelRow: {
+      marginTop: mentaSpacing[5],
+    },
+    countsText: {
+      ...mentaTypography.title,
+      color: mentaColors.text.onPaper,
+      marginTop: mentaSpacing[2],
+    },
+    countsTextCompact: {
+      ...mentaTypography.lead,
+    },
+    countsInput: {
+      ...mentaTypography.title,
+      minHeight: 108,
+      color: mentaColors.text.onPaper,
+      backgroundColor: 'transparent',
+      borderColor: mentaColors.actionBorder,
+      borderRadius: mentaRadii.small,
+      borderWidth: StyleSheet.hairlineWidth,
+      paddingHorizontal: mentaSpacing[3],
+      paddingTop: mentaSpacing[2],
+      paddingBottom: 0,
+    },
+    countsInputCompact: {
+      ...mentaTypography.lead,
+      minHeight: 84,
+    },
+    countsTypingOverlay: {
+      left: mentaSpacing[3],
+      position: 'absolute',
+      right: mentaSpacing[3],
+      top: mentaSpacing[2],
+    },
+    countsTypingText: {
+      ...mentaTypography.title,
+      color: mentaColors.text.mutedOnPaper,
+    },
+    proofSection: {
+      marginTop: mentaSpacing[5],
+      paddingTop: mentaSpacing[4],
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.borderPaper,
+      gap: mentaSpacing[2],
+    },
+    proofText: {
+      ...mentaTypography.body,
+      color: mentaColors.text.onPaper,
+    },
+  });
+  return { styles };
+};

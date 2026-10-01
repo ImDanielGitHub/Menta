@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import {
   AccessibilityInfo,
@@ -23,13 +31,7 @@ import {
   SkeletonLoader,
 } from '@/components/ui';
 import { SimpleBottomSheet } from '@/components/ui/SimpleBottomSheet';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useTheme } from '@/constants/ThemeContext';
 import { screenInsetPadding } from '@/constants/phone-layout';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
@@ -76,6 +78,9 @@ export const getInviteQrSize = (screenWidth: number): number =>
   Math.min(300, Math.max(244, Math.floor(screenWidth - mentaSpacing[12] * 2)));
 
 export default function GroupInviteScreen() {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const { t } = useTranslation();
   const router = useRouter();
@@ -729,226 +734,229 @@ export default function GroupInviteScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    backgroundColor: mentaColors.canvas,
-  },
-  headerFrame: {
-    alignSelf: 'center',
-    maxWidth: mentaLayout.workingFrameMax,
-    paddingHorizontal: mentaSpacing[6],
-    paddingVertical: mentaSpacing[3],
-    width: '100%',
-  },
-  body: {
-    flex: 1,
-  },
-  scroll: {
-    alignSelf: 'center',
-    flex: 1,
-    maxWidth: mentaLayout.workingFrameMax,
-    width: '100%',
-  },
-  scrollContent: {
-    gap: mentaSpacing[5],
-    paddingBottom: mentaSpacing[6],
-    paddingHorizontal: mentaSpacing[6],
-    paddingTop: mentaSpacing[3],
-  },
-  introCopy: {
-    gap: mentaSpacing[2],
-  },
-  pageTitle: {
-    ...mentaTypography.heading,
-    color: mentaColors.text.primary,
-  },
-  bodyCopy: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-  },
-  qrBlock: {
-    alignItems: 'center',
-    paddingVertical: mentaSpacing[2],
-  },
-  codeLane: {
-    alignItems: 'center',
-    gap: mentaSpacing[2],
-  },
-  codeHeadline: {
-    ...mentaTypography.journeyTitle,
-    color: mentaColors.text.primary,
-    letterSpacing: 2,
-    textAlign: 'center',
-  },
-  codeMeta: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-    maxWidth: mentaLayout.readingMeasure,
-    textAlign: 'center',
-  },
-  actionList: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  footer: {
-    alignSelf: 'center',
-    backgroundColor: mentaColors.canvas,
-    gap: mentaSpacing[1],
-    maxWidth: mentaLayout.workingFrameMax,
-    paddingBottom: mentaSpacing[3],
-    paddingHorizontal: mentaSpacing[6],
-    paddingTop: mentaSpacing[3],
-    width: '100%',
-  },
-  loadingIntro: {
-    gap: mentaSpacing[2],
-  },
-  loadingQr: {
-    alignItems: 'center',
-    paddingVertical: mentaSpacing[2],
-  },
-  loadingQrSurface: {
-    alignSelf: 'center',
-    maxWidth: 300,
-  },
-  loadingCode: {
-    alignItems: 'center',
-    gap: mentaSpacing[2],
-  },
-  loadingActionRow: {
-    alignItems: 'center',
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: 68,
-  },
-  loadingSecondary: {
-    alignSelf: 'center',
-  },
-  centredState: {
-    alignItems: 'center',
-    alignSelf: 'center',
-    flex: 1,
-    gap: mentaSpacing[3],
-    justifyContent: 'center',
-    maxWidth: mentaLayout.focusedLane,
-    paddingHorizontal: mentaSpacing[6],
-    width: '100%',
-  },
-  stateTitle: {
-    ...mentaTypography.journeyTitle,
-    color: mentaColors.text.primary,
-    textAlign: 'center',
-  },
-  stateCopy: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-  },
-  stateActions: {
-    gap: mentaSpacing[1],
-    marginTop: mentaSpacing[3],
-    width: '100%',
-  },
-  decisionContent: {
-    flexGrow: 1,
-    gap: mentaSpacing[5],
-    justifyContent: 'center',
-    paddingBottom: mentaSpacing[8],
-    paddingHorizontal: mentaSpacing[6],
-    paddingTop: mentaSpacing[6],
-  },
-  receiptContent: {
-    flexGrow: 1,
-    gap: mentaSpacing[5],
-    justifyContent: 'center',
-    paddingBottom: mentaSpacing[8],
-    paddingHorizontal: mentaSpacing[6],
-    paddingTop: mentaSpacing[6],
-  },
-  warningIcon: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.warningSoft,
-    borderColor: mentaColors.warningBorder,
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    height: 64,
-    justifyContent: 'center',
-    width: 64,
-  },
-  stateCopyBlock: {
-    gap: mentaSpacing[2],
-  },
-  decisionTitle: {
-    ...mentaTypography.display,
-    color: mentaColors.text.primary,
-  },
-  codeReceipt: {
-    alignItems: 'center',
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[4],
-    justifyContent: 'space-between',
-    paddingVertical: mentaSpacing[4],
-  },
-  receiptLabel: {
-    ...mentaTypography.captionMedium,
-    color: mentaColors.text.secondary,
-  },
-  receiptCode: {
-    ...mentaTypography.journeyTitle,
-    color: mentaColors.text.primary,
-    letterSpacing: 1.5,
-    marginTop: mentaSpacing[1],
-  },
-  receiptWarning: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.warning,
-    flexShrink: 1,
-    textAlign: 'right',
-  },
-  receiptSuccess: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.success,
-  },
-  receiptMascot: {
-    alignSelf: 'center',
-  },
-  qrSheetBody: {
-    gap: mentaSpacing[5],
-  },
-  qrSheetHeading: {
-    gap: mentaSpacing[1],
-  },
-  qrSheetTitle: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-  },
-  qrSheetArtefact: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[4],
-  },
-  qrSheetCopy: {
-    flex: 1,
-    gap: mentaSpacing[2],
-    minWidth: 0,
-  },
-  qrSheetGroup: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-  },
-  qrSheetCode: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.action,
-    letterSpacing: 1.2,
-  },
-  pressed: {
-    opacity: 0.72,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: {
+      backgroundColor: mentaColors.canvas,
+    },
+    headerFrame: {
+      alignSelf: 'center',
+      maxWidth: mentaLayout.workingFrameMax,
+      paddingHorizontal: mentaSpacing[6],
+      paddingVertical: mentaSpacing[3],
+      width: '100%',
+    },
+    body: {
+      flex: 1,
+    },
+    scroll: {
+      alignSelf: 'center',
+      flex: 1,
+      maxWidth: mentaLayout.workingFrameMax,
+      width: '100%',
+    },
+    scrollContent: {
+      gap: mentaSpacing[5],
+      paddingBottom: mentaSpacing[6],
+      paddingHorizontal: mentaSpacing[6],
+      paddingTop: mentaSpacing[3],
+    },
+    introCopy: {
+      gap: mentaSpacing[2],
+    },
+    pageTitle: {
+      ...mentaTypography.heading,
+      color: mentaColors.text.primary,
+    },
+    bodyCopy: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+    },
+    qrBlock: {
+      alignItems: 'center',
+      paddingVertical: mentaSpacing[2],
+    },
+    codeLane: {
+      alignItems: 'center',
+      gap: mentaSpacing[2],
+    },
+    codeHeadline: {
+      ...mentaTypography.journeyTitle,
+      color: mentaColors.text.primary,
+      letterSpacing: 2,
+      textAlign: 'center',
+    },
+    codeMeta: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+      maxWidth: mentaLayout.readingMeasure,
+      textAlign: 'center',
+    },
+    actionList: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+    },
+    footer: {
+      alignSelf: 'center',
+      backgroundColor: mentaColors.canvas,
+      gap: mentaSpacing[1],
+      maxWidth: mentaLayout.workingFrameMax,
+      paddingBottom: mentaSpacing[3],
+      paddingHorizontal: mentaSpacing[6],
+      paddingTop: mentaSpacing[3],
+      width: '100%',
+    },
+    loadingIntro: {
+      gap: mentaSpacing[2],
+    },
+    loadingQr: {
+      alignItems: 'center',
+      paddingVertical: mentaSpacing[2],
+    },
+    loadingQrSurface: {
+      alignSelf: 'center',
+      maxWidth: 300,
+    },
+    loadingCode: {
+      alignItems: 'center',
+      gap: mentaSpacing[2],
+    },
+    loadingActionRow: {
+      alignItems: 'center',
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      minHeight: 68,
+    },
+    loadingSecondary: {
+      alignSelf: 'center',
+    },
+    centredState: {
+      alignItems: 'center',
+      alignSelf: 'center',
+      flex: 1,
+      gap: mentaSpacing[3],
+      justifyContent: 'center',
+      maxWidth: mentaLayout.focusedLane,
+      paddingHorizontal: mentaSpacing[6],
+      width: '100%',
+    },
+    stateTitle: {
+      ...mentaTypography.journeyTitle,
+      color: mentaColors.text.primary,
+      textAlign: 'center',
+    },
+    stateCopy: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+    },
+    stateActions: {
+      gap: mentaSpacing[1],
+      marginTop: mentaSpacing[3],
+      width: '100%',
+    },
+    decisionContent: {
+      flexGrow: 1,
+      gap: mentaSpacing[5],
+      justifyContent: 'center',
+      paddingBottom: mentaSpacing[8],
+      paddingHorizontal: mentaSpacing[6],
+      paddingTop: mentaSpacing[6],
+    },
+    receiptContent: {
+      flexGrow: 1,
+      gap: mentaSpacing[5],
+      justifyContent: 'center',
+      paddingBottom: mentaSpacing[8],
+      paddingHorizontal: mentaSpacing[6],
+      paddingTop: mentaSpacing[6],
+    },
+    warningIcon: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.warningSoft,
+      borderColor: mentaColors.warningBorder,
+      borderRadius: mentaRadii.large,
+      borderWidth: StyleSheet.hairlineWidth,
+      height: 64,
+      justifyContent: 'center',
+      width: 64,
+    },
+    stateCopyBlock: {
+      gap: mentaSpacing[2],
+    },
+    decisionTitle: {
+      ...mentaTypography.display,
+      color: mentaColors.text.primary,
+    },
+    codeReceipt: {
+      alignItems: 'center',
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[4],
+      justifyContent: 'space-between',
+      paddingVertical: mentaSpacing[4],
+    },
+    receiptLabel: {
+      ...mentaTypography.captionMedium,
+      color: mentaColors.text.secondary,
+    },
+    receiptCode: {
+      ...mentaTypography.journeyTitle,
+      color: mentaColors.text.primary,
+      letterSpacing: 1.5,
+      marginTop: mentaSpacing[1],
+    },
+    receiptWarning: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.warning,
+      flexShrink: 1,
+      textAlign: 'right',
+    },
+    receiptSuccess: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.success,
+    },
+    receiptMascot: {
+      alignSelf: 'center',
+    },
+    qrSheetBody: {
+      gap: mentaSpacing[5],
+    },
+    qrSheetHeading: {
+      gap: mentaSpacing[1],
+    },
+    qrSheetTitle: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+    },
+    qrSheetArtefact: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[4],
+    },
+    qrSheetCopy: {
+      flex: 1,
+      gap: mentaSpacing[2],
+      minWidth: 0,
+    },
+    qrSheetGroup: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+    },
+    qrSheetCode: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.action,
+      letterSpacing: 1.2,
+    },
+    pressed: {
+      opacity: 0.72,
+    },
+  });
+  return { styles };
+};

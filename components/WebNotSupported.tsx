@@ -1,14 +1,16 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { SmartphoneIcon } from '@/components/ui/icons';
 import {
-  mentaColors,
+  type MentaPalette,
   mentaLayout,
   mentaRadii,
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { SmartphoneIcon } from '@/components/ui/icons';
+
 import { useTranslation } from '@/lib/localization/use-translation';
 
 /**
@@ -17,6 +19,9 @@ import { useTranslation } from '@/lib/localization/use-translation';
  * state untouched rather than claiming an unavailable handoff succeeded.
  */
 export const WebNotSupported: React.FC = () => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
@@ -59,97 +64,103 @@ const WebStateRow = ({
   detail: string;
   title: string;
   tone?: 'neutral' | 'warning';
-}) => (
-  <View style={styles.row}>
-    <View
-      style={[styles.rowIcon, tone === 'warning' && styles.rowIconWarning]}
-    />
-    <View style={styles.rowCopy}>
-      <Text style={styles.rowTitle}>{title}</Text>
-      <Text style={styles.rowDetail}>{detail}</Text>
+}) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View style={styles.row}>
+      <View
+        style={[styles.rowIcon, tone === 'warning' && styles.rowIconWarning]}
+      />
+      <View style={styles.rowCopy}>
+        <Text style={styles.rowTitle}>{title}</Text>
+        <Text style={styles.rowDetail}>{detail}</Text>
+      </View>
     </View>
-  </View>
-);
+  );
+};
 
-const styles = StyleSheet.create({
-  safeArea: {
-    backgroundColor: mentaColors.canvas,
-    flex: 1,
-  },
-  content: {
-    alignSelf: 'center',
-    flex: 1,
-    maxWidth: mentaLayout.taskLane,
-    paddingHorizontal: mentaSpacing[6],
-    paddingTop: mentaSpacing[6],
-    width: '100%',
-  },
-  header: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-  },
-  iconSlot: {
-    alignItems: 'center',
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.small,
-    borderWidth: 1,
-    height: 40,
-    justifyContent: 'center',
-    width: 40,
-  },
-  headerCopy: {
-    flex: 1,
-    gap: 2,
-  },
-  eyebrow: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.label,
-  },
-  headerTitle: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.bodyMedium,
-  },
-  body: {
-    flex: 1,
-    gap: mentaSpacing[5],
-    paddingTop: mentaSpacing[5],
-  },
-  explanation: {
-    color: mentaColors.text.secondary,
-    maxWidth: 330,
-    ...mentaTypography.body,
-  },
-  rows: {
-    gap: 0,
-  },
-  row: {
-    alignItems: 'flex-start',
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    paddingVertical: 14,
-  },
-  rowIcon: {
-    backgroundColor: mentaColors.raised,
-    borderRadius: mentaRadii.small,
-    height: 34,
-    width: 34,
-  },
-  rowIconWarning: {
-    backgroundColor: mentaColors.warningSoft,
-  },
-  rowCopy: {
-    flex: 1,
-    gap: 3,
-  },
-  rowTitle: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.bodyMedium,
-  },
-  rowDetail: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.body,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    safeArea: {
+      backgroundColor: mentaColors.canvas,
+      flex: 1,
+    },
+    content: {
+      alignSelf: 'center',
+      flex: 1,
+      maxWidth: mentaLayout.taskLane,
+      paddingHorizontal: mentaSpacing[6],
+      paddingTop: mentaSpacing[6],
+      width: '100%',
+    },
+    header: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+    },
+    iconSlot: {
+      alignItems: 'center',
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.small,
+      borderWidth: 1,
+      height: 40,
+      justifyContent: 'center',
+      width: 40,
+    },
+    headerCopy: {
+      flex: 1,
+      gap: 2,
+    },
+    eyebrow: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.label,
+    },
+    headerTitle: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.bodyMedium,
+    },
+    body: {
+      flex: 1,
+      gap: mentaSpacing[5],
+      paddingTop: mentaSpacing[5],
+    },
+    explanation: {
+      color: mentaColors.text.secondary,
+      maxWidth: 330,
+      ...mentaTypography.body,
+    },
+    rows: {
+      gap: 0,
+    },
+    row: {
+      alignItems: 'flex-start',
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: 1,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      paddingVertical: 14,
+    },
+    rowIcon: {
+      backgroundColor: mentaColors.raised,
+      borderRadius: mentaRadii.small,
+      height: 34,
+      width: 34,
+    },
+    rowIconWarning: {
+      backgroundColor: mentaColors.warningSoft,
+    },
+    rowCopy: {
+      flex: 1,
+      gap: 3,
+    },
+    rowTitle: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.bodyMedium,
+    },
+    rowDetail: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.body,
+    },
+  });
+  return { styles };
+};

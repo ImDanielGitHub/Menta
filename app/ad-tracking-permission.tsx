@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
@@ -5,12 +12,7 @@ import { Stack, useRouter } from 'expo-router';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppInlineNotice } from '@/components/ui/AppFeedback';
 import { AppScreen, AppTopBar } from '@/components/ui/AppShell';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import {
   getMetaAdsTrackingStatus,
   requestMetaAdsTrackingPermission,
@@ -29,6 +31,8 @@ const toScreenState = (status: MetaAdsTrackingStatus): ScreenState => {
 };
 
 export default function AdTrackingPermissionScreen() {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const router = useRouter();
   const { t } = useTranslation();
   const [screenState, setScreenState] = useState<ScreenState>('education');
@@ -188,35 +192,38 @@ export default function AdTrackingPermissionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  lane: {
-    alignSelf: 'center',
-    flexGrow: 1,
-    gap: mentaSpacing[8],
-    paddingBottom: mentaSpacing[12],
-    paddingTop: mentaSpacing[6],
-    width: '100%',
-  },
-  stateFrame: {
-    flexGrow: 1,
-    gap: mentaSpacing[6],
-    justifyContent: 'center',
-    paddingBottom: mentaSpacing[12],
-  },
-  heading: {
-    gap: mentaSpacing[3],
-  },
-  title: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.title,
-  },
-  body: {
-    color: mentaColors.text.secondary,
-    maxWidth: mentaLayout.readingMeasure,
-    ...mentaTypography.body,
-  },
-  actions: {
-    gap: mentaSpacing[3],
-    paddingTop: mentaSpacing[1],
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    lane: {
+      alignSelf: 'center',
+      flexGrow: 1,
+      gap: mentaSpacing[8],
+      paddingBottom: mentaSpacing[12],
+      paddingTop: mentaSpacing[6],
+      width: '100%',
+    },
+    stateFrame: {
+      flexGrow: 1,
+      gap: mentaSpacing[6],
+      justifyContent: 'center',
+      paddingBottom: mentaSpacing[12],
+    },
+    heading: {
+      gap: mentaSpacing[3],
+    },
+    title: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.title,
+    },
+    body: {
+      color: mentaColors.text.secondary,
+      maxWidth: mentaLayout.readingMeasure,
+      ...mentaTypography.body,
+    },
+    actions: {
+      gap: mentaSpacing[3],
+      paddingTop: mentaSpacing[1],
+    },
+  });
+  return { styles };
+};

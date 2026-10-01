@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -15,13 +23,7 @@ import {
   UsersIcon,
   VideoIcon,
 } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useLargeTypeLineLimit } from '@/lib/accessibility';
 
 export type TodayAlsoItemKind =
@@ -47,6 +49,9 @@ const ICON_SIZE = 20;
 const TILE_SIZE = 44;
 
 function LeadingTile({ item }: { item: TodayAlsoItem }) {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   switch (item.kind) {
     case 'review':
       return (
@@ -93,12 +98,6 @@ function LeadingTile({ item }: { item: TodayAlsoItem }) {
   }
 }
 
-const STATUS_COLOR: Partial<Record<TodayAlsoItemKind, string>> = {
-  'proof-approved': mentaColors.success,
-  'proof-correction': mentaColors.warning,
-  'group-risk': mentaColors.warning,
-};
-
 /**
  * Everything else that needs the person today, after the hero action. Each
  * row is a tactile card in the onboarding choice-row language.
@@ -110,6 +109,9 @@ export function TodayAlsoList({
   heading: string;
   items: readonly TodayAlsoItem[];
 }) {
+  const mentaColors = useMentaPalette();
+  const { STATUS_COLOR, styles } = useMentaStyles(createPaletteStyles);
+
   const titleLines = useLargeTypeLineLimit(2);
   const detailLines = useLargeTypeLineLimit(1);
 
@@ -161,6 +163,8 @@ export function TodayAlsoListSkeleton({
 }: {
   loadingLabel: string;
 }) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   return (
     <View
       accessible
@@ -196,70 +200,78 @@ export function TodayAlsoListSkeleton({
   );
 }
 
-const styles = StyleSheet.create({
-  list: {
-    alignSelf: 'stretch',
-    gap: mentaSpacing[3],
-    width: '100%',
-  },
-  heading: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-    marginBottom: mentaSpacing[1],
-  },
-  row: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.surface,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: mentaSpacing[4],
-    minHeight: 80,
-    paddingHorizontal: mentaSpacing[4],
-    paddingVertical: mentaSpacing[4],
-  },
-  rowSkeleton: {
-    gap: mentaSpacing[4],
-  },
-  rowPressed: {
-    backgroundColor: mentaColors.raised,
-    borderColor: mentaColors.actionBorder,
-  },
-  tile: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.raised,
-    borderRadius: mentaRadii.medium,
-    height: TILE_SIZE,
-    justifyContent: 'center',
-    width: TILE_SIZE,
-  },
-  tileAction: {
-    backgroundColor: mentaColors.actionSoft,
-  },
-  tileWarning: {
-    backgroundColor: mentaColors.warningSoft,
-  },
-  tileSuccess: {
-    backgroundColor: mentaColors.successSoft,
-  },
-  copy: {
-    flex: 1,
-    gap: mentaSpacing[1],
-    minWidth: 0,
-  },
-  title: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  detail: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-  status: {
-    ...mentaTypography.captionMedium,
-    color: mentaColors.text.primary,
-    marginTop: 2,
-    maxWidth: mentaLayout.readingMeasure,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const STATUS_COLOR: Partial<Record<TodayAlsoItemKind, string>> = {
+    'proof-approved': mentaColors.success,
+    'proof-correction': mentaColors.warning,
+    'group-risk': mentaColors.warning,
+  };
+  const styles = StyleSheet.create({
+    list: {
+      alignSelf: 'stretch',
+      gap: mentaSpacing[3],
+      width: '100%',
+    },
+    heading: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+      marginBottom: mentaSpacing[1],
+    },
+    row: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.surface,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      flexDirection: 'row',
+      gap: mentaSpacing[4],
+      minHeight: 80,
+      paddingHorizontal: mentaSpacing[4],
+      paddingVertical: mentaSpacing[4],
+    },
+    rowSkeleton: {
+      gap: mentaSpacing[4],
+    },
+    rowPressed: {
+      backgroundColor: mentaColors.raised,
+      borderColor: mentaColors.actionBorder,
+    },
+    tile: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.raised,
+      borderRadius: mentaRadii.medium,
+      height: TILE_SIZE,
+      justifyContent: 'center',
+      width: TILE_SIZE,
+    },
+    tileAction: {
+      backgroundColor: mentaColors.actionSoft,
+    },
+    tileWarning: {
+      backgroundColor: mentaColors.warningSoft,
+    },
+    tileSuccess: {
+      backgroundColor: mentaColors.successSoft,
+    },
+    copy: {
+      flex: 1,
+      gap: mentaSpacing[1],
+      minWidth: 0,
+    },
+    title: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    detail: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+    status: {
+      ...mentaTypography.captionMedium,
+      color: mentaColors.text.primary,
+      marginTop: 2,
+      maxWidth: mentaLayout.readingMeasure,
+    },
+  });
+  return { STATUS_COLOR, styles };
+};

@@ -1,4 +1,5 @@
 import type { CompleteCatalogue } from '@/lib/localization/en-NZ';
+import { mentaCheckPtBR } from './shared/menta-check-pt-br';
 import { widgetsptBR } from '@/lib/localization/catalogues/shared/widgets-ptBR';
 import {
   accountabilityDeltaPt,
@@ -26,9 +27,18 @@ import { fullDomainFeedbackPtBR } from '@/lib/localization/catalogues/pt-BR/full
 import { completionPtBR } from '@/lib/localization/catalogues/pt-BR/completion';
 import { sourceGatePtBR } from '@/lib/localization/catalogues/pt-BR/source-gate';
 import { momentaTopUpPtBR } from '@/lib/localization/catalogues/pt-BR/momenta-top-up';
+import { cameraAccessPtBR } from '@/lib/localization/catalogues/pt-BR/camera-access';
+import { proofRolesPtBR } from '@/lib/localization/catalogues/pt-BR/proof-roles';
 
 export const ptBR = {
+  'settings.appearance.title': 'Aparência',
+  'settings.appearance.system': 'Sistema',
+  'settings.appearance.light': 'Claro',
+  'settings.appearance.dark': 'Escuro',
+  ...mentaCheckPtBR,
   ...momentaTopUpPtBR,
+  ...cameraAccessPtBR,
+  ...proofRolesPtBR,
   ...widgetsptBR,
   ...foundationPtBR,
   ...languagePtBR,

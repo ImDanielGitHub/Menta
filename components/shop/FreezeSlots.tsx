@@ -1,13 +1,14 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-
-import { CheckIcon, SnowflakeIcon } from '@/components/ui/icons';
 import {
-  mentaColors,
+  type MentaPalette,
   mentaRadii,
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+
+import { CheckIcon, SnowflakeIcon } from '@/components/ui/icons';
 
 import { tokenAlpha } from './ShopItemArt';
 
@@ -36,6 +37,9 @@ export function FreezeSlots({
   accessibilityLabel,
   testID = 'freeze-slots',
 }: FreezeSlotsProps) {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const held = Math.max(0, Math.floor(count));
   const spent = Math.max(0, Math.floor(used));
   const visibleSpent = Math.min(spent, VISIBLE_SLOTS);
@@ -91,38 +95,41 @@ export function FreezeSlots({
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-  },
-  slot: {
-    alignItems: 'center',
-    borderWidth: 1,
-    justifyContent: 'center',
-  },
-  held: {
-    backgroundColor: tokenAlpha(mentaColors.info, 0.16),
-    borderColor: tokenAlpha(mentaColors.info, 0.5),
-  },
-  spent: {
-    backgroundColor: 'transparent',
-    borderColor: tokenAlpha(mentaColors.info, 0.3),
-  },
-  empty: {
-    backgroundColor: 'transparent',
-    borderColor: mentaColors.border,
-    borderStyle: 'dashed',
-    borderRadius: mentaRadii.medium,
-  },
-  emptyText: {
-    color: mentaColors.text.muted,
-    ...mentaTypography.captionMedium,
-  },
-  overflow: {
-    color: mentaColors.info,
-    ...mentaTypography.bodySmallMedium,
-    fontVariant: ['tabular-nums'],
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    row: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+    },
+    slot: {
+      alignItems: 'center',
+      borderWidth: 1,
+      justifyContent: 'center',
+    },
+    held: {
+      backgroundColor: tokenAlpha(mentaColors.info, 0.16),
+      borderColor: tokenAlpha(mentaColors.info, 0.5),
+    },
+    spent: {
+      backgroundColor: 'transparent',
+      borderColor: tokenAlpha(mentaColors.info, 0.3),
+    },
+    empty: {
+      backgroundColor: 'transparent',
+      borderColor: mentaColors.border,
+      borderStyle: 'dashed',
+      borderRadius: mentaRadii.medium,
+    },
+    emptyText: {
+      color: mentaColors.text.muted,
+      ...mentaTypography.captionMedium,
+    },
+    overflow: {
+      color: mentaColors.info,
+      ...mentaTypography.bodySmallMedium,
+      fontVariant: ['tabular-nums'],
+    },
+  });
+  return { styles };
+};

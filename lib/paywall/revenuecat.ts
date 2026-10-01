@@ -419,7 +419,7 @@ async function readServerProStatus(): Promise<boolean | null> {
     if (authority.reconciliation_pending) {
       sentryBreadcrumb('server_pro_reconciliation_pending', {});
     }
-    return authority.is_pro === true;
+    return authority.is_pro === true && !authority.reconciliation_pending;
   } catch (error) {
     sentryCapture(error, { context: 'server_pro_status_failed' });
     return null;
@@ -459,6 +459,8 @@ export async function confirmServerProAccess(options?: {
   attempts?: number;
   intervalMs?: number;
 }): Promise<boolean> {
+  const ownerId = useAuthStore.getState().user?.id;
+  if (!ownerId) return false;
   const attempts = Math.max(
     1,
     Math.floor(options?.attempts ?? SERVER_CONFIRM_ATTEMPTS)
@@ -470,7 +472,54 @@ export async function confirmServerProAccess(options?: {
 
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     const serverStatus = await readServerProStatus();
-    if (serverStatus === true) return true;
+    if (useAuthStore.getState().user?.id !== ownerId) return false;
+    if (serverStatus === true) {
+      try {
+        // Every purchase, restore and explicit access check uses this boundary.
+        // Read the server wallet before resuming the blocked action; SDK access
+        // alone cannot grant Momenta or update cached reviewer permissions.
+        const [{ useMomentaStore }, { queryClient }, { supabase }] =
+          await Promise.all([
+            import('@/store/momenta-store'),
+            import('@/lib/queryClient'),
+            import('@/lib/supabase'),
+          ]);
+        const wallet = useMomentaStore.getState();
+        const scope = wallet.accountScopeVersion;
+        const isCurrent = () =>
+          useAuthStore.getState().user?.id === ownerId &&
+          useMomentaStore.getState().activeAccountId === ownerId &&
+          useMomentaStore.getState().accountScopeVersion === scope;
+        if (!isCurrent()) return false;
+        // This RPC can only reconcile the caller's current persisted trial
+        // receipt. It never trusts a device entitlement, amount or transaction.
+        const { data: receipt, error: receiptError } = await supabase.rpc(
+          'reconcile_my_initial_pro_trial_v1'
+        );
+        if (!isCurrent()) return false;
+        if (
+          receiptError ||
+          !receipt ||
+          typeof receipt !== 'object' ||
+          Array.isArray(receipt) ||
+          receipt.success !== true ||
+          !['granted', 'already_granted', 'not_eligible'].includes(
+            String(receipt.outcome)
+          )
+        )
+          return false;
+        await wallet.fetchBalance(ownerId, { throwOnError: true });
+        if (!isCurrent()) return false;
+        await queryClient.invalidateQueries(
+          { queryKey: ['menta-check', ownerId] },
+          { throwOnError: true }
+        );
+        return isCurrent();
+      } catch (error) {
+        sentryCapture(error, { context: 'pro_activation_readback_failed' });
+        return false;
+      }
+    }
     if (attempt < attempts - 1 && intervalMs > 0) {
       await wait(intervalMs);
     }
@@ -480,6 +529,19 @@ export async function confirmServerProAccess(options?: {
 }
 
 export const RevenueCatAPI = {
+  /** Store dates are display information; only server authority grants access. */
+  getTrialEnd: async (): Promise<string | null> => {
+    if (!REVENUECAT_SUPPORTED || !(await ensureInitialized())) return null;
+    const RC = await getPurchasesModule();
+    if (!RC) return null;
+    const getCustomerInfo = getPurchasesMember(RC, 'getCustomerInfo');
+    if (!getCustomerInfo) return null;
+    const info = await getCustomerInfo();
+    const trial = Object.values(info.entitlements.active).find(
+      item => item.periodType === 'TRIAL' && item.isActive
+    );
+    return trial?.expirationDate ?? null;
+  },
   initialize: async (appUserId?: string) => {
     await ensureInitialized(appUserId);
   },

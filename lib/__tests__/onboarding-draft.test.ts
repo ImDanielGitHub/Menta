@@ -326,7 +326,7 @@ describe('onboarding draft', () => {
     ).not.toBeNull();
   });
 
-  it('does not let a completed account clear another owner or anonymous handoff', async () => {
+  it('preserves unconfirmed drafts on profile completion without claiming another handoff', async () => {
     await saveOnboardingDraft(
       { promise: 'Account A promise', proofType: 'video' },
       'account-a'
@@ -349,13 +349,25 @@ describe('onboarding draft', () => {
 
     expect(
       await AsyncStorage.getItem(getOnboardingDraftKeyForUser('account-a'))
-    ).toBeNull();
+    ).not.toBeNull();
     expect(
       await AsyncStorage.getItem(getOnboardingDraftKeyForUser('account-b'))
     ).not.toBeNull();
     await expect(loadOnboardingDraft()).resolves.toMatchObject({
       promise: 'Anonymous promise',
     });
+
+    // A retried activation can still recover the matching owner's draft.
+    await expect(
+      loadOnboardingDraftForUser({
+        userId: 'account-a',
+        hasCompletedOnboarding: false,
+      })
+    ).resolves.toMatchObject({ promise: 'Account A promise' });
+    await clearOwnedOnboardingDraft('account-a');
+    expect(
+      await AsyncStorage.getItem(getOnboardingDraftKeyForUser('account-a'))
+    ).toBeNull();
   });
 
   it('lets a newly authored anonymous draft coexist with prior account ownership', async () => {

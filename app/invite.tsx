@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -5,18 +12,15 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppInlineNotice } from '@/components/ui/AppFeedback';
 import { AppScreen, AppTopBar } from '@/components/ui/AppShell';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useAuthStore } from '@/store/auth-store';
 import { useReferralStore } from '@/store/referral-store';
 import { useTranslation } from '@/lib/localization';
 import { isValidReferralCode, normalizeInviteCode } from '@/lib/invite-links';
 
 export default function InviteRedirectScreen() {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const router = useRouter();
   const { t } = useTranslation();
   const { setPendingReferral, clearPendingReferral } = useReferralStore();
@@ -167,28 +171,31 @@ export default function InviteRedirectScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    gap: mentaSpacing[4],
-    paddingTop: mentaSpacing[2],
-  },
-  content: {
-    alignSelf: 'center',
-    flex: 1,
-    gap: mentaSpacing[6],
-    justifyContent: 'center',
-    maxWidth: mentaLayout.taskLane,
-    width: '100%',
-  },
-  heading: {
-    gap: mentaSpacing[2],
-  },
-  title: {
-    ...mentaTypography.heading,
-    color: mentaColors.text.primary,
-  },
-  subtitle: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: {
+      gap: mentaSpacing[4],
+      paddingTop: mentaSpacing[2],
+    },
+    content: {
+      alignSelf: 'center',
+      flex: 1,
+      gap: mentaSpacing[6],
+      justifyContent: 'center',
+      maxWidth: mentaLayout.taskLane,
+      width: '100%',
+    },
+    heading: {
+      gap: mentaSpacing[2],
+    },
+    title: {
+      ...mentaTypography.heading,
+      color: mentaColors.text.primary,
+    },
+    subtitle: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+    },
+  });
+  return { styles };
+};

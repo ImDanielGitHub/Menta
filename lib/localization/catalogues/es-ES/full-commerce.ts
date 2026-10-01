@@ -9,6 +9,15 @@ type FullCommerceKey = Exclude<
 >;
 
 export const fullCommerceEsES = {
+  'commerce.proJourney.continueFree': 'Continuar gratis',
+  'commerce.free.receiptRetry': 'Tu promesa se ha creado',
+  'commerce.free.receiptRetryDetail':
+    'No pudimos guardar el comprobante. Reintenta para terminar de configurar al revisor. Esto no creará ni cobrará otra promesa.',
+  'commerce.free.pendingReviewer': 'Esperando a alguien que revise',
+  'commerce.free.pendingDetail':
+    'Tu promesa y su plazo ya han empezado. Invita a alguien a revisar tu prueba. Al salir de esta pantalla, la promesa y su plazo siguen vigentes.',
+  'commerce.free.finishSetup': 'Completar quién revisa',
+
   'commerce.proJourney.back': 'Atrás',
   'commerce.proJourney.title': 'Menta Pro',
   'commerce.proJourney.subtitle':
@@ -391,8 +400,7 @@ export const fullCommerceEsES = {
   'commerce.shop.state': 'Estado',
   'commerce.shop.reachStreakAuto':
     'Alcanza una racha de {days} días. Menta lo añade a Tus artículos automáticamente.',
-  'commerce.shop.appearanceWarm':
-    '{name} le da a Menta una apariencia más cálida.',
+  'commerce.shop.themeTitle': '{name} cambia los colores de Menta.',
   'commerce.shop.frameTitle': '{name} enmarca tu foto de perfil.',
   'commerce.shop.oneUse': 'un uso',
   'commerce.shop.unlocks': 'Se desbloquea con una racha de {days} días',
@@ -512,8 +520,8 @@ export const fullCommerceEsES = {
     'Añade 12 horas a la fecha límite de una promesa activa.',
   'commerce.shop.choosePromiseAfter':
     'Elige la promesa activa después de la compra o más tarde de Tus artículos.',
-  'commerce.shop.buttonsColours':
-    'Los botones, los resaltados y los elementos seleccionados usan los colores cálidos de Ember.',
+  'commerce.shop.themeColours':
+    'Los botones, los resaltados y los elementos seleccionados usan los colores de {name}.',
   'commerce.shop.frameProfile':
     'El marco aparece en cualquier lugar donde Menta muestre tu identidad de perfil.',
   'commerce.shop.frameDescription':
@@ -916,7 +924,7 @@ export const fullCommerceEsES = {
   'commerce.firstMiss.errorUnavailable':
     'Esta oferta del primer día ya no está disponible. Aún puedes añadir una prueba hoy.',
   'commerce.firstMiss.bubble':
-    'Se te pasó el {weekday}. Le pasa a todo el mundo.',
+    '{weekday} se te pasó. Un día perdido no es toda la historia.',
   'commerce.firstMiss.decisionTitle': '¿Mantener tu racha de {count} días?',
   'commerce.firstMiss.decisionBody':
     'Tu primer día perdido corre de nuestra cuenta. Una congelación de racha gratis cubre el {weekday} y tu racha se queda en {count}.',
@@ -924,4 +932,7 @@ export const fullCommerceEsES = {
     'Tu primer día perdido corre de nuestra cuenta. Una congelación de racha gratis cubre el {weekday}.',
   'commerce.firstMiss.keep': 'Mantener mi racha gratis',
   'commerce.firstMiss.startOver': 'Empezar de nuevo desde el día 1',
+  'commerce.free.receiptReadBlocked': 'Revisa tu promesa guardada',
+  'commerce.free.receiptReadBlockedDetail':
+    'No pudimos leer la promesa guardada con seguridad. Reintenta la recuperación antes de iniciar otra promesa.',
 } as const satisfies Pick<EnglishCatalogue, FullCommerceKey>;

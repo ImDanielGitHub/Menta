@@ -1,3 +1,4 @@
+import { useMentaPalette } from '@/constants/use-menta-palette';
 import React from 'react';
 import {
   ActivityIndicator,
@@ -14,7 +15,6 @@ import { emitHaptic, type HapticIntent } from '@/lib/motion/haptics';
 import { useAppTextScale } from '@/components/ui/AppScaledText';
 import { useMotionPreferences } from '@/lib/motion/use-motion-preferences';
 import {
-  mentaColors,
   mentaDepth,
   mentaLayout,
   mentaRadii,
@@ -93,6 +93,8 @@ export const AppButton: React.FC<AppButtonProps> = ({
   accessibilityHint,
   accessibilityLabel,
 }) => {
+  const mentaColors = useMentaPalette();
+
   const theme = useTheme();
   const motion = useMotionPreferences();
   const inheritedTextScale = useAppTextScale();
@@ -190,7 +192,14 @@ export const AppButton: React.FC<AppButtonProps> = ({
     },
   } as const;
 
-  const palette = colorsByVariant[resolvedVariant];
+  const palette =
+    isDisabled && !theme.isDark
+      ? {
+          backgroundColor: mentaColors.disabledFill,
+          borderColor: mentaColors.disabledFill,
+          textColor: mentaColors.disabledText,
+        }
+      : colorsByVariant[resolvedVariant];
   const customStyle = StyleSheet.flatten(style);
   const isRaised =
     resolvedVariant === 'primary' || resolvedVariant === 'accent';
@@ -241,7 +250,7 @@ export const AppButton: React.FC<AppButtonProps> = ({
           borderRadius: mentaRadii.large,
           backgroundColor: palette.backgroundColor,
           borderColor: palette.borderColor,
-          opacity: isDisabled ? 0.5 : 1,
+          opacity: isDisabled && theme.isDark ? 0.5 : 1,
           width: fullWidth ? '100%' : undefined,
           alignSelf: fullWidth ? 'stretch' : undefined,
         },

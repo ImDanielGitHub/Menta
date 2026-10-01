@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -6,13 +14,7 @@ import {
   PromiseProofWeek,
   type PromiseProofDay,
 } from '@/components/challenge/promise-runtime-states';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useTheme } from '@/constants/ThemeContext';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { useTranslation } from '@/lib/localization';
@@ -49,6 +51,8 @@ export function DailyLoopPanel({
   currentStreak,
   longestStreak,
 }: DailyLoopPanelProps) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const { colors } = useTheme();
   const phoneLayout = usePhoneLayout();
@@ -156,98 +160,101 @@ export function DailyLoopPanel({
   );
 }
 
-const styles = StyleSheet.create({
-  section: {
-    marginHorizontal: mentaLayout.screenInset,
-    marginTop: mentaSpacing[5],
-    paddingBottom: mentaSpacing[6],
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: mentaColors.border,
-  },
-  title: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-  },
-  note: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-    marginTop: mentaSpacing[2],
-  },
-  primaryAction: {
-    marginTop: mentaSpacing[5],
-  },
-  recoveryText: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.warning,
-    marginTop: mentaSpacing[4],
-  },
-  streakSection: {
-    marginTop: mentaSpacing[6],
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[5],
-    paddingTop: mentaSpacing[5],
-  },
-  streakSummary: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    gap: mentaSpacing[4],
-  },
-  streakValueRow: {
-    alignItems: 'baseline',
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-  },
-  streakValue: {
-    ...mentaTypography.display,
-    color: mentaColors.text.primary,
-    fontVariant: ['tabular-nums'],
-  },
-  streakUnit: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-  },
-  streakRecord: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.text.secondary,
-    paddingBottom: 5,
-    textAlign: 'right',
-  },
-  weekSection: {
-    gap: mentaSpacing[3],
-  },
-  weekTitle: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  progressSection: {
-    marginTop: mentaSpacing[6],
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: mentaSpacing[4],
-    marginBottom: mentaSpacing[3],
-  },
-  progressTitle: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  progressMeta: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-    textAlign: 'right',
-  },
-  progressTrack: {
-    height: 6,
-    borderRadius: mentaRadii.round,
-    overflow: 'hidden',
-    backgroundColor: mentaColors.raised,
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: mentaRadii.round,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    section: {
+      marginHorizontal: mentaLayout.screenInset,
+      marginTop: mentaSpacing[5],
+      paddingBottom: mentaSpacing[6],
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: mentaColors.border,
+    },
+    title: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+    },
+    note: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+      marginTop: mentaSpacing[2],
+    },
+    primaryAction: {
+      marginTop: mentaSpacing[5],
+    },
+    recoveryText: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.warning,
+      marginTop: mentaSpacing[4],
+    },
+    streakSection: {
+      marginTop: mentaSpacing[6],
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[5],
+      paddingTop: mentaSpacing[5],
+    },
+    streakSummary: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      justifyContent: 'space-between',
+      gap: mentaSpacing[4],
+    },
+    streakValueRow: {
+      alignItems: 'baseline',
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+    },
+    streakValue: {
+      ...mentaTypography.display,
+      color: mentaColors.text.primary,
+      fontVariant: ['tabular-nums'],
+    },
+    streakUnit: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+    },
+    streakRecord: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.text.secondary,
+      paddingBottom: 5,
+      textAlign: 'right',
+    },
+    weekSection: {
+      gap: mentaSpacing[3],
+    },
+    weekTitle: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    progressSection: {
+      marginTop: mentaSpacing[6],
+    },
+    progressHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: mentaSpacing[4],
+      marginBottom: mentaSpacing[3],
+    },
+    progressTitle: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    progressMeta: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+      textAlign: 'right',
+    },
+    progressTrack: {
+      height: 6,
+      borderRadius: mentaRadii.round,
+      overflow: 'hidden',
+      backgroundColor: mentaColors.raised,
+    },
+    progressFill: {
+      height: '100%',
+      borderRadius: mentaRadii.round,
+    },
+  });
+  return { styles };
+};

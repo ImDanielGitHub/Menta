@@ -296,6 +296,28 @@ export const fullTodayProofDeDE = {
   'todayProof.solo.promise_meta_short': '{days}-tägiges Versprechen · {proof}',
   'todayProof.solo.current_streak': 'Aktuelle Serie: {count} Tage',
   'todayProof.solo.accepted': 'Akzeptiert',
+  'todayProof.solo.left_today': 'Heute noch {count} offen.',
+  'todayProof.solo.left_today.one': 'Heute noch eins offen.',
+  'todayProof.solo.left_today.other': 'Heute noch {count} offen.',
+  'todayProof.solo.all_checked_in': 'Für heute alles eingecheckt.',
+  'todayProof.solo.nothing_running': 'Gerade läuft nichts.',
+  'todayProof.solo.section_today': 'Heute',
+  'todayProof.solo.section_week': 'Diese Woche',
+  'todayProof.solo.section_finished': 'Abgeschlossen',
+  'todayProof.solo.week_kept': '{kept} von {total} Tagen gehalten',
+  'todayProof.solo.row_kept': '{kept} von {total}',
+  'todayProof.solo.day_of': 'Tag {day} von {total}',
+  'todayProof.solo.day_of_with_streak':
+    'Tag {day} von {total} · {count}-Tage-Serie',
+  'todayProof.solo.check_in_short': 'Einchecken',
+  'todayProof.solo.log_short': 'Schreiben',
+  'todayProof.solo.try_again_short': 'Nochmal',
+  'todayProof.solo.counted_short': 'Zählt',
+  'todayProof.solo.waiting_short': 'Wartet',
+  'todayProof.solo.action_accessibility': '{action}: {promise}',
+  'todayProof.solo.week_row_accessibility':
+    '{promise}: {kept} von {total} Tagen diese Woche gehalten',
+  'todayProof.solo.finished_kept': '{kept} von {total} Tagen gehalten',
   'todayProof.promise.time_unavailable': 'Zeit nicht verfügbar',
   'todayProof.promise.date_unavailable': 'Datum nicht verfügbar',
   'todayProof.source.promise.submission_time_unavailable':
@@ -416,7 +438,7 @@ export const fullTodayProofDeDE = {
   'todayProof.promise.delete': 'Versprechen löschen',
   'todayProof.promise.leave': 'Versprechen verlassen',
   'todayProof.promise.delete_detail':
-    'Löscht dieses Versprechen, den Nachweisverlauf, Einladungslinks und den Prüfungs‑Kontext. Nicht rückgängig machbar.',
+    'Löscht dieses Versprechen, die Nachweise und Einladungen endgültig. Es zählt weiterhin zum monatlichen Erstellungslimit. Dein erstes kostenloses Versprechen wird nicht wieder verfügbar.',
   'todayProof.promise.leave_detail':
     'Du reichst hier keine Nachweise mehr ein. Vorhandene Nachweise bleiben im Versprechen‑Verlauf.',
   'todayProof.promise.details': 'Details zum Versprechen',
@@ -601,7 +623,7 @@ export const fullTodayProofDeDE = {
   'todayProof.proof.share_title': 'Menta-Nachweisbestätigung',
   'todayProof.proof.ad_break': 'Nächste Werbepause',
   'todayProof.proof.ad_break_detail':
-    'Wenn du diese Bestätigung verlässt, kann ein kurzer Werbespot erscheinen. Er ändert weder deinen Nachweis noch dein Momenta‑Guthaben.',
+    'Kostenlose Konten haben nach jedem zweiten neuen Nachweis eine kurze Werbepause, wenn Werbung verfügbar ist. Dein Nachweis ist bereits gespeichert. Dein Momenta-Guthaben bleibt unverändert.',
   'todayProof.proof.share_opened': 'Du bist wieder bei Menta',
   'todayProof.proof.share_opened_detail':
     'Die Nachweisbestätigung ist weiterhin hier. Du kannst sie kopieren oder erneut teilen.',
@@ -1110,7 +1132,8 @@ export const fullTodayProofDeDE = {
   'todayProof.promise.proof_type_approval':
     'Nachweisart: {proofType} · Ein Tag zählt erst nach Bestätigung des Nachweises',
   'todayProof.promise.extend_question': '12 Stunden zu {promise} hinzufügen?',
-  'todayProof.promise.extension_cost': 'Dazu wird {item} verwendet.',
+  'todayProof.promise.extension_cost':
+    'Etwas mehr Luft: Nutze ein bereits vorhandenes {item}, um 12 Stunden hinzuzufügen, solange das Nachweisfenster offen ist.',
   'todayProof.promise.active_for': 'Aktiv für {duration}',
   'todayProof.promise.available_count': '{count} verfügbar',
   'todayProof.create.step_progress': 'Schritt {current} von {total}',

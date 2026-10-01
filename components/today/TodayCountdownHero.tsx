@@ -1,13 +1,15 @@
+import {
+  type MentaPalette,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AppScaledText as Text } from '@/components/ui/AppScaledText';
 import { MentaMascot, type MascotState } from '@/components/ui/MentaMascot';
-import {
-  mentaColors,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { useTranslation } from '@/lib/localization';
 import { mentaFonts } from '@/lib/menta-fonts';
@@ -41,6 +43,8 @@ export function TodayCountdownHero({
   streak,
   mascot,
 }: TodayCountdownHeroProps) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const phoneLayout = usePhoneLayout();
   const [now, setNow] = useState(() => new Date());
@@ -115,11 +119,9 @@ export function TodayCountdownHero({
         <Text style={styles.caption}>{caption}</Text>
       </View>
       {mascot && !hidesMascot ? (
-        <MentaMascot
-          state={mascot}
-          size={phoneLayout.isShortHeight ? 'lg' : 'xl'}
-          style={styles.mascot}
-        />
+        // Paper T01 keeps the mascot beside the countdown small enough that
+        // the promise card and its action stay above the tab bar.
+        <MentaMascot state={mascot} size="lg" style={styles.mascot} />
       ) : null}
     </View>
   );
@@ -155,32 +157,35 @@ export function useTodayCountdownNote({
     : t('today.countdown.note_midnight');
 }
 
-const styles = StyleSheet.create({
-  hero: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    justifyContent: 'space-between',
-  },
-  copy: {
-    flex: 1,
-    gap: mentaSpacing[1],
-  },
-  duration: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.newsreader.semibold,
-    fontSize: 68,
-    letterSpacing: -2,
-    lineHeight: 74,
-  },
-  durationUrgent: {
-    color: mentaColors.warning,
-  },
-  caption: {
-    ...mentaTypography.lead,
-    color: mentaColors.text.secondary,
-  },
-  mascot: {
-    flexShrink: 0,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    hero: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      justifyContent: 'space-between',
+    },
+    copy: {
+      flex: 1,
+      gap: mentaSpacing[1],
+    },
+    duration: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.newsreader.semibold,
+      fontSize: 68,
+      letterSpacing: -2,
+      lineHeight: 74,
+    },
+    durationUrgent: {
+      color: mentaColors.warning,
+    },
+    caption: {
+      ...mentaTypography.lead,
+      color: mentaColors.text.secondary,
+    },
+    mascot: {
+      flexShrink: 0,
+    },
+  });
+  return { styles };
+};

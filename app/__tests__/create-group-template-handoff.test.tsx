@@ -33,6 +33,10 @@ const mockGroupState = {
 };
 const mockMomentaState = { balance: 100, fetchBalance: mockFetchBalance };
 
+jest.mock('expo-router/react-navigation', () => ({
+  useFocusEffect: (callback: () => void | (() => void)) =>
+    require('react').useEffect(callback, [callback]),
+}));
 jest.mock('expo-router', () => ({
   Stack: { Screen: () => null },
   useLocalSearchParams: () => ({ templateId: 'morning_walk' }),
@@ -89,12 +93,34 @@ jest.mock('@/lib/paywall/revenuecat', () => ({
 }));
 
 jest.mock('@/components/paywall/PaywallModal', () => {
-  const mockModule = (
-    () => () =>
-      null
-  )();
-  const mockExport = mockModule?.__esModule ? mockModule.default : mockModule;
-  return { __esModule: true, default: mockExport, PaywallModal: mockExport };
+  const { Pressable, Text } = jest.requireActual('react-native');
+  return {
+    PaywallModal: ({
+      visible,
+      onClose,
+      onBuyPro,
+    }: {
+      visible: boolean;
+      onClose: () => void;
+      onBuyPro: () => Promise<void>;
+    }) =>
+      visible ? (
+        <>
+          <Pressable accessibilityRole="button" onPress={onClose}>
+            <Text>Return to draft</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            onPress={async () => {
+              await onBuyPro();
+              onClose();
+            }}
+          >
+            <Text>Confirmed Pro activation</Text>
+          </Pressable>
+        </>
+      ) : null,
+  };
 });
 jest.mock('@/components/ui/MentaMascot', () => ({ MentaMascot: () => null }));
 jest.mock('@/components/groups/GroupCreationStates', () => ({
@@ -173,6 +199,68 @@ describe('group creation from a chosen starting point', () => {
     const [href] = mockRouter.dismissTo.mock.calls.at(-1) as [string];
     expect(href).toContain('templateId=morning_walk');
     expect(href).toContain('groupId=group-1');
+  });
+
+  it('clears the quota notice after confirmed activation and retries the same group only on explicit submit', async () => {
+    mockGateCreate.mockResolvedValue({ allowed: false, limit: 2 });
+    render(<CreateGroupScreen />);
+    await settle();
+    fireEvent.press(
+      screen.getByRole('button', { name: 'Choose who can join' })
+    );
+    fireEvent.press(screen.getByRole('button', { name: 'Review group' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Create group' }));
+    await settle();
+    expect(screen.getByText('Free limit reached')).toBeTruthy();
+    expect(mockCreateGroupWithPayment).not.toHaveBeenCalled();
+    mockGateCreate.mockResolvedValue({ allowed: true });
+    fireEvent.press(
+      screen.getByRole('button', { name: 'Confirmed Pro activation' })
+    );
+    await settle();
+    expect(screen.queryByText('Free limit reached')).toBeNull();
+    expect(mockCreateGroupWithPayment).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByRole('button', { name: 'Create group' }));
+    await settle();
+    expect(mockCreateGroupWithPayment).toHaveBeenCalledTimes(1);
+    expect(mockCreateGroupWithPayment).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'Morning walk group' })
+    );
+  });
+
+  it('retains the blocked notice if confirmed activation still leaves the group unaffordable', async () => {
+    mockGateCreate.mockResolvedValue({ allowed: false, limit: 2 });
+    render(<CreateGroupScreen />);
+    await settle();
+    fireEvent.press(
+      screen.getByRole('button', { name: 'Choose who can join' })
+    );
+    fireEvent.press(screen.getByRole('button', { name: 'Review group' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Create group' }));
+    await settle();
+    mockGetCreateGroupCost.mockResolvedValue(200);
+    fireEvent.press(
+      screen.getByRole('button', { name: 'Confirmed Pro activation' })
+    );
+    await settle();
+    expect(screen.getByText('Free limit reached')).toBeTruthy();
+    expect(mockCreateGroupWithPayment).not.toHaveBeenCalled();
+  });
+
+  it('keeps the quota notice and draft when the paywall is dismissed without activation', async () => {
+    mockGateCreate.mockResolvedValue({ allowed: false, limit: 2 });
+    render(<CreateGroupScreen />);
+    await settle();
+    fireEvent.press(
+      screen.getByRole('button', { name: 'Choose who can join' })
+    );
+    fireEvent.press(screen.getByRole('button', { name: 'Review group' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Create group' }));
+    await settle();
+    fireEvent.press(screen.getByRole('button', { name: 'Return to draft' }));
+    expect(screen.getByText('Free limit reached')).toBeTruthy();
+    expect(screen.getByText('Morning walk group')).toBeTruthy();
+    expect(mockCreateGroupWithPayment).not.toHaveBeenCalled();
   });
 
   it('keeps the route starting point ahead of an unrelated saved draft', async () => {

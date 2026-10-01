@@ -1,17 +1,18 @@
-import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-
-import { AppButton } from '@/components/ui/AppButton';
-import { MentaMascot } from '@/components/ui/MentaMascot';
-import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
-import { RefreshCcwIcon } from '@/components/ui/icons';
 import {
-  mentaColors,
+  mentaColors as defaultMentaColors,
   mentaLayout,
   mentaRadii,
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
+import React from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+
+import { AppButton } from '@/components/ui/AppButton';
+import { MentaMascot, type MascotState } from '@/components/ui/MentaMascot';
+import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
+import { RefreshCcwIcon } from '@/components/ui/icons';
+
 import { useTheme } from '@/constants/ThemeContext';
 import { normalizeShopCategory } from '@/lib/shop/powerUpSupport';
 import { useTranslation } from '@/lib/localization/use-translation';
@@ -244,6 +245,7 @@ export function ShopCollectionSkeleton({
 
 export function ShopStatePanel({
   kind = 'empty',
+  mascot = 'empty-guide',
   title,
   message,
   actionTitle,
@@ -251,6 +253,7 @@ export function ShopStatePanel({
   testID,
 }: {
   kind?: 'empty' | 'loading' | 'error';
+  mascot?: MascotState;
   title: string;
   message?: string;
   actionTitle?: string;
@@ -284,8 +287,8 @@ export function ShopStatePanel({
   return (
     <View style={styles.statePanel} testID={testID}>
       <MentaMascot
-        state={kind === 'error' ? 'calm-warning' : 'empty-guide'}
-        size="md"
+        state={kind === 'error' ? 'calm-warning' : mascot}
+        size={mascot === 'items-empty' ? 'xl' : 'md'}
       />
       <View style={styles.stateCopy}>
         <Text accessibilityRole="header" style={styles.stateTitle}>
@@ -311,8 +314,9 @@ export function ShopStatePanel({
   );
 }
 
-const createStyles = (theme: ReturnType<typeof useTheme>) =>
-  StyleSheet.create({
+const createStyles = (theme: ReturnType<typeof useTheme>) => {
+  const mentaColors = theme.mentaColors ?? defaultMentaColors;
+  return StyleSheet.create({
     pressed: {
       opacity: 0.72,
     },
@@ -484,3 +488,4 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
       textAlign: 'center',
     },
   });
+};

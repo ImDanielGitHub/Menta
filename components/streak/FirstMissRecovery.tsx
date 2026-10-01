@@ -1,3 +1,9 @@
+import {
+  type MentaPalette,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
@@ -5,11 +11,7 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppScaledText as Text } from '@/components/ui/AppScaledText';
 import { MentaMascot } from '@/components/ui/MentaMascot';
 import { TodaySpeechBubble } from '@/components/today/TodaySpeechBubble';
-import {
-  mentaColors,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useAuthStore } from '@/store/auth-store';
 import { getOnboardingInvitationReviewGate } from '@/lib/navigation/onboarding-invitation-lifecycle';
 import { useTranslation } from '@/lib/localization/use-translation';
@@ -31,6 +33,8 @@ export function FirstMissRecovery({
   onRecovered: () => Promise<void>;
   onVisibilityChange: (visible: boolean) => void;
 }) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const ownerId = useAuthStore(state => state.user?.id);
   const { t, locale } = useTranslation();
   const [focused, setFocused] = useState(false);
@@ -85,7 +89,33 @@ export function FirstMissRecovery({
       controller.abort();
     };
   }, [focused, ownerId, ready, confirmedStreak]);
-  const showing = Boolean(offer) && visible && focused;
+  // A server-issued gift stops being an offer at its local-day deadline.
+  // Keep a successful claim receipt visible even if the deadline passes later.
+  useEffect(() => {
+    if (!offer || confirmedStreak !== null) return;
+    const expires = Date.parse(offer.expiresAt);
+    if (!Number.isFinite(expires)) return;
+    const timer = setTimeout(
+      () => {
+        if (!inFlight.current) {
+          setVisible(false);
+          setOffer(null);
+        }
+      },
+      Math.min(Math.max(0, expires - Date.now()), 2_147_483_647)
+    );
+    return () => clearTimeout(timer);
+  }, [offer, confirmedStreak]);
+  const offerIsCurrent = Boolean(
+    offer &&
+    Number.isFinite(Date.parse(offer.expiresAt)) &&
+    Date.parse(offer.expiresAt) > Date.now()
+  );
+  const showing =
+    Boolean(offer) &&
+    (confirmedStreak !== null || offerIsCurrent) &&
+    visible &&
+    focused;
   useEffect(() => {
     onVisibilityChange(showing);
     if (showing)
@@ -139,9 +169,8 @@ export function FirstMissRecovery({
       setBusy(false);
     }
   };
-  if (!offer || (!visible && Date.parse(offer.expiresAt) <= Date.now()))
-    return null;
   const confirmed = confirmedStreak !== null;
+  if (!offer || (!confirmed && !offerIsCurrent)) return null;
   if (!visible || !focused) {
     // "Start over" is not final while the gift is still valid.
     return (
@@ -254,30 +283,33 @@ const formatWeekday = (localDay: string, locale: string): string => {
   ).toLocaleDateString(locale, { weekday: 'long', timeZone: 'UTC' });
 };
 
-const styles = StyleSheet.create({
-  panel: { gap: mentaSpacing[3], paddingBottom: mentaSpacing[4] },
-  stage: { alignItems: 'center', gap: mentaSpacing[1] },
-  title: {
-    ...mentaTypography.journeyTitle,
-    color: mentaColors.text.primary,
-    marginTop: mentaSpacing[3],
-    textAlign: 'center',
-  },
-  body: {
-    ...mentaTypography.lead,
-    color: mentaColors.text.secondary,
-    textAlign: 'center',
-  },
-  note: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.muted,
-    textAlign: 'center',
-  },
-  error: {
-    ...mentaTypography.body,
-    color: mentaColors.danger,
-    textAlign: 'center',
-  },
-  secondaryText: { color: mentaColors.action },
-  actions: { gap: mentaSpacing[3], marginTop: mentaSpacing[5] },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    panel: { gap: mentaSpacing[3], paddingBottom: mentaSpacing[4] },
+    stage: { alignItems: 'center', gap: mentaSpacing[1] },
+    title: {
+      ...mentaTypography.journeyTitle,
+      color: mentaColors.text.primary,
+      marginTop: mentaSpacing[3],
+      textAlign: 'center',
+    },
+    body: {
+      ...mentaTypography.lead,
+      color: mentaColors.text.secondary,
+      textAlign: 'center',
+    },
+    note: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.muted,
+      textAlign: 'center',
+    },
+    error: {
+      ...mentaTypography.body,
+      color: mentaColors.danger,
+      textAlign: 'center',
+    },
+    secondaryText: { color: mentaColors.action },
+    actions: { gap: mentaSpacing[3], marginTop: mentaSpacing[5] },
+  });
+  return { styles };
+};

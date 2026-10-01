@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, {
   useCallback,
   useEffect,
@@ -5,18 +12,11 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, Pressable, StyleSheet, View } from 'react-native';
+import { RefreshControl, Pressable, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, subDays } from 'date-fns';
 import { useFocusEffect } from 'expo-router/react-navigation';
-import {
-  PlusIcon,
-  CameraIcon as CameraIcon,
-  TypeIcon as TypeIcon,
-  ArrowRightIcon as ArrowRightIcon,
-  ArrowLeftIcon,
-  Grid3x3Icon,
-} from '@/components/ui/icons';
+import { PlusIcon, ArrowLeftIcon } from '@/components/ui/icons';
 
 import { AppButton, AppScreen, ProgressBar } from '@/components/ui';
 import { AppScaledText as Text } from '@/components/ui/AppScaledText';
@@ -41,12 +41,6 @@ import {
   SoloChallengesLoadingState,
   type PromiseProofDay,
 } from '@/components/challenge/promise-runtime-states';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
 
 import { backOrReplace } from '@/lib/navigation/safe-back';
 import {
@@ -54,6 +48,25 @@ import {
   useIPadPortraitWorkspace,
 } from '@/components/ipad/ipad-workspace';
 import { resolvePersonalPromiseLifecycle } from '@/lib/promise/personal-promise-overview';
+import { buildProofWeek } from '@/lib/promise/proof-week';
+import {
+  applyTodayStatus,
+  countKeptDays,
+  mondayFirstDayIndex,
+  resolvePromiseDay,
+} from '@/lib/promise/personal-promise-progress';
+import {
+  PersonalPromiseFinishedShelf,
+  PersonalPromiseSectionHeading,
+  PersonalPromiseTodayList,
+  PersonalPromiseWeekGrid,
+  type PersonalPromiseFinishedItem,
+  type PersonalPromiseProofKind,
+  type PersonalPromiseProofTile,
+  type PersonalPromiseTodayItem,
+  type PersonalPromiseTodayState,
+  type PersonalPromiseWeekRow,
+} from '@/components/challenge/personal-promises-overview';
 import { useTranslation } from '@/lib/localization';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 interface SoloChallenge {
@@ -117,13 +130,14 @@ interface SoloParticipantRow {
 
 type TodayStatus = SoloTodayStatus;
 
-const MAX_RECENT_SUBMISSIONS = 10;
-
 const getDeviceTimezone = (): string =>
   Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
 
 export default function SoloChallengesScreen() {
-  const { colors, spacing, typography } = useTheme();
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
+  const { colors } = useTheme();
   const { user } = useAuthStore();
   const router = useRouter();
   const usesIPadWorkspace = useIPadPortraitWorkspace();
@@ -134,7 +148,6 @@ export default function SoloChallengesScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshError, setRefreshError] = useState<string | null>(null);
-  const [tab, setTab] = useState<'active' | 'past'>('active');
   const [challenges, setChallenges] = useState<SoloChallenge[]>([]);
   const [submissionsByChallenge, setSubmissionsByChallenge] = useState<
     Record<string, Submission[]>
@@ -377,8 +390,6 @@ export default function SoloChallengesScreen() {
     () => challenges.filter(challenge => challenge.lifecycle === 'past'),
     [challenges]
   );
-  const visibleChallenges =
-    tab === 'active' ? activeChallenges : pastChallenges;
   const [selectedChallengeId, setSelectedChallengeId] = useState<string | null>(
     null
   );
@@ -387,12 +398,118 @@ export default function SoloChallengesScreen() {
     if (!usesIPadWorkspace) return;
     if (
       selectedChallengeId &&
-      visibleChallenges.some(challenge => challenge.id === selectedChallengeId)
+      challenges.some(challenge => challenge.id === selectedChallengeId)
     ) {
       return;
     }
-    setSelectedChallengeId(visibleChallenges[0]?.id ?? null);
-  }, [selectedChallengeId, usesIPadWorkspace, visibleChallenges]);
+    setSelectedChallengeId(challenges[0]?.id ?? null);
+  }, [challenges, selectedChallengeId, usesIPadWorkspace]);
+
+  const todayLocalDay = format(new Date(), 'yyyy-MM-dd');
+  const todayIndex = mondayFirstDayIndex(todayLocalDay);
+
+  const weekByChallenge = useMemo(
+    () =>
+      Object.fromEntries(
+        challenges.map(challenge => [
+          challenge.id,
+          buildPromiseWeek({
+            challenge,
+            submissions: submissionsByChallenge[challenge.id] || [],
+            todayStatus: todayStatus[challenge.id] ?? 'none',
+            todayLocalDay,
+            todayIndex,
+          }),
+        ])
+      ) as Record<string, PromiseProofDay[]>,
+    [challenges, submissionsByChallenge, todayIndex, todayLocalDay, todayStatus]
+  );
+
+  const todayItems = useMemo<PersonalPromiseTodayItem[]>(
+    () =>
+      activeChallenges
+        .map(challenge => {
+          const total = challenge.duration || 30;
+          const day = resolvePromiseDay({
+            startLocalDay: promiseStartLocalDay(challenge),
+            todayLocalDay,
+            duration: total,
+          });
+          return {
+            id: challenge.id,
+            title: challenge.title,
+            meta: challenge.currentStreak
+              ? t('todayProof.solo.day_of_with_streak', {
+                  day,
+                  total,
+                  count: challenge.currentStreak,
+                })
+              : t('todayProof.solo.day_of', { day, total }),
+            state: todayStateFor(todayStatus[challenge.id] ?? 'none'),
+            proofKind: proofKindFor(challenge),
+            cover:
+              galleryTiles(
+                challenge,
+                submissionsByChallenge[challenge.id] || []
+              )[0] ?? null,
+          };
+        })
+        .sort((a, b) => todayStateOrder[a.state] - todayStateOrder[b.state]),
+    [activeChallenges, submissionsByChallenge, t, todayLocalDay, todayStatus]
+  );
+
+  const weekRows = useMemo<PersonalPromiseWeekRow[]>(
+    () =>
+      todayItems.map(item => {
+        const week = weekByChallenge[item.id] ?? [];
+        return {
+          id: item.id,
+          title: item.title,
+          week,
+          tiles: weekTiles({
+            kind: item.proofKind,
+            submissions: submissionsByChallenge[item.id] || [],
+            todayIndex,
+          }),
+          proofKind: item.proofKind,
+          ...countKeptDays(week, todayIndex),
+        };
+      }),
+    [submissionsByChallenge, todayIndex, todayItems, weekByChallenge]
+  );
+  const weekTally = weekRows.reduce(
+    (sum, row) => ({ kept: sum.kept + row.kept, total: sum.total + row.total }),
+    { kept: 0, total: 0 }
+  );
+
+  const finishedItems = useMemo<PersonalPromiseFinishedItem[]>(
+    () =>
+      pastChallenges.map(challenge => {
+        const approved = (submissionsByChallenge[challenge.id] || []).filter(
+          submission => submission.status === 'approved'
+        );
+        const tiles = galleryTiles(challenge, approved);
+        return {
+          id: challenge.id,
+          title: challenge.title,
+          kept: approved.length,
+          total: challenge.duration || 30,
+          covers: tiles.slice(0, 3),
+          more: Math.max(0, tiles.length - 3),
+        };
+      }),
+    [pastChallenges, submissionsByChallenge]
+  );
+
+  const leftToday = todayItems.filter(
+    item => item.state === 'due' || item.state === 'retry'
+  ).length;
+  const lead =
+    activeChallenges.length === 0
+      ? t('todayProof.solo.nothing_running')
+      : leftToday > 0
+        ? t('todayProof.solo.left_today', { count: leftToday })
+        : t('todayProof.solo.all_checked_in');
 
   const openPromiseDetail = useCallback(
     (challengeId: string) =>
@@ -401,6 +518,14 @@ export default function SoloChallengesScreen() {
         params: { id: challengeId },
       }),
     [router]
+  );
+
+  const openPromise = useCallback(
+    (challengeId: string) =>
+      usesIPadWorkspace
+        ? setSelectedChallengeId(challengeId)
+        : openPromiseDetail(challengeId),
+    [openPromiseDetail, usesIPadWorkspace]
   );
 
   const openPromisePrimary = useCallback(
@@ -438,93 +563,14 @@ export default function SoloChallengesScreen() {
     [openPromiseDetail, router, todayStatus]
   );
 
-  const renderPromiseList = (list: SoloChallenge[]) => {
-    if (refreshError && list.length === 0) {
-      return (
-        <View style={styles.emptyBlock(spacing)}>
-          <AppInlineNotice
-            tone="error"
-            title={t('todayProof.solo.load_failed')}
-            description={refreshError}
-            actionLabel={t('todayProof.promise.try_again')}
-            onAction={onRefresh}
-            actionLoading={refreshing}
-            testID="solo-load-error-notice"
-          />
-        </View>
-      );
-    }
-
-    if (list.length === 0) {
-      return (
-        <View style={styles.emptyBlock(spacing)}>
-          <AppInlineNotice
-            title={
-              tab === 'active'
-                ? t('todayProof.solo.no_active')
-                : t('todayProof.solo.no_past')
-            }
-            description={
-              tab === 'active'
-                ? pastChallenges.length > 0
-                  ? t('todayProof.solo.completed_under_past')
-                  : t('todayProof.solo.create_private')
-                : t('todayProof.solo.ended')
-            }
-            tone="info"
-            testID={`solo-${tab}-empty-notice`}
-          />
-          {tab === 'active' ? (
-            <AppButton
-              title={
-                pastChallenges.length > 0
-                  ? t('todayProof.solo.view_past')
-                  : t('todayProof.solo.create')
-              }
-              onPress={() =>
-                pastChallenges.length > 0
-                  ? setTab('past')
-                  : openCreateSoloChallenge({
-                      router,
-                      source: 'solo_screen',
-                    })
-              }
-              fullWidth
-            />
-          ) : null}
-        </View>
-      );
-    }
-
-    return (
-      <View style={{ width: '100%', gap: spacing.md }}>
-        {list.map(challenge => (
-          <SoloChallengeCard
-            key={challenge.id}
-            challenge={challenge}
-            compact={usesIPadWorkspace}
-            selected={selectedChallengeId === challenge.id}
-            onPrimary={() => openPromisePrimary(challenge)}
-            onDetails={() =>
-              usesIPadWorkspace
-                ? setSelectedChallengeId(challenge.id)
-                : openPromiseDetail(challenge.id)
-            }
-            onViewSubmissions={() => openViewAll(challenge)}
-            todayStatus={todayStatus[challenge.id] ?? 'none'}
-            submissions={(submissionsByChallenge[challenge.id] || []).slice(
-              0,
-              MAX_RECENT_SUBMISSIONS
-            )}
-          />
-        ))}
-      </View>
-    );
-  };
+  const openCreate = useCallback(
+    () => openCreateSoloChallenge({ router, source: 'solo_screen' }),
+    [router]
+  );
 
   const selectedChallenge =
-    visibleChallenges.find(challenge => challenge.id === selectedChallengeId) ??
-    visibleChallenges[0] ??
+    challenges.find(challenge => challenge.id === selectedChallengeId) ??
+    challenges[0] ??
     null;
 
   if (loading) {
@@ -538,15 +584,12 @@ export default function SoloChallengesScreen() {
     );
   }
 
-  if (!refreshError && challenges.length === 0 && tab === 'active') {
+  if (!refreshError && challenges.length === 0) {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
         <SoloChallengesEmptyState
-          onCreateSolo={() =>
-            openCreateSoloChallenge({ router, source: 'solo_screen' })
-          }
-          onViewHistory={() => setTab('past')}
+          onCreateSolo={openCreate}
           onCreateChallenge={() => router.push('/(tabs)/create')}
           onBackToCreation={() => router.replace('/(tabs)/create')}
           onBack={() => backOrReplace(router, '/(tabs)/create')}
@@ -554,6 +597,71 @@ export default function SoloChallengesScreen() {
       </>
     );
   }
+
+  const promiseSections =
+    refreshError && challenges.length === 0 ? (
+      <AppInlineNotice
+        tone="error"
+        title={t('todayProof.solo.load_failed')}
+        description={refreshError}
+        actionLabel={t('todayProof.promise.try_again')}
+        onAction={onRefresh}
+        actionLoading={refreshing}
+        testID="solo-load-error-notice"
+      />
+    ) : (
+      <View style={styles.sections}>
+        <View>
+          <PersonalPromiseSectionHeading
+            title={t('todayProof.solo.section_today')}
+          />
+          {todayItems.length > 0 ? (
+            <PersonalPromiseTodayList
+              items={todayItems}
+              selectedId={usesIPadWorkspace ? selectedChallenge?.id : null}
+              onOpen={openPromise}
+              onAction={id => {
+                const challenge = challenges.find(item => item.id === id);
+                if (challenge) openPromisePrimary(challenge);
+              }}
+            />
+          ) : (
+            <AppButton
+              title={t('todayProof.solo.create')}
+              onPress={openCreate}
+              variant="accent"
+              fullWidth
+            />
+          )}
+        </View>
+
+        {weekRows.length > 0 ? (
+          <View>
+            <PersonalPromiseSectionHeading
+              title={t('todayProof.solo.section_week')}
+              detail={
+                weekTally.total > 0
+                  ? t('todayProof.solo.week_kept', weekTally)
+                  : undefined
+              }
+            />
+            <PersonalPromiseWeekGrid rows={weekRows} todayIndex={todayIndex} />
+          </View>
+        ) : null}
+
+        {finishedItems.length > 0 ? (
+          <View>
+            <PersonalPromiseSectionHeading
+              title={t('todayProof.solo.section_finished')}
+            />
+            <PersonalPromiseFinishedShelf
+              items={finishedItems}
+              onOpen={openPromise}
+            />
+          </View>
+        ) : null}
+      </View>
+    );
 
   return (
     <>
@@ -585,75 +693,52 @@ export default function SoloChallengesScreen() {
           ]}
           testID="personal-promises-content"
         >
-          <View
-            style={styles.headerCluster}
-            testID="personal-promises-header-cluster"
-          >
-            <View style={styles.topBar}>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t('todayProof.solo.back')}
-                hitSlop={10}
-                onPress={() => backOrReplace(router, '/(tabs)/create')}
-                style={({ pressed }) => [
-                  styles.iconButton(colors),
-                  pressed && styles.pressed,
-                ]}
-              >
-                <ArrowLeftIcon size={21} color={colors.text.primary} />
-              </Pressable>
-              <View style={styles.topBarActions}>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={t('todayProof.solo.items')}
-                  accessibilityHint={t('todayProof.solo.items_hint')}
-                  hitSlop={8}
-                  onPress={() => router.push('/inventory')}
-                  style={({ pressed }) => [
-                    styles.iconButton(colors),
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <Grid3x3Icon size={21} color={colors.text.primary} />
-                </Pressable>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={t('todayProof.solo.create_personal')}
-                  hitSlop={8}
-                  onPress={() =>
-                    openCreateSoloChallenge({
-                      router,
-                      source: 'solo_screen',
-                    })
-                  }
-                  style={({ pressed }) => [
-                    styles.iconButton(colors),
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <PlusIcon size={21} color={colors.text.primary} />
-                </Pressable>
-              </View>
-            </View>
-            <View style={styles.intro}>
-              <Text
-                accessibilityRole="header"
-                style={{
-                  ...mentaTypography.title,
-                  color: mentaColors.text.primary,
-                }}
-              >
-                {t('todayProof.solo.heading')}
-              </Text>
-              <Text
-                style={{ ...typography.body, color: colors.text.secondary }}
-              >
-                {t('todayProof.solo.detail')}
-              </Text>
-            </View>
+          <View style={styles.topBar}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('todayProof.solo.back')}
+              hitSlop={10}
+              onPress={() => backOrReplace(router, '/(tabs)/create')}
+              style={({ pressed }) => [
+                styles.iconButton(colors),
+                pressed && styles.pressed,
+              ]}
+            >
+              <ArrowLeftIcon size={21} color={colors.text.primary} />
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('todayProof.solo.create_personal')}
+              hitSlop={8}
+              onPress={openCreate}
+              style={({ pressed }) => [
+                styles.iconButton(colors),
+                pressed && styles.pressed,
+              ]}
+            >
+              <PlusIcon size={21} color={colors.text.primary} />
+            </Pressable>
           </View>
 
-          {!loading && refreshError && activeChallenges.length > 0 ? (
+          <View style={styles.intro}>
+            <Text
+              accessibilityRole="header"
+              style={{
+                ...mentaTypography.heading,
+                color: colors.text.primary,
+              }}
+            >
+              {t('todayProof.solo.heading')}
+            </Text>
+            <Text
+              style={{ ...mentaTypography.lead, color: colors.text.secondary }}
+              testID="personal-promises-lead"
+            >
+              {lead}
+            </Text>
+          </View>
+
+          {refreshError && challenges.length > 0 ? (
             <AppInlineNotice
               tone="warning"
               title={t('todayProof.solo.showing_last_update')}
@@ -666,67 +751,27 @@ export default function SoloChallengesScreen() {
             />
           ) : null}
 
-          <View style={styles.tabRow(colors)} testID="personal-promises-tabs">
-            {(['active', 'past'] as const).map(value => (
-              <Pressable
-                key={value}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: tab === value }}
-                onPress={() => setTab(value)}
-                style={({ pressed }) => [
-                  styles.tabAction,
-                  tab === value && {
-                    borderBottomColor:
-                      colors.border.focus ?? colors.interactive.primary,
-                  },
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text
-                  style={{
-                    ...typography.caption,
-                    color:
-                      tab === value
-                        ? colors.text.primary
-                        : colors.text.secondary,
-                  }}
-                >
-                  {value === 'active'
-                    ? t('todayProof.solo.active_count', {
-                        count: activeChallenges.length,
-                      })
-                    : t('todayProof.solo.past_count', {
-                        count: pastChallenges.length,
-                      })}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-
-          <View
-            style={styles.promiseListSection}
-            testID="personal-promises-list"
-          >
-            <IPadTwoPaneWorkspace
-              enabled={usesIPadWorkspace && Boolean(selectedChallenge)}
-              primary={renderPromiseList(visibleChallenges)}
-              secondary={
-                selectedChallenge ? (
-                  <SelectedPromisePane
-                    challenge={selectedChallenge}
-                    submissions={
-                      submissionsByChallenge[selectedChallenge.id] || []
-                    }
-                    todayStatus={todayStatus[selectedChallenge.id] ?? 'none'}
-                    onOpen={() => openPromiseDetail(selectedChallenge.id)}
-                    onPrimary={() => openPromisePrimary(selectedChallenge)}
-                    onProofHistory={() => openViewAll(selectedChallenge)}
-                  />
-                ) : null
-              }
-              testID="personal-promises-ipad-workspace"
-            />
-          </View>
+          <IPadTwoPaneWorkspace
+            enabled={usesIPadWorkspace && Boolean(selectedChallenge)}
+            primary={promiseSections}
+            secondary={
+              selectedChallenge ? (
+                <SelectedPromisePane
+                  challenge={selectedChallenge}
+                  week={weekByChallenge[selectedChallenge.id] ?? []}
+                  hasSubmissions={
+                    (submissionsByChallenge[selectedChallenge.id] || [])
+                      .length > 0
+                  }
+                  todayStatus={todayStatus[selectedChallenge.id] ?? 'none'}
+                  onOpen={() => openPromiseDetail(selectedChallenge.id)}
+                  onPrimary={() => openPromisePrimary(selectedChallenge)}
+                  onProofHistory={() => openViewAll(selectedChallenge)}
+                />
+              ) : null
+            }
+            testID="personal-promises-ipad-workspace"
+          />
         </View>
       </AppScreen>
 
@@ -741,161 +786,110 @@ export default function SoloChallengesScreen() {
   );
 }
 
-interface SoloChallengeCardProps {
-  challenge: SoloChallenge;
-  todayStatus: TodayStatus;
-  submissions: Submission[];
-  compact?: boolean;
-  selected?: boolean;
-  onPrimary: () => void;
-  onDetails: () => void;
-  onViewSubmissions: () => void;
-}
+const todayStateFor = (status: TodayStatus): PersonalPromiseTodayState =>
+  status === 'approved'
+    ? 'counted'
+    : status === 'pending'
+      ? 'waiting'
+      : status === 'rejected'
+        ? 'retry'
+        : 'due';
 
-export const SoloChallengeCard: React.FC<SoloChallengeCardProps> = ({
-  challenge,
-  todayStatus,
+const todayStateOrder: Record<PersonalPromiseTodayState, number> = {
+  due: 0,
+  retry: 1,
+  waiting: 2,
+  counted: 3,
+};
+
+const proofKindFor = (challenge: SoloChallenge): PersonalPromiseProofKind =>
+  challenge.verificationType === 'text'
+    ? 'text'
+    : challenge.verificationType === 'video'
+      ? 'video'
+      : 'photo';
+
+/** Sent proofs as gallery tiles, newest first. Photo promises need the photo. */
+const galleryTiles = (
+  challenge: SoloChallenge,
+  submissions: readonly Submission[]
+): PersonalPromiseProofTile[] => {
+  const kind = proofKindFor(challenge);
+  return submissions
+    .filter(submission => kind === 'text' || Boolean(submission.media_url))
+    .map(submission => ({ kind, mediaUrl: submission.media_url }));
+};
+
+const submissionRank: Record<Submission['status'], number> = {
+  approved: 3,
+  pending: 2,
+  rejected: 1,
+};
+
+/** The proof sent on each day of this Monday-first week, if any. */
+const weekTiles = ({
+  kind,
   submissions,
-  compact = false,
-  selected = false,
-  onPrimary,
-  onDetails,
-  onViewSubmissions,
-}) => {
-  const { colors, spacing, typography } = useTheme();
-  const { t } = useTranslation();
-  const primaryAction = getSoloTodayAction(todayStatus);
-
-  const progress = useMemo(() => {
-    if (!challenge.duration || !challenge.currentStreak) return 0;
-    const ratio = Math.min(challenge.currentStreak / challenge.duration, 1);
-    return Math.round(ratio * 100);
-  }, [challenge.currentStreak, challenge.duration]);
-
-  const freezesRemaining = resolveFreezesRemaining(challenge.freezesRemaining);
-  const proofType = getProofTypeLabel(challenge.verificationType, t);
-  const proofWeek = buildOverviewProofWeek({
-    submissions,
-    todayStatus,
-    lifecycle: challenge.lifecycle,
+  todayIndex,
+}: {
+  kind: PersonalPromiseProofKind;
+  submissions: readonly Submission[];
+  todayIndex: number;
+}): (PersonalPromiseProofTile | null)[] => {
+  const bestByDay = new Map<string, Submission>();
+  for (const submission of submissions) {
+    const day = submission.local_day ?? toLocalDay(submission.submission_date);
+    if (!day) continue;
+    const existing = bestByDay.get(day);
+    if (
+      !existing ||
+      submissionRank[submission.status] > submissionRank[existing.status]
+    ) {
+      bestByDay.set(day, submission);
+    }
+  }
+  const today = new Date();
+  return Array.from({ length: 7 }, (_, index) => {
+    const day = format(subDays(today, todayIndex - index), 'yyyy-MM-dd');
+    const submission = bestByDay.get(day);
+    return submission ? { kind, mediaUrl: submission.media_url } : null;
   });
+};
 
-  return (
-    <View
-      testID={`personal-promise-card-${challenge.id}`}
-      style={[
-        styles.challengeCard(colors),
-        selected ? styles.challengeCardSelected(colors) : null,
-      ]}
-    >
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t('todayProof.solo.open_accessibility', {
-          promise: challenge.title,
-        })}
-        accessibilityHint={t('todayProof.solo.open_hint')}
-        onPress={onDetails}
-        style={({ pressed }) => [
-          styles.challengeTitleRow,
-          pressed && styles.pressed,
-        ]}
-      >
-        <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
-          <Text
-            style={{
-              ...mentaTypography.bodySemibold,
-              color: colors.text.primary,
-            }}
-            numberOfLines={2}
-          >
-            {challenge.title}
-          </Text>
-          <Text
-            style={{ ...typography.caption, color: colors.text.secondary }}
-            numberOfLines={2}
-          >
-            {t('todayProof.solo.promise_meta', {
-              days: challenge.duration || 30,
-              proof: proofType,
-            })}
-          </Text>
-        </View>
-        <ArrowRightIcon size={18} color={colors.text.secondary} />
-      </Pressable>
+const toLocalDay = (value: string | null | undefined): string | null => {
+  if (!value) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  const parsed = parseISO(value);
+  return Number.isNaN(parsed.getTime()) ? null : format(parsed, 'yyyy-MM-dd');
+};
 
-      <View style={styles.challengeStatusRow}>
-        {challenge.lifecycle === 'past' ? (
-          <Text style={{ ...typography.caption, color: mentaColors.success }}>
-            {challenge.status === 'completed'
-              ? t('todayProof.solo.completed')
-              : t('todayProof.solo.past')}
-          </Text>
-        ) : (
-          <StatusLabel status={todayStatus} />
-        )}
-        <Text style={{ ...typography.caption, color: colors.text.secondary }}>
-          {challenge.currentStreak
-            ? t('todayProof.solo.streak', { count: challenge.currentStreak })
-            : t('todayProof.solo.no_streak')}
-          {' · '}
-          {t('todayProof.solo.freezes_left', {
-            count: Math.max(0, freezesRemaining),
-          })}
-        </Text>
-      </View>
+const promiseStartLocalDay = (challenge: SoloChallenge): string | null =>
+  toLocalDay(challenge.startDate) ?? toLocalDay(challenge.joinedAt);
 
-      {progress > 0 ? (
-        <ProgressBar progress={progress} size="xs" showPercentage />
-      ) : null}
-
-      <PromiseProofWeek
-        week={proofWeek}
-        label={t('todayProof.solo.recent_proof')}
-      />
-
-      {!compact ? (
-        <View style={styles.promiseCardActions}>
-          <AppButton
-            title={
-              challenge.lifecycle === 'past'
-                ? t('todayProof.solo.view_promise')
-                : primaryAction === 'submit'
-                  ? challenge.verificationType === 'text'
-                    ? t('todayProof.solo.log_entry')
-                    : t('todayProof.solo.check_in')
-                  : todayStatus === 'rejected'
-                    ? t('todayProof.solo.view_correction')
-                    : t('todayProof.solo.view_today_proof')
-            }
-            onPress={onPrimary}
-            variant={
-              challenge.lifecycle === 'active' && primaryAction === 'submit'
-                ? 'accent'
-                : 'primary'
-            }
-            fullWidth
-            icon={
-              challenge.lifecycle === 'active' && primaryAction === 'submit' ? (
-                challenge.verificationType === 'text' ? (
-                  <TypeIcon size={18} color={colors.background.primary} />
-                ) : (
-                  <CameraIcon size={18} color={colors.background.primary} />
-                )
-              ) : undefined
-            }
-          />
-          {submissions.length > 0 ? (
-            <AppButton
-              title={t('todayProof.solo.proof_history')}
-              onPress={onViewSubmissions}
-              variant="ghost"
-              fullWidth
-            />
-          ) : null}
-        </View>
-      ) : null}
-    </View>
-  );
+const buildPromiseWeek = ({
+  challenge,
+  submissions,
+  todayStatus,
+  todayLocalDay,
+  todayIndex,
+}: {
+  challenge: SoloChallenge;
+  submissions: readonly Submission[];
+  todayStatus: TodayStatus;
+  todayLocalDay: string;
+  todayIndex: number;
+}): PromiseProofDay[] => {
+  const week = buildProofWeek({
+    records: submissions.map(submission => ({
+      localDay: submission.local_day ?? toLocalDay(submission.submission_date),
+      status: submission.status,
+    })),
+    todayLocalDay,
+    activeFromLocalDay: promiseStartLocalDay(challenge),
+  });
+  return challenge.lifecycle === 'active'
+    ? applyTodayStatus(week, todayIndex, todayStatus)
+    : week;
 };
 
 const getProofTypeLabel = (
@@ -908,50 +902,11 @@ const getProofTypeLabel = (
       ? t('todayProof.solo.video_proof')
       : t('todayProof.solo.photo_proof');
 
-const buildOverviewProofWeek = ({
-  submissions,
-  todayStatus,
-  lifecycle,
-}: {
-  submissions: readonly Submission[];
-  todayStatus: TodayStatus;
-  lifecycle: SoloChallenge['lifecycle'];
-}): PromiseProofDay[] => {
-  const today = new Date();
-  return Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(today);
-    date.setHours(12, 0, 0, 0);
-    date.setDate(today.getDate() - (6 - index));
-    const localDay = format(date, 'yyyy-MM-dd');
-    const submission = submissions.find(item => {
-      if (item.local_day) return item.local_day === localDay;
-      return format(parseISO(item.submission_date), 'yyyy-MM-dd') === localDay;
-    });
-
-    let state: PromiseProofDay['state'] = index === 6 ? 'today' : 'past';
-    if (lifecycle === 'past' && !submission) state = 'inactive';
-    if (submission?.status === 'approved') state = 'approved';
-    if (submission?.status === 'pending') state = 'waiting';
-    if (submission?.status === 'rejected') state = 'needs-retry';
-    if (index === 6 && !submission && lifecycle === 'active') {
-      state =
-        todayStatus === 'approved'
-          ? 'approved'
-          : todayStatus === 'pending'
-            ? 'waiting'
-            : todayStatus === 'rejected'
-              ? 'needs-retry'
-              : 'today';
-    }
-
-    return { label: format(date, 'EEEEE'), state };
-  });
-};
-
 type SelectedPromisePaneProps = {
   challenge: SoloChallenge;
   todayStatus: TodayStatus;
-  submissions: Submission[];
+  week: PromiseProofDay[];
+  hasSubmissions: boolean;
   onOpen: () => void;
   onPrimary: () => void;
   onProofHistory: () => void;
@@ -960,11 +915,15 @@ type SelectedPromisePaneProps = {
 const SelectedPromisePane = ({
   challenge,
   todayStatus,
-  submissions,
+  week,
+  hasSubmissions,
   onOpen,
   onPrimary,
   onProofHistory,
 }: SelectedPromisePaneProps) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors, spacing, typography } = useTheme();
   const { t } = useTranslation();
   const progress =
@@ -1011,14 +970,7 @@ const SelectedPromisePane = ({
       {progress > 0 ? (
         <ProgressBar progress={progress} size="sm" showPercentage />
       ) : null}
-      <PromiseProofWeek
-        week={buildOverviewProofWeek({
-          submissions,
-          todayStatus,
-          lifecycle: challenge.lifecycle,
-        })}
-        label={t('todayProof.solo.recent_proof')}
-      />
+      <PromiseProofWeek week={week} label={t('todayProof.solo.recent_proof')} />
       <View style={styles.selectedPaneActions}>
         <AppButton
           title={
@@ -1044,7 +996,7 @@ const SelectedPromisePane = ({
           variant="secondary"
           fullWidth
         />
-        {submissions.length > 0 ? (
+        {hasSubmissions ? (
           <AppButton
             title={t('todayProof.solo.proof_history')}
             onPress={onProofHistory}
@@ -1058,6 +1010,8 @@ const SelectedPromisePane = ({
 };
 
 const StatusLabel: React.FC<{ status: TodayStatus }> = ({ status }) => {
+  const mentaColors = useMentaPalette();
+
   const { typography } = useTheme();
   const { t } = useTranslation();
 
@@ -1090,103 +1044,55 @@ const StatusLabel: React.FC<{ status: TodayStatus }> = ({ status }) => {
 
 type ThemeTokens = ReturnType<typeof useTheme>;
 
-const styles = {
-  pressed: { opacity: 0.72 },
-  screenContent: {
-    gap: 0,
-  },
-  contentFlow: {
-    width: '100%' as const,
-  },
-  headerCluster: {
-    gap: mentaSpacing[5],
-    marginBottom: mentaSpacing[6],
-  },
-  intro: {
-    gap: mentaSpacing[2],
-  },
-  topBar: {
-    minHeight: 48,
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'space-between' as const,
-  },
-  topBarActions: {
-    flexDirection: 'row' as const,
-    gap: mentaSpacing[2],
-  },
-  iconButton: (colors: ThemeTokens['colors']) => ({
-    width: 44,
-    height: 44,
-    borderRadius: mentaRadii.round,
-    borderWidth: 1,
-    borderColor: colors.border.secondary,
-    backgroundColor: 'transparent',
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-  }),
-  tabRow: (colors: ThemeTokens['colors']) => ({
-    flexDirection: 'row' as const,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border.secondary,
-    marginBottom: mentaSpacing[5],
-  }),
-  promiseListSection: {
-    width: '100%' as const,
-  },
-  refreshNotice: {
-    marginBottom: mentaSpacing[6],
-  },
-  tabAction: {
-    flex: 1,
-    minHeight: 44,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  challengeCard: (colors: ThemeTokens['colors']) => ({
-    gap: mentaSpacing[5],
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border.secondary,
-    borderRadius: mentaRadii.large,
-    backgroundColor: colors.background.surface,
-    padding: mentaSpacing[5],
-  }),
-  challengeCardSelected: (colors: ThemeTokens['colors']) => ({
-    borderColor: colors.accent.primary,
-    borderWidth: 1,
-  }),
-  challengeTitleRow: {
-    minHeight: 44,
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    gap: mentaSpacing[3],
-  },
-  challengeStatusRow: {
-    flexDirection: 'row' as const,
-    flexWrap: 'wrap' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'space-between' as const,
-    gap: mentaSpacing[2],
-  },
-  promiseCardActions: {
-    gap: mentaSpacing[1],
-  },
-  selectedPane: {
-    gap: mentaSpacing[5],
-    paddingVertical: mentaSpacing[2],
-  },
-  selectedPaneTitle: {
-    ...mentaTypography.heading,
-    color: mentaColors.text.primary,
-  },
-  selectedPaneActions: {
-    gap: mentaSpacing[2],
-    paddingTop: mentaSpacing[2],
-  },
-  emptyBlock: (spacing: ThemeTokens['spacing']) => ({
-    width: '100%' as const,
-    gap: spacing.sm,
-  }),
-} as const;
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = {
+    pressed: { opacity: 0.72 },
+    screenContent: {
+      gap: 0,
+    },
+    contentFlow: {
+      width: '100%' as const,
+    },
+    topBar: {
+      minHeight: 48,
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      justifyContent: 'space-between' as const,
+    },
+    iconButton: (colors: ThemeTokens['colors']) => ({
+      width: 44,
+      height: 44,
+      borderRadius: mentaRadii.round,
+      borderWidth: 1,
+      borderColor: colors.border.secondary,
+      backgroundColor: 'transparent',
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+    }),
+    intro: {
+      gap: mentaSpacing[2],
+      paddingTop: mentaSpacing[5],
+      marginBottom: mentaSpacing[8],
+    },
+    refreshNotice: {
+      marginBottom: mentaSpacing[6],
+    },
+    sections: {
+      width: '100%' as const,
+      gap: mentaSpacing[8],
+    },
+    selectedPane: {
+      gap: mentaSpacing[5],
+      paddingVertical: mentaSpacing[2],
+    },
+    selectedPaneTitle: {
+      ...mentaTypography.heading,
+      color: mentaColors.text.primary,
+    },
+    selectedPaneActions: {
+      gap: mentaSpacing[2],
+      paddingTop: mentaSpacing[2],
+    },
+  } as const;
+  return { styles };
+};

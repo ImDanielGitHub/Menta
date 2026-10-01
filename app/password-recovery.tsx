@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import { useTranslation } from '@/lib/localization';
 import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -15,13 +23,7 @@ import {
 } from '@/components/ui/AppScaledText';
 import { CheckIcon } from '@/components/ui/icons';
 import { usePaperAuthDraft } from '@/components/onboarding/PaperAuthSurface';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import {
   clearPasswordRecoverySession,
   getPasswordRecoveryUserId,
@@ -37,6 +39,9 @@ const getParam = (value?: string | string[]) =>
   typeof value === 'string' ? value : '';
 
 export default function PasswordRecoveryScreen() {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const phoneLayout = usePhoneLayout();
   const router = useRouter();
@@ -392,73 +397,76 @@ export default function PasswordRecoveryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    alignSelf: 'center',
-    flexGrow: 1,
-    maxWidth: mentaLayout.phoneFrameMax,
-    paddingBottom: mentaSpacing[8],
-    paddingTop: mentaSpacing[4],
-    width: '100%',
-  },
-  checking: { flex: 1 },
-  closeAction: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: mentaLayout.minimumTouchTarget,
-    minWidth: mentaLayout.minimumTouchTarget,
-  },
-  closeText: {
-    color: mentaColors.action,
-    ...mentaTypography.bodySmallMedium,
-  },
-  formBody: {
-    gap: mentaSpacing[6],
-    paddingTop: mentaSpacing[6],
-  },
-  expiredBody: {
-    flex: 1,
-    paddingTop: mentaSpacing[12],
-  },
-  updatedBody: {
-    flex: 1,
-    gap: mentaSpacing[6],
-    paddingTop: mentaSpacing[8],
-  },
-  intro: { gap: mentaSpacing[2] },
-  title: { color: mentaColors.text.primary, ...mentaTypography.heading },
-  body: { color: mentaColors.text.secondary, ...mentaTypography.bodySmall },
-  secondaryBody: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.bodySmall,
-  },
-  fields: { gap: mentaSpacing[4] },
-  actions: {
-    gap: mentaSpacing[2],
-    marginTop: 'auto',
-    paddingTop: mentaSpacing[8],
-  },
-  successMark: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.successSoft,
-    borderRadius: mentaRadii.round,
-    height: 64,
-    justifyContent: 'center',
-    width: 64,
-  },
-  draftReceipt: {
-    backgroundColor: mentaColors.paper,
-    borderRadius: mentaRadii.medium,
-    gap: mentaSpacing[2],
-    padding: mentaSpacing[4],
-  },
-  draftLabel: {
-    color: mentaColors.text.mutedOnPaper,
-    ...mentaTypography.label,
-    textTransform: 'uppercase',
-  },
-  draftPromise: {
-    color: mentaColors.text.onPaper,
-    ...mentaTypography.title,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: {
+      alignSelf: 'center',
+      flexGrow: 1,
+      maxWidth: mentaLayout.phoneFrameMax,
+      paddingBottom: mentaSpacing[8],
+      paddingTop: mentaSpacing[4],
+      width: '100%',
+    },
+    checking: { flex: 1 },
+    closeAction: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: mentaLayout.minimumTouchTarget,
+      minWidth: mentaLayout.minimumTouchTarget,
+    },
+    closeText: {
+      color: mentaColors.action,
+      ...mentaTypography.bodySmallMedium,
+    },
+    formBody: {
+      gap: mentaSpacing[6],
+      paddingTop: mentaSpacing[6],
+    },
+    expiredBody: {
+      flex: 1,
+      paddingTop: mentaSpacing[12],
+    },
+    updatedBody: {
+      flex: 1,
+      gap: mentaSpacing[6],
+      paddingTop: mentaSpacing[8],
+    },
+    intro: { gap: mentaSpacing[2] },
+    title: { color: mentaColors.text.primary, ...mentaTypography.heading },
+    body: { color: mentaColors.text.secondary, ...mentaTypography.bodySmall },
+    secondaryBody: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.bodySmall,
+    },
+    fields: { gap: mentaSpacing[4] },
+    actions: {
+      gap: mentaSpacing[2],
+      marginTop: 'auto',
+      paddingTop: mentaSpacing[8],
+    },
+    successMark: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.successSoft,
+      borderRadius: mentaRadii.round,
+      height: 64,
+      justifyContent: 'center',
+      width: 64,
+    },
+    draftReceipt: {
+      backgroundColor: mentaColors.paper,
+      borderRadius: mentaRadii.medium,
+      gap: mentaSpacing[2],
+      padding: mentaSpacing[4],
+    },
+    draftLabel: {
+      color: mentaColors.text.mutedOnPaper,
+      ...mentaTypography.label,
+      textTransform: 'uppercase',
+    },
+    draftPromise: {
+      color: mentaColors.text.onPaper,
+      ...mentaTypography.title,
+    },
+  });
+  return { styles };
+};

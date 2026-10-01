@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -5,12 +12,7 @@ import { FreezeSlots } from '@/components/shop/FreezeSlots';
 import { ShopItemArt, tokenAlpha } from '@/components/shop/ShopItemArt';
 import { AppButton } from '@/components/ui/AppButton';
 import { ShieldCheckIcon } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useTranslation } from '@/lib/localization';
 
 interface ProtectedStreakReceiptProps {
@@ -44,6 +46,9 @@ export const ProtectedStreakReceipt: React.FC<ProtectedStreakReceiptProps> = ({
   freezesRemaining,
   onRefill,
 }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { locale, t } = useTranslation();
   const day = weekday(localDay, locale) ?? t('today.state.outcome.missed_day');
   const count =
@@ -125,54 +130,57 @@ export const ProtectedStreakReceipt: React.FC<ProtectedStreakReceiptProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: mentaColors.surface,
-    borderColor: tokenAlpha(mentaColors.info, 0.4),
-    borderRadius: mentaRadii.large,
-    borderWidth: 1,
-    gap: mentaSpacing[4],
-    marginHorizontal: mentaSpacing[6],
-    marginTop: mentaSpacing[5],
-    padding: mentaSpacing[4],
-  },
-  summary: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-  },
-  shield: {
-    alignItems: 'center',
-    backgroundColor: tokenAlpha(mentaColors.info, 0.14),
-    borderRadius: mentaRadii.medium,
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
-  },
-  copy: {
-    flex: 1,
-    gap: mentaSpacing[1],
-    minWidth: 0,
-  },
-  title: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-  },
-  detail: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-  },
-  remainingRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-  },
-  remainingText: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.info,
-    flexShrink: 1,
-  },
-  outlineText: {
-    color: mentaColors.action,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    card: {
+      backgroundColor: mentaColors.surface,
+      borderColor: tokenAlpha(mentaColors.info, 0.4),
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      gap: mentaSpacing[4],
+      marginHorizontal: mentaSpacing[6],
+      marginTop: mentaSpacing[5],
+      padding: mentaSpacing[4],
+    },
+    summary: {
+      alignItems: 'flex-start',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+    },
+    shield: {
+      alignItems: 'center',
+      backgroundColor: tokenAlpha(mentaColors.info, 0.14),
+      borderRadius: mentaRadii.medium,
+      height: 44,
+      justifyContent: 'center',
+      width: 44,
+    },
+    copy: {
+      flex: 1,
+      gap: mentaSpacing[1],
+      minWidth: 0,
+    },
+    title: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+    },
+    detail: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+    },
+    remainingRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+    },
+    remainingText: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.info,
+      flexShrink: 1,
+    },
+    outlineText: {
+      color: mentaColors.action,
+    },
+  });
+  return { styles };
+};

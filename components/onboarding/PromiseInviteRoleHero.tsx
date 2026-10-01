@@ -1,3 +1,9 @@
+import {
+  type MentaPalette,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import {
   Animated,
@@ -8,11 +14,7 @@ import {
 } from 'react-native';
 
 import { AppScaledText as Text } from '@/components/ui/AppScaledText';
-import {
-  mentaColors,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import type { PromiseAccountabilityRole } from '@/lib/promises/accountability';
 import { useMotionPreferences } from '@/lib/motion/use-motion-preferences';
 
@@ -42,6 +44,8 @@ export function PromiseInviteRoleHero({
   showCopy = true,
   testID = 'promise-invite-role-hero',
 }: PromiseInviteRoleHeroProps) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const motion = useMotionPreferences();
   const entrance = React.useRef(new Animated.Value(1)).current;
 
@@ -117,6 +121,8 @@ export function PromiseInviteContextLine({
   detail?: string | null;
   testID?: string;
 }) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   return (
     <View style={styles.context} testID={testID}>
       <Text style={styles.contextLabel}>{label}</Text>
@@ -126,81 +132,84 @@ export function PromiseInviteContextLine({
   );
 }
 
-const styles = StyleSheet.create({
-  shell: {
-    alignItems: 'center',
-    gap: mentaSpacing[3],
-    paddingVertical: mentaSpacing[2],
-  },
-  shellCompact: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    paddingVertical: 0,
-  },
-  shellArtOnly: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  artLane: {
-    alignItems: 'center',
-    height: 178,
-    justifyContent: 'center',
-    width: '100%',
-  },
-  artLaneCompact: {
-    flexShrink: 0,
-    height: 108,
-    width: 104,
-  },
-  art: {
-    height: 178,
-    width: 190,
-  },
-  artCompact: {
-    height: 108,
-    width: 104,
-  },
-  copy: {
-    flex: 1,
-    gap: mentaSpacing[1],
-    minWidth: 0,
-  },
-  title: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-    textAlign: 'center',
-  },
-  titleCompact: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-  },
-  detail: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-    maxWidth: 342,
-    textAlign: 'center',
-  },
-  detailCompact: {
-    textAlign: 'left',
-  },
-  context: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[1],
-    paddingVertical: mentaSpacing[4],
-  },
-  contextLabel: {
-    ...mentaTypography.label,
-    color: mentaColors.action,
-  },
-  contextPromise: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-  },
-  contextDetail: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    shell: {
+      alignItems: 'center',
+      gap: mentaSpacing[3],
+      paddingVertical: mentaSpacing[2],
+    },
+    shellCompact: {
+      alignItems: 'flex-start',
+      flexDirection: 'row',
+      paddingVertical: 0,
+    },
+    shellArtOnly: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    artLane: {
+      alignItems: 'center',
+      height: 178,
+      justifyContent: 'center',
+      width: '100%',
+    },
+    artLaneCompact: {
+      flexShrink: 0,
+      height: 108,
+      width: 104,
+    },
+    art: {
+      height: 178,
+      width: 190,
+    },
+    artCompact: {
+      height: 108,
+      width: 104,
+    },
+    copy: {
+      flex: 1,
+      gap: mentaSpacing[1],
+      minWidth: 0,
+    },
+    title: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+      textAlign: 'center',
+    },
+    titleCompact: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+    },
+    detail: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+      maxWidth: 342,
+      textAlign: 'center',
+    },
+    detailCompact: {
+      textAlign: 'left',
+    },
+    context: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[1],
+      paddingVertical: mentaSpacing[4],
+    },
+    contextLabel: {
+      ...mentaTypography.label,
+      color: mentaColors.action,
+    },
+    contextPromise: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+    },
+    contextDetail: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+  });
+  return { styles };
+};

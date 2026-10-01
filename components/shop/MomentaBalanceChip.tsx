@@ -1,13 +1,14 @@
-import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
-
 import {
-  mentaColors,
+  type MentaPalette,
   mentaLayout,
   mentaRadii,
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
+import React from 'react';
+import { Image, StyleSheet, Text, View } from 'react-native';
+
 import { useTranslation } from '@/lib/localization/use-translation';
 
 import { useCountUp } from './shop-motion';
@@ -23,6 +24,8 @@ export function MomentaMark({
   size?: number;
   tone?: 'action' | 'muted' | 'onPaper';
 }) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   return (
     <View
       accessibilityElementsHidden
@@ -57,6 +60,8 @@ export function MomentaBalanceChip({
   onPress,
   testID = 'momenta-balance-chip',
 }: MomentaBalanceChipProps) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { locale, t } = useTranslation();
   const displayed = useCountUp(balance);
   const format = (value: number) => new Intl.NumberFormat(locale).format(value);
@@ -97,32 +102,35 @@ export function MomentaBalanceChip({
   );
 }
 
-const styles = StyleSheet.create({
-  mark: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  markMuted: {
-    opacity: 0.45,
-  },
-  chip: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.actionSoft,
-    borderColor: mentaColors.actionBorder,
-    borderRadius: mentaRadii.round,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-    minHeight: mentaLayout.minimumTouchTarget,
-    paddingLeft: mentaSpacing[2],
-    paddingRight: mentaSpacing[4],
-  },
-  pressed: {
-    backgroundColor: mentaColors.raised,
-  },
-  value: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.control,
-    fontVariant: ['tabular-nums'],
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    mark: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    markMuted: {
+      opacity: 0.45,
+    },
+    chip: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.actionSoft,
+      borderColor: mentaColors.actionBorder,
+      borderRadius: mentaRadii.round,
+      borderWidth: 1,
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+      minHeight: mentaLayout.minimumTouchTarget,
+      paddingLeft: mentaSpacing[2],
+      paddingRight: mentaSpacing[4],
+    },
+    pressed: {
+      backgroundColor: mentaColors.raised,
+    },
+    value: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.control,
+      fontVariant: ['tabular-nums'],
+    },
+  });
+  return { styles };
+};

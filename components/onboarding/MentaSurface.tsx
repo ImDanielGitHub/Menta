@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaColors,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import { useTranslation } from '@/lib/localization';
 import React, {
   forwardRef,
@@ -28,12 +36,6 @@ import {
   EyeIcon,
   EyeOffIcon,
 } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
 
 export const mentaTokens = {
   canvas: mentaColors.canvas,
@@ -83,6 +85,8 @@ export const MentaScreen: React.FC<MentaScreenProps> = ({
   showTopBar = true,
   topBarVariant = 'brand',
 }) => {
+  const { mentaTokens, styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const centeredHeading = headingAlign === 'center';
   const brandedTopBar = topBarVariant === 'brand';
@@ -178,6 +182,8 @@ export const MentaButton: React.FC<MentaButtonProps> = ({
   textStyle,
   ...props
 }) => {
+  const { mentaTokens, styles } = useMentaStyles(createPaletteStyles);
+
   const primary = tone === 'primary';
   const danger = tone === 'danger';
   const ghost = tone === 'ghost';
@@ -267,6 +273,8 @@ export const MentaTextField = forwardRef<MentaFieldRef, MentaTextFieldProps>(
     },
     ref
   ) => {
+    const { mentaTokens, styles } = useMentaStyles(createPaletteStyles);
+
     const inputRef = useRef<TextInput | null>(null);
     const [focused, setFocused] = useState(false);
 
@@ -346,6 +354,8 @@ MentaTextField.displayName = 'MentaTextField';
 
 export const MentaSecureField = forwardRef<MentaFieldRef, MentaTextFieldProps>(
   (props, ref) => {
+    const { mentaTokens, styles } = useMentaStyles(createPaletteStyles);
+
     const { t } = useTranslation();
     const [visible, setVisible] = useState(false);
 
@@ -382,19 +392,24 @@ export const MentaSecureField = forwardRef<MentaFieldRef, MentaTextFieldProps>(
 
 MentaSecureField.displayName = 'MentaSecureField';
 
-export const MentaDivider: React.FC<{ label?: string }> = ({ label }) => (
-  <View style={styles.dividerRow}>
-    <View style={styles.dividerLine} />
-    {label ? <Text style={styles.dividerLabel}>{label}</Text> : null}
-    <View style={styles.dividerLine} />
-  </View>
-);
+export const MentaDivider: React.FC<{ label?: string }> = ({ label }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View style={styles.dividerRow}>
+      <View style={styles.dividerLine} />
+      {label ? <Text style={styles.dividerLabel}>{label}</Text> : null}
+      <View style={styles.dividerLine} />
+    </View>
+  );
+};
 
 export const MentaNotice: React.FC<{
   title: string;
   description?: string;
   tone?: 'error' | 'success' | 'warning' | 'info';
 }> = ({ title, description, tone = 'info' }) => {
+  const { mentaTokens, styles } = useMentaStyles(createPaletteStyles);
+
   const color = {
     error: mentaTokens.danger,
     success: mentaTokens.success,
@@ -424,33 +439,36 @@ export const MentaPillToggle = <T extends string>({
   }[];
   value: T;
   onChange: (next: T) => void;
-}) => (
-  <View style={styles.toggleShell}>
-    {options.map(option => {
-      const selected = option.value === value;
-      return (
-        <Pressable
-          key={option.value}
-          accessibilityRole="button"
-          accessibilityState={{ selected }}
-          onPress={() => onChange(option.value)}
-          testID={option.testID}
-          style={({ pressed }) => [
-            styles.toggleItem,
-            selected && styles.toggleItemSelected,
-            pressed && styles.pressed,
-          ]}
-        >
-          <Text
-            style={[styles.toggleText, selected && styles.toggleTextSelected]}
+}) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View style={styles.toggleShell}>
+      {options.map(option => {
+        const selected = option.value === value;
+        return (
+          <Pressable
+            key={option.value}
+            accessibilityRole="button"
+            accessibilityState={{ selected }}
+            onPress={() => onChange(option.value)}
+            testID={option.testID}
+            style={({ pressed }) => [
+              styles.toggleItem,
+              selected && styles.toggleItemSelected,
+              pressed && styles.pressed,
+            ]}
           >
-            {option.label}
-          </Text>
-        </Pressable>
-      );
-    })}
-  </View>
-);
+            <Text
+              style={[styles.toggleText, selected && styles.toggleTextSelected]}
+            >
+              {option.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+};
 
 export const MentaOptionRow: React.FC<{
   title: string;
@@ -470,44 +488,51 @@ export const MentaOptionRow: React.FC<{
   onPress,
   testID,
   right,
-}) => (
-  <Pressable
-    accessibilityRole="button"
-    accessibilityState={{ selected, disabled }}
-    disabled={disabled}
-    onPress={onPress}
-    testID={testID}
-    style={({ pressed }) => [
-      styles.optionRow,
-      selected && styles.optionRowSelected,
-      disabled && styles.disabled,
-      pressed && !disabled && styles.pressed,
-    ]}
-  >
-    <View style={styles.optionCopy}>
-      {meta ? <Text style={styles.optionMeta}>{meta}</Text> : null}
-      <Text style={styles.optionTitle}>{title}</Text>
-      {description ? (
-        <Text style={styles.optionDescription}>{description}</Text>
-      ) : null}
-    </View>
-    <View style={styles.optionRightStack}>
-      {right ? <View style={styles.optionIcon}>{right}</View> : null}
-      <View
-        style={[styles.radio, selected && styles.radioSelected]}
-        pointerEvents="none"
-      >
-        {selected ? <CheckIcon size={13} color={mentaTokens.inverse} /> : null}
+}) => {
+  const { mentaTokens, styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected, disabled }}
+      disabled={disabled}
+      onPress={onPress}
+      testID={testID}
+      style={({ pressed }) => [
+        styles.optionRow,
+        selected && styles.optionRowSelected,
+        disabled && styles.disabled,
+        pressed && !disabled && styles.pressed,
+      ]}
+    >
+      <View style={styles.optionCopy}>
+        {meta ? <Text style={styles.optionMeta}>{meta}</Text> : null}
+        <Text style={styles.optionTitle}>{title}</Text>
+        {description ? (
+          <Text style={styles.optionDescription}>{description}</Text>
+        ) : null}
       </View>
-    </View>
-  </Pressable>
-);
+      <View style={styles.optionRightStack}>
+        {right ? <View style={styles.optionIcon}>{right}</View> : null}
+        <View
+          style={[styles.radio, selected && styles.radioSelected]}
+          pointerEvents="none"
+        >
+          {selected ? (
+            <CheckIcon size={13} color={mentaTokens.inverse} />
+          ) : null}
+        </View>
+      </View>
+    </Pressable>
+  );
+};
 
 export const MentaStepHeader: React.FC<{
   step: number;
   totalSteps: number;
   label: string;
 }> = ({ step, totalSteps, label }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const progress = `${
     Math.max(0, Math.min(1, step / totalSteps)) * 100
@@ -534,455 +559,486 @@ export const MentaProcessRail: React.FC<{
     label: string;
     value: string;
   }[];
-}> = ({ items }) => (
-  <View style={styles.processRail}>
-    {items.map((item, index) => (
-      <View key={item.label} style={styles.processItem}>
-        <View style={styles.processIndex}>
-          <Text style={styles.processIndexText}>{index + 1}</Text>
+}> = ({ items }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View style={styles.processRail}>
+      {items.map((item, index) => (
+        <View key={item.label} style={styles.processItem}>
+          <View style={styles.processIndex}>
+            <Text style={styles.processIndexText}>{index + 1}</Text>
+          </View>
+          <View style={styles.processCopy}>
+            <Text style={styles.processLabel}>{item.label}</Text>
+            <Text style={styles.processValue}>{item.value}</Text>
+          </View>
         </View>
-        <View style={styles.processCopy}>
-          <Text style={styles.processLabel}>{item.label}</Text>
-          <Text style={styles.processValue}>{item.value}</Text>
-        </View>
-      </View>
-    ))}
-  </View>
-);
+      ))}
+    </View>
+  );
+};
 
 export const MentaSummaryRow: React.FC<{
   label: string;
   value: string;
-}> = ({ label, value }) => (
-  <View style={styles.summaryRow}>
-    <Text style={styles.summaryLabel}>{label}</Text>
-    <Text style={styles.summaryValue}>{value}</Text>
-  </View>
-);
+}> = ({ label, value }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View style={styles.summaryRow}>
+      <Text style={styles.summaryLabel}>{label}</Text>
+      <Text style={styles.summaryValue}>{value}</Text>
+    </View>
+  );
+};
 
 export const MentaLinkRow: React.FC<{
   text: string;
   action: string;
   onPress: () => void;
-}> = ({ text, action, onPress }) => (
-  <View style={styles.linkRow}>
-    <Text style={styles.linkText}>{text}</Text>
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      style={({ pressed }) => [styles.linkAction, pressed && styles.pressed]}
-    >
-      <Text style={styles.linkActionText}>{action}</Text>
-      <ChevronRightIcon size={15} color={mentaTokens.text} />
-    </Pressable>
-  </View>
-);
-
-export const MentaLoadingOverlay: React.FC<{ label: string }> = ({ label }) => (
-  <View
-    accessible
-    accessibilityLabel={label}
-    accessibilityRole="progressbar"
-    pointerEvents="none"
-    style={styles.loadingOverlay}
-  >
-    <View style={styles.loadingPill}>
-      <View style={styles.loadingBones}>
-        <SkeletonLoader announce={false} height={12} width={116} />
-        <SkeletonLoader announce={false} height={9} width={82} />
-      </View>
-      <Text style={styles.loadingText}>{label}</Text>
+}> = ({ text, action, onPress }) => {
+  const { mentaTokens, styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View style={styles.linkRow}>
+      <Text style={styles.linkText}>{text}</Text>
+      <Pressable
+        accessibilityRole="button"
+        onPress={onPress}
+        style={({ pressed }) => [styles.linkAction, pressed && styles.pressed]}
+      >
+        <Text style={styles.linkActionText}>{action}</Text>
+        <ChevronRightIcon size={15} color={mentaTokens.text} />
+      </Pressable>
     </View>
-  </View>
-);
+  );
+};
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: mentaTokens.canvas,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: mentaSpacing[6],
-    paddingTop: mentaSpacing[3],
-    paddingBottom: 36,
-  },
-  topBar: {
-    minHeight: 48,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  topBarBackOnly: {
-    justifyContent: 'flex-start',
-  },
-  topBarSide: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: mentaRadii.small,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: mentaTokens.panel,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaTokens.dividerStrong,
-  },
-  wordmark: {
-    color: mentaTokens.text,
-    ...mentaTypography.bodySemibold,
-  },
-  heroStack: {
-    gap: 14,
-    paddingTop: 16,
-    paddingBottom: 22,
-  },
-  heroStackCenter: {
-    alignItems: 'center',
-  },
-  headingBlock: {
-    gap: 12,
-  },
-  headingBlockCenter: {
-    alignItems: 'center',
-  },
-  centerText: {
-    textAlign: 'center',
-  },
-  eyebrow: {
-    color: mentaTokens.accent,
-    ...mentaTypography.label,
-  },
-  title: {
-    color: mentaTokens.text,
-    ...mentaTypography.heading,
-  },
-  subtitle: {
-    color: mentaTokens.textMuted,
-    ...mentaTypography.body,
-  },
-  footer: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaTokens.divider,
-    backgroundColor: mentaTokens.canvas,
-    flexDirection: 'row',
-    gap: 10,
-    paddingHorizontal: mentaSpacing[6],
-    paddingTop: 14,
-    paddingBottom: 18,
-  },
-  button: {
-    borderRadius: mentaRadii.medium,
-    minHeight: 56,
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  buttonText: {
-    ...mentaTypography.control,
-  },
-  fieldBlock: {
-    gap: 9,
-  },
-  fieldLabel: {
-    color: mentaTokens.text,
-    ...mentaTypography.caption,
-    fontFamily: mentaTypography.bodySemibold.fontFamily,
-  },
-  inputShell: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: mentaRadii.medium,
-    backgroundColor: mentaTokens.panelRaised,
-    paddingHorizontal: 18,
-  },
-  input: {
-    flex: 1,
-    color: mentaTokens.text,
-    ...mentaTypography.control,
-    fontFamily: mentaTypography.body.fontFamily,
-    minHeight: 56,
-    paddingVertical: 15,
-  },
-  multilineInput: {
-    minHeight: 100,
-    textAlignVertical: 'top',
-  },
-  inputRight: {
-    marginLeft: 10,
-  },
-  eyeButton: {
-    minWidth: 36,
-    minHeight: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  fieldError: {
-    color: mentaTokens.danger,
-    fontSize: 14,
-    fontWeight: '700',
-    lineHeight: 19,
-  },
-  fieldHelper: {
-    color: mentaTokens.textFaint,
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 4,
-  },
-  dividerLine: {
-    flex: 1,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: mentaTokens.divider,
-  },
-  dividerLabel: {
-    color: mentaTokens.textFaint,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  notice: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: mentaRadii.medium,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    backgroundColor: mentaTokens.panel,
-  },
-  noticeTitle: {
-    color: mentaTokens.text,
-    ...mentaTypography.bodySemibold,
-  },
-  noticeText: {
-    color: mentaTokens.textMuted,
-    ...mentaTypography.caption,
-    marginTop: 3,
-  },
-  toggleShell: {
-    flexDirection: 'row',
-    gap: 4,
-    padding: 4,
-    borderRadius: 999,
-    backgroundColor: mentaTokens.panel,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaTokens.divider,
-  },
-  toggleItem: {
-    flex: 1,
-    minHeight: 44,
-    borderRadius: 999,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 14,
-  },
-  toggleItemSelected: {
-    backgroundColor: mentaTokens.accent,
-  },
-  toggleText: {
-    color: mentaTokens.textMuted,
-    fontSize: 14,
-    fontWeight: '800',
-  },
-  toggleTextSelected: {
-    color: mentaTokens.inverse,
-  },
-  optionRow: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaTokens.divider,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    paddingVertical: 18,
-  },
-  optionRowSelected: {
-    borderTopColor: mentaTokens.text,
-  },
-  optionCopy: {
-    flex: 1,
-    gap: 5,
-  },
-  optionMeta: {
-    color: mentaTokens.textFaint,
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0,
-    textTransform: 'uppercase',
-  },
-  optionTitle: {
-    color: mentaTokens.text,
-    fontSize: 17,
-    fontWeight: '800',
-    lineHeight: 22,
-  },
-  optionDescription: {
-    color: mentaTokens.textMuted,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  optionRightStack: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 10,
-  },
-  optionIcon: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 24,
-  },
-  radio: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaTokens.dividerStrong,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioSelected: {
-    backgroundColor: mentaTokens.accent,
-    borderColor: mentaTokens.accent,
-  },
-  stepHeader: {
-    gap: 11,
-  },
-  stepMetaRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 14,
-  },
-  stepMeta: {
-    color: mentaTokens.textFaint,
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0,
-    textTransform: 'uppercase',
-  },
-  progressTrack: {
-    height: 2,
-    backgroundColor: mentaTokens.divider,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: 2,
-    backgroundColor: mentaTokens.accent,
-  },
-  processRail: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaTokens.divider,
-  },
-  processItem: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: mentaTokens.divider,
-    flexDirection: 'row',
-    gap: 14,
-    paddingVertical: 14,
-  },
-  processIndex: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: mentaTokens.text,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  processIndexText: {
-    color: mentaTokens.inverse,
-    fontSize: 13,
-    fontWeight: '900',
-  },
-  processCopy: {
-    flex: 1,
-    gap: 3,
-  },
-  processLabel: {
-    color: mentaTokens.text,
-    fontSize: 15,
-    fontWeight: '800',
-  },
-  processValue: {
-    color: mentaTokens.textMuted,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  summaryRow: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: mentaTokens.divider,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 16,
-    paddingVertical: 13,
-  },
-  summaryLabel: {
-    color: mentaTokens.textFaint,
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  summaryValue: {
-    color: mentaTokens.text,
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '800',
-    lineHeight: 19,
-    textAlign: 'right',
-  },
-  linkRow: {
-    alignItems: 'center',
-    gap: 9,
-    paddingTop: 2,
-  },
-  linkText: {
-    color: mentaTokens.textMuted,
-    fontSize: 14,
-    lineHeight: 20,
-    textAlign: 'center',
-  },
-  linkAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    minHeight: 34,
-  },
-  linkActionText: {
-    color: mentaTokens.text,
-    fontSize: 14,
-    fontWeight: '800',
-  },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFill,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  loadingPill: {
-    alignItems: 'center',
-    backgroundColor: mentaTokens.panel,
-    borderRadius: mentaRadii.medium,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaTokens.dividerStrong,
-    gap: mentaSpacing[3],
-    minWidth: 176,
-    paddingHorizontal: 18,
-    paddingVertical: 16,
-  },
-  loadingText: {
-    color: mentaTokens.text,
-    textAlign: 'center',
-    ...mentaTypography.caption,
-  },
-  loadingBones: {
-    alignItems: 'center',
-    gap: mentaSpacing[2],
-  },
-  pressed: {
-    opacity: 0.72,
-    transform: [{ scale: 0.99 }],
-  },
-  disabled: {
-    opacity: 0.42,
-  },
-});
+export const MentaLoadingOverlay: React.FC<{ label: string }> = ({ label }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View
+      accessible
+      accessibilityLabel={label}
+      accessibilityRole="progressbar"
+      pointerEvents="none"
+      style={styles.loadingOverlay}
+    >
+      <View style={styles.loadingPill}>
+        <View style={styles.loadingBones}>
+          <SkeletonLoader announce={false} height={12} width={116} />
+          <SkeletonLoader announce={false} height={9} width={82} />
+        </View>
+        <Text style={styles.loadingText}>{label}</Text>
+      </View>
+    </View>
+  );
+};
+
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const mentaTokens = {
+    canvas: mentaColors.canvas,
+    panel: mentaColors.surface,
+    panelRaised: mentaColors.raised,
+    text: mentaColors.text.primary,
+    textMuted: mentaColors.text.secondary,
+    textFaint: mentaColors.text.muted,
+    inverse: mentaColors.canvas,
+    divider: mentaColors.border,
+    dividerStrong: mentaColors.border,
+    accent: mentaColors.action,
+    warning: mentaColors.warning,
+    danger: mentaColors.danger,
+    dangerSoft: mentaColors.dangerSoft,
+    success: mentaColors.success,
+  };
+  const styles = StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: mentaTokens.canvas,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingHorizontal: mentaSpacing[6],
+      paddingTop: mentaSpacing[3],
+      paddingBottom: 36,
+    },
+    topBar: {
+      minHeight: 48,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    topBarBackOnly: {
+      justifyContent: 'flex-start',
+    },
+    topBarSide: {
+      width: 44,
+      height: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    backButton: {
+      width: 44,
+      height: 44,
+      borderRadius: mentaRadii.small,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: mentaTokens.panel,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaTokens.dividerStrong,
+    },
+    wordmark: {
+      color: mentaTokens.text,
+      ...mentaTypography.bodySemibold,
+    },
+    heroStack: {
+      gap: 14,
+      paddingTop: 16,
+      paddingBottom: 22,
+    },
+    heroStackCenter: {
+      alignItems: 'center',
+    },
+    headingBlock: {
+      gap: 12,
+    },
+    headingBlockCenter: {
+      alignItems: 'center',
+    },
+    centerText: {
+      textAlign: 'center',
+    },
+    eyebrow: {
+      color: mentaTokens.accent,
+      ...mentaTypography.label,
+    },
+    title: {
+      color: mentaTokens.text,
+      ...mentaTypography.heading,
+    },
+    subtitle: {
+      color: mentaTokens.textMuted,
+      ...mentaTypography.body,
+    },
+    footer: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaTokens.divider,
+      backgroundColor: mentaTokens.canvas,
+      flexDirection: 'row',
+      gap: 10,
+      paddingHorizontal: mentaSpacing[6],
+      paddingTop: 14,
+      paddingBottom: 18,
+    },
+    button: {
+      borderRadius: mentaRadii.medium,
+      minHeight: 56,
+      shadowOpacity: 0,
+      elevation: 0,
+    },
+    buttonText: {
+      ...mentaTypography.control,
+    },
+    fieldBlock: {
+      gap: 9,
+    },
+    fieldLabel: {
+      color: mentaTokens.text,
+      ...mentaTypography.caption,
+      fontFamily: mentaTypography.bodySemibold.fontFamily,
+    },
+    inputShell: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderRadius: mentaRadii.medium,
+      backgroundColor: mentaTokens.panelRaised,
+      paddingHorizontal: 18,
+    },
+    input: {
+      flex: 1,
+      color: mentaTokens.text,
+      ...mentaTypography.control,
+      fontFamily: mentaTypography.body.fontFamily,
+      minHeight: 56,
+      paddingVertical: 15,
+    },
+    multilineInput: {
+      minHeight: 100,
+      textAlignVertical: 'top',
+    },
+    inputRight: {
+      marginLeft: 10,
+    },
+    eyeButton: {
+      minWidth: 36,
+      minHeight: 36,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    fieldError: {
+      color: mentaTokens.danger,
+      fontSize: 14,
+      fontWeight: '700',
+      lineHeight: 19,
+    },
+    fieldHelper: {
+      color: mentaTokens.textFaint,
+      fontSize: 13,
+      lineHeight: 18,
+    },
+    dividerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingVertical: 4,
+    },
+    dividerLine: {
+      flex: 1,
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: mentaTokens.divider,
+    },
+    dividerLabel: {
+      color: mentaTokens.textFaint,
+      fontSize: 13,
+      fontWeight: '700',
+    },
+    notice: {
+      borderWidth: StyleSheet.hairlineWidth,
+      borderRadius: mentaRadii.medium,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      backgroundColor: mentaTokens.panel,
+    },
+    noticeTitle: {
+      color: mentaTokens.text,
+      ...mentaTypography.bodySemibold,
+    },
+    noticeText: {
+      color: mentaTokens.textMuted,
+      ...mentaTypography.caption,
+      marginTop: 3,
+    },
+    toggleShell: {
+      flexDirection: 'row',
+      gap: 4,
+      padding: 4,
+      borderRadius: 999,
+      backgroundColor: mentaTokens.panel,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaTokens.divider,
+    },
+    toggleItem: {
+      flex: 1,
+      minHeight: 44,
+      borderRadius: 999,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 14,
+    },
+    toggleItemSelected: {
+      backgroundColor: mentaTokens.accent,
+    },
+    toggleText: {
+      color: mentaTokens.textMuted,
+      fontSize: 14,
+      fontWeight: '800',
+    },
+    toggleTextSelected: {
+      color: mentaTokens.inverse,
+    },
+    optionRow: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaTokens.divider,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+      paddingVertical: 18,
+    },
+    optionRowSelected: {
+      borderTopColor: mentaTokens.text,
+    },
+    optionCopy: {
+      flex: 1,
+      gap: 5,
+    },
+    optionMeta: {
+      color: mentaTokens.textFaint,
+      fontSize: 11,
+      fontWeight: '800',
+      letterSpacing: 0,
+      textTransform: 'uppercase',
+    },
+    optionTitle: {
+      color: mentaTokens.text,
+      fontSize: 17,
+      fontWeight: '800',
+      lineHeight: 22,
+    },
+    optionDescription: {
+      color: mentaTokens.textMuted,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+    optionRightStack: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 10,
+    },
+    optionIcon: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: 24,
+    },
+    radio: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaTokens.dividerStrong,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    radioSelected: {
+      backgroundColor: mentaTokens.accent,
+      borderColor: mentaTokens.accent,
+    },
+    stepHeader: {
+      gap: 11,
+    },
+    stepMetaRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: 14,
+    },
+    stepMeta: {
+      color: mentaTokens.textFaint,
+      fontSize: 12,
+      fontWeight: '800',
+      letterSpacing: 0,
+      textTransform: 'uppercase',
+    },
+    progressTrack: {
+      height: 2,
+      backgroundColor: mentaTokens.divider,
+      overflow: 'hidden',
+    },
+    progressFill: {
+      height: 2,
+      backgroundColor: mentaTokens.accent,
+    },
+    processRail: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaTokens.divider,
+    },
+    processItem: {
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: mentaTokens.divider,
+      flexDirection: 'row',
+      gap: 14,
+      paddingVertical: 14,
+    },
+    processIndex: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: mentaTokens.text,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    processIndexText: {
+      color: mentaTokens.inverse,
+      fontSize: 13,
+      fontWeight: '900',
+    },
+    processCopy: {
+      flex: 1,
+      gap: 3,
+    },
+    processLabel: {
+      color: mentaTokens.text,
+      fontSize: 15,
+      fontWeight: '800',
+    },
+    processValue: {
+      color: mentaTokens.textMuted,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+    summaryRow: {
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: mentaTokens.divider,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: 16,
+      paddingVertical: 13,
+    },
+    summaryLabel: {
+      color: mentaTokens.textFaint,
+      fontSize: 13,
+      fontWeight: '800',
+    },
+    summaryValue: {
+      color: mentaTokens.text,
+      flex: 1,
+      fontSize: 14,
+      fontWeight: '800',
+      lineHeight: 19,
+      textAlign: 'right',
+    },
+    linkRow: {
+      alignItems: 'center',
+      gap: 9,
+      paddingTop: 2,
+    },
+    linkText: {
+      color: mentaTokens.textMuted,
+      fontSize: 14,
+      lineHeight: 20,
+      textAlign: 'center',
+    },
+    linkAction: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 3,
+      minHeight: 34,
+    },
+    linkActionText: {
+      color: mentaTokens.text,
+      fontSize: 14,
+      fontWeight: '800',
+    },
+    loadingOverlay: {
+      ...StyleSheet.absoluteFill,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    loadingPill: {
+      alignItems: 'center',
+      backgroundColor: mentaTokens.panel,
+      borderRadius: mentaRadii.medium,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaTokens.dividerStrong,
+      gap: mentaSpacing[3],
+      minWidth: 176,
+      paddingHorizontal: 18,
+      paddingVertical: 16,
+    },
+    loadingText: {
+      color: mentaTokens.text,
+      textAlign: 'center',
+      ...mentaTypography.caption,
+    },
+    loadingBones: {
+      alignItems: 'center',
+      gap: mentaSpacing[2],
+    },
+    pressed: {
+      opacity: 0.72,
+      transform: [{ scale: 0.99 }],
+    },
+    disabled: {
+      opacity: 0.42,
+    },
+  });
+  return { mentaTokens, styles };
+};

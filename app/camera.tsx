@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useCallback, useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -12,12 +19,7 @@ import {
   ImageIcon,
   VideoIcon,
 } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { withReadableLeading } from '@/constants/phone-layout';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 
@@ -34,6 +36,9 @@ const getProofIcon = (verificationType?: string) => {
 };
 
 export default function CameraCompatibilityScreen() {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const router = useRouter();
   const { t } = useTranslation();
   const phoneLayout = usePhoneLayout();
@@ -214,157 +219,160 @@ export default function CameraCompatibilityScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    backgroundColor: mentaColors.canvas,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: mentaSpacing[6],
-    paddingTop: mentaSpacing[2],
-    paddingBottom: mentaSpacing[8],
-    gap: mentaSpacing[6],
-  },
-  statusPill: {
-    minHeight: 38,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: mentaSpacing[1],
-    paddingHorizontal: mentaSpacing[3],
-    borderRadius: mentaRadii.round,
-    borderWidth: 1,
-    borderColor: mentaColors.border,
-    backgroundColor: mentaColors.raised,
-  },
-  statusPillText: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.labelBold,
-  },
-  hero: {
-    gap: mentaSpacing[2],
-    paddingTop: mentaSpacing[6],
-  },
-  proofIcon: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: mentaColors.actionBorder,
-    backgroundColor: mentaColors.actionSoft,
-    marginBottom: mentaSpacing[2],
-  },
-  heroTitle: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.heading,
-  },
-  heroCopy: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.body,
-  },
-  proofCard: {
-    gap: mentaSpacing[4],
-    paddingTop: mentaSpacing[4],
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-  },
-  proofCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: mentaSpacing[4],
-  },
-  proofCardTitle: {
-    flex: 1,
-    color: mentaColors.text.primary,
-    ...mentaTypography.bodySemibold,
-  },
-  proofCardMeta: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.bodySmallMedium,
-  },
-  capturePreview: {
-    minHeight: 190,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: mentaSpacing[1],
-    borderRadius: mentaRadii.large,
-    borderWidth: 1,
-    borderColor: mentaColors.border,
-    backgroundColor: mentaColors.surface,
-    overflow: 'hidden',
-  },
-  capturePreviewLabel: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.labelBold,
-    textTransform: 'uppercase',
-  },
-  capturePreviewText: {
-    maxWidth: 260,
-    color: mentaColors.text.secondary,
-    ...mentaTypography.caption,
-    textAlign: 'center',
-  },
-  cornerTopLeft: {
-    position: 'absolute',
-    top: mentaSpacing[6],
-    left: mentaSpacing[6],
-    width: 24,
-    height: 24,
-    borderTopWidth: 2,
-    borderLeftWidth: 2,
-    borderColor: mentaColors.action,
-  },
-  cornerTopRight: {
-    position: 'absolute',
-    top: mentaSpacing[6],
-    right: mentaSpacing[6],
-    width: 24,
-    height: 24,
-    borderTopWidth: 2,
-    borderRightWidth: 2,
-    borderColor: mentaColors.action,
-  },
-  cornerBottomLeft: {
-    position: 'absolute',
-    bottom: mentaSpacing[6],
-    left: mentaSpacing[6],
-    width: 24,
-    height: 24,
-    borderBottomWidth: 2,
-    borderLeftWidth: 2,
-    borderColor: mentaColors.action,
-  },
-  cornerBottomRight: {
-    position: 'absolute',
-    right: mentaSpacing[6],
-    bottom: mentaSpacing[6],
-    width: 24,
-    height: 24,
-    borderRightWidth: 2,
-    borderBottomWidth: 2,
-    borderColor: mentaColors.action,
-  },
-  proofRows: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-  },
-  proofRow: {
-    minHeight: 48,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: mentaSpacing[2],
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: mentaColors.border,
-  },
-  proofRowText: {
-    flex: 1,
-    color: mentaColors.text.secondary,
-    ...mentaTypography.caption,
-  },
-  actions: {
-    marginTop: 'auto',
-    gap: mentaSpacing[3],
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: {
+      backgroundColor: mentaColors.canvas,
+    },
+    content: {
+      flex: 1,
+      paddingHorizontal: mentaSpacing[6],
+      paddingTop: mentaSpacing[2],
+      paddingBottom: mentaSpacing[8],
+      gap: mentaSpacing[6],
+    },
+    statusPill: {
+      minHeight: 38,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: mentaSpacing[1],
+      paddingHorizontal: mentaSpacing[3],
+      borderRadius: mentaRadii.round,
+      borderWidth: 1,
+      borderColor: mentaColors.border,
+      backgroundColor: mentaColors.raised,
+    },
+    statusPillText: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.labelBold,
+    },
+    hero: {
+      gap: mentaSpacing[2],
+      paddingTop: mentaSpacing[6],
+    },
+    proofIcon: {
+      width: 58,
+      height: 58,
+      borderRadius: 29,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: mentaColors.actionBorder,
+      backgroundColor: mentaColors.actionSoft,
+      marginBottom: mentaSpacing[2],
+    },
+    heroTitle: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.heading,
+    },
+    heroCopy: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.body,
+    },
+    proofCard: {
+      gap: mentaSpacing[4],
+      paddingTop: mentaSpacing[4],
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+    },
+    proofCardHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: mentaSpacing[4],
+    },
+    proofCardTitle: {
+      flex: 1,
+      color: mentaColors.text.primary,
+      ...mentaTypography.bodySemibold,
+    },
+    proofCardMeta: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.bodySmallMedium,
+    },
+    capturePreview: {
+      minHeight: 190,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: mentaSpacing[1],
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      borderColor: mentaColors.border,
+      backgroundColor: mentaColors.surface,
+      overflow: 'hidden',
+    },
+    capturePreviewLabel: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.labelBold,
+      textTransform: 'uppercase',
+    },
+    capturePreviewText: {
+      maxWidth: 260,
+      color: mentaColors.text.secondary,
+      ...mentaTypography.caption,
+      textAlign: 'center',
+    },
+    cornerTopLeft: {
+      position: 'absolute',
+      top: mentaSpacing[6],
+      left: mentaSpacing[6],
+      width: 24,
+      height: 24,
+      borderTopWidth: 2,
+      borderLeftWidth: 2,
+      borderColor: mentaColors.action,
+    },
+    cornerTopRight: {
+      position: 'absolute',
+      top: mentaSpacing[6],
+      right: mentaSpacing[6],
+      width: 24,
+      height: 24,
+      borderTopWidth: 2,
+      borderRightWidth: 2,
+      borderColor: mentaColors.action,
+    },
+    cornerBottomLeft: {
+      position: 'absolute',
+      bottom: mentaSpacing[6],
+      left: mentaSpacing[6],
+      width: 24,
+      height: 24,
+      borderBottomWidth: 2,
+      borderLeftWidth: 2,
+      borderColor: mentaColors.action,
+    },
+    cornerBottomRight: {
+      position: 'absolute',
+      right: mentaSpacing[6],
+      bottom: mentaSpacing[6],
+      width: 24,
+      height: 24,
+      borderRightWidth: 2,
+      borderBottomWidth: 2,
+      borderColor: mentaColors.action,
+    },
+    proofRows: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+    },
+    proofRow: {
+      minHeight: 48,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: mentaSpacing[2],
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: mentaColors.border,
+    },
+    proofRowText: {
+      flex: 1,
+      color: mentaColors.text.secondary,
+      ...mentaTypography.caption,
+    },
+    actions: {
+      marginTop: 'auto',
+      gap: mentaSpacing[3],
+    },
+  });
+  return { styles };
+};

@@ -121,6 +121,9 @@ function getAndroidChannelId(record: NotificationRecord): string {
     case 'verification_pending':
     case 'verification_approved':
     case 'verification_rejected':
+    case 'menta_check_counted':
+    case 'menta_check_not_yet':
+    case 'menta_check_stepped_in':
       return 'verification_updates';
     case 'streak_achievement':
     case 'streak_recovery':
@@ -785,6 +788,18 @@ export async function loadCurrentMessageContext(
       ) {
         return { skipReason: 'SKIPPED_REVIEW_ALREADY_RESOLVED' };
       }
+      const { data: canReview, error: recipientError } = await supabase.rpc(
+        'is_challenge_review_recipient_v1',
+        {
+          p_challenge_id: data.challenge_id,
+          p_submitter_id: data.user_id,
+          p_reviewer_id: record.user_id,
+        }
+      );
+      if (recipientError)
+        throw new Error('Could not re-check review permission.');
+      if (canReview !== true)
+        return { skipReason: 'SKIPPED_REVIEWER_NOT_ALLOWED' };
       return { pendingReviews: 1 };
     }
     if (typeof payload.postId === 'string') {

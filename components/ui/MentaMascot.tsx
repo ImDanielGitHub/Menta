@@ -20,6 +20,8 @@ import {
  * still PNG or the first frame of an explicitly selected sprite sheet.
  */
 export type MascotState =
+  | 'feedback-listening'
+  | 'items-empty'
   | 'proof-proud'
   | 'celebration'
   | 'notification-bell-guide'
@@ -35,6 +37,7 @@ export type MascotState =
   | 'promise-confirmed'
   | 'promise-guide'
   | 'today-proof-due'
+  | 'camera-access-off'
   | 'today-review-wait'
   | 'today-accepted'
   | 'today-correction'
@@ -51,9 +54,13 @@ export type MascotState =
   | 'welcome-back'
   | 'momenta-ad-watch'
   | 'momenta-short'
-  | 'pro-crown';
+  | 'pro-crown'
+  | 'menta-check'
+  | 'together';
 
 const MASCOT_SPRITES: Record<MascotState, number> = {
+  'feedback-listening': require('@/assets/images/mascot/feedback-listening.png'),
+  'items-empty': require('@/assets/images/mascot/items-empty-bag.png'),
   'proof-proud': require('@/assets/images/mascot/proof-proud.png'),
   celebration: require('@/assets/images/mascot/celebration.png'),
   'notification-bell-guide': require('@/assets/images/mascot/notification-bell-guide.png'),
@@ -69,6 +76,7 @@ const MASCOT_SPRITES: Record<MascotState, number> = {
   'promise-confirmed': require('@/assets/images/mascot/promise-confirmed.png'),
   'promise-guide': require('@/assets/images/mascot/promise-guide.png'),
   'today-proof-due': require('@/assets/images/mascot/today-proof-due.png'),
+  'camera-access-off': require('@/assets/images/mascot/camera-access-off.png'),
   'today-review-wait': require('@/assets/images/mascot/today-review-wait.png'),
   'today-accepted': require('@/assets/images/mascot/today-accepted.png'),
   'today-correction': require('@/assets/images/mascot/today-correction.png'),
@@ -86,6 +94,8 @@ const MASCOT_SPRITES: Record<MascotState, number> = {
   'momenta-ad-watch': require('@/assets/images/mascot/momenta-ad-watch.png'),
   'momenta-short': require('@/assets/images/mascot/momenta-short.png'),
   'pro-crown': require('@/assets/images/mascot/pro-crown.png'),
+  'menta-check': require('@/assets/images/mascot/roles/reviewer.png'),
+  together: require('@/assets/images/mascot/roles/do-it-together.png'),
 };
 
 const SIZE_PRESETS = {

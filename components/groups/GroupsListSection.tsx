@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -7,13 +15,7 @@ import {
   ChevronRightIcon,
   UsersIcon,
 } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { MentaNarrator } from '@/components/onboarding/MentaNarrator';
 import { withReadableLeading } from '@/constants/phone-layout';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
@@ -80,6 +82,9 @@ const GroupMark = ({
   compact?: boolean;
   group: Group;
 }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const imageUrl = group.image_url?.trim() || null;
   const imagePreset = resolveGroupImagePreset(imageUrl);
@@ -133,6 +138,8 @@ const GroupMark = ({
 };
 
 const GroupsSkeleton = ({ tab }: { tab: GroupsListTab }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const { t } = useTranslation();
 
@@ -224,6 +231,9 @@ const GroupsUnavailable = ({
   onRefreshGroups,
   onGoToToday,
 }: Pick<GroupsListSectionProps, 'onRefreshGroups' | 'onGoToToday'>) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const { t } = useTranslation();
   const phoneLayout = usePhoneLayout();
@@ -286,6 +296,8 @@ const MyGroupsEmpty = ({
   GroupsListSectionProps,
   'onChoosePromise' | 'onCreateGroup' | 'onJoinWithCode'
 >) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const { t } = useTranslation();
   const phoneLayout = usePhoneLayout();
@@ -354,6 +366,9 @@ const SharedPromisesList = ({
   stale?: boolean;
   onOpenPromise: (challengeId: string) => void;
 }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const { t } = useTranslation();
   return (
@@ -448,6 +463,9 @@ const MyGroupsList = ({
   stale?: boolean;
   onOpenGroup: (groupId: string) => void;
 }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const { t } = useTranslation();
   const phoneLayout = usePhoneLayout();
@@ -556,6 +574,8 @@ const DiscoverEmpty = ({
   onRefreshGroups,
   onJoinWithCode,
 }: Pick<GroupsListSectionProps, 'onRefreshGroups' | 'onJoinWithCode'>) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const { t } = useTranslation();
 
@@ -599,6 +619,8 @@ const DiscoverGroupsList = ({
   groups: Group[];
   onPreviewGroup: (group: Group) => void;
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const { t } = useTranslation();
 
@@ -670,6 +692,8 @@ const DiscoverGroupsList = ({
 };
 
 export const GroupsListSection: React.FC<GroupsListSectionProps> = props => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const {
     tab,
@@ -775,243 +799,250 @@ export const GroupsListSection: React.FC<GroupsListSectionProps> = props => {
   );
 };
 
-const styles = StyleSheet.create({
-  contentState: { flex: 1, gap: mentaSpacing[5] },
-  loadingState: { gap: mentaSpacing[3] },
-  segmentShell: {
-    width: '100%',
-    height: 44,
-    flexDirection: 'row',
-    gap: mentaSpacing[1],
-    padding: mentaSpacing[1],
-    borderRadius: mentaRadii.medium,
-  },
-  loadingSegment: {
-    flex: 1,
-    height: 36,
-    borderRadius: mentaRadii.small,
-    width: 'auto',
-  },
-  loadingList: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: mentaRadii.large,
-    overflow: 'hidden',
-  },
-  loadingRow: {
-    minHeight: 82,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    paddingHorizontal: mentaSpacing[4],
-    paddingVertical: mentaSpacing[3],
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  loadingCopy: { flex: 1, gap: mentaSpacing[2] },
-  blockingState: {
-    flex: 1,
-    justifyContent: 'center',
-    gap: mentaSpacing[5],
-  },
-  errorMark: {
-    width: 54,
-    height: 54,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: mentaRadii.large,
-    borderWidth: 1,
-    borderColor: mentaColors.danger,
-    backgroundColor: mentaColors.dangerSoft,
-  },
-  blockingCopy: { gap: mentaSpacing[2] },
-  blockingTitle: {
-    ...mentaTypography.heading,
-  },
-  blockingDescription: {
-    ...mentaTypography.body,
-    width: '100%',
-  },
-  blockingActions: { gap: mentaSpacing[2], marginTop: 'auto' },
-  emptyState: { flex: 1, justifyContent: 'space-between' },
-  emptyBody: {
-    flex: 1,
-    justifyContent: 'center',
-    gap: mentaSpacing[4],
-  },
-  emptyDescription: {
-    ...mentaTypography.body,
-    textAlign: 'center',
-  },
-  emptyActions: { gap: mentaSpacing[1], paddingTop: mentaSpacing[3] },
-  section: { gap: mentaSpacing[3] },
-  sectionHeader: {
-    minHeight: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  sectionTitle: {
-    ...mentaTypography.labelBold,
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  sectionCount: { ...mentaTypography.caption },
-  sharedPromiseList: { gap: mentaSpacing[3] },
-  sharedPromiseLoading: {
-    backgroundColor: mentaColors.paper,
-    borderColor: mentaColors.borderPaper,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: mentaRadii.large,
-    minHeight: 168,
-    padding: mentaSpacing[5],
-    justifyContent: 'center',
-  },
-  paperSkeleton: { backgroundColor: mentaColors.borderPaper },
-  sharedPromiseRow: {
-    alignItems: 'stretch',
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 168,
-    padding: mentaSpacing[5],
-  },
-  sharedPromiseCopy: { flex: 1, gap: mentaSpacing[2], minWidth: 0 },
-  sharedPromiseTitleRow: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-  },
-  sharedPromiseTitle: {
-    ...mentaTypography.title,
-    color: mentaColors.text.onPaper,
-    flex: 1,
-  },
-  sharedPromiseFooter: {
-    borderTopColor: mentaColors.borderPaper,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: mentaSpacing[2],
-    marginTop: mentaSpacing[2],
-    paddingTop: mentaSpacing[3],
-  },
-  sharedPromisePeople: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.mutedOnPaper,
-    flexShrink: 0,
-  },
-  sharedPromiseStatus: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.mutedOnPaper,
-  },
-  list: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: mentaRadii.large,
-    overflow: 'hidden',
-  },
-  ownedList: {
-    backgroundColor: 'transparent',
-    borderWidth: 0,
-    gap: mentaSpacing[3],
-    overflow: 'visible',
-  },
-  groupRow: {
-    minHeight: 120,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: mentaSpacing[4],
-    paddingHorizontal: mentaSpacing[4],
-    paddingVertical: mentaSpacing[4],
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  groupMark: {
-    width: 56,
-    height: 56,
-    flexShrink: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: mentaRadii.medium,
-  },
-  groupMarkCompact: { width: 44, height: 44, borderRadius: mentaRadii.medium },
-  groupMarkInitial: {
-    ...mentaTypography.title,
-    fontSize: 24,
-    lineHeight: 28,
-  },
-  groupMarkInitialCompact: { fontSize: 19, lineHeight: 22 },
-  groupMarkImage: {
-    borderRadius: mentaRadii.medium,
-    height: '100%',
-    width: '100%',
-  },
-  groupCopy: { flex: 1, minWidth: 0, gap: mentaSpacing[2] },
-  groupTitleRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-  },
-  groupTitleRowLargeText: {
-    alignItems: 'flex-start',
-    flexWrap: 'wrap',
-  },
-  groupTitle: {
-    ...mentaTypography.bodySemibold,
-    fontSize: 18,
-    lineHeight: 24,
-    flex: 1,
-  },
-  groupRoleChip: {
-    borderRadius: mentaRadii.round,
-    paddingHorizontal: mentaSpacing[2],
-    paddingVertical: 3,
-  },
-  groupRole: { ...mentaTypography.caption },
-  groupDescription: { ...mentaTypography.bodySmall, minHeight: 21 },
-  groupFooter: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    justifyContent: 'space-between',
-  },
-  groupMeta: { ...mentaTypography.caption },
-  groupOpenAffordance: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[1],
-  },
-  trailingLane: {
-    width: mentaLayout.iconLane,
-    flexShrink: 0,
-    alignItems: 'flex-end',
-  },
-  discoverRow: {
-    minHeight: 104,
-    gap: 14,
-    paddingHorizontal: mentaSpacing[4],
-    paddingVertical: mentaSpacing[3],
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    backgroundColor: 'transparent',
-  },
-  discoverHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: mentaSpacing[3],
-  },
-  discoverCopy: { flex: 1, minWidth: 0, gap: mentaSpacing[1] },
-  discoverMeta: { ...mentaTypography.caption },
-  discoverDescription: {
-    ...mentaTypography.bodySmall,
-  },
-  discoverEmpty: {
-    gap: mentaSpacing[4],
-    paddingVertical: mentaSpacing[8],
-  },
-  discoverEmptyTitle: {
-    ...mentaTypography.heading,
-  },
-  discoverEmptyDescription: {
-    ...mentaTypography.body,
-  },
-  lastRow: { borderBottomWidth: 0 },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    contentState: { flex: 1, gap: mentaSpacing[5] },
+    loadingState: { gap: mentaSpacing[3] },
+    segmentShell: {
+      width: '100%',
+      height: 44,
+      flexDirection: 'row',
+      gap: mentaSpacing[1],
+      padding: mentaSpacing[1],
+      borderRadius: mentaRadii.medium,
+    },
+    loadingSegment: {
+      flex: 1,
+      height: 36,
+      borderRadius: mentaRadii.small,
+      width: 'auto',
+    },
+    loadingList: {
+      borderWidth: StyleSheet.hairlineWidth,
+      borderRadius: mentaRadii.large,
+      overflow: 'hidden',
+    },
+    loadingRow: {
+      minHeight: 82,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 14,
+      paddingHorizontal: mentaSpacing[4],
+      paddingVertical: mentaSpacing[3],
+      borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+    loadingCopy: { flex: 1, gap: mentaSpacing[2] },
+    blockingState: {
+      flex: 1,
+      justifyContent: 'center',
+      gap: mentaSpacing[5],
+    },
+    errorMark: {
+      width: 54,
+      height: 54,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      borderColor: mentaColors.danger,
+      backgroundColor: mentaColors.dangerSoft,
+    },
+    blockingCopy: { gap: mentaSpacing[2] },
+    blockingTitle: {
+      ...mentaTypography.heading,
+    },
+    blockingDescription: {
+      ...mentaTypography.body,
+      width: '100%',
+    },
+    blockingActions: { gap: mentaSpacing[2], marginTop: 'auto' },
+    emptyState: { flex: 1, justifyContent: 'space-between' },
+    emptyBody: {
+      flex: 1,
+      justifyContent: 'center',
+      gap: mentaSpacing[4],
+    },
+    emptyDescription: {
+      ...mentaTypography.body,
+      textAlign: 'center',
+    },
+    emptyActions: { gap: mentaSpacing[1], paddingTop: mentaSpacing[3] },
+    section: { gap: mentaSpacing[3] },
+    sectionHeader: {
+      minHeight: 18,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    sectionTitle: {
+      ...mentaTypography.labelBold,
+      fontSize: 13,
+      lineHeight: 18,
+    },
+    sectionCount: { ...mentaTypography.caption },
+    sharedPromiseList: { gap: mentaSpacing[3] },
+    sharedPromiseLoading: {
+      backgroundColor: mentaColors.paper,
+      borderColor: mentaColors.borderPaper,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderRadius: mentaRadii.large,
+      minHeight: 168,
+      padding: mentaSpacing[5],
+      justifyContent: 'center',
+    },
+    paperSkeleton: { backgroundColor: mentaColors.borderPaper },
+    sharedPromiseRow: {
+      alignItems: 'stretch',
+      borderRadius: mentaRadii.large,
+      borderWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 168,
+      padding: mentaSpacing[5],
+    },
+    sharedPromiseCopy: { flex: 1, gap: mentaSpacing[2], minWidth: 0 },
+    sharedPromiseTitleRow: {
+      alignItems: 'flex-start',
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+    },
+    sharedPromiseTitle: {
+      ...mentaTypography.title,
+      color: mentaColors.text.onPaper,
+      flex: 1,
+    },
+    sharedPromiseFooter: {
+      borderTopColor: mentaColors.borderPaper,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: mentaSpacing[2],
+      marginTop: mentaSpacing[2],
+      paddingTop: mentaSpacing[3],
+    },
+    sharedPromisePeople: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.mutedOnPaper,
+      flexShrink: 0,
+    },
+    sharedPromiseStatus: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.mutedOnPaper,
+    },
+    list: {
+      borderWidth: StyleSheet.hairlineWidth,
+      borderRadius: mentaRadii.large,
+      overflow: 'hidden',
+    },
+    ownedList: {
+      backgroundColor: 'transparent',
+      borderWidth: 0,
+      gap: mentaSpacing[3],
+      overflow: 'visible',
+    },
+    groupRow: {
+      minHeight: 120,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: mentaSpacing[4],
+      paddingHorizontal: mentaSpacing[4],
+      paddingVertical: mentaSpacing[4],
+      borderRadius: mentaRadii.large,
+      borderWidth: StyleSheet.hairlineWidth,
+    },
+    groupMark: {
+      width: 56,
+      height: 56,
+      flexShrink: 0,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: mentaRadii.medium,
+    },
+    groupMarkCompact: {
+      width: 44,
+      height: 44,
+      borderRadius: mentaRadii.medium,
+    },
+    groupMarkInitial: {
+      ...mentaTypography.title,
+      fontSize: 24,
+      lineHeight: 28,
+    },
+    groupMarkInitialCompact: { fontSize: 19, lineHeight: 22 },
+    groupMarkImage: {
+      borderRadius: mentaRadii.medium,
+      height: '100%',
+      width: '100%',
+    },
+    groupCopy: { flex: 1, minWidth: 0, gap: mentaSpacing[2] },
+    groupTitleRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+    },
+    groupTitleRowLargeText: {
+      alignItems: 'flex-start',
+      flexWrap: 'wrap',
+    },
+    groupTitle: {
+      ...mentaTypography.bodySemibold,
+      fontSize: 18,
+      lineHeight: 24,
+      flex: 1,
+    },
+    groupRoleChip: {
+      borderRadius: mentaRadii.round,
+      paddingHorizontal: mentaSpacing[2],
+      paddingVertical: 3,
+    },
+    groupRole: { ...mentaTypography.caption },
+    groupDescription: { ...mentaTypography.bodySmall, minHeight: 21 },
+    groupFooter: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      justifyContent: 'space-between',
+    },
+    groupMeta: { ...mentaTypography.caption },
+    groupOpenAffordance: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[1],
+    },
+    trailingLane: {
+      width: mentaLayout.iconLane,
+      flexShrink: 0,
+      alignItems: 'flex-end',
+    },
+    discoverRow: {
+      minHeight: 104,
+      gap: 14,
+      paddingHorizontal: mentaSpacing[4],
+      paddingVertical: mentaSpacing[3],
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      backgroundColor: 'transparent',
+    },
+    discoverHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: mentaSpacing[3],
+    },
+    discoverCopy: { flex: 1, minWidth: 0, gap: mentaSpacing[1] },
+    discoverMeta: { ...mentaTypography.caption },
+    discoverDescription: {
+      ...mentaTypography.bodySmall,
+    },
+    discoverEmpty: {
+      gap: mentaSpacing[4],
+      paddingVertical: mentaSpacing[8],
+    },
+    discoverEmptyTitle: {
+      ...mentaTypography.heading,
+    },
+    discoverEmptyDescription: {
+      ...mentaTypography.body,
+    },
+    lastRow: { borderBottomWidth: 0 },
+  });
+  return { styles };
+};

@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, {
   useCallback,
   useEffect,
@@ -25,12 +32,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { SendIcon } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { emitHaptic } from '@/lib/motion/haptics';
 import { MOTION_DURATIONS } from '@/lib/motion/tokens';
 import { useMotionPreferences } from '@/lib/motion/use-motion-preferences';
@@ -47,6 +49,13 @@ type HoldToSendButtonProps = {
   holdingLabel?: string;
   hint?: string;
   tapAlternativeLabel?: string;
+  /** Shares the footer row with the one-tap alternative, e.g. Retake. */
+  leadingAction?: {
+    label: string;
+    onPress: () => void;
+    disabled?: boolean;
+    testID?: string;
+  };
   testID?: string;
 };
 
@@ -70,8 +79,12 @@ export function HoldToSendButton({
   holdingLabel,
   hint,
   tapAlternativeLabel,
+  leadingAction,
   testID = 'hold-to-send-button',
 }: HoldToSendButtonProps) {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const resolvedLabel = label ?? t('todayProof.proof.hold_to_send');
   const resolvedHoldingLabel =
@@ -326,104 +339,145 @@ export function HoldToSendButton({
         <GestureDetector gesture={longPress}>{track}</GestureDetector>
       )}
 
-      <Pressable
-        onPress={handleTapSend}
-        disabled={disabled}
-        accessibilityRole="button"
-        accessibilityLabel={resolvedTapAlternativeLabel}
-        accessibilityHint={t('todayProof.proof.single_tap')}
-        style={({ pressed }) => [
-          styles.tapAlternative,
-          pressed ? styles.tapAlternativePressed : null,
-          disabled ? styles.tapAlternativeDisabled : null,
-        ]}
-        testID={`${testID}-tap-alternative`}
-      >
-        <Text style={styles.tapAlternativeText}>
-          {resolvedTapAlternativeLabel}
-        </Text>
-      </Pressable>
+      <View style={leadingAction ? styles.footerRow : styles.footer}>
+        {leadingAction ? (
+          <Pressable
+            onPress={leadingAction.onPress}
+            disabled={leadingAction.disabled}
+            accessibilityRole="button"
+            accessibilityLabel={leadingAction.label}
+            accessibilityState={{ disabled: leadingAction.disabled }}
+            style={({ pressed }) => [
+              styles.footerAction,
+              pressed ? styles.tapAlternativePressed : null,
+              leadingAction.disabled ? styles.tapAlternativeDisabled : null,
+            ]}
+            testID={leadingAction.testID}
+          >
+            <Text style={styles.leadingActionText}>{leadingAction.label}</Text>
+          </Pressable>
+        ) : null}
+        <Pressable
+          onPress={handleTapSend}
+          disabled={disabled}
+          accessibilityRole="button"
+          accessibilityLabel={resolvedTapAlternativeLabel}
+          accessibilityHint={t('todayProof.proof.single_tap')}
+          style={({ pressed }) => [
+            leadingAction ? styles.footerAction : styles.tapAlternative,
+            pressed ? styles.tapAlternativePressed : null,
+            disabled ? styles.tapAlternativeDisabled : null,
+          ]}
+          testID={`${testID}-tap-alternative`}
+        >
+          <Text style={styles.tapAlternativeText}>
+            {resolvedTapAlternativeLabel}
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: {
-    width: '100%',
-    gap: mentaSpacing[2],
-    alignItems: 'center',
-  },
-  track: {
-    width: '100%',
-    minHeight: 72,
-    borderRadius: mentaRadii.large,
-    borderWidth: 1,
-    borderColor: mentaColors.actionBorder,
-    backgroundColor: mentaColors.raised,
-    overflow: 'hidden',
-    position: 'relative',
-    justifyContent: 'center',
-  },
-  trackDisabled: {
-    opacity: 0.45,
-  },
-  fill: {
-    position: 'absolute',
-    left: mentaSpacing[2],
-    top: mentaSpacing[2],
-    bottom: mentaSpacing[2],
-    width: 56,
-    borderRadius: mentaRadii.medium,
-    backgroundColor: mentaColors.paper,
-  },
-  iconLane: {
-    position: 'absolute',
-    left: mentaSpacing[2],
-    top: mentaSpacing[2],
-    width: 56,
-    height: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 2,
-  },
-  copy: {
-    marginLeft: 80,
-    marginRight: mentaSpacing[4],
-    minWidth: 0,
-    gap: mentaSpacing[1],
-    zIndex: 2,
-  },
-  title: {
-    ...mentaTypography.control,
-    color: mentaColors.text.primary,
-  },
-  titleOnFill: {
-    color: mentaColors.canvas,
-  },
-  subtitle: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-  subtitleOnFill: {
-    color: mentaColors.canvas,
-    opacity: 0.78,
-  },
-  tapAlternative: {
-    minHeight: 44,
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: mentaSpacing[4],
-  },
-  tapAlternativePressed: {
-    opacity: 0.7,
-  },
-  tapAlternativeDisabled: {
-    opacity: 0.4,
-  },
-  tapAlternativeText: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.text.secondary,
-    textAlign: 'center',
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    wrap: {
+      width: '100%',
+      gap: mentaSpacing[2],
+      alignItems: 'center',
+    },
+    track: {
+      width: '100%',
+      minHeight: 72,
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      borderColor: mentaColors.actionBorder,
+      backgroundColor: mentaColors.raised,
+      overflow: 'hidden',
+      position: 'relative',
+      justifyContent: 'center',
+    },
+    trackDisabled: {
+      opacity: 0.45,
+    },
+    fill: {
+      position: 'absolute',
+      left: mentaSpacing[2],
+      top: mentaSpacing[2],
+      bottom: mentaSpacing[2],
+      width: 56,
+      borderRadius: mentaRadii.medium,
+      backgroundColor: mentaColors.paper,
+    },
+    iconLane: {
+      position: 'absolute',
+      left: mentaSpacing[2],
+      top: mentaSpacing[2],
+      width: 56,
+      height: 56,
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 2,
+    },
+    copy: {
+      marginLeft: 80,
+      marginRight: mentaSpacing[4],
+      minWidth: 0,
+      gap: mentaSpacing[1],
+      zIndex: 2,
+    },
+    title: {
+      ...mentaTypography.control,
+      color: mentaColors.text.primary,
+    },
+    titleOnFill: {
+      color: mentaColors.canvas,
+    },
+    subtitle: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+    subtitleOnFill: {
+      color: mentaColors.canvas,
+      opacity: 0.78,
+    },
+    footer: {
+      width: '100%',
+    },
+    footerRow: {
+      width: '100%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: mentaSpacing[3],
+    },
+    footerAction: {
+      minHeight: 44,
+      justifyContent: 'center',
+      paddingHorizontal: mentaSpacing[1],
+    },
+    leadingActionText: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.text.primary,
+    },
+    tapAlternative: {
+      minHeight: 44,
+      width: '100%',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: mentaSpacing[4],
+    },
+    tapAlternativePressed: {
+      opacity: 0.7,
+    },
+    tapAlternativeDisabled: {
+      opacity: 0.4,
+    },
+    tapAlternativeText: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.text.secondary,
+      textAlign: 'center',
+    },
+  });
+  return { styles };
+};

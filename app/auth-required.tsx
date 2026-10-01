@@ -1,15 +1,17 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import { useTranslation } from '@/lib/localization';
 import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AppButton, AppScreen } from '@/components/ui';
 import { AppScaledText as Text } from '@/components/ui/AppScaledText';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useProtectedRouteStore } from '@/store/protected-route-store';
 
 import { backOrReplace } from '@/lib/navigation/safe-back';
@@ -92,6 +94,8 @@ const getProtectedContext = (
 };
 
 export default function AuthRequiredScreen() {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const phoneLayout = usePhoneLayout();
   const router = useRouter();
@@ -179,28 +183,31 @@ export default function AuthRequiredScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screenContent: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  content: {
-    gap: mentaSpacing[8],
-    maxWidth: mentaLayout.taskLane,
-    width: '100%',
-  },
-  intro: {
-    gap: mentaSpacing[3],
-  },
-  title: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.heading,
-  },
-  body: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.body,
-  },
-  stack: {
-    gap: mentaSpacing[3],
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screenContent: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    content: {
+      gap: mentaSpacing[8],
+      maxWidth: mentaLayout.taskLane,
+      width: '100%',
+    },
+    intro: {
+      gap: mentaSpacing[3],
+    },
+    title: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.heading,
+    },
+    body: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.body,
+    },
+    stack: {
+      gap: mentaSpacing[3],
+    },
+  });
+  return { styles };
+};

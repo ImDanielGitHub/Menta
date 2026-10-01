@@ -2,6 +2,7 @@ import type { TranslationKey } from '@/lib/localization/en-NZ';
 import { translate } from '@/lib/localization/translate';
 
 export type SoloActivePromiseGate = {
+  isPersonalPromise?: boolean;
   allowSelfReview: boolean | null | undefined;
   groupId: string | null | undefined;
   isUserParticipant: boolean;
@@ -23,8 +24,8 @@ export type SoloActivePromiseGate = {
 export const shouldShowSoloActivePromise = (
   gate: SoloActivePromiseGate
 ): boolean =>
-  gate.allowSelfReview === true &&
-  !gate.groupId &&
+  (gate.isPersonalPromise ??
+    (gate.allowSelfReview === true && !gate.groupId)) &&
   gate.isUserParticipant &&
   gate.challengeStatus === 'active' &&
   !gate.isExpired &&

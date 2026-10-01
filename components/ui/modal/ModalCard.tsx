@@ -1,20 +1,19 @@
+import { useMentaPalette } from '@/constants/use-menta-palette';
 import React from 'react';
 import {
   Modal,
   Platform,
   Pressable,
+  View,
   StyleSheet,
   useWindowDimensions,
   type ViewStyle,
   type StyleProp,
   type ModalProps,
+  type GestureResponderEvent,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-} from '@/constants/MentaDesignSystem';
+import { mentaRadii, mentaSpacing } from '@/constants/MentaDesignSystem';
 import { useTheme } from '@/constants/ThemeContext';
 import type { ModalSurface } from '@/components/ui/modal/types';
 import { useMotionPreferences } from '@/lib/motion/use-motion-preferences';
@@ -55,12 +54,18 @@ export const ModalCard: React.FC<ModalCardProps> = ({
   cardStyle,
   testID,
 }) => {
+  const mentaColors = useMentaPalette();
+
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const motion = useMotionPreferences();
   const isSheet = surface === 'sheet';
   const isFullScreen = surface === 'full_screen';
+  // A locked full-screen surface has no backdrop action. Let descendant
+  // scroll views own touches instead of wrapping them in press responders.
+  const isStaticSurface = isFullScreen && !dismissOnBackdrop;
+  const Container = isStaticSurface ? View : Pressable;
   const isBoundedIPadSheet =
     isSheet &&
     presentationRole === 'bounded' &&
@@ -96,7 +101,7 @@ export const ModalCard: React.FC<ModalCardProps> = ({
       accessibilityViewIsModal
       testID={testID}
     >
-      <Pressable
+      <Container
         testID={testID ? `${testID}-backdrop` : 'modal-card-backdrop'}
         style={[
           styles.overlay,
@@ -113,15 +118,17 @@ export const ModalCard: React.FC<ModalCardProps> = ({
         ]}
         accessible={false}
         importantForAccessibility="no"
-        onPress={() => {
-          if (dismissOnBackdrop) {
-            onClose();
-          }
-        }}
+        {...(!isStaticSurface && {
+          onPress: () => {
+            if (dismissOnBackdrop) onClose();
+          },
+        })}
       >
-        <Pressable
+        <Container
           testID={testID ? `${testID}-surface` : 'modal-card-surface'}
-          onPress={event => event.stopPropagation()}
+          {...(!isStaticSurface && {
+            onPress: (event: GestureResponderEvent) => event.stopPropagation(),
+          })}
           accessible={false}
           accessibilityViewIsModal
           importantForAccessibility="no"
@@ -172,8 +179,8 @@ export const ModalCard: React.FC<ModalCardProps> = ({
           ]}
         >
           {children}
-        </Pressable>
-      </Pressable>
+        </Container>
+      </Container>
     </Modal>
   );
 };

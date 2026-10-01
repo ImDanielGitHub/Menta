@@ -319,6 +319,7 @@ export type Database = {
       };
       challenge_submissions: {
         Row: {
+          review_source: string | null;
           challenge_id: string;
           client_event_id: string;
           id: string;
@@ -338,6 +339,7 @@ export type Database = {
           verification_date: string | null;
         };
         Insert: {
+          review_source?: string | null;
           challenge_id: string;
           client_event_id?: string;
           id?: string;
@@ -357,6 +359,7 @@ export type Database = {
           verification_date?: string | null;
         };
         Update: {
+          review_source?: string | null;
           challenge_id?: string;
           client_event_id?: string;
           id?: string;
@@ -436,6 +439,8 @@ export type Database = {
       };
       challenges: {
         Row: {
+          review_mode: string | null;
+          menta_backup_hours: number | null;
           allow_extensions: boolean;
           allow_self_review: boolean;
           category: string | null;
@@ -466,6 +471,8 @@ export type Database = {
           verification_type: string;
         };
         Insert: {
+          review_mode?: string | null;
+          menta_backup_hours?: number | null;
           allow_extensions?: boolean;
           allow_self_review?: boolean;
           category?: string | null;
@@ -496,6 +503,8 @@ export type Database = {
           verification_type: string;
         };
         Update: {
+          review_mode?: string | null;
+          menta_backup_hours?: number | null;
           allow_extensions?: boolean;
           allow_self_review?: boolean;
           category?: string | null;
@@ -738,8 +747,7 @@ export type Database = {
           created_at: string;
           id: string;
           outcome:
-            | Database['public']['Enums']['menta_event_action_outcome']
-            | null;
+            Database['public']['Enums']['menta_event_action_outcome'] | null;
           request_hash: string;
           response: Json | null;
         };
@@ -751,8 +759,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           outcome?:
-            | Database['public']['Enums']['menta_event_action_outcome']
-            | null;
+            Database['public']['Enums']['menta_event_action_outcome'] | null;
           request_hash: string;
           response?: Json | null;
         };
@@ -764,8 +771,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           outcome?:
-            | Database['public']['Enums']['menta_event_action_outcome']
-            | null;
+            Database['public']['Enums']['menta_event_action_outcome'] | null;
           request_hash?: string;
           response?: Json | null;
         };
@@ -3376,6 +3382,72 @@ export type Database = {
       };
     };
     Functions: {
+      ask_friend_for_menta_proof_v1: {
+        Args: { p_client_event_id: string; p_submission_id: string };
+        Returns: Json;
+      };
+      buy_menta_check_pass_v1: {
+        Args: {
+          p_auto_renew: boolean;
+          p_challenge_id: string;
+          p_client_event_id: string;
+        };
+        Returns: Json;
+      };
+      count_menta_proof_anyway_v1: {
+        Args: { p_client_event_id: string; p_submission_id: string };
+        Returns: Json;
+      };
+      get_menta_check_hint_v1: {
+        Args: { p_submission_id: string };
+        Returns: string;
+      };
+      get_menta_check_overview_v1: { Args: never; Returns: Json };
+      get_menta_check_today_v1: {
+        Args: { p_timezone?: string };
+        Returns: Json;
+      };
+      menta_check_apply_v1: {
+        Args: { p_job_id: number; p_verdict: Json };
+        Returns: Json;
+      };
+      menta_check_authorise_job_v1: {
+        Args: { p_job_id: number };
+        Returns: boolean;
+      };
+      menta_check_claim_v1: { Args: { p_limit?: number }; Returns: Json };
+      menta_check_fail_v1: {
+        Args: { p_error: string; p_job_id: number };
+        Returns: string;
+      };
+      menta_check_queue_backups_v1: {
+        Args: { p_limit?: number };
+        Returns: number;
+      };
+      report_menta_check_v1: {
+        Args: {
+          p_client_event_id: string;
+          p_kind: string;
+          p_submission_id: string;
+        };
+        Returns: Json;
+      };
+      set_menta_check_consent_v1: {
+        Args: { p_accept: boolean; p_source?: string };
+        Returns: Json;
+      };
+      set_promise_menta_check_v1: {
+        Args: {
+          p_backup_hours?: number;
+          p_challenge_id: string;
+          p_mode: string;
+        };
+        Returns: Json;
+      };
+      stop_menta_check_pass_v1: {
+        Args: { p_challenge_id: string };
+        Returns: Json;
+      };
       get_first_miss_recovery_v1: {
         Args: Record<PropertyKey, never>;
         Returns: Json;
@@ -4216,6 +4288,10 @@ export type Database = {
       get_my_account_activation_v1: { Args: never; Returns: Json };
       get_my_legal_acceptance_status: {
         Args: { p_expected_user_id: string };
+        Returns: Json;
+      };
+      reconcile_my_initial_pro_trial_v1: {
+        Args: never;
         Returns: Json;
       };
       get_my_pro_authority: {
@@ -5103,10 +5179,7 @@ export type Database = {
       menta_event_attendance_state: 'joined' | 'left' | 'removed';
       menta_event_checkin_token_kind: 'rotating_qr' | 'roster_single_use';
       menta_event_occurrence_state:
-        | 'scheduled'
-        | 'live'
-        | 'ended'
-        | 'cancelled';
+        'scheduled' | 'live' | 'ended' | 'cancelled';
       menta_event_post_status:
         | 'upload_pending'
         | 'pending_review'
@@ -5143,12 +5216,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -5170,13 +5243,12 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -5195,13 +5267,12 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -5220,13 +5291,12 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema['Enums']
-    | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    keyof DefaultSchema['Enums'] | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -5239,11 +5309,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema['CompositeTypes']
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }

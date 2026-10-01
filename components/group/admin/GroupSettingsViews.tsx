@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import {
   Pressable,
@@ -11,13 +19,7 @@ import { GroupStatePanel } from '@/components/group/GroupAdminPrimitives';
 import { AppButton, SkeletonLoader } from '@/components/ui';
 import { SimpleBottomSheet } from '@/components/ui/SimpleBottomSheet';
 import { CheckIcon, ChevronRightIcon } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useTranslation } from '@/lib/localization';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 
@@ -41,6 +43,8 @@ export const privacyOptions: readonly {
 ];
 
 export const SettingsSkeleton = () => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <View
@@ -107,6 +111,9 @@ export const SettingsRow = ({
   title: string;
   value?: string;
 }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const phoneLayout = usePhoneLayout();
   const usesCompactValueLane =
     phoneLayout.isCompactWidth || phoneLayout.fontScale >= 1.2;
@@ -153,6 +160,9 @@ export const PrivacySheet = ({
   selected: PrivacyOption;
   visible: boolean;
 }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <SimpleBottomSheet
@@ -194,6 +204,8 @@ export const DiscardSheet = ({
   onDiscard: () => void;
   visible: boolean;
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <SimpleBottomSheet
@@ -242,6 +254,8 @@ export const LeaveSheet = ({
   owner: boolean;
   visible: boolean;
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <SimpleBottomSheet
@@ -286,56 +300,65 @@ export const LeaveSheet = ({
   );
 };
 
-const styles = StyleSheet.create({
-  settingsRow: {
-    alignItems: 'center',
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 72,
-    paddingHorizontal: mentaSpacing[4],
-    paddingVertical: mentaSpacing[3],
-  },
-  iconLane: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: mentaLayout.iconLane,
-  },
-  rowCopy: { flex: 1, gap: mentaSpacing[1], minWidth: 0 },
-  rowTitle: { ...mentaTypography.bodyMedium, color: mentaColors.text.primary },
-  rowDetail: { ...mentaTypography.caption, color: mentaColors.text.secondary },
-  valueLane: {
-    alignItems: 'flex-end',
-    flexDirection: 'row',
-    flexShrink: 0,
-    gap: mentaSpacing[1],
-    justifyContent: 'flex-end',
-    width: 112,
-  },
-  valueLaneCompact: {
-    maxWidth: 76,
-    width: 'auto',
-  },
-  rowValue: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-    textAlign: 'right',
-  },
-  disabledRow: { opacity: 0.56 },
-  pressed: { opacity: 0.76 },
-  skeleton: { gap: mentaSpacing[4] },
-  skeletonSection: { gap: mentaSpacing[2] },
-  sheetCopy: { gap: mentaSpacing[2], paddingBottom: mentaSpacing[2] },
-  sheetActions: { gap: mentaSpacing[4] },
-  sheetTitle: { ...mentaTypography.title, color: mentaColors.text.primary },
-  sheetDetail: { ...mentaTypography.body, color: mentaColors.text.secondary },
-  sheetRow: {
-    alignItems: 'center',
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    paddingVertical: mentaSpacing[3],
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    settingsRow: {
+      alignItems: 'center',
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 72,
+      paddingHorizontal: mentaSpacing[4],
+      paddingVertical: mentaSpacing[3],
+    },
+    iconLane: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: mentaLayout.iconLane,
+    },
+    rowCopy: { flex: 1, gap: mentaSpacing[1], minWidth: 0 },
+    rowTitle: {
+      ...mentaTypography.bodyMedium,
+      color: mentaColors.text.primary,
+    },
+    rowDetail: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+    valueLane: {
+      alignItems: 'flex-end',
+      flexDirection: 'row',
+      flexShrink: 0,
+      gap: mentaSpacing[1],
+      justifyContent: 'flex-end',
+      width: 112,
+    },
+    valueLaneCompact: {
+      maxWidth: 76,
+      width: 'auto',
+    },
+    rowValue: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+      textAlign: 'right',
+    },
+    disabledRow: { opacity: 0.56 },
+    pressed: { opacity: 0.76 },
+    skeleton: { gap: mentaSpacing[4] },
+    skeletonSection: { gap: mentaSpacing[2] },
+    sheetCopy: { gap: mentaSpacing[2], paddingBottom: mentaSpacing[2] },
+    sheetActions: { gap: mentaSpacing[4] },
+    sheetTitle: { ...mentaTypography.title, color: mentaColors.text.primary },
+    sheetDetail: { ...mentaTypography.body, color: mentaColors.text.secondary },
+    sheetRow: {
+      alignItems: 'center',
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      paddingVertical: mentaSpacing[3],
+    },
+  });
+  return { styles };
+};

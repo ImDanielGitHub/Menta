@@ -1,12 +1,13 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-
 import {
-  mentaColors,
+  type MentaPalette,
   mentaRadii,
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+
 import { useTheme } from '@/constants/ThemeContext';
 import { useTranslation } from '@/lib/localization';
 import { mentaFonts } from '@/lib/menta-fonts';
@@ -16,28 +17,13 @@ import type {
   ProfileMonthDayState,
 } from '@/lib/profile/month';
 
-const CELL_TONE: Record<
-  ProfileMonthDayState,
-  { background: string; text: string; border?: string; dashed?: boolean }
-> = {
-  kept: { background: '#15332A', text: mentaColors.success },
-  frozen: { background: '#142838', text: '#A9D4F5' },
-  missed: {
-    background: 'transparent',
-    text: mentaColors.text.muted,
-    border: '#57564F',
-    dashed: true,
-  },
-  today: { background: mentaColors.action, text: mentaColors.canvas },
-  open: { background: 'transparent', text: '#3A3A36' },
-  future: { background: '#121313', text: '#57564F' },
-};
-
 /**
  * Paper 19 / Y01–Y02: this month at a glance. Kept days are tinted rather
  * than solid so today's violet cell stays the one strong mark.
  */
 export function ProfileMonthGrid({ month }: { month: ProfileMonth }) {
+  const { CELL_TONE, styles } = useMentaStyles(createPaletteStyles);
+
   const { t, locale } = useTranslation();
   const { colors } = useTheme();
   const legend = [
@@ -147,49 +133,68 @@ export function ProfileMonthGrid({ month }: { month: ProfileMonth }) {
   );
 }
 
-const styles = StyleSheet.create({
-  section: {
-    gap: mentaSpacing[4],
-    marginTop: mentaSpacing[8],
-  },
-  header: {
-    alignItems: 'baseline',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: mentaSpacing[2],
-    justifyContent: 'space-between',
-  },
-  month: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  legend: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-  },
-  grid: {
-    gap: mentaSpacing[2],
-  },
-  row: {
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-  },
-  cellSlot: {
-    aspectRatio: 1,
-    flex: 1,
-    maxWidth: 52,
-  },
-  cell: {
-    alignItems: 'center',
-    borderRadius: mentaRadii.medium,
-    flex: 1,
-    justifyContent: 'center',
-  },
-  cellText: {
-    fontFamily: mentaFonts.inter.medium,
-    fontSize: 13,
-  },
-  cellTextToday: {
-    fontFamily: mentaFonts.inter.semibold,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const CELL_TONE: Record<
+    ProfileMonthDayState,
+    { background: string; text: string; border?: string; dashed?: boolean }
+  > = {
+    kept: { background: '#15332A', text: mentaColors.success },
+    frozen: { background: '#142838', text: '#A9D4F5' },
+    missed: {
+      background: 'transparent',
+      text: mentaColors.text.muted,
+      border: '#57564F',
+      dashed: true,
+    },
+    today: { background: mentaColors.action, text: mentaColors.canvas },
+    open: { background: 'transparent', text: '#3A3A36' },
+    future: { background: '#121313', text: '#57564F' },
+  };
+  const styles = StyleSheet.create({
+    section: {
+      gap: mentaSpacing[4],
+      marginTop: mentaSpacing[8],
+    },
+    header: {
+      alignItems: 'baseline',
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: mentaSpacing[2],
+      justifyContent: 'space-between',
+    },
+    month: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    legend: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+    },
+    grid: {
+      gap: mentaSpacing[2],
+    },
+    row: {
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+    },
+    cellSlot: {
+      aspectRatio: 1,
+      flex: 1,
+      maxWidth: 52,
+    },
+    cell: {
+      alignItems: 'center',
+      borderRadius: mentaRadii.medium,
+      flex: 1,
+      justifyContent: 'center',
+    },
+    cellText: {
+      fontFamily: mentaFonts.inter.medium,
+      fontSize: 13,
+    },
+    cellTextToday: {
+      fontFamily: mentaFonts.inter.semibold,
+    },
+  });
+  return { CELL_TONE, styles };
+};

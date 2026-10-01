@@ -1,3 +1,5 @@
+import { type MentaPalette, mentaSpacing } from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -9,7 +11,6 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { mentaColors, mentaSpacing } from '@/constants/MentaDesignSystem';
 import {
   IPAD_TWO_COLUMN_CONTENT_MIN,
   resolveAdaptiveLayout,
@@ -55,6 +56,8 @@ export const IPadTwoPaneWorkspace = ({
   style,
   testID,
 }: IPadTwoPaneWorkspaceProps) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   if (!enabled) return <>{primary}</>;
 
   return (
@@ -65,24 +68,27 @@ export const IPadTwoPaneWorkspace = ({
   );
 };
 
-const styles = StyleSheet.create({
-  workspace: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: mentaSpacing[6],
-    width: '100%',
-  },
-  primary: {
-    flex: 1.72,
-    minWidth: 0,
-  },
-  secondary: {
-    alignSelf: 'stretch',
-    borderLeftColor: mentaColors.border,
-    borderLeftWidth: StyleSheet.hairlineWidth,
-    flex: 1,
-    gap: mentaSpacing[4],
-    minWidth: 0,
-    paddingLeft: mentaSpacing[6],
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    workspace: {
+      alignItems: 'flex-start',
+      flexDirection: 'row',
+      gap: mentaSpacing[6],
+      width: '100%',
+    },
+    primary: {
+      flex: 1.72,
+      minWidth: 0,
+    },
+    secondary: {
+      alignSelf: 'stretch',
+      borderLeftColor: mentaColors.border,
+      borderLeftWidth: StyleSheet.hairlineWidth,
+      flex: 1,
+      gap: mentaSpacing[4],
+      minWidth: 0,
+      paddingLeft: mentaSpacing[6],
+    },
+  });
+  return { styles };
+};

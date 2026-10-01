@@ -1,3 +1,14 @@
+import { AppearanceSetting } from '@/components/settings/AppearanceSetting';
+import {
+  mentaColors as defaultMentaColors,
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Linking, Platform, StyleSheet, Text, View } from 'react-native';
 import { Stack, usePathname, useRouter } from 'expo-router';
@@ -25,13 +36,7 @@ import {
 } from '@/components/ui/icons';
 import { useTheme, useThemedStyles } from '@/constants/ThemeContext';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { IPAD_MAX_CONTENT_WIDTH } from '@/constants/responsive-layout';
 import {
   AccountDeletionNotCompletedError,
@@ -135,6 +140,8 @@ type DeletionSheetState =
   'preflight' | 'confirm' | 'deleting' | 'failed' | 'unknown' | 'confirmed';
 
 export default function SettingsScreen() {
+  const mentaColors = useMentaPalette();
+
   const replayReleaseEnabled = isSentryReplayReleaseEnabled();
   const theme = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -941,6 +948,7 @@ export default function SettingsScreen() {
           </Text>
         </View>
 
+        <AppearanceSetting />
         {accountState === 'cached-offline' ? (
           <>
             <SettingsSectionLabel>
@@ -1751,8 +1759,9 @@ export default function SettingsScreen() {
   );
 }
 
-const createStyles = (_theme: ReturnType<typeof useTheme>) =>
-  StyleSheet.create({
+const createStyles = (_theme: ReturnType<typeof useTheme>) => {
+  const mentaColors = _theme.mentaColors ?? defaultMentaColors;
+  return StyleSheet.create({
     route: {
       backgroundColor: mentaColors.canvas,
       flex: 1,
@@ -1832,6 +1841,7 @@ const createStyles = (_theme: ReturnType<typeof useTheme>) =>
       ...mentaTypography.body,
     },
   });
+};
 
 const SettingsSheet = ({
   children,
@@ -1869,6 +1879,9 @@ const SettingsLoadingSkeleton = ({
   isTabDestination: boolean;
   onSignOut?: () => void;
 }) => {
+  const mentaColors = useMentaPalette();
+  const { settingsSkeletonStyles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const phoneLayout = usePhoneLayout();
   return (
@@ -1934,82 +1947,91 @@ const SettingsSkeletonSection = ({
 }: {
   labelWidth?: number;
   rows: number;
-}) => (
-  <View>
-    <View style={settingsSkeletonStyles.sectionLabel}>
-      <SkeletonLoader announce={false} height={10} width={labelWidth} />
+}) => {
+  const { settingsSkeletonStyles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View>
+      <View style={settingsSkeletonStyles.sectionLabel}>
+        <SkeletonLoader announce={false} height={10} width={labelWidth} />
+      </View>
+      {Array.from({ length: rows }, (_, index) => (
+        <SettingsSkeletonRow divider={index < rows - 1} key={index} />
+      ))}
     </View>
-    {Array.from({ length: rows }, (_, index) => (
-      <SettingsSkeletonRow divider={index < rows - 1} key={index} />
-    ))}
-  </View>
-);
+  );
+};
 
-const SettingsSkeletonRow = ({ divider = false }: { divider?: boolean }) => (
-  <View
-    style={[
-      settingsSkeletonStyles.row,
-      divider && settingsSkeletonStyles.rowDivider,
-    ]}
-  >
-    <SkeletonLoader
-      announce={false}
-      borderRadius={mentaRadii.round}
-      height={24}
-      width={24}
-    />
-    <View style={settingsSkeletonStyles.rowCopy}>
-      <SkeletonLoader announce={false} height={13} width={132} />
-      <SkeletonLoader announce={false} height={10} width="72%" />
+const SettingsSkeletonRow = ({ divider = false }: { divider?: boolean }) => {
+  const { settingsSkeletonStyles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View
+      style={[
+        settingsSkeletonStyles.row,
+        divider && settingsSkeletonStyles.rowDivider,
+      ]}
+    >
+      <SkeletonLoader
+        announce={false}
+        borderRadius={mentaRadii.round}
+        height={24}
+        width={24}
+      />
+      <View style={settingsSkeletonStyles.rowCopy}>
+        <SkeletonLoader announce={false} height={13} width={132} />
+        <SkeletonLoader announce={false} height={10} width="72%" />
+      </View>
+      <SkeletonLoader
+        announce={false}
+        borderRadius={mentaRadii.round}
+        height={12}
+        width={12}
+      />
     </View>
-    <SkeletonLoader
-      announce={false}
-      borderRadius={mentaRadii.round}
-      height={12}
-      width={12}
-    />
-  </View>
-);
+  );
+};
 
-const settingsSkeletonStyles = StyleSheet.create({
-  screen: {
-    backgroundColor: mentaColors.canvas,
-    flex: 1,
-  },
-  lane: {
-    alignSelf: 'center',
-    flex: 1,
-    maxWidth: mentaLayout.workingFrameMax,
-    width: '100%',
-  },
-  iPadLane: {
-    maxWidth: IPAD_MAX_CONTENT_WIDTH,
-  },
-  header: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    paddingBottom: mentaSpacing[2],
-    paddingTop: mentaSpacing[6],
-  },
-  sectionLabel: {
-    height: 40,
-    justifyContent: 'center',
-  },
-  row: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 64,
-    paddingVertical: mentaSpacing[3],
-  },
-  rowDivider: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  rowCopy: {
-    flex: 1,
-    gap: 7,
-    minWidth: 0,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const settingsSkeletonStyles = StyleSheet.create({
+    screen: {
+      backgroundColor: mentaColors.canvas,
+      flex: 1,
+    },
+    lane: {
+      alignSelf: 'center',
+      flex: 1,
+      maxWidth: mentaLayout.workingFrameMax,
+      width: '100%',
+    },
+    iPadLane: {
+      maxWidth: IPAD_MAX_CONTENT_WIDTH,
+    },
+    header: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      paddingBottom: mentaSpacing[2],
+      paddingTop: mentaSpacing[6],
+    },
+    sectionLabel: {
+      height: 40,
+      justifyContent: 'center',
+    },
+    row: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 64,
+      paddingVertical: mentaSpacing[3],
+    },
+    rowDivider: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+    rowCopy: {
+      flex: 1,
+      gap: 7,
+      minWidth: 0,
+    },
+  });
+  return { settingsSkeletonStyles };
+};

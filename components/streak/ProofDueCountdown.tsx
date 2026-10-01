@@ -1,14 +1,16 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { ClockIcon } from '@/components/ui/icons';
 import { AppScaledText as Text } from '@/components/ui/AppScaledText';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import {
   DEFAULT_PROOF_DUE_TIME,
   resolveProofDueCountdown,
@@ -36,6 +38,9 @@ export const ProofDueCountdown: React.FC<ProofDueCountdownProps> = ({
   promiseLabel,
   variant = 'card',
 }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const [now, setNow] = useState(() => new Date());
 
@@ -144,40 +149,43 @@ export const ProofDueCountdown: React.FC<ProofDueCountdownProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  hero: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-  },
-  heroRemaining: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.display,
-  },
-  heroRemainingAccent: { color: mentaColors.warning },
-  card: {
-    backgroundColor: mentaColors.canvas,
-    borderColor: mentaColors.warningBorder,
-    borderRadius: mentaRadii.medium,
-    borderWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[2],
-    padding: mentaSpacing[5],
-  },
-  eyebrowRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-  },
-  eyebrow: {
-    color: mentaColors.warning,
-    ...mentaTypography.label,
-  },
-  remaining: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.title,
-  },
-  helper: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.caption,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    hero: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+    },
+    heroRemaining: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.display,
+    },
+    heroRemainingAccent: { color: mentaColors.warning },
+    card: {
+      backgroundColor: mentaColors.canvas,
+      borderColor: mentaColors.warningBorder,
+      borderRadius: mentaRadii.medium,
+      borderWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[2],
+      padding: mentaSpacing[5],
+    },
+    eyebrowRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+    },
+    eyebrow: {
+      color: mentaColors.warning,
+      ...mentaTypography.label,
+    },
+    remaining: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.title,
+    },
+    helper: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.caption,
+    },
+  });
+  return { styles };
+};

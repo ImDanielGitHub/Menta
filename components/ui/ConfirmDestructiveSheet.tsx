@@ -29,6 +29,7 @@ type Props = {
   nameToType: string;
   description?: string;
   onClose: () => void;
+  onDismiss?: () => void;
   onConfirm: () => Promise<void> | void;
   loading?: boolean;
   status?: DestructiveSheetStatus;
@@ -44,6 +45,7 @@ export const ConfirmDestructiveSheet: React.FC<Props> = ({
   nameToType,
   description,
   onClose,
+  onDismiss,
   onConfirm,
   loading,
   status = 'confirm',
@@ -109,6 +111,7 @@ export const ConfirmDestructiveSheet: React.FC<Props> = ({
     <SimpleBottomSheet
       visible={visible}
       onClose={handleClose}
+      onDismiss={onDismiss}
       maxHeight={Math.floor(height * 0.88)}
       dismissOnBackdrop={!isLoading}
       testID={testID}

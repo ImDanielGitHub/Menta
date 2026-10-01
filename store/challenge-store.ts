@@ -1217,12 +1217,13 @@ export const useChallengeStore = create<ChallengeState>()(
                 message: localise('domain.auth.authentication_required'),
               });
             } else {
-              const { data, error } = await supabase.functions.invoke(
-                'delete-challenge',
-                {
+              const { data, error } = await withTimeout(
+                supabase.functions.invoke('delete-challenge', {
                   body: { challengeId },
                   headers: { Authorization: `Bearer ${accessToken}` },
-                }
+                }),
+                15_000,
+                'Delete promise'
               );
 
               if (error) {

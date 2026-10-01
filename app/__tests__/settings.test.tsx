@@ -168,6 +168,7 @@ jest.mock('@/lib/services/notification-service', () => ({
 }));
 
 jest.mock('@/lib/store-review', () => ({
+  getStoreWriteReviewUrl: () => 'https://example.org/review',
   openStoreWriteReview: (...args: unknown[]) =>
     mockOpenStoreWriteReview(...args),
 }));

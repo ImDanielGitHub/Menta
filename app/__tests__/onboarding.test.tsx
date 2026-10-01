@@ -16,6 +16,7 @@ import {
 } from '@/constants/MentaDesignSystem';
 import { resolvePhoneLayout } from '@/constants/phone-layout';
 import { supabase } from '@/lib/supabase';
+import * as productAnalytics from '@/lib/posthog';
 
 const mockPush = jest.fn();
 const mockReplace = jest.fn();
@@ -1306,8 +1307,8 @@ describe('Paper onboarding flow', () => {
     const rowStyle = StyleSheet.flatten(photo.props.style);
     expect(photo.props.accessibilityRole).toBe('radio');
     expect(photo.props.accessibilityState).toEqual({
-      checked: false,
-      selected: false,
+      checked: true,
+      selected: true,
     });
     expect(rowStyle).toMatchObject({
       minHeight: 88,
@@ -1349,6 +1350,40 @@ describe('Paper onboarding flow', () => {
     expect(screen.getByText('Invite someone')).toBeTruthy();
   });
 
+  it('discloses the Pro requirement and records Menta as its own accountability choice', () => {
+    const track = jest
+      .spyOn(productAnalytics, 'trackProductEvent')
+      .mockImplementation(() => undefined);
+    try {
+      const screen = render(<OnboardingScreen />);
+      startPromiseSetup(screen);
+      fireEvent.changeText(
+        screen.getByTestId('onboarding-promise-input'),
+        'Walk for 20 minutes after work'
+      );
+      fireEvent.press(screen.getByTestId('onboarding-draft-continue'));
+      fireEvent.press(screen.getByTestId('onboarding-proof-photo'));
+
+      const menta = screen.getByTestId('onboarding-accountability-menta');
+      expect(
+        within(menta).getByText('Requires Pro', { includeHiddenElements: true })
+      ).toBeTruthy();
+      expect(menta.props.accessibilityLabel).toContain('Requires Pro');
+      fireEvent.press(menta);
+      expect(menta.props.accessibilityState.checked).toBe(true);
+      expect(track).toHaveBeenCalledWith(
+        'Onboarding Journey',
+        expect.objectContaining({
+          action: 'selected',
+          selection: 'menta',
+          stage: 'accountability',
+        })
+      );
+    } finally {
+      track.mockRestore();
+    }
+  });
+
   it('preserves the first promise through proof choice and auth handoff', async () => {
     const screen = render(<OnboardingScreen />);
 
@@ -1360,7 +1395,7 @@ describe('Paper onboarding flow', () => {
 
     const previewButton = screen.getByTestId('onboarding-proof-continue');
     expect(previewButton.props.accessibilityState).toMatchObject({
-      disabled: true,
+      disabled: false,
     });
 
     fireEvent.press(screen.getByTestId('onboarding-proof-photo'));

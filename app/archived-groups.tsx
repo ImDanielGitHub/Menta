@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
@@ -11,13 +19,7 @@ import {
 } from '@/components/group/GroupAdminPrimitives';
 import { AppButton, AppInlineNotice, SkeletonLoader } from '@/components/ui';
 import { ChevronRightIcon, FileTextIcon } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useAuthStore } from '@/store/auth-store';
 import { type Group, useGroupStore } from '@/store/group-store';
 
@@ -37,6 +39,9 @@ const formatArchiveDate = (value?: string | null) => {
 };
 
 export default function ArchivedGroupsScreen() {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const router = useRouter();
   const { t } = useTranslation();
   const { user } = useAuthStore();
@@ -227,6 +232,8 @@ export default function ArchivedGroupsScreen() {
 }
 
 const ArchiveSkeleton = () => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <View
@@ -261,6 +268,8 @@ const ArchiveSkeleton = () => {
 };
 
 const EmptyArchive = () => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <View style={styles.emptyArchive}>
@@ -292,88 +301,91 @@ const ArchiveUnavailable = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  archiveList: {
-    gap: mentaSpacing[3],
-  },
-  emptyArchive: {
-    alignItems: 'flex-start',
-    gap: mentaSpacing[4],
-    justifyContent: 'center',
-    minHeight: 440,
-    paddingVertical: mentaSpacing[8],
-  },
-  emptyArchiveCopy: {
-    gap: mentaSpacing[2],
-    width: '100%',
-  },
-  emptyArchiveTitle: {
-    ...mentaTypography.heading,
-    color: mentaColors.text.primary,
-  },
-  emptyArchiveDetail: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-  },
-  archiveRow: {
-    alignItems: 'center',
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 92,
-    paddingHorizontal: mentaSpacing[4],
-    paddingVertical: mentaSpacing[3],
-  },
-  archiveIcon: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.raised,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.medium,
-    borderWidth: StyleSheet.hairlineWidth,
-    height: mentaLayout.minimumTouchTarget,
-    justifyContent: 'center',
-    width: mentaLayout.minimumTouchTarget,
-  },
-  archiveCopy: {
-    flex: 1,
-    gap: 3,
-    minWidth: 0,
-  },
-  groupName: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  archiveMeta: {
-    ...mentaTypography.micro,
-    color: mentaColors.text.secondary,
-  },
-  readOnly: {
-    ...mentaTypography.label,
-    color: mentaColors.warning,
-  },
-  chevronLane: {
-    alignItems: 'center',
-    flexShrink: 0,
-    justifyContent: 'center',
-    width: mentaLayout.iconLane,
-  },
-  skeletonList: {
-    gap: mentaSpacing[3],
-  },
-  skeletonRow: {
-    alignItems: 'center',
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    height: 82,
-  },
-  skeletonCopy: {
-    flex: 1,
-    gap: mentaSpacing[2],
-  },
-  pressed: {
-    opacity: 0.76,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    archiveList: {
+      gap: mentaSpacing[3],
+    },
+    emptyArchive: {
+      alignItems: 'flex-start',
+      gap: mentaSpacing[4],
+      justifyContent: 'center',
+      minHeight: 440,
+      paddingVertical: mentaSpacing[8],
+    },
+    emptyArchiveCopy: {
+      gap: mentaSpacing[2],
+      width: '100%',
+    },
+    emptyArchiveTitle: {
+      ...mentaTypography.heading,
+      color: mentaColors.text.primary,
+    },
+    emptyArchiveDetail: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+    },
+    archiveRow: {
+      alignItems: 'center',
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 92,
+      paddingHorizontal: mentaSpacing[4],
+      paddingVertical: mentaSpacing[3],
+    },
+    archiveIcon: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.raised,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.medium,
+      borderWidth: StyleSheet.hairlineWidth,
+      height: mentaLayout.minimumTouchTarget,
+      justifyContent: 'center',
+      width: mentaLayout.minimumTouchTarget,
+    },
+    archiveCopy: {
+      flex: 1,
+      gap: 3,
+      minWidth: 0,
+    },
+    groupName: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    archiveMeta: {
+      ...mentaTypography.micro,
+      color: mentaColors.text.secondary,
+    },
+    readOnly: {
+      ...mentaTypography.label,
+      color: mentaColors.warning,
+    },
+    chevronLane: {
+      alignItems: 'center',
+      flexShrink: 0,
+      justifyContent: 'center',
+      width: mentaLayout.iconLane,
+    },
+    skeletonList: {
+      gap: mentaSpacing[3],
+    },
+    skeletonRow: {
+      alignItems: 'center',
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      height: 82,
+    },
+    skeletonCopy: {
+      flex: 1,
+      gap: mentaSpacing[2],
+    },
+    pressed: {
+      opacity: 0.76,
+    },
+  });
+  return { styles };
+};

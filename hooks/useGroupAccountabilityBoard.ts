@@ -84,6 +84,7 @@ const normaliseMediaProof = (
     mediaType,
     mediaUrl,
     thumbnailUrl: null,
+    reviewSource: asString(row.review_source),
     status,
     submittedAt,
     encouragementUserIds: encouragementIds(row.proof_encouragements),
@@ -175,6 +176,7 @@ export const useGroupAccountabilityBoard = ({
               media_url,
               status,
               submission_date,
+              review_source,
               profiles!challenge_submissions_user_id_fkey (
                 display_name,
                 username

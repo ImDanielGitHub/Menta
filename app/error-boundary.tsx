@@ -1,3 +1,15 @@
+import {
+  type MentaPalette,
+  mentaColors,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import {
+  useMentaPalette,
+  useMentaStyles,
+  MentaPaletteContext,
+} from '@/constants/use-menta-palette';
+
 import * as React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { router as expoRouter, useRouter } from 'expo-router';
@@ -18,11 +30,7 @@ import {
   SupportLedgerCard,
 } from '@/components/support/SupportSurface';
 import { AlertCircleIcon, AlertTriangleIcon } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { backOrReplace } from '@/lib/navigation/safe-back';
 import { useTranslation } from '@/lib/localization/use-translation';
 import type { TranslationKey } from '@/lib/localization/en-NZ';
@@ -89,6 +97,8 @@ export class ErrorBoundaryBase extends React.Component<
   ErrorBoundaryProps,
   ErrorBoundaryState
 > {
+  static contextType = MentaPaletteContext;
+
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = {
@@ -159,6 +169,7 @@ export class ErrorBoundaryBase extends React.Component<
   };
 
   render() {
+    const { styles } = createPaletteStyles(this.context as MentaPalette);
     const t = this.props.translate ?? defaultErrorBoundaryTranslate;
     if (this.state.hasError) {
       // Use custom fallback if provided
@@ -247,6 +258,9 @@ const ErrorBoundary: React.FC<ErrorBoundaryProps> = props => {
  * safe recovery screen while the named class above remains the global boundary.
  */
 const ErrorBoundaryRoute = () => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const router = useRouter();
   const { t } = useTranslation();
   return (
@@ -282,47 +296,50 @@ const ErrorBoundaryRoute = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  screen: {
-    alignSelf: 'center',
-    flexGrow: 1,
-    gap: mentaSpacing[4],
-    paddingBottom: mentaSpacing[8],
-    width: '100%',
-  },
-  crashScreen: {
-    alignSelf: 'center',
-    flexGrow: 1,
-    gap: mentaSpacing[4],
-    paddingBottom: mentaSpacing[6],
-    width: '100%',
-  },
-  intro: { gap: mentaSpacing[3], paddingTop: mentaSpacing[8] },
-  title: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.journeyTitle,
-  },
-  description: { color: mentaColors.text.secondary, ...mentaTypography.body },
-  reference: {
-    gap: mentaSpacing[1],
-    padding: mentaSpacing[4],
-  },
-  referenceLabel: { color: mentaColors.text.muted, ...mentaTypography.label },
-  referenceValue: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.bodySmallMedium,
-  },
-  footerActions: {
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[2],
-    marginTop: 'auto',
-    paddingTop: mentaSpacing[4],
-  },
-  routeRecoveryBody: {
-    gap: mentaSpacing[4],
-    paddingTop: mentaSpacing[8],
-  },
-});
-
 export default ErrorBoundary;
+
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: {
+      alignSelf: 'center',
+      flexGrow: 1,
+      gap: mentaSpacing[4],
+      paddingBottom: mentaSpacing[8],
+      width: '100%',
+    },
+    crashScreen: {
+      alignSelf: 'center',
+      flexGrow: 1,
+      gap: mentaSpacing[4],
+      paddingBottom: mentaSpacing[6],
+      width: '100%',
+    },
+    intro: { gap: mentaSpacing[3], paddingTop: mentaSpacing[8] },
+    title: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.journeyTitle,
+    },
+    description: { color: mentaColors.text.secondary, ...mentaTypography.body },
+    reference: {
+      gap: mentaSpacing[1],
+      padding: mentaSpacing[4],
+    },
+    referenceLabel: { color: mentaColors.text.muted, ...mentaTypography.label },
+    referenceValue: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.bodySmallMedium,
+    },
+    footerActions: {
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[2],
+      marginTop: 'auto',
+      paddingTop: mentaSpacing[4],
+    },
+    routeRecoveryBody: {
+      gap: mentaSpacing[4],
+      paddingTop: mentaSpacing[8],
+    },
+  });
+  return { styles };
+};

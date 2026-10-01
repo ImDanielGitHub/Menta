@@ -1,14 +1,16 @@
+import {
+  type MentaPalette,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
 import { MentaMascot } from '@/components/ui/MentaMascot';
 import { ModalCard } from '@/components/ui/modal/ModalCard';
-import {
-  mentaColors,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { grantsAccountFreeze } from '@/lib/economy/contract';
 import { useTranslation } from '@/lib/localization';
 
@@ -42,6 +44,8 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
   onClose,
   onShare,
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <ModalCard
@@ -113,40 +117,43 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  card: {
-    padding: mentaSpacing[6],
-  },
-  content: {
-    alignItems: 'stretch',
-    gap: mentaSpacing[4],
-  },
-  title: {
-    ...mentaTypography.heading,
-    color: mentaColors.text.primary,
-    textAlign: 'center',
-  },
-  approved: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-    textAlign: 'center',
-  },
-  facts: {
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  factRow: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[1],
-    paddingVertical: mentaSpacing[3],
-  },
-  factLabel: {
-    ...mentaTypography.label,
-    color: mentaColors.text.secondary,
-  },
-  factValue: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.text.primary,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    card: {
+      padding: mentaSpacing[6],
+    },
+    content: {
+      alignItems: 'stretch',
+      gap: mentaSpacing[4],
+    },
+    title: {
+      ...mentaTypography.heading,
+      color: mentaColors.text.primary,
+      textAlign: 'center',
+    },
+    approved: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+      textAlign: 'center',
+    },
+    facts: {
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+    },
+    factRow: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[1],
+      paddingVertical: mentaSpacing[3],
+    },
+    factLabel: {
+      ...mentaTypography.label,
+      color: mentaColors.text.secondary,
+    },
+    factValue: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.text.primary,
+    },
+  });
+  return { styles };
+};

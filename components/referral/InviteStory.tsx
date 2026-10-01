@@ -1,14 +1,17 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-
-import { CheckIcon } from '@/components/ui/icons';
-import { MentaMascot } from '@/components/ui/MentaMascot';
 import {
+  type MentaPalette,
   mentaColors,
   mentaRadii,
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+
+import { CheckIcon } from '@/components/ui/icons';
+import { MentaMascot } from '@/components/ui/MentaMascot';
+
 import { useTheme } from '@/constants/ThemeContext';
 import { useTranslation } from '@/lib/localization';
 import { mentaFonts } from '@/lib/menta-fonts';
@@ -26,6 +29,8 @@ export function InvitePassCard({
   fromLine: string;
   initial: string;
 }) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   return (
     <View
@@ -59,6 +64,9 @@ export function InviteChecklist({
 }: {
   items: readonly { text: string; done?: boolean; pending?: boolean }[];
 }) {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   return (
     <View style={styles.list}>
@@ -97,6 +105,8 @@ export function InviteChecklist({
 
 /** Paper 19 / I02: you, the invite in transit, and the empty checker seat. */
 export function InviteSentPair({ initial }: { initial: string }) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const { colors } = useTheme();
   return (
@@ -130,134 +140,142 @@ export const inviteHeadingStyle = {
   fontFamily: mentaFonts.newsreader.semibold,
 };
 
-const styles = StyleSheet.create({
-  pass: {
-    borderRadius: 24,
-    gap: mentaSpacing[10],
-    minHeight: 236,
-    overflow: 'hidden',
-    padding: mentaSpacing[5],
-    justifyContent: 'space-between',
-  },
-  passWash: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: mentaRadii.round,
-    height: 300,
-    left: -110,
-    opacity: 0.18,
-    position: 'absolute',
-    top: -170,
-    width: 300,
-  },
-  passTitle: {
-    color: CARD_INK,
-    fontFamily: mentaFonts.newsreader.semibold,
-    fontSize: 34,
-    letterSpacing: -0.7,
-    lineHeight: 38,
-    maxWidth: 190,
-  },
-  passFrom: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-    maxWidth: '62%',
-  },
-  passInitial: {
-    alignItems: 'center',
-    backgroundColor: CARD_INK,
-    borderRadius: mentaRadii.round,
-    height: 34,
-    justifyContent: 'center',
-    width: 34,
-  },
-  passInitialText: {
-    color: '#E9DDFF',
-    fontFamily: mentaFonts.newsreader.semibold,
-    fontSize: 16,
-  },
-  passFromText: {
-    color: CARD_INK_SOFT,
-    flexShrink: 1,
-    fontFamily: mentaFonts.inter.medium,
-    fontSize: 15,
-  },
-  passMascot: {
-    position: 'absolute',
-    right: -10,
-    top: 18,
-  },
-  list: {
-    gap: mentaSpacing[4],
-  },
-  listRow: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-  },
-  listMark: {
-    alignItems: 'center',
-    borderRadius: mentaRadii.round,
-    height: 24,
-    justifyContent: 'center',
-    marginTop: 1,
-    width: 24,
-  },
-  listMarkDone: {
-    backgroundColor: '#15332A',
-  },
-  listMarkPending: {
-    borderColor: '#57564F',
-    borderStyle: 'dashed',
-    borderWidth: 1.5,
-  },
-  listText: {
-    ...mentaTypography.lead,
-    color: '#D9D8D1',
-    flex: 1,
-  },
-  listTextPending: {
-    color: mentaColors.text.muted,
-  },
-  pair: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    paddingTop: mentaSpacing[10],
-  },
-  pairPerson: {
-    alignItems: 'center',
-    gap: mentaSpacing[2],
-    width: 108,
-  },
-  pairAvatar: {
-    alignItems: 'center',
-    backgroundColor: '#2A2340',
-    borderRadius: mentaRadii.round,
-    borderWidth: 2,
-    height: 88,
-    justifyContent: 'center',
-    width: 88,
-  },
-  pairAvatarEmpty: {
-    backgroundColor: 'transparent',
-    borderColor: mentaColors.text.muted,
-    borderStyle: 'dashed',
-  },
-  pairInitial: {
-    color: '#E9DDFF',
-    fontFamily: mentaFonts.newsreader.semibold,
-    fontSize: 36,
-  },
-  pairLabel: {
-    ...mentaTypography.bodySemibold,
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const inviteHeadingStyle = {
+    ...mentaTypography.heading,
     color: mentaColors.text.primary,
-  },
-  pairLabelMuted: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.medium,
-  },
-  pairMascot: {
-    marginBottom: mentaSpacing[6],
-  },
-});
+    fontFamily: mentaFonts.newsreader.semibold,
+  };
+  const styles = StyleSheet.create({
+    pass: {
+      borderRadius: 24,
+      gap: mentaSpacing[10],
+      minHeight: 236,
+      overflow: 'hidden',
+      padding: mentaSpacing[5],
+      justifyContent: 'space-between',
+    },
+    passWash: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: mentaRadii.round,
+      height: 300,
+      left: -110,
+      opacity: 0.18,
+      position: 'absolute',
+      top: -170,
+      width: 300,
+    },
+    passTitle: {
+      color: CARD_INK,
+      fontFamily: mentaFonts.newsreader.semibold,
+      fontSize: 34,
+      letterSpacing: -0.7,
+      lineHeight: 38,
+      maxWidth: 190,
+    },
+    passFrom: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+      maxWidth: '62%',
+    },
+    passInitial: {
+      alignItems: 'center',
+      backgroundColor: CARD_INK,
+      borderRadius: mentaRadii.round,
+      height: 34,
+      justifyContent: 'center',
+      width: 34,
+    },
+    passInitialText: {
+      color: '#E9DDFF',
+      fontFamily: mentaFonts.newsreader.semibold,
+      fontSize: 16,
+    },
+    passFromText: {
+      color: CARD_INK_SOFT,
+      flexShrink: 1,
+      fontFamily: mentaFonts.inter.medium,
+      fontSize: 15,
+    },
+    passMascot: {
+      position: 'absolute',
+      right: -10,
+      top: 18,
+    },
+    list: {
+      gap: mentaSpacing[4],
+    },
+    listRow: {
+      alignItems: 'flex-start',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+    },
+    listMark: {
+      alignItems: 'center',
+      borderRadius: mentaRadii.round,
+      height: 24,
+      justifyContent: 'center',
+      marginTop: 1,
+      width: 24,
+    },
+    listMarkDone: {
+      backgroundColor: '#15332A',
+    },
+    listMarkPending: {
+      borderColor: '#57564F',
+      borderStyle: 'dashed',
+      borderWidth: 1.5,
+    },
+    listText: {
+      ...mentaTypography.lead,
+      color: '#D9D8D1',
+      flex: 1,
+    },
+    listTextPending: {
+      color: mentaColors.text.muted,
+    },
+    pair: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'center',
+      paddingTop: mentaSpacing[10],
+    },
+    pairPerson: {
+      alignItems: 'center',
+      gap: mentaSpacing[2],
+      width: 108,
+    },
+    pairAvatar: {
+      alignItems: 'center',
+      backgroundColor: '#2A2340',
+      borderRadius: mentaRadii.round,
+      borderWidth: 2,
+      height: 88,
+      justifyContent: 'center',
+      width: 88,
+    },
+    pairAvatarEmpty: {
+      backgroundColor: 'transparent',
+      borderColor: mentaColors.text.muted,
+      borderStyle: 'dashed',
+    },
+    pairInitial: {
+      color: '#E9DDFF',
+      fontFamily: mentaFonts.newsreader.semibold,
+      fontSize: 36,
+    },
+    pairLabel: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    pairLabelMuted: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.medium,
+    },
+    pairMascot: {
+      marginBottom: mentaSpacing[6],
+    },
+  });
+  return { inviteHeadingStyle, styles };
+};

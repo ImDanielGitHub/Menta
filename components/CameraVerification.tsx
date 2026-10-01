@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaColors as mediaColors,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   AppState,
@@ -27,6 +35,7 @@ import {
   IPadTwoPaneWorkspace,
   useIPadPortraitWorkspace,
 } from '@/components/ipad/ipad-workspace';
+import { MentaMascot } from '@/components/ui/MentaMascot';
 import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import {
   CameraIcon,
@@ -37,11 +46,11 @@ import {
 } from '@/components/ui/icons';
 import { HoldToSendButton } from '@/components/proof';
 import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+  getProofSendCopy,
+  ProofCheckerLine,
+} from '@/components/proof/ProofCheckerLine';
+import type { ProofChecker } from '@/lib/proof/proof-roles';
+
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import {
   createProofDraft,
@@ -70,6 +79,11 @@ export type CapturedMediaProof = {
 };
 
 type CameraVerificationProps = {
+  mentaRule?: string;
+  /** The promise's own proof rule, shown on the preview before sending. */
+  proofRule?: string | null;
+  /** Who decides whether this proof counts (Paper page 25, S01–S04). */
+  proofChecker?: ProofChecker;
   challengeId: string;
   groupId?: string | null;
   verificationType: 'photo' | 'video';
@@ -80,6 +94,10 @@ type CameraVerificationProps = {
   onVerificationComplete: (proof: CapturedMediaProof) => void;
   onCaptureIssue?: (draft: ProofDraft | null, message: string) => void;
   onCancel: () => void;
+  /** Lets the route hand the screen to the camera access step (Paper C01/C02). */
+  onAccessGateChange?: (showing: boolean) => void;
+  /** Lets the route title the hold-to-send preview (Paper page 25, S01). */
+  onPreviewChange?: (showing: boolean) => void;
 };
 
 type PendingUpload = DurableProofMedia;
@@ -99,10 +117,14 @@ function ReviewVideoPreview({
   return <ProofVideoPlayer uri={uri} style={style} surface="capture_preview" />;
 }
 
+const UNKNOWN_CHECKER: ProofChecker = { kind: 'unknown' };
+
 const getErrorMessage = (error: unknown, fallback: string): string =>
   error instanceof Error && error.message.trim() ? error.message : fallback;
 
 function CameraLoadingPlaceholder() {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <View
@@ -132,6 +154,9 @@ function CameraLoadingPlaceholder() {
  * claims a submitted or accepted proof; that belongs to proof-submission-service.
  */
 export function CameraVerification({
+  mentaRule,
+  proofRule = null,
+  proofChecker = UNKNOWN_CHECKER,
   challengeId,
   groupId,
   verificationType,
@@ -142,7 +167,12 @@ export function CameraVerification({
   onVerificationComplete,
   onCaptureIssue,
   onCancel,
+  onAccessGateChange,
+  onPreviewChange,
 }: CameraVerificationProps) {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [microphonePermission, requestMicrophonePermission] =
     useMicrophonePermissions();
@@ -156,7 +186,6 @@ export function CameraVerification({
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [permissionRequestPending, setPermissionRequestPending] =
     useState(false);
-  const [permissionPrimerSeen, setPermissionPrimerSeen] = useState(false);
   const [proofNotice, setProofNotice] = useState<ProofNotice | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [pendingUpload, setPendingUpload] = useState<PendingUpload | null>(
@@ -171,10 +200,6 @@ export function CameraVerification({
   const isFocused = useIsFocused();
   const user = useAuthStore(state => state.user);
   const { t } = useTranslation();
-  const proofTypeLabel =
-    verificationType === 'photo'
-      ? t('shared.camera.photoNoun')
-      : t('shared.camera.videoNoun');
   const phoneLayout = usePhoneLayout();
   const usesIPadWorkspace = useIPadPortraitWorkspace();
   const compactScreenInset = { paddingHorizontal: phoneLayout.screenInset };
@@ -183,6 +208,21 @@ export function CameraVerification({
     cameraPermission?.granted &&
     (verificationType === 'photo' || microphonePermission?.granted)
   );
+  const showsAccessGate = Boolean(
+    !pendingUpload &&
+    cameraPermission &&
+    (verificationType === 'photo' || microphonePermission) &&
+    !hasAllPermissions
+  );
+
+  useEffect(() => {
+    onAccessGateChange?.(showsAccessGate);
+  }, [onAccessGateChange, showsAccessGate]);
+
+  const showsPreview = Boolean(pendingUpload);
+  useEffect(() => {
+    onPreviewChange?.(showsPreview);
+  }, [onPreviewChange, showsPreview]);
 
   const preparePendingUpload = useCallback(
     async (mediaUri: string, mediaType: 'photo' | 'video') =>
@@ -519,9 +559,42 @@ export function CameraVerification({
           style={styles.previewMedia}
         />
       );
+    const sendCopy = getProofSendCopy(proofChecker, t);
+    const previewRule = (mentaRule ?? proofRule)?.trim() || null;
+    const previewTitle =
+      pendingUpload.mediaType === 'photo'
+        ? t('proofRoles.send.check_photo')
+        : t('proofRoles.send.check_video');
+    const holdToSend = (
+      <HoldToSendButton
+        onComplete={() => void confirmUpload()}
+        disabled={isProcessing}
+        label={t('shared.camera.holdToSend')}
+        holdingLabel={t('shared.camera.keepHolding')}
+        hint={sendCopy?.hint ?? t('shared.camera.releaseToCancel')}
+        tapAlternativeLabel={t('shared.camera.sendOneTap')}
+        leadingAction={{
+          label: t('proofRoles.send.retake'),
+          onPress: () => setPendingUpload(null),
+          disabled: isProcessing,
+          testID: 'media-proof-retake',
+        }}
+        testID="media-proof-hold-to-send"
+      />
+    );
+    const framedPreview = (
+      <View style={styles.previewFrame}>
+        {mediaPreview}
+        {previewRule ? (
+          <Text style={styles.previewRuleText} numberOfLines={2}>
+            {t('proofRoles.send.rule', { rule: previewRule })}
+          </Text>
+        ) : null}
+      </View>
+    );
     const reviewActions = (
       <>
-        <Text style={styles.previewTitle}>{t('shared.camera.checkProof')}</Text>
+        <Text style={styles.previewTitle}>{previewTitle}</Text>
         <View style={styles.localDraftReceipt}>
           <Text style={styles.localDraftLabel}>
             {t('shared.camera.savedOnIPad')}
@@ -530,28 +603,8 @@ export function CameraVerification({
             {t('shared.camera.notSentYetIPad')}
           </Text>
         </View>
-        <Text style={styles.previewHint}>
-          {t('shared.camera.retakeHintIPad')}
-        </Text>
-        <View style={styles.previewActions}>
-          <AppButton
-            title={t('shared.camera.retakeProof')}
-            onPress={() => setPendingUpload(null)}
-            variant="secondary"
-            size="large"
-            fullWidth
-            disabled={isProcessing}
-          />
-          <HoldToSendButton
-            onComplete={() => void confirmUpload()}
-            disabled={isProcessing}
-            label={t('shared.camera.holdToSend')}
-            holdingLabel={t('shared.camera.keepHolding')}
-            hint={t('shared.camera.releaseToCancel')}
-            tapAlternativeLabel={t('shared.camera.sendOneTap')}
-            testID="media-proof-hold-to-send"
-          />
-        </View>
+        <ProofCheckerLine checker={proofChecker} />
+        <View style={styles.previewActions}>{holdToSend}</View>
       </>
     );
 
@@ -566,7 +619,7 @@ export function CameraVerification({
                   ? t('shared.camera.photoProof').toUpperCase()
                   : t('shared.camera.videoProof').toUpperCase()}
               </Text>
-              {mediaPreview}
+              {framedPreview}
             </View>
           }
           secondary={<View style={styles.iPadReviewPane}>{reviewActions}</View>}
@@ -579,30 +632,12 @@ export function CameraVerification({
 
     return (
       <View style={styles.previewScreen}>
-        <Text style={styles.previewTitle}>{t('shared.camera.checkProof')}</Text>
-        {mediaPreview}
-        <Text style={styles.previewHint}>
-          {t('shared.camera.retakeHintPhone')}
-        </Text>
-        <View style={styles.previewActions}>
-          <AppButton
-            title={t('shared.camera.retakeProof')}
-            onPress={() => setPendingUpload(null)}
-            variant="secondary"
-            size="large"
-            fullWidth
-            disabled={isProcessing}
-          />
-          <HoldToSendButton
-            onComplete={() => void confirmUpload()}
-            disabled={isProcessing}
-            label={t('shared.camera.holdToSend')}
-            holdingLabel={t('shared.camera.keepHolding')}
-            hint={t('shared.camera.releaseToCancel')}
-            tapAlternativeLabel={t('shared.camera.sendOneTap')}
-            testID="media-proof-hold-to-send"
-          />
-        </View>
+        {onPreviewChange ? null : (
+          <Text style={styles.previewTitle}>{previewTitle}</Text>
+        )}
+        {framedPreview}
+        <ProofCheckerLine checker={proofChecker} />
+        <View style={styles.previewActions}>{holdToSend}</View>
       </View>
     );
   }
@@ -614,83 +649,47 @@ export function CameraVerification({
     return <CameraLoadingPlaceholder />;
   }
 
-  if (!hasAllPermissions && !permissionPrimerSeen) {
-    return (
-      <View
-        style={[styles.messageScreen, compactScreenInset]}
-        testID="camera-proof-primer"
-      >
-        <CameraIcon size={32} color={mentaColors.text.primary} />
-        <Text style={styles.messageTitle}>
-          {t('shared.camera.useCameraForProof')}
-        </Text>
-        <Text style={styles.messageCopy}>
-          {t('shared.camera.cameraPrimerDescription', {
-            proofType: proofTypeLabel,
-          })}
-        </Text>
-        <AppButton
-          title={t('shared.camera.reviewCameraAccess')}
-          onPress={() => setPermissionPrimerSeen(true)}
-          size="large"
-          fullWidth
-          testID="camera-proof-primer-continue"
-        />
-        <AppButton
-          title={t('shared.camera.useTextProofInstead')}
-          onPress={onCancel}
-          variant="ghost"
-          size="large"
-          fullWidth
-        />
-      </View>
-    );
-  }
-
   if (!hasAllPermissions) {
-    const neededPermissionKey = [
-      !cameraPermission.granted ? 'camera' : null,
-      verificationType === 'video' && !microphonePermission?.granted
-        ? 'microphone'
-        : null,
-    ]
-      .filter(Boolean)
-      .join('And');
-    const neededPermissions =
-      neededPermissionKey === 'microphone'
-        ? t('shared.camera.microphoneAccess')
-        : neededPermissionKey === 'cameraAndmicrophone'
-          ? t('shared.camera.cameraAndMicrophoneAccess')
-          : t('shared.camera.cameraAccess');
+    const needsCamera = !cameraPermission.granted;
+    const needsMicrophone =
+      verificationType === 'video' && !microphonePermission?.granted;
     const hasBlockedPermission = Boolean(
-      (!cameraPermission.granted && cameraPermission.canAskAgain === false) ||
-      (verificationType === 'video' &&
-        !microphonePermission?.granted &&
-        microphonePermission?.canAskAgain === false)
+      (needsCamera && cameraPermission.canAskAgain === false) ||
+      (needsMicrophone && microphonePermission?.canAskAgain === false)
     );
-    const permissionTitle =
-      neededPermissionKey === 'microphone'
-        ? t('shared.camera.allowMicrophoneAccess')
-        : neededPermissionKey === 'cameraAndmicrophone'
-          ? t('shared.camera.allowCameraAndMicrophoneAccess')
-          : t('shared.camera.allowCameraAccess');
-    const permissionBody = hasBlockedPermission
-      ? t('shared.camera.enablePermissionsInSettings', {
-          permissions: neededPermissions,
-        })
-      : t('shared.camera.permissionBody', {
-          permissions: neededPermissions,
-          proofType: proofTypeLabel,
-        });
-    const permissionActionLabel = hasBlockedPermission
+    const neededPermissions =
+      needsCamera && needsMicrophone
+        ? t('shared.camera.cameraAndMicrophoneAccess')
+        : needsMicrophone
+          ? t('shared.camera.microphoneAccess')
+          : t('shared.camera.cameraAccess');
+    const accessTitle = hasBlockedPermission
+      ? needsCamera && needsMicrophone
+        ? t('cameraAccess.cameraAndMicrophoneOff')
+        : needsMicrophone
+          ? t('cameraAccess.microphoneOff')
+          : t('cameraAccess.cameraOff')
+      : verificationType === 'photo'
+        ? t('cameraAccess.photoTitle')
+        : t('cameraAccess.videoTitle');
+    const accessBody = hasBlockedPermission
+      ? verificationType === 'photo'
+        ? t('cameraAccess.photoOffBody')
+        : t('cameraAccess.videoOffBody', { permissions: neededPermissions })
+      : verificationType === 'photo'
+        ? t('cameraAccess.photoBody')
+        : t('cameraAccess.videoBody');
+    const accessActionLabel = hasBlockedPermission
       ? permissionRequestPending
         ? t('shared.camera.openingSettings')
         : t('shared.camera.openSettings')
       : permissionRequestPending
         ? t('shared.camera.requestingAccess')
-        : t('shared.camera.allowPermissions', {
-            permissions: neededPermissions,
-          });
+        : needsCamera && needsMicrophone
+          ? t('cameraAccess.allowCameraAndMicrophone')
+          : needsMicrophone
+            ? t('cameraAccess.allowMicrophone')
+            : t('cameraAccess.allowCamera');
 
     const requestMissingPermission = async () => {
       if (permissionRequestPending) return;
@@ -703,19 +702,21 @@ export function CameraVerification({
           return;
         }
 
-        if (!cameraPermission.granted) {
+        // A refusal the system will not ask about again switches this screen
+        // to the Settings state on its own; only a soft refusal needs a note.
+        if (needsCamera) {
           const result = await requestCameraPermission();
-          if (!result.granted) {
+          if (!result.granted && result.canAskAgain !== false) {
             setProofNotice({
               title: t('shared.camera.cameraAccessOff'),
               description: t('shared.camera.cameraAccessOffDescription'),
             });
           }
-          return;
+          if (!result.granted || !needsMicrophone) return;
         }
 
         const result = await requestMicrophonePermission();
-        if (!result.granted) {
+        if (!result.granted && result.canAskAgain !== false) {
           setProofNotice({
             title: t('shared.camera.microphoneAccessOff'),
             description: t('shared.camera.microphoneAccessOffDescription'),
@@ -740,43 +741,59 @@ export function CameraVerification({
 
     return (
       <View
-        style={[styles.messageScreen, compactScreenInset]}
+        style={[styles.accessScreen, compactScreenInset]}
         testID="camera-proof-permission"
       >
-        <CameraIcon size={32} color={mentaColors.text.primary} />
-        <Text style={styles.messageTitle}>{permissionTitle}</Text>
-        <Text style={styles.messageCopy}>{permissionBody}</Text>
-        {proofNotice ? (
-          <View style={styles.notice} testID="camera-proof-notice">
-            <Text style={styles.noticeTitle}>{proofNotice.title}</Text>
-            <Text style={styles.messageCopy}>{proofNotice.description}</Text>
-          </View>
-        ) : null}
-        <AppButton
-          title={permissionActionLabel}
-          onPress={() => void requestMissingPermission()}
-          size="large"
-          fullWidth
-          disabled={permissionRequestPending}
-          loading={permissionRequestPending}
-          testID="camera-proof-permission-action"
-        />
-        <AppButton
-          title={t('shared.camera.chooseFromLibrary')}
-          onPress={() => void handlePickFromLibrary()}
-          variant="secondary"
-          size="large"
-          fullWidth
-          disabled={isProcessing || permissionRequestPending}
-          testID="camera-proof-library"
-        />
-        <AppButton
-          title={t('shared.camera.cancelProof')}
-          onPress={onCancel}
-          variant="ghost"
-          size="large"
-          fullWidth
-        />
+        <View style={styles.accessHero}>
+          <MentaMascot
+            state={
+              hasBlockedPermission ? 'camera-access-off' : 'today-proof-due'
+            }
+            size="hero"
+          />
+          <Text style={styles.accessTitle} accessibilityRole="header">
+            {accessTitle}
+          </Text>
+          <Text style={styles.accessBody}>{accessBody}</Text>
+          {proofNotice ? (
+            <View style={styles.notice} testID="camera-proof-notice">
+              <Text style={styles.noticeTitle}>{proofNotice.title}</Text>
+              <Text style={styles.messageCopy}>{proofNotice.description}</Text>
+            </View>
+          ) : null}
+        </View>
+        <View style={styles.accessActions}>
+          <AppButton
+            title={accessActionLabel}
+            onPress={() => void requestMissingPermission()}
+            size="large"
+            fullWidth
+            disabled={permissionRequestPending}
+            loading={permissionRequestPending}
+            testID="camera-proof-permission-action"
+          />
+          <AppButton
+            title={
+              verificationType === 'photo'
+                ? t('cameraAccess.chooseSavedPhoto')
+                : t('cameraAccess.chooseSavedVideo')
+            }
+            onPress={() => void handlePickFromLibrary()}
+            variant="secondary"
+            size="large"
+            fullWidth
+            disabled={isProcessing || permissionRequestPending}
+            testID="camera-proof-library"
+          />
+          <AppButton
+            title={t('cameraAccess.notNow')}
+            onPress={onCancel}
+            variant="ghost"
+            size="large"
+            fullWidth
+            testID="camera-proof-not-now"
+          />
+        </View>
       </View>
     );
   }
@@ -903,6 +920,14 @@ export function CameraVerification({
         </View>
       ) : null}
 
+      {mentaRule ? (
+        <View style={styles.mentaRule} pointerEvents="none">
+          <Text style={styles.mentaRuleLabel}>
+            {t('mentaCheck.camera.lookFor')}
+          </Text>
+          <Text style={styles.mentaRuleText}>{mentaRule}</Text>
+        </View>
+      ) : null}
       <View style={[styles.cameraToolbar, compactScreenInset]}>
         <Pressable
           onPress={toggleCameraType}
@@ -984,174 +1009,229 @@ export function CameraVerification({
   );
 }
 
-const styles = StyleSheet.create({
-  cameraShell: {
-    flex: 1,
-    minHeight: 420,
-    overflow: 'hidden',
-    borderRadius: mentaRadii.large,
-    backgroundColor: mentaColors.canvas,
-    position: 'relative',
-  },
-  camera: {
-    flex: 1,
-  },
-  cameraToolbar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    minHeight: 112,
-    paddingHorizontal: mentaSpacing[6],
-    paddingBottom: mentaSpacing[6],
-    paddingTop: mentaSpacing[4],
-    backgroundColor: 'rgba(8, 9, 9, 0.68)',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  cameraIconButton: {
-    width: 48,
-    height: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: mentaRadii.round,
-    backgroundColor: 'rgba(248, 247, 241, 0.16)',
-    borderWidth: 1,
-    borderColor: 'rgba(248, 247, 241, 0.32)',
-  },
-  cameraIconButtonPressed: {
-    opacity: 0.72,
-  },
-  cameraIconButtonDisabled: {
-    opacity: 0.42,
-  },
-  shutterButton: {
-    width: 72,
-    height: 72,
-    borderRadius: mentaRadii.round,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: mentaColors.paper,
-    borderWidth: 4,
-    borderColor: 'rgba(248, 247, 241, 0.55)',
-  },
-  shutterButtonRecording: {
-    backgroundColor: mentaColors.danger,
-    borderColor: 'rgba(255, 255, 255, 0.7)',
-  },
-  shutterButtonPressed: {
-    transform: [{ scale: 0.98 }],
-  },
-  initialisingOverlay: {
-    ...StyleSheet.absoluteFill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(8, 9, 9, 0.74)',
-    gap: mentaSpacing[2],
-  },
-  initialisingText: {
-    ...mentaTypography.body,
-    color: mentaColors.paper,
-  },
-  previewScreen: {
-    width: '100%',
-    gap: mentaSpacing[4],
-    paddingTop: mentaSpacing[2],
-  },
-  iPadPrimaryPane: {
-    flex: 1.65,
-  },
-  iPadSecondaryPane: {
-    flex: 1,
-  },
-  iPadMediaPane: {
-    gap: mentaSpacing[3],
-    width: '100%',
-  },
-  iPadMediaLabel: {
-    ...mentaTypography.labelBold,
-    color: mentaColors.text.secondary,
-  },
-  iPadReviewPane: {
-    gap: mentaSpacing[5],
-    paddingTop: mentaSpacing[2],
-  },
-  localDraftReceipt: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[2],
-    paddingVertical: mentaSpacing[4],
-  },
-  localDraftLabel: {
-    ...mentaTypography.labelBold,
-    color: mentaColors.action,
-  },
-  localDraftCopy: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-  },
-  previewTitle: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-  },
-  previewMedia: {
-    width: '100%',
-    aspectRatio: 3 / 4,
-    borderRadius: mentaRadii.large,
-    backgroundColor: mentaColors.canvas,
-    overflow: 'hidden',
-  },
-  previewHint: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-  },
-  previewActions: {
-    gap: mentaSpacing[2],
-  },
-  cameraLoadingScreen: {
-    width: '100%',
-    gap: mentaSpacing[4],
-    paddingTop: mentaSpacing[2],
-  },
-  messageScreen: {
-    width: '100%',
-    minHeight: 340,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: mentaSpacing[4],
-    paddingHorizontal: mentaSpacing[6],
-    paddingVertical: mentaSpacing[8],
-    backgroundColor: mentaColors.raised,
-    borderWidth: 1,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-  },
-  messageTitle: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-    textAlign: 'center',
-  },
-  messageCopy: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-    textAlign: 'center',
-    marginBottom: mentaSpacing[2],
-  },
-  notice: {
-    width: '100%',
-    gap: mentaSpacing[1],
-    padding: mentaSpacing[4],
-    borderWidth: 1,
-    borderColor: mentaColors.warning,
-    borderRadius: mentaRadii.medium,
-    backgroundColor: mentaColors.warningSoft,
-  },
-  noticeTitle: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.warning,
-    textAlign: 'center',
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    mentaRule: {
+      position: 'absolute',
+      top: mentaSpacing[4],
+      left: mentaSpacing[4],
+      right: mentaSpacing[4],
+      padding: mentaSpacing[4],
+      gap: mentaSpacing[2],
+      backgroundColor: 'rgba(8, 9, 9, 0.8)',
+      borderRadius: mentaRadii.large,
+    },
+    mentaRuleLabel: {
+      ...mentaTypography.bodySmall,
+      color: mediaColors.text.secondary,
+    },
+    mentaRuleText: {
+      ...mentaTypography.bodyMedium,
+      color: mediaColors.text.primary,
+    },
+    cameraShell: {
+      flex: 1,
+      minHeight: 420,
+      overflow: 'hidden',
+      borderRadius: mentaRadii.large,
+      backgroundColor: mentaColors.canvas,
+      position: 'relative',
+    },
+    camera: {
+      flex: 1,
+    },
+    cameraToolbar: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      minHeight: 112,
+      paddingHorizontal: mentaSpacing[6],
+      paddingBottom: mentaSpacing[6],
+      paddingTop: mentaSpacing[4],
+      backgroundColor: 'rgba(8, 9, 9, 0.68)',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    cameraIconButton: {
+      width: 48,
+      height: 48,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: mentaRadii.round,
+      backgroundColor: 'rgba(248, 247, 241, 0.16)',
+      borderWidth: 1,
+      borderColor: 'rgba(248, 247, 241, 0.32)',
+    },
+    cameraIconButtonPressed: {
+      opacity: 0.72,
+    },
+    cameraIconButtonDisabled: {
+      opacity: 0.42,
+    },
+    shutterButton: {
+      width: 72,
+      height: 72,
+      borderRadius: mentaRadii.round,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: mentaColors.paper,
+      borderWidth: 4,
+      borderColor: 'rgba(248, 247, 241, 0.55)',
+    },
+    shutterButtonRecording: {
+      backgroundColor: mentaColors.danger,
+      borderColor: 'rgba(255, 255, 255, 0.7)',
+    },
+    shutterButtonPressed: {
+      transform: [{ scale: 0.98 }],
+    },
+    initialisingOverlay: {
+      ...StyleSheet.absoluteFill,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(8, 9, 9, 0.74)',
+      gap: mentaSpacing[2],
+    },
+    initialisingText: {
+      ...mentaTypography.body,
+      color: mentaColors.paper,
+    },
+    previewScreen: {
+      width: '100%',
+      gap: mentaSpacing[4],
+      paddingTop: mentaSpacing[2],
+    },
+    iPadPrimaryPane: {
+      flex: 1.65,
+    },
+    iPadSecondaryPane: {
+      flex: 1,
+    },
+    iPadMediaPane: {
+      gap: mentaSpacing[3],
+      width: '100%',
+    },
+    iPadMediaLabel: {
+      ...mentaTypography.labelBold,
+      color: mentaColors.text.secondary,
+    },
+    iPadReviewPane: {
+      gap: mentaSpacing[5],
+      paddingTop: mentaSpacing[2],
+    },
+    localDraftReceipt: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[2],
+      paddingVertical: mentaSpacing[4],
+    },
+    localDraftLabel: {
+      ...mentaTypography.labelBold,
+      color: mentaColors.action,
+    },
+    localDraftCopy: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+    },
+    previewTitle: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+    },
+    previewFrame: {
+      width: '100%',
+      gap: mentaSpacing[2],
+    },
+    previewMedia: {
+      width: '100%',
+      // Paper S01: tall enough to judge the proof, short enough to keep the
+      // hold-to-send control on screen on a standard phone.
+      aspectRatio: 382 / 440,
+      borderRadius: mentaRadii.large,
+      backgroundColor: mentaColors.canvas,
+      overflow: 'hidden',
+    },
+    previewRuleText: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+    },
+    previewActions: {
+      gap: mentaSpacing[2],
+    },
+    cameraLoadingScreen: {
+      width: '100%',
+      gap: mentaSpacing[4],
+      paddingTop: mentaSpacing[2],
+    },
+    messageScreen: {
+      width: '100%',
+      minHeight: 340,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: mentaSpacing[4],
+      paddingHorizontal: mentaSpacing[6],
+      paddingVertical: mentaSpacing[8],
+      backgroundColor: mentaColors.raised,
+      borderWidth: 1,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+    },
+    messageTitle: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+      textAlign: 'center',
+    },
+    messageCopy: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+      textAlign: 'center',
+      marginBottom: mentaSpacing[2],
+    },
+    accessScreen: {
+      flexGrow: 1,
+      width: '100%',
+      justifyContent: 'space-between',
+      gap: mentaSpacing[8],
+      paddingBottom: mentaSpacing[2],
+    },
+    accessHero: {
+      flexGrow: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: mentaSpacing[3],
+    },
+    accessTitle: {
+      ...mentaTypography.heading,
+      color: mentaColors.text.primary,
+      textAlign: 'center',
+    },
+    accessBody: {
+      ...mentaTypography.lead,
+      color: mentaColors.text.secondary,
+      textAlign: 'center',
+      maxWidth: 340,
+    },
+    accessActions: {
+      width: '100%',
+      gap: mentaSpacing[3],
+    },
+    notice: {
+      width: '100%',
+      gap: mentaSpacing[1],
+      padding: mentaSpacing[4],
+      borderWidth: 1,
+      borderColor: mentaColors.warning,
+      borderRadius: mentaRadii.medium,
+      backgroundColor: mentaColors.warningSoft,
+    },
+    noticeTitle: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.warning,
+      textAlign: 'center',
+    },
+  });
+  return { styles };
+};

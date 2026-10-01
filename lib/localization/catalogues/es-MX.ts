@@ -1,4 +1,5 @@
 import type { CompleteCatalogue } from '@/lib/localization/en-NZ';
+import { mentaCheckEs } from './shared/menta-check-es';
 import { widgetses } from '@/lib/localization/catalogues/shared/widgets-es';
 import { spanishAccountabilityDelta } from '@/lib/localization/catalogues/shared/spanish-accountability-delta';
 import { foundationEsMX } from '@/lib/localization/catalogues/es-MX/foundation';
@@ -22,9 +23,18 @@ import { fullEventsEsMX } from '@/lib/localization/catalogues/es-MX/full-events'
 import { fullDomainFeedbackEsMX } from '@/lib/localization/catalogues/es-MX/full-domain-feedback';
 import { sourceGateEsMX } from '@/lib/localization/catalogues/es-MX/source-gate';
 import { momentaTopUpEsMX } from '@/lib/localization/catalogues/es-MX/momenta-top-up';
+import { cameraAccessEsMX } from '@/lib/localization/catalogues/es-MX/camera-access';
+import { proofRolesEsMX } from '@/lib/localization/catalogues/es-MX/proof-roles';
 
 export const esMX = {
+  'settings.appearance.title': 'Apariencia',
+  'settings.appearance.system': 'Sistema',
+  'settings.appearance.light': 'Claro',
+  'settings.appearance.dark': 'Oscuro',
+  ...mentaCheckEs,
   ...momentaTopUpEsMX,
+  ...cameraAccessEsMX,
+  ...proofRolesEsMX,
   ...widgetses,
   ...foundationEsMX,
   ...languageEsMX,

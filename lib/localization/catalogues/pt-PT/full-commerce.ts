@@ -1,5 +1,14 @@
 /** Customer-facing copy for the Momenta wallet, shop, inventory, and Pro flows. */
 export const fullCommercePtPT = {
+  'commerce.proJourney.continueFree': 'Continuar gratuitamente',
+  'commerce.free.receiptRetry': 'A tua promessa foi criada',
+  'commerce.free.receiptRetryDetail':
+    'Não conseguimos guardar o comprovativo. Tenta novamente para concluir a configuração do revisor. Isto não criará nem cobrará outra promessa.',
+  'commerce.free.pendingReviewer': 'À espera de alguém para rever',
+  'commerce.free.pendingDetail':
+    'A tua promessa e o seu prazo já começaram. Convida alguém para rever a tua prova. Ao sair deste ecrã, a promessa e o seu prazo continuam em curso.',
+  'commerce.free.finishSetup': 'Concluir quem revê',
+
   'commerce.proJourney.back': 'Voltar',
   'commerce.proJourney.title': 'Menta Pro',
   'commerce.proJourney.subtitle':
@@ -373,7 +382,7 @@ export const fullCommercePtPT = {
   'commerce.shop.state': 'Estado',
   'commerce.shop.reachStreakAuto':
     'Alcance uma sequência de {days} dias. Menta adiciona isso aos Os seus itens automaticamente.',
-  'commerce.shop.appearanceWarm': '{name} dá à Menta um visual mais quente.',
+  'commerce.shop.themeTitle': '{name} muda as cores do Menta.',
   'commerce.shop.frameTitle': '{name} emoldura a sua fotografia de perfil.',
   'commerce.shop.oneUse': 'um uso',
   'commerce.shop.unlocks': 'Desbloqueia em sequência de {days} dias',
@@ -490,8 +499,8 @@ export const fullCommercePtPT = {
     'Acrescenta 12 horas ao prazo de uma promessa ativa.',
   'commerce.shop.choosePromiseAfter':
     'Escolha a promessa ativa após a compra ou depois em Os seus itens.',
-  'commerce.shop.buttonsColours':
-    'Botões, destaques e itens selecionados usam as cores quentes do Ember.',
+  'commerce.shop.themeColours':
+    'Botões, destaques e itens selecionados usam as cores de {name}.',
   'commerce.shop.frameProfile':
     'A moldura aparece em todos os sítios onde a Menta mostra o seu perfil.',
   'commerce.shop.frameDescription':
@@ -873,7 +882,8 @@ export const fullCommercePtPT = {
     'Não foi possível confirmar o congelamento. Tente novamente.',
   'commerce.firstMiss.errorUnavailable':
     'Esta oferta do primeiro dia já não está disponível. Ainda pode adicionar uma prova hoje.',
-  'commerce.firstMiss.bubble': '{weekday} passou. Acontece a toda a gente.',
+  'commerce.firstMiss.bubble':
+    '{weekday} passou. Um dia perdido não conta a história toda.',
   'commerce.firstMiss.decisionTitle': 'Manter a sua sequência de {count} dias?',
   'commerce.firstMiss.decisionBody':
     'O seu primeiro dia falhado é por nossa conta. Uma proteção de sequência gratuita cobre {weekday} e a sua sequência fica em {count}.',
@@ -881,6 +891,9 @@ export const fullCommercePtPT = {
     'O seu primeiro dia falhado é por nossa conta. Uma proteção de sequência gratuita cobre {weekday}.',
   'commerce.firstMiss.keep': 'Manter a minha sequência grátis',
   'commerce.firstMiss.startOver': 'Recomeçar do dia 1',
+  'commerce.free.receiptReadBlocked': 'Verifica a tua promessa guardada',
+  'commerce.free.receiptReadBlockedDetail':
+    'Não conseguimos ler a promessa guardada com segurança. Tenta recuperá-la novamente antes de iniciar outra promessa.',
 } as const;
 
 export type FullCommercePtPTKey = keyof typeof fullCommercePtPT;

@@ -44,11 +44,11 @@ export const todayEnNZ = {
   'today.home.momenta.accessibility_unknown':
     'Momenta balance not confirmed yet. Opens your wallet.',
   'today.home.week.accessibility':
-    'Last 7 days: {count} days with approved proof.',
+    'Last 7 days: {count} days with every promise kept.',
   'today.home.week.accessibility.one':
-    'Last 7 days: {count} day with approved proof.',
+    'Last 7 days: {count} day with every promise kept.',
   'today.home.week.accessibility.other':
-    'Last 7 days: {count} days with approved proof.',
+    'Last 7 days: {count} days with every promise kept.',
   'today.home.streaks.title': 'Your streaks',
   'today.home.streaks.note':
     'A streak counts days with approved proof, not days a promise was open.',

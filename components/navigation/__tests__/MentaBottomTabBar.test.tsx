@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAppearanceStore } from '@/store/appearance-store';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -73,6 +74,17 @@ const renderBar = (
   );
 
 describe('MentaBottomTabBar', () => {
+  afterEach(() => useAppearanceStore.setState({ preference: 'dark' }));
+
+  it('keeps the light tab bar and bottom safe area on the approved canvas', () => {
+    useAppearanceStore.setState({ preference: 'light' });
+    renderBar(buildProps().props);
+    expect(screen.getByTestId('menta-bottom-tab-bar')).toHaveStyle({
+      backgroundColor: '#F5F3FA',
+      paddingBottom: 34,
+    });
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });

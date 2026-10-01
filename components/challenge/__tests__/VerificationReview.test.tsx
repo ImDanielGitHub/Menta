@@ -1,4 +1,10 @@
+jest.mock('@/hooks/usePromiseAccountability', () => ({
+  usePromiseAccountability: () => ({ data: undefined }),
+}));
 import React from 'react';
+jest.mock('@/components/menta-check/menta-review-hint', () => ({
+  MentaReviewHint: () => null,
+}));
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { VerificationReview } from '../VerificationReview';
 import { useChallengeStore } from '@/store/challenge-store';
@@ -315,7 +321,7 @@ describe('VerificationReview', () => {
     fireEvent.press(getByLabelText('submitter1 proof for Test Challenge'));
 
     await waitFor(() => {
-      expect(queryByText('Approve proof')).toBeTruthy();
+      expect(queryByText('Approve, it counts')).toBeTruthy();
     });
   });
 

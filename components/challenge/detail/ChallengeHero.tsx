@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { PromiseArtefact } from '@/components/challenge/PromiseArtefact';
@@ -6,12 +13,7 @@ import {
   MoreVerticalIcon,
   Share2Icon,
 } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-} from '@/constants/MentaDesignSystem';
+
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { useTranslation } from '@/lib/localization';
 
@@ -39,6 +41,9 @@ export function ChallengeHero({
   onMore,
   canShare = true,
 }: ChallengeHeroProps) {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const phoneLayout = usePhoneLayout();
   const { t } = useTranslation();
   return (
@@ -94,35 +99,38 @@ export function ChallengeHero({
   );
 }
 
-const styles = StyleSheet.create({
-  hero: {
-    marginHorizontal: mentaLayout.screenInset,
-    paddingTop: mentaSpacing[2],
-    paddingBottom: mentaSpacing[5],
-  },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: mentaSpacing[5],
-  },
-  topActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: mentaSpacing[2],
-  },
-  iconButton: {
-    width: mentaLayout.minimumTouchTarget,
-    height: mentaLayout.minimumTouchTarget,
-    borderRadius: mentaRadii.round,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-    backgroundColor: mentaColors.surface,
-  },
-  pressed: {
-    opacity: 0.76,
-    transform: [{ scale: 0.98 }],
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    hero: {
+      marginHorizontal: mentaLayout.screenInset,
+      paddingTop: mentaSpacing[2],
+      paddingBottom: mentaSpacing[5],
+    },
+    topRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: mentaSpacing[5],
+    },
+    topActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: mentaSpacing[2],
+    },
+    iconButton: {
+      width: mentaLayout.minimumTouchTarget,
+      height: mentaLayout.minimumTouchTarget,
+      borderRadius: mentaRadii.round,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+      backgroundColor: mentaColors.surface,
+    },
+    pressed: {
+      opacity: 0.76,
+      transform: [{ scale: 0.98 }],
+    },
+  });
+  return { styles };
+};

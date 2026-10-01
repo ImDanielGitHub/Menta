@@ -1,3 +1,6 @@
+import { type MentaPalette, mentaLayout } from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
+
 import { useTranslation } from '@/lib/localization';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -11,11 +14,10 @@ import {
   PaperAuthTextField,
   PaperAuthTextLink,
   paperAuthFonts,
-  paperAuthTokens,
   type PaperAuthFieldRef,
   type PaperAuthTextFieldProps,
 } from '@/components/onboarding/PaperAuthSurface';
-import { mentaLayout } from '@/constants/MentaDesignSystem';
+
 import { MINIMUM_NEW_PASSWORD_LENGTH } from '@/lib/auth/password-policy';
 
 export type PaperAuthMode = 'login' | 'signup';
@@ -76,6 +78,8 @@ export const PaperAuthForm: React.FC<PaperAuthFormProps> = ({
   initialName = '',
   testID = 'paper-auth-form',
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const [name, setName] = useState(initialName);
   const [email, setEmail] = useState(initialEmail);
@@ -434,6 +438,8 @@ const PaperAuthHeadingWithState: React.FC<{
   title: string;
   subtitle: string;
 }> = ({ mode, errorState, title, subtitle }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <View style={styles.headingBlock}>
@@ -449,55 +455,58 @@ const PaperAuthHeadingWithState: React.FC<{
   );
 };
 
-const styles = StyleSheet.create({
-  page: {
-    alignSelf: 'center',
-    flexGrow: 1,
-    gap: 16,
-    maxWidth: mentaLayout.taskLane,
-    paddingTop: 20,
-    width: '100%',
-  },
-  headingWrap: {
-    width: '100%',
-  },
-  headingBlock: {
-    gap: 6,
-    maxWidth: 332,
-  },
-  heading: {
-    color: paperAuthTokens.text,
-    fontFamily: paperAuthFonts.newsreaderMedium,
-    fontSize: 34,
-    letterSpacing: -0.68,
-    lineHeight: 37,
-  },
-  subtitle: {
-    color: paperAuthTokens.muted,
-    fontFamily: paperAuthFonts.inter,
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  fields: {
-    gap: 10,
-    width: '100%',
-  },
-  fieldHint: {
-    color: paperAuthTokens.muted,
-    fontFamily: paperAuthFonts.inter,
-    fontSize: 11,
-    lineHeight: 16,
-  },
-  forgotPassword: {
-    color: paperAuthTokens.muted,
-    fontFamily: paperAuthFonts.inter,
-    fontSize: 11,
-    lineHeight: 16,
-  },
-  actions: {
-    gap: 8,
-    marginTop: 'auto',
-    paddingTop: 6,
-    width: '100%',
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    page: {
+      alignSelf: 'center',
+      flexGrow: 1,
+      gap: 16,
+      maxWidth: mentaLayout.taskLane,
+      paddingTop: 20,
+      width: '100%',
+    },
+    headingWrap: {
+      width: '100%',
+    },
+    headingBlock: {
+      gap: 6,
+      maxWidth: 332,
+    },
+    heading: {
+      color: mentaColors.text.primary,
+      fontFamily: paperAuthFonts.newsreaderMedium,
+      fontSize: 34,
+      letterSpacing: -0.68,
+      lineHeight: 37,
+    },
+    subtitle: {
+      color: mentaColors.text.secondary,
+      fontFamily: paperAuthFonts.inter,
+      fontSize: 13,
+      lineHeight: 18,
+    },
+    fields: {
+      gap: 10,
+      width: '100%',
+    },
+    fieldHint: {
+      color: mentaColors.text.secondary,
+      fontFamily: paperAuthFonts.inter,
+      fontSize: 11,
+      lineHeight: 16,
+    },
+    forgotPassword: {
+      color: mentaColors.text.secondary,
+      fontFamily: paperAuthFonts.inter,
+      fontSize: 11,
+      lineHeight: 16,
+    },
+    actions: {
+      gap: 8,
+      marginTop: 'auto',
+      paddingTop: 6,
+      width: '100%',
+    },
+  });
+  return { styles };
+};

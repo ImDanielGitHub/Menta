@@ -1,3 +1,9 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -12,11 +18,6 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-} from '@/constants/MentaDesignSystem';
 import {
   getAccessibleAnimationDuration,
   useScreenReader,
@@ -55,6 +56,9 @@ export const SkeletonLoader = ({
   announce = true,
   testID,
 }: SkeletonLoaderProps) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const resolvedAccessibilityLabel =
     accessibilityLabel ??
@@ -165,6 +169,8 @@ export const SkeletonText = ({
   /** Let a composed parent own the single progress announcement. */
   announce?: boolean;
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <View
@@ -204,24 +210,27 @@ export const SkeletonButton = ({
   />
 );
 
-const styles = StyleSheet.create({
-  skeleton: {
-    backgroundColor: mentaColors.skeleton,
-    overflow: 'hidden',
-  },
-  shimmer: {
-    bottom: 0,
-    opacity: 0.72,
-    position: 'absolute',
-    top: 0,
-  },
-  retryTarget: {
-    minHeight: 44,
-    minWidth: 44,
-  },
-  textLine: {
-    marginBottom: mentaSpacing[2],
-  },
-});
-
 export default SkeletonLoader;
+
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    skeleton: {
+      backgroundColor: mentaColors.skeleton,
+      overflow: 'hidden',
+    },
+    shimmer: {
+      bottom: 0,
+      opacity: 0.72,
+      position: 'absolute',
+      top: 0,
+    },
+    retryTarget: {
+      minHeight: 44,
+      minWidth: 44,
+    },
+    textLine: {
+      marginBottom: mentaSpacing[2],
+    },
+  });
+  return { styles };
+};

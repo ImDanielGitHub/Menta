@@ -49,11 +49,11 @@ export const todayPtBR = {
   'today.home.momenta.accessibility_unknown':
     'Saldo de Momenta ainda não confirmado. Abre sua carteira.',
   'today.home.week.accessibility':
-    'Últimos 7 dias: {count} dias com prova aprovada.',
+    'Últimos 7 dias: {count} dias com todas as promessas cumpridas.',
   'today.home.week.accessibility.one':
-    'Últimos 7 dias: {count} dia com prova aprovada.',
+    'Últimos 7 dias: {count} dia com todas as promessas cumpridas.',
   'today.home.week.accessibility.other':
-    'Últimos 7 dias: {count} dias com prova aprovada.',
+    'Últimos 7 dias: {count} dias com todas as promessas cumpridas.',
   'today.home.streaks.title': 'Suas sequências',
   'today.home.streaks.note':
     'Uma sequência conta dias com prova aprovada, não dias com uma promessa aberta.',

@@ -1,5 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { Buffer } from 'node:buffer';
+import { execFileSync } from 'node:child_process';
 
 const root = process.cwd();
 const failures = [];
@@ -42,6 +45,82 @@ for (const required of [
 ]) {
   if (!fs.existsSync(required))
     fail(`Required public file missing: ${required}`);
+}
+const manifest = JSON.parse(fs.readFileSync('source-manifest.json', 'utf8'));
+const publicOnlyFiles = new Set([
+  '.env.server.example',
+  '.github/workflows/validate.yml',
+  '.gitignore',
+  '.gitleaks.toml',
+  'AGENTS.md',
+  'CONTRIBUTING.md',
+  'LICENSE',
+  'README.md',
+  'SECURITY.md',
+  'SOURCE.md',
+  'THIRD_PARTY_NOTICES.md',
+  'assets/fonts/OFL-GoogleSans.txt',
+  'docs/JUDGING.md',
+  'docs/SETUP.md',
+  'scripts/check-public-export.mjs',
+  'source-manifest.json',
+  'supabase/config.toml',
+  'supabase/migrations/20260910000000_public_baseline.sql',
+  'supabase/migrations/20260912153318_cache_profile_timezone_names.sql',
+  'supabase/migrations/20260923120000_expire_invites_after_creator_deletion.sql',
+  'supabase/migrations/20260924215659_profile_month_summary.sql',
+  'supabase/migrations/20260926151119_weekday_check_in_schedules.sql',
+  'supabase/seed.sql',
+]);
+const selectedFiles = new Set(manifest.sourceFiles.map(entry => entry.path));
+// Validate Git's publication boundary before ignoring local install/build output.
+// Reading the index also catches newly staged files before they are committed.
+const tracked = execFileSync('git', ['ls-files', '--stage', '-z'], {
+  cwd: root,
+  encoding: 'utf8',
+})
+  .split('\0')
+  .filter(Boolean);
+for (const record of tracked) {
+  const [metadata, relative] = record.split('\t');
+  const [mode, , stage] = metadata.split(' ');
+  if (!['100644', '100755'].includes(mode) || stage !== '0')
+    fail(`Tracked symlink, special file or unresolved entry: ${relative}`);
+  if (
+    relative
+      .split('/')
+      .some(part => ignored.has(part) || part.startsWith('dist-'))
+  )
+    fail(`Tracked dependency or generated output: ${relative}`);
+  if (!selectedFiles.has(relative) && !publicOnlyFiles.has(relative))
+    fail(`Unlisted tracked public file: ${relative}`);
+}
+for (const entry of manifest.sourceFiles) {
+  if (!entry.publicSha256 || !/^[a-f0-9]{64}$/.test(entry.publicSha256)) {
+    fail(`Manifest public hash missing or invalid: ${entry.path}`);
+    continue;
+  }
+  const selected = path.resolve(root, entry.path);
+  if (!selected.startsWith(root + path.sep) || !fs.existsSync(selected)) {
+    fail(`Manifest source missing or outside export: ${entry.path}`);
+    continue;
+  }
+  const parts = path.relative(root, selected).split(path.sep);
+  if (
+    parts.some((_, index) =>
+      fs
+        .lstatSync(path.join(root, ...parts.slice(0, index + 1)))
+        .isSymbolicLink()
+    )
+  ) {
+    fail(`Manifest source traverses a symlink: ${entry.path}`);
+    continue;
+  }
+  const digest = createHash('sha256')
+    .update(fs.readFileSync(selected))
+    .digest('hex');
+  if (digest !== entry.publicSha256)
+    fail(`Public source hash changed: ${entry.path}`);
 }
 const expo = JSON.parse(fs.readFileSync('app.json', 'utf8')).expo;
 if (

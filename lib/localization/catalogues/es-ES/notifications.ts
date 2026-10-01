@@ -6,6 +6,28 @@ type NotificationsKey = Extract<
 >;
 
 export const notificationsEsES = {
+  'notifications.recovery.restart':
+    'Un día perdido no es toda la historia. Vuelve a empezar con tu próximo registro; la prueba cuenta tras la aprobación.',
+  'notifications.recovery.month':
+    'Queda cerca de un mes en esta promesa. Tu próximo registro es un nuevo comienzo; la prueba cuenta tras la aprobación.',
+
+  'notifications.smart.title': 'Recordatorios inteligentes',
+  'notifications.smart.time': 'Hora habitual del recordatorio',
+  'notifications.smart.body':
+    'Menta ajusta los recordatorios mientras debes enviar una prueba y los detiene cuando la envías. Tu hora habitual orienta el horario.',
+  'notifications.smart.advanced': 'Opciones avanzadas',
+  'notifications.inbox.title': 'Actividad',
+  'notifications.inbox.settings': 'Ajustes de notificaciones',
+  'notifications.inbox.error': 'No se pudo actualizar la actividad',
+  'notifications.inbox.error_body':
+    'Inténtalo de nuevo. Tu estado de lectura anterior sigue guardado.',
+  'notifications.inbox.loading': 'Cargando actividad',
+  'notifications.inbox.empty': 'Sin actividad reciente',
+  'notifications.inbox.empty_body':
+    'Tus notificaciones recientes aparecerán aquí. Consulta Hoy para ver qué está pendiente.',
+  'notifications.inbox.unread': 'Sin leer',
+  'notifications.inbox.hint': 'Abre tu bandeja de actividad',
+
   'notifications.topbar.back': 'Atrás',
   'notifications.topbar.context': 'Opcional',
   'notifications.topbar.title': 'Notificaciones',

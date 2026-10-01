@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
@@ -14,12 +21,7 @@ import {
 } from '@/components/ui';
 import { AppScaledText as Text } from '@/components/ui/AppScaledText';
 import { CheckIcon } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import {
   acceptCurrentLegalDocuments,
   getMyLegalAcceptanceStatus,
@@ -51,6 +53,9 @@ import { trackProductEvent } from '@/lib/posthog';
 type ActivationStage = 'setup' | 'notifications';
 
 export default function InviteActivationRoute() {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const router = useRouter();
   const { t } = useTranslation();
   const user = useAuthStore(state => state.user);
@@ -595,83 +600,86 @@ export default function InviteActivationRoute() {
   );
 }
 
-const styles = StyleSheet.create({
-  content: { gap: mentaSpacing[6], paddingBottom: mentaSpacing[8] },
-  loading: { gap: mentaSpacing[4] },
-  stack: { gap: mentaSpacing[5] },
-  heading: { gap: mentaSpacing[3] },
-  title: { ...mentaTypography.heading, color: mentaColors.text.primary },
-  body: { ...mentaTypography.body, color: mentaColors.text.secondary },
-  inviteObject: {
-    backgroundColor: mentaColors.paper,
-    borderColor: mentaColors.borderPaper,
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[2],
-    padding: mentaSpacing[5],
-  },
-  objectLabel: {
-    ...mentaTypography.label,
-    color: mentaColors.actionOnPaper,
-  },
-  objectTitle: {
-    ...mentaTypography.title,
-    color: mentaColors.text.onPaper,
-  },
-  objectDetail: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.mutedOnPaper,
-  },
-  inviteFacts: {
-    borderBottomColor: mentaColors.borderPaper,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.borderPaper,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  inviteFactRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    justifyContent: 'space-between',
-    minHeight: 48,
-  },
-  inviteFactLabel: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.mutedOnPaper,
-  },
-  inviteFactValue: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.text.onPaper,
-    flex: 1,
-    textAlign: 'right',
-  },
-  agreement: {
-    alignItems: 'flex-start',
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.medium,
-    borderWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 56,
-    padding: mentaSpacing[4],
-  },
-  checkbox: {
-    alignItems: 'center',
-    borderColor: mentaColors.text.secondary,
-    borderRadius: mentaRadii.small,
-    borderWidth: 1,
-    height: 24,
-    justifyContent: 'center',
-    width: 24,
-  },
-  checkboxChecked: {
-    backgroundColor: mentaColors.action,
-    borderColor: mentaColors.action,
-  },
-  agreementText: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.primary,
-    flex: 1,
-  },
-  pressed: { opacity: 0.78 },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    content: { gap: mentaSpacing[6], paddingBottom: mentaSpacing[8] },
+    loading: { gap: mentaSpacing[4] },
+    stack: { gap: mentaSpacing[5] },
+    heading: { gap: mentaSpacing[3] },
+    title: { ...mentaTypography.heading, color: mentaColors.text.primary },
+    body: { ...mentaTypography.body, color: mentaColors.text.secondary },
+    inviteObject: {
+      backgroundColor: mentaColors.paper,
+      borderColor: mentaColors.borderPaper,
+      borderRadius: mentaRadii.large,
+      borderWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[2],
+      padding: mentaSpacing[5],
+    },
+    objectLabel: {
+      ...mentaTypography.label,
+      color: mentaColors.actionOnPaper,
+    },
+    objectTitle: {
+      ...mentaTypography.title,
+      color: mentaColors.text.onPaper,
+    },
+    objectDetail: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.mutedOnPaper,
+    },
+    inviteFacts: {
+      borderBottomColor: mentaColors.borderPaper,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.borderPaper,
+      borderTopWidth: StyleSheet.hairlineWidth,
+    },
+    inviteFactRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      justifyContent: 'space-between',
+      minHeight: 48,
+    },
+    inviteFactLabel: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.mutedOnPaper,
+    },
+    inviteFactValue: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.text.onPaper,
+      flex: 1,
+      textAlign: 'right',
+    },
+    agreement: {
+      alignItems: 'flex-start',
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.medium,
+      borderWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 56,
+      padding: mentaSpacing[4],
+    },
+    checkbox: {
+      alignItems: 'center',
+      borderColor: mentaColors.text.secondary,
+      borderRadius: mentaRadii.small,
+      borderWidth: 1,
+      height: 24,
+      justifyContent: 'center',
+      width: 24,
+    },
+    checkboxChecked: {
+      backgroundColor: mentaColors.action,
+      borderColor: mentaColors.action,
+    },
+    agreementText: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.primary,
+      flex: 1,
+    },
+    pressed: { opacity: 0.78 },
+  });
+  return { styles };
+};

@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
@@ -11,12 +18,7 @@ import {
   AppTextField,
   SkeletonText,
 } from '@/components/ui';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { screenInsetPadding } from '@/constants/phone-layout';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import {
@@ -74,6 +76,8 @@ const timeForDraft = (value: Date): string =>
   `${String(value.getHours()).padStart(2, '0')}:${String(value.getMinutes()).padStart(2, '0')}`;
 
 export default function CreateEventScreen() {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const phoneLayout = usePhoneLayout();
   const router = useRouter();
@@ -345,33 +349,36 @@ export default function CreateEventScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: mentaColors.canvas },
-  content: {
-    flexGrow: 1,
-    gap: mentaSpacing[6],
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingTop: mentaSpacing[6],
-    paddingBottom: mentaSpacing[12],
-  },
-  lead: { gap: mentaSpacing[3] },
-  eyebrow: { ...mentaTypography.caption, color: mentaColors.text.secondary },
-  title: { ...mentaTypography.journeyTitle, color: mentaColors.text.primary },
-  body: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-    maxWidth: mentaLayout.readingMeasure,
-  },
-  form: { gap: mentaSpacing[5] },
-  field: { gap: 0 },
-  schedule: { gap: mentaSpacing[3] },
-  sectionLabel: {
-    ...mentaTypography.labelBold,
-    color: mentaColors.text.secondary,
-  },
-  rows: {
-    backgroundColor: mentaColors.surface,
-    borderColor: mentaColors.border,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: { flex: 1, backgroundColor: mentaColors.canvas },
+    content: {
+      flexGrow: 1,
+      gap: mentaSpacing[6],
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingTop: mentaSpacing[6],
+      paddingBottom: mentaSpacing[12],
+    },
+    lead: { gap: mentaSpacing[3] },
+    eyebrow: { ...mentaTypography.caption, color: mentaColors.text.secondary },
+    title: { ...mentaTypography.journeyTitle, color: mentaColors.text.primary },
+    body: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+      maxWidth: mentaLayout.readingMeasure,
+    },
+    form: { gap: mentaSpacing[5] },
+    field: { gap: 0 },
+    schedule: { gap: mentaSpacing[3] },
+    sectionLabel: {
+      ...mentaTypography.labelBold,
+      color: mentaColors.text.secondary,
+    },
+    rows: {
+      backgroundColor: mentaColors.surface,
+      borderColor: mentaColors.border,
+      borderWidth: StyleSheet.hairlineWidth,
+    },
+  });
+  return { styles };
+};

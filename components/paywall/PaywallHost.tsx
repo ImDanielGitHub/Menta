@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { PaywallModal } from '@/components/paywall/PaywallModal';
 import { paywallManager, type PaywallOpenOptions } from '@/lib/paywall/manager';
 import { useAdRewardAmount } from '@/lib/hooks/useAdReward';
@@ -11,16 +11,32 @@ type PendingPaywall = PaywallOpenOptions & {
 
 export const PaywallHost: React.FC = () => {
   const [pending, setPending] = useState<PendingPaywall | null>(null);
+  const pendingRef = useRef(pending);
+  pendingRef.current = pending;
   const adReward = useAdRewardAmount();
   const { available: rewardedAdsAvailable, watch: handleWatchAd } =
     useRewardedMomentaAd('paywall');
   const router = useRouter();
 
   useEffect(() => {
-    return paywallManager.subscribe(setPending);
+    const unsubscribe = paywallManager.subscribe(setPending);
+    return () => {
+      pendingRef.current = null;
+      unsubscribe();
+    };
   }, []);
 
-  const handleClose = useCallback(() => setPending(null), []);
+  const handleClose = useCallback(() => {
+    if (pendingRef.current?.id !== pending?.id) return;
+    pendingRef.current = null;
+    setPending(null);
+  }, [pending?.id]);
+  const handleContinueFree = useCallback(() => {
+    if (!pending || pendingRef.current?.id !== pending.id) return;
+    pendingRef.current = null;
+    setPending(null);
+    pending.onContinueFree?.();
+  }, [pending]);
 
   useEffect(() => {
     paywallManager.setVisible(pending !== null);
@@ -30,10 +46,12 @@ export const PaywallHost: React.FC = () => {
   }, [pending]);
 
   const handleBuyPro = useCallback(() => {
+    if (!pending || pendingRef.current?.id !== pending.id) return;
     const onProConfirmed = pending?.onProConfirmed;
     setPending(null);
+    pendingRef.current = null;
     onProConfirmed?.();
-  }, [pending?.onProConfirmed]);
+  }, [pending]);
 
   const handleBuyCredits = useCallback(() => {
     setPending(null);
@@ -42,9 +60,11 @@ export const PaywallHost: React.FC = () => {
 
   return (
     <PaywallModal
+      key={pending?.id ?? 'closed'}
       visible={!!pending}
       onClose={handleClose}
       onBuyPro={handleBuyPro}
+      onContinueFree={handleContinueFree}
       onBuyCredits={handleBuyCredits}
       onWatchAd={handleWatchAd}
       context={pending?.context || 'general'}

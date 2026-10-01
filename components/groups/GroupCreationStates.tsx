@@ -1,14 +1,16 @@
+import {
+  type MentaPalette,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AppButton } from '@/components/ui';
 import { SimpleBottomSheet } from '@/components/ui/SimpleBottomSheet';
 import { CheckIcon, ChevronRightIcon } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import type { CommitmentTemplateId } from '@/lib/commitments/templates';
 import { useTheme } from '@/constants/ThemeContext';
 import { useTranslation } from '@/lib/localization';
@@ -48,6 +50,9 @@ export const GroupTemplatePickerSheet = ({
   onClose: () => void;
   onSelect: (templateId: CommitmentTemplateId) => void;
 }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <SimpleBottomSheet
@@ -118,6 +123,8 @@ export const SelectedGroupStartingPoint = ({
   description: string;
   onChange: () => void;
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const { t } = useTranslation();
   return (
@@ -165,6 +172,8 @@ export const FirstGroupCreatedReceipt = ({
   onOpenGroup?: () => void;
   showActions?: boolean;
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const { t } = useTranslation();
 
@@ -241,89 +250,92 @@ export const FirstGroupCreatedReceipt = ({
   );
 };
 
-const styles = StyleSheet.create({
-  sheet: { gap: mentaSpacing[4], paddingBottom: mentaSpacing[2] },
-  title: { ...mentaTypography.heading, color: mentaColors.text.primary },
-  description: { ...mentaTypography.body, color: mentaColors.text.secondary },
-  rows: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-  },
-  row: {
-    minHeight: 76,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: mentaSpacing[3],
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-  },
-  rowCopy: { flex: 1, gap: mentaSpacing[1] },
-  rowTitle: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  rowDescription: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-  rowAction: { ...mentaTypography.caption, color: mentaColors.action },
-  linkedPromise: {
-    ...mentaTypography.bodySmallMedium,
-    textAlign: 'right',
-  },
-  linkedPromiseDetails: {
-    flex: 1,
-    alignItems: 'flex-end',
-    gap: mentaSpacing[1],
-  },
-  linkedPromiseDuration: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-  selectionReceipt: {
-    gap: mentaSpacing[2],
-    borderColor: mentaColors.border,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 16,
-    padding: mentaSpacing[4],
-    backgroundColor: mentaColors.surface,
-  },
-  selectionHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-  },
-  selectionCopy: { flex: 1, gap: mentaSpacing[1], minWidth: 0 },
-  selectionLabel: {
-    ...mentaTypography.captionMedium,
-    color: mentaColors.text.secondary,
-  },
-  selectionTitle: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-  },
-  selectionDescription: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-  },
-  pressed: { opacity: 0.72 },
-  receipt: { gap: mentaSpacing[4], paddingTop: mentaSpacing[6] },
-  receiptRows: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-  },
-  receiptLabel: {
-    ...mentaTypography.labelBold,
-    color: mentaColors.text.secondary,
-    paddingVertical: mentaSpacing[3],
-  },
-  receiptRow: {
-    minHeight: 52,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-  },
-  actions: { gap: mentaSpacing[2] },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    sheet: { gap: mentaSpacing[4], paddingBottom: mentaSpacing[2] },
+    title: { ...mentaTypography.heading, color: mentaColors.text.primary },
+    description: { ...mentaTypography.body, color: mentaColors.text.secondary },
+    rows: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+    },
+    row: {
+      minHeight: 76,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: mentaSpacing[3],
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+    },
+    rowCopy: { flex: 1, gap: mentaSpacing[1] },
+    rowTitle: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    rowDescription: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+    rowAction: { ...mentaTypography.caption, color: mentaColors.action },
+    linkedPromise: {
+      ...mentaTypography.bodySmallMedium,
+      textAlign: 'right',
+    },
+    linkedPromiseDetails: {
+      flex: 1,
+      alignItems: 'flex-end',
+      gap: mentaSpacing[1],
+    },
+    linkedPromiseDuration: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+    selectionReceipt: {
+      gap: mentaSpacing[2],
+      borderColor: mentaColors.border,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderRadius: 16,
+      padding: mentaSpacing[4],
+      backgroundColor: mentaColors.surface,
+    },
+    selectionHeader: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+    },
+    selectionCopy: { flex: 1, gap: mentaSpacing[1], minWidth: 0 },
+    selectionLabel: {
+      ...mentaTypography.captionMedium,
+      color: mentaColors.text.secondary,
+    },
+    selectionTitle: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+    },
+    selectionDescription: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+    },
+    pressed: { opacity: 0.72 },
+    receipt: { gap: mentaSpacing[4], paddingTop: mentaSpacing[6] },
+    receiptRows: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+    },
+    receiptLabel: {
+      ...mentaTypography.labelBold,
+      color: mentaColors.text.secondary,
+      paddingVertical: mentaSpacing[3],
+    },
+    receiptRow: {
+      minHeight: 52,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+    },
+    actions: { gap: mentaSpacing[2] },
+  });
+  return { styles };
+};

@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React, { type ReactNode } from 'react';
 import {
   StyleSheet,
@@ -9,23 +17,13 @@ import {
 
 import { AppButton } from '@/components/ui/AppButton';
 import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useLargeTypeLineLimit } from '@/lib/accessibility';
 import { useTranslation } from '@/lib/localization';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 
 export type GroupStatusTone =
-  | 'action'
-  | 'success'
-  | 'warning'
-  | 'danger'
-  | 'neutral';
+  'action' | 'success' | 'warning' | 'danger' | 'neutral';
 
 export type GroupMetric = {
   label: string;
@@ -40,6 +38,8 @@ export const GroupMetricStrip = ({
   metrics: readonly GroupMetric[];
   testID?: string;
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const metricLines = useLargeTypeLineLimit(1);
   const phoneLayout = usePhoneLayout();
@@ -97,11 +97,14 @@ export const GroupListSurface = ({
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
   testID?: string;
-}) => (
-  <View style={[styles.listSurface, style]} testID={testID}>
-    {children}
-  </View>
-);
+}) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View style={[styles.listSurface, style]} testID={testID}>
+      {children}
+    </View>
+  );
+};
 
 export const GroupSectionHeader = ({
   action,
@@ -111,15 +114,18 @@ export const GroupSectionHeader = ({
   action?: ReactNode;
   helper?: string;
   label: string;
-}) => (
-  <View style={styles.sectionHeader}>
-    <View style={styles.sectionCopy}>
-      <Text style={styles.sectionLabel}>{label}</Text>
-      {helper ? <Text style={styles.sectionHelper}>{helper}</Text> : null}
+}) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View style={styles.sectionHeader}>
+      <View style={styles.sectionCopy}>
+        <Text style={styles.sectionLabel}>{label}</Text>
+        {helper ? <Text style={styles.sectionHelper}>{helper}</Text> : null}
+      </View>
+      {action ? <View style={styles.sectionAction}>{action}</View> : null}
     </View>
-    {action ? <View style={styles.sectionAction}>{action}</View> : null}
-  </View>
-);
+  );
+};
 
 export const GroupStatePanel = ({
   actionLabel,
@@ -138,6 +144,8 @@ export const GroupStatePanel = ({
   title: string;
   tone?: GroupStatusTone;
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const isAlertTone = tone === 'danger' || tone === 'warning';
 
   return (
@@ -167,148 +175,157 @@ export const GroupStatePanel = ({
   );
 };
 
-export const GroupSkeletonRows = ({ rows = 4 }: { rows?: number }) => (
-  <GroupListSurface>
-    {Array.from({ length: rows }).map((_, index) => (
-      <View
-        key={index}
-        style={[styles.skeletonRow, index === rows - 1 ? styles.lastRow : null]}
-      >
-        <SkeletonLoader
-          announce={index === 0}
-          borderRadius={mentaRadii.round}
-          height={mentaLayout.minimumTouchTarget}
-          width={mentaLayout.minimumTouchTarget}
-        />
-        <View style={styles.skeletonCopy}>
+export const GroupSkeletonRows = ({ rows = 4 }: { rows?: number }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <GroupListSurface>
+      {Array.from({ length: rows }).map((_, index) => (
+        <View
+          key={index}
+          style={[
+            styles.skeletonRow,
+            index === rows - 1 ? styles.lastRow : null,
+          ]}
+        >
           <SkeletonLoader
-            announce={false}
-            height={14}
-            width={124 + (index % 3) * 16}
+            announce={index === 0}
+            borderRadius={mentaRadii.round}
+            height={mentaLayout.minimumTouchTarget}
+            width={mentaLayout.minimumTouchTarget}
           />
-          <SkeletonLoader announce={false} height={10} width={82} />
+          <View style={styles.skeletonCopy}>
+            <SkeletonLoader
+              announce={false}
+              height={14}
+              width={124 + (index % 3) * 16}
+            />
+            <SkeletonLoader announce={false} height={10} width={82} />
+          </View>
+          <SkeletonLoader announce={false} height={12} width={42} />
         </View>
-        <SkeletonLoader announce={false} height={12} width={42} />
-      </View>
-    ))}
-  </GroupListSurface>
-);
+      ))}
+    </GroupListSurface>
+  );
+};
 
-const styles = StyleSheet.create({
-  metricStrip: {
-    alignItems: 'stretch',
-    borderColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    minHeight: 82,
-  },
-  metricStripStacked: {
-    flexDirection: 'column',
-    minHeight: 0,
-  },
-  metric: {
-    flex: 1,
-    gap: 2,
-    justifyContent: 'center',
-    minWidth: 0,
-    paddingHorizontal: mentaSpacing[3],
-    paddingVertical: mentaSpacing[4],
-  },
-  metricStacked: {
-    alignItems: 'baseline',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    justifyContent: 'space-between',
-    minHeight: 58,
-    paddingHorizontal: 0,
-    paddingVertical: mentaSpacing[3],
-  },
-  metricDivider: {
-    backgroundColor: mentaColors.border,
-    width: StyleSheet.hairlineWidth,
-  },
-  metricDividerStacked: {
-    height: StyleSheet.hairlineWidth,
-    width: '100%',
-  },
-  metricValue: {
-    ...mentaTypography.control,
-    color: mentaColors.text.primary,
-  },
-  metricLabel: {
-    ...mentaTypography.label,
-    color: mentaColors.text.secondary,
-  },
-  metricHelper: {
-    ...mentaTypography.micro,
-    color: mentaColors.text.muted,
-  },
-  listSurface: {
-    backgroundColor: mentaColors.surface,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    overflow: 'hidden',
-    width: '100%',
-  },
-  sectionHeader: {
-    alignItems: 'flex-end',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    justifyContent: 'space-between',
-    minHeight: 32,
-  },
-  sectionCopy: {
-    flex: 1,
-    gap: 2,
-    minWidth: 0,
-  },
-  sectionLabel: {
-    ...mentaTypography.labelBold,
-    color: mentaColors.text.primary,
-  },
-  sectionHelper: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-  sectionAction: {
-    alignItems: 'flex-end',
-    flexShrink: 0,
-  },
-  statePanel: {
-    alignItems: 'flex-start',
-    gap: mentaSpacing[4],
-    justifyContent: 'center',
-    minHeight: 280,
-    paddingVertical: mentaSpacing[8],
-  },
-  stateCopy: {
-    gap: mentaSpacing[2],
-    width: '100%',
-  },
-  stateTitle: {
-    ...mentaTypography.heading,
-    color: mentaColors.text.primary,
-  },
-  stateDetail: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-  },
-  skeletonRow: {
-    alignItems: 'center',
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 76,
-    paddingHorizontal: mentaSpacing[4],
-  },
-  skeletonCopy: {
-    flex: 1,
-    gap: mentaSpacing[2],
-  },
-  lastRow: {
-    borderBottomWidth: 0,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    metricStrip: {
+      alignItems: 'stretch',
+      borderColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      minHeight: 82,
+    },
+    metricStripStacked: {
+      flexDirection: 'column',
+      minHeight: 0,
+    },
+    metric: {
+      flex: 1,
+      gap: 2,
+      justifyContent: 'center',
+      minWidth: 0,
+      paddingHorizontal: mentaSpacing[3],
+      paddingVertical: mentaSpacing[4],
+    },
+    metricStacked: {
+      alignItems: 'baseline',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      justifyContent: 'space-between',
+      minHeight: 58,
+      paddingHorizontal: 0,
+      paddingVertical: mentaSpacing[3],
+    },
+    metricDivider: {
+      backgroundColor: mentaColors.border,
+      width: StyleSheet.hairlineWidth,
+    },
+    metricDividerStacked: {
+      height: StyleSheet.hairlineWidth,
+      width: '100%',
+    },
+    metricValue: {
+      ...mentaTypography.control,
+      color: mentaColors.text.primary,
+    },
+    metricLabel: {
+      ...mentaTypography.label,
+      color: mentaColors.text.secondary,
+    },
+    metricHelper: {
+      ...mentaTypography.micro,
+      color: mentaColors.text.muted,
+    },
+    listSurface: {
+      backgroundColor: mentaColors.surface,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: StyleSheet.hairlineWidth,
+      overflow: 'hidden',
+      width: '100%',
+    },
+    sectionHeader: {
+      alignItems: 'flex-end',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      justifyContent: 'space-between',
+      minHeight: 32,
+    },
+    sectionCopy: {
+      flex: 1,
+      gap: 2,
+      minWidth: 0,
+    },
+    sectionLabel: {
+      ...mentaTypography.labelBold,
+      color: mentaColors.text.primary,
+    },
+    sectionHelper: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+    sectionAction: {
+      alignItems: 'flex-end',
+      flexShrink: 0,
+    },
+    statePanel: {
+      alignItems: 'flex-start',
+      gap: mentaSpacing[4],
+      justifyContent: 'center',
+      minHeight: 280,
+      paddingVertical: mentaSpacing[8],
+    },
+    stateCopy: {
+      gap: mentaSpacing[2],
+      width: '100%',
+    },
+    stateTitle: {
+      ...mentaTypography.heading,
+      color: mentaColors.text.primary,
+    },
+    stateDetail: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+    },
+    skeletonRow: {
+      alignItems: 'center',
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 76,
+      paddingHorizontal: mentaSpacing[4],
+    },
+    skeletonCopy: {
+      flex: 1,
+      gap: mentaSpacing[2],
+    },
+    lastRow: {
+      borderBottomWidth: 0,
+    },
+  });
+  return { styles };
+};

@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
@@ -32,12 +39,7 @@ import {
   type ReferralProgramStatus,
   type UserReferral,
 } from '@/store/referral-store';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { screenInsetPadding } from '@/constants/phone-layout';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -83,6 +85,9 @@ const formatResetDate = (timestamp: string) => {
 };
 
 export default function ShareInviteScreen() {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const router = useRouter();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -514,7 +519,13 @@ export default function ShareInviteScreen() {
             // Paper 19 / I02: after the share sheet, show what happens next.
             <>
               <InviteSentPair initial={senderInitial} />
-              <Text accessibilityRole="header" style={inviteHeadingStyle}>
+              <Text
+                accessibilityRole="header"
+                style={[
+                  inviteHeadingStyle,
+                  { color: mentaColors.text.primary },
+                ]}
+              >
                 {t('groups.share.sent_title')}
               </Text>
               <InviteChecklist
@@ -544,7 +555,13 @@ export default function ShareInviteScreen() {
                 initial={senderInitial}
                 title={t('groups.share.pass_title')}
               />
-              <Text accessibilityRole="header" style={inviteHeadingStyle}>
+              <Text
+                accessibilityRole="header"
+                style={[
+                  inviteHeadingStyle,
+                  { color: mentaColors.text.primary },
+                ]}
+              >
                 {t('groups.share.pitch_title')}
               </Text>
               <InviteChecklist
@@ -664,6 +681,9 @@ const ReferralProgrammeSummary = ({
   historyLoading: boolean;
   historyError: string | null;
 }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   if (state.kind === 'checking') {
     return (
@@ -803,6 +823,9 @@ const InviteFooter = ({
   onRetry: () => void;
   onBack: () => void;
 }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   if (state === 'ready') {
     return (
@@ -941,75 +964,78 @@ const InviteFooter = ({
   return null;
 };
 
-const styles = StyleSheet.create({
-  route: {
-    backgroundColor: mentaColors.canvas,
-    flex: 1,
-  },
-  screen: {
-    flex: 1,
-  },
-  content: {
-    gap: mentaSpacing[6],
-    paddingBottom: mentaSpacing[8],
-  },
-  programmeDisclosure: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    minHeight: mentaLayout.minimumTouchTarget,
-    gap: mentaSpacing[3],
-  },
-  programmeDisclosureTitle: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  header: {
-    gap: mentaSpacing[6],
-  },
-  headerCopy: { gap: mentaSpacing[2] },
-  programme: {
-    paddingBottom: mentaSpacing[2],
-  },
-  programmeTitle: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-    marginTop: mentaSpacing[2],
-  },
-  programmeBody: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-    marginTop: mentaSpacing[1],
-    maxWidth: mentaLayout.readingMeasure,
-  },
-  programmeFacts: {
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    marginTop: mentaSpacing[3],
-  },
-  statusTitle: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  body: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-  },
-  fixedFooter: {
-    backgroundColor: mentaColors.canvas,
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[2],
-    paddingHorizontal: mentaSpacing[6],
-    paddingTop: mentaSpacing[3],
-  },
-  footerLane: {
-    alignSelf: 'center',
-    gap: mentaSpacing[2],
-    maxWidth: mentaLayout.phoneFrameMax,
-    width: '100%',
-  },
-  reservedFooterSlot: {
-    minHeight: 56,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    route: {
+      backgroundColor: mentaColors.canvas,
+      flex: 1,
+    },
+    screen: {
+      flex: 1,
+    },
+    content: {
+      gap: mentaSpacing[6],
+      paddingBottom: mentaSpacing[8],
+    },
+    programmeDisclosure: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      minHeight: mentaLayout.minimumTouchTarget,
+      gap: mentaSpacing[3],
+    },
+    programmeDisclosureTitle: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    header: {
+      gap: mentaSpacing[6],
+    },
+    headerCopy: { gap: mentaSpacing[2] },
+    programme: {
+      paddingBottom: mentaSpacing[2],
+    },
+    programmeTitle: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+      marginTop: mentaSpacing[2],
+    },
+    programmeBody: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+      marginTop: mentaSpacing[1],
+      maxWidth: mentaLayout.readingMeasure,
+    },
+    programmeFacts: {
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      marginTop: mentaSpacing[3],
+    },
+    statusTitle: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    body: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+    },
+    fixedFooter: {
+      backgroundColor: mentaColors.canvas,
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[2],
+      paddingHorizontal: mentaSpacing[6],
+      paddingTop: mentaSpacing[3],
+    },
+    footerLane: {
+      alignSelf: 'center',
+      gap: mentaSpacing[2],
+      maxWidth: mentaLayout.phoneFrameMax,
+      width: '100%',
+    },
+    reservedFooterSlot: {
+      minHeight: 56,
+    },
+  });
+  return { styles };
+};

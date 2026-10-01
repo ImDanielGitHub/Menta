@@ -6,6 +6,28 @@ type NotificationsKey = Extract<
 >;
 
 export const notificationsFrCA = {
+  'notifications.recovery.restart':
+    'Un jour manqué ne résume pas tout. Repars avec ton prochain suivi ; la preuve compte après approbation.',
+  'notifications.recovery.month':
+    'Il reste environ un mois pour cette promesse. Ton prochain suivi est un nouveau départ ; la preuve compte après approbation.',
+
+  'notifications.smart.title': 'Rappels intelligents',
+  'notifications.smart.time': 'Heure habituelle du rappel',
+  'notifications.smart.body':
+    'Menta adapte les rappels tant qu’une preuve est attendue et les arrête quand tu l’envoies. Ton heure habituelle guide leur timing.',
+  'notifications.smart.advanced': 'Options avancées',
+  'notifications.inbox.title': 'Activité',
+  'notifications.inbox.settings': 'Réglages des notifications',
+  'notifications.inbox.error': 'Impossible de mettre à jour l’activité',
+  'notifications.inbox.error_body':
+    'Réessaie. Ton état de lecture précédent reste enregistré.',
+  'notifications.inbox.loading': 'Chargement de l’activité',
+  'notifications.inbox.empty': 'Aucune activité récente',
+  'notifications.inbox.empty_body':
+    'Tes notifications récentes apparaîtront ici. Consulte Aujourd’hui pour voir ce qui est attendu.',
+  'notifications.inbox.unread': 'Non lu',
+  'notifications.inbox.hint': 'Ouvre ta boîte d’activité',
+
   'notifications.topbar.back': 'Retour',
   'notifications.topbar.context': 'Facultatif',
   'notifications.topbar.title': 'Notifications',

@@ -1,10 +1,12 @@
-import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
-  mentaColors,
+  type MentaPalette,
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
+import React from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+
 import { useTranslation } from '@/lib/localization';
 import { ChevronRightIcon } from '@/components/ui/icons';
 
@@ -23,6 +25,9 @@ export const ReminderStatusRow: React.FC<ReminderStatusRowProps> = ({
   onPress,
   testID,
 }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t, locale } = useTranslation();
   const label = remindersEnabled
     ? t('todayProof.streak.on')
@@ -94,52 +99,55 @@ const formatReminderTime = (
   });
 };
 
-const styles = StyleSheet.create({
-  row: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-    paddingVertical: mentaSpacing[3],
-    gap: mentaSpacing[2],
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: mentaSpacing[3],
-  },
-  copyColumn: {
-    flex: 1,
-    minWidth: 0,
-  },
-  title: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.bodySemibold,
-  },
-  detail: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.caption,
-    marginTop: 2,
-  },
-  status: {
-    ...mentaTypography.bodySmallMedium,
-  },
-  trailing: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-  },
-  statusOn: {
-    color: mentaColors.success,
-  },
-  statusOff: {
-    color: mentaColors.text.muted,
-  },
-  limitCopy: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.bodySmall,
-  },
-  pressed: {
-    backgroundColor: mentaColors.actionSoft,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    row: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+      paddingVertical: mentaSpacing[3],
+      gap: mentaSpacing[2],
+    },
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      gap: mentaSpacing[3],
+    },
+    copyColumn: {
+      flex: 1,
+      minWidth: 0,
+    },
+    title: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.bodySemibold,
+    },
+    detail: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.caption,
+      marginTop: 2,
+    },
+    status: {
+      ...mentaTypography.bodySmallMedium,
+    },
+    trailing: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+    },
+    statusOn: {
+      color: mentaColors.success,
+    },
+    statusOff: {
+      color: mentaColors.text.muted,
+    },
+    limitCopy: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.bodySmall,
+    },
+    pressed: {
+      backgroundColor: mentaColors.actionSoft,
+    },
+  });
+  return { styles };
+};

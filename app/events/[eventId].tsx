@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypeScale,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, {
   useCallback,
   useEffect,
@@ -15,13 +23,7 @@ import {
 } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { AppScreen } from '@/components/ui/AppShell';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypeScale,
-} from '@/constants/MentaDesignSystem';
+
 import {
   ArrowLeftIcon,
   CheckIcon,
@@ -85,6 +87,9 @@ const isAtCapacity = (summary: EventSummary): boolean =>
   summary.capacity !== null && summary.reservedCount >= summary.capacity;
 
 export default function EventDetailScreen() {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { locale, t } = useTranslation();
   const router = useRouter();
   const phoneLayout = usePhoneLayout();
@@ -762,184 +767,187 @@ export default function EventDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: mentaColors.canvas },
-  content: {
-    flexGrow: 1,
-    gap: mentaSpacing[6],
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingTop: mentaSpacing[6],
-    paddingBottom: mentaSpacing[12],
-  },
-  missingState: {
-    flex: 1,
-    gap: mentaSpacing[4],
-    justifyContent: 'center',
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingVertical: mentaSpacing[10],
-  },
-  topBar: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: mentaLayout.trailingActionLane,
-  },
-  iconButton: {
-    alignItems: 'center',
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.round,
-    borderWidth: StyleSheet.hairlineWidth,
-    height: mentaLayout.trailingActionLane,
-    justifyContent: 'center',
-    width: mentaLayout.trailingActionLane,
-  },
-  topLabel: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.semibold,
-    ...mentaTypeScale.bodySmall,
-  },
-  trailingLane: { width: mentaLayout.trailingActionLane },
-  loadingState: {
-    alignItems: 'flex-start',
-    gap: mentaSpacing[4],
-    paddingTop: mentaSpacing[12],
-  },
-  loadingRows: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-  },
-  detailLead: { gap: mentaSpacing[2] },
-  receiptLead: {
-    alignItems: 'center',
-    gap: mentaSpacing[3],
-    paddingTop: mentaSpacing[8],
-  },
-  title: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.newsreader.medium,
-    ...mentaTypeScale.display,
-  },
-  eventMetadata: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: mentaSpacing[2],
-  },
-  eventMetadataCopy: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.medium,
-    ...mentaTypeScale.bodySmall,
-  },
-  eventMetadataSeparator: {
-    color: mentaColors.text.muted,
-    fontFamily: mentaFonts.inter.regular,
-    ...mentaTypeScale.bodySmall,
-  },
-  eventMetadataWarning: { color: mentaColors.warning },
-  detailRows: {
-    borderBottomColor: mentaColors.border,
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  detailRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 52,
-  },
-  detailText: {
-    color: mentaColors.text.primary,
-    flex: 1,
-    fontFamily: mentaFonts.inter.medium,
-    ...mentaTypeScale.bodySmall,
-  },
-  descriptionSection: { gap: mentaSpacing[2] },
-  sectionLabel: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.semibold,
-    ...mentaTypeScale.bodySmall,
-  },
-  description: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.inter.regular,
-    ...mentaTypeScale.body,
-  },
-  helperCopy: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.regular,
-    ...mentaTypeScale.bodySmall,
-  },
-  agreementSurface: {
-    backgroundColor: mentaColors.paper,
-    borderRadius: mentaRadii.large,
-    gap: mentaSpacing[4],
-    padding: mentaSpacing[5],
-  },
-  agreementTitle: {
-    color: mentaColors.text.onPaper,
-    fontFamily: mentaFonts.newsreader.medium,
-    ...mentaTypeScale.title,
-  },
-  agreementBody: {
-    color: mentaColors.text.mutedOnPaper,
-    fontFamily: mentaFonts.inter.regular,
-    ...mentaTypeScale.bodySmall,
-  },
-  agreementRule: {
-    alignItems: 'flex-start',
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    paddingTop: mentaSpacing[4],
-  },
-  agreementRuleCopy: {
-    color: mentaColors.text.onPaper,
-    flex: 1,
-    fontFamily: mentaFonts.inter.medium,
-    ...mentaTypeScale.bodySmall,
-  },
-  notNow: {
-    alignItems: 'center',
-    minHeight: mentaLayout.minimumTouchTarget,
-    justifyContent: 'center',
-  },
-  notNowCopy: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.medium,
-    ...mentaTypeScale.bodySmall,
-  },
-  receiptSurface: {
-    backgroundColor: mentaColors.paper,
-    borderRadius: mentaRadii.large,
-    gap: mentaSpacing[3],
-    padding: mentaSpacing[5],
-  },
-  receiptTitle: {
-    color: mentaColors.text.onPaper,
-    fontFamily: mentaFonts.newsreader.medium,
-    ...mentaTypeScale.title,
-  },
-  receiptBody: {
-    color: mentaColors.text.mutedOnPaper,
-    fontFamily: mentaFonts.inter.regular,
-    ...mentaTypeScale.bodySmall,
-  },
-  actionStack: {
-    gap: mentaSpacing[3],
-  },
-  stateTitle: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.newsreader.medium,
-    ...mentaTypeScale.title,
-  },
-  stateBody: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.regular,
-    ...mentaTypeScale.bodySmall,
-    textAlign: 'center',
-  },
-  pressed: { opacity: 0.72 },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: { flex: 1, backgroundColor: mentaColors.canvas },
+    content: {
+      flexGrow: 1,
+      gap: mentaSpacing[6],
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingTop: mentaSpacing[6],
+      paddingBottom: mentaSpacing[12],
+    },
+    missingState: {
+      flex: 1,
+      gap: mentaSpacing[4],
+      justifyContent: 'center',
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingVertical: mentaSpacing[10],
+    },
+    topBar: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      minHeight: mentaLayout.trailingActionLane,
+    },
+    iconButton: {
+      alignItems: 'center',
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.round,
+      borderWidth: StyleSheet.hairlineWidth,
+      height: mentaLayout.trailingActionLane,
+      justifyContent: 'center',
+      width: mentaLayout.trailingActionLane,
+    },
+    topLabel: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.semibold,
+      ...mentaTypeScale.bodySmall,
+    },
+    trailingLane: { width: mentaLayout.trailingActionLane },
+    loadingState: {
+      alignItems: 'flex-start',
+      gap: mentaSpacing[4],
+      paddingTop: mentaSpacing[12],
+    },
+    loadingRows: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+    },
+    detailLead: { gap: mentaSpacing[2] },
+    receiptLead: {
+      alignItems: 'center',
+      gap: mentaSpacing[3],
+      paddingTop: mentaSpacing[8],
+    },
+    title: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.newsreader.medium,
+      ...mentaTypeScale.display,
+    },
+    eventMetadata: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: mentaSpacing[2],
+    },
+    eventMetadataCopy: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.medium,
+      ...mentaTypeScale.bodySmall,
+    },
+    eventMetadataSeparator: {
+      color: mentaColors.text.muted,
+      fontFamily: mentaFonts.inter.regular,
+      ...mentaTypeScale.bodySmall,
+    },
+    eventMetadataWarning: { color: mentaColors.warning },
+    detailRows: {
+      borderBottomColor: mentaColors.border,
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+    detailRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 52,
+    },
+    detailText: {
+      color: mentaColors.text.primary,
+      flex: 1,
+      fontFamily: mentaFonts.inter.medium,
+      ...mentaTypeScale.bodySmall,
+    },
+    descriptionSection: { gap: mentaSpacing[2] },
+    sectionLabel: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.semibold,
+      ...mentaTypeScale.bodySmall,
+    },
+    description: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.inter.regular,
+      ...mentaTypeScale.body,
+    },
+    helperCopy: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.regular,
+      ...mentaTypeScale.bodySmall,
+    },
+    agreementSurface: {
+      backgroundColor: mentaColors.paper,
+      borderRadius: mentaRadii.large,
+      gap: mentaSpacing[4],
+      padding: mentaSpacing[5],
+    },
+    agreementTitle: {
+      color: mentaColors.text.onPaper,
+      fontFamily: mentaFonts.newsreader.medium,
+      ...mentaTypeScale.title,
+    },
+    agreementBody: {
+      color: mentaColors.text.mutedOnPaper,
+      fontFamily: mentaFonts.inter.regular,
+      ...mentaTypeScale.bodySmall,
+    },
+    agreementRule: {
+      alignItems: 'flex-start',
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      paddingTop: mentaSpacing[4],
+    },
+    agreementRuleCopy: {
+      color: mentaColors.text.onPaper,
+      flex: 1,
+      fontFamily: mentaFonts.inter.medium,
+      ...mentaTypeScale.bodySmall,
+    },
+    notNow: {
+      alignItems: 'center',
+      minHeight: mentaLayout.minimumTouchTarget,
+      justifyContent: 'center',
+    },
+    notNowCopy: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.medium,
+      ...mentaTypeScale.bodySmall,
+    },
+    receiptSurface: {
+      backgroundColor: mentaColors.paper,
+      borderRadius: mentaRadii.large,
+      gap: mentaSpacing[3],
+      padding: mentaSpacing[5],
+    },
+    receiptTitle: {
+      color: mentaColors.text.onPaper,
+      fontFamily: mentaFonts.newsreader.medium,
+      ...mentaTypeScale.title,
+    },
+    receiptBody: {
+      color: mentaColors.text.mutedOnPaper,
+      fontFamily: mentaFonts.inter.regular,
+      ...mentaTypeScale.bodySmall,
+    },
+    actionStack: {
+      gap: mentaSpacing[3],
+    },
+    stateTitle: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.newsreader.medium,
+      ...mentaTypeScale.title,
+    },
+    stateBody: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.regular,
+      ...mentaTypeScale.bodySmall,
+      textAlign: 'center',
+    },
+    pressed: { opacity: 0.72 },
+  });
+  return { styles };
+};

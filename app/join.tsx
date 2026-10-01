@@ -1,3 +1,9 @@
+import {
+  type MentaPalette,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
@@ -5,15 +11,13 @@ import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppInlineNotice } from '@/components/ui/AppFeedback';
 import { AppScreen, AppTopBar } from '@/components/ui/AppShell';
-import {
-  mentaColors,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { parseInviteLink, PRIMARY_INVITE_HOST } from '@/lib/invite-links';
 import { useTranslation } from '@/lib/localization';
 
 export default function JoinRedirectScreen() {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const router = useRouter();
   const { t } = useTranslation();
   const params = useLocalSearchParams<{
@@ -87,9 +91,12 @@ export default function JoinRedirectScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { gap: mentaSpacing[4], paddingTop: mentaSpacing[2] },
-  heading: { gap: mentaSpacing[2] },
-  title: { ...mentaTypography.heading, color: mentaColors.text.primary },
-  subtitle: { ...mentaTypography.body, color: mentaColors.text.secondary },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: { gap: mentaSpacing[4], paddingTop: mentaSpacing[2] },
+    heading: { gap: mentaSpacing[2] },
+    title: { ...mentaTypography.heading, color: mentaColors.text.primary },
+    subtitle: { ...mentaTypography.body, color: mentaColors.text.secondary },
+  });
+  return { styles };
+};

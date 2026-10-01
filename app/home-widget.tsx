@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Switch, Text, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
@@ -13,12 +20,7 @@ import {
 } from '@/components/ipad/ipad-workspace';
 import { StreakWidgetPreview } from '@/components/widgets/StreakWidgetPreview';
 import { WidgetHomeScene } from '@/components/widgets/WidgetHomeScene';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useTranslation } from '@/lib/localization';
 import { backOrReplace } from '@/lib/navigation/safe-back';
 import { makeStreakWidgetSnapshot } from '@/lib/widgets/widget-model';
@@ -29,6 +31,9 @@ import {
 } from '@/store/home-widget-store';
 
 export default function HomeWidgetScreen() {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const state = useHomeWidgetStore();
   const { locale, t } = useTranslation();
   const router = useRouter();
@@ -261,67 +266,70 @@ export default function HomeWidgetScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { gap: mentaSpacing[6], paddingBottom: mentaSpacing[6] },
-  pane: { flex: 1 },
-  illustration: {
-    alignItems: 'center',
-    gap: mentaSpacing[4],
-    paddingBottom: mentaSpacing[6],
-    width: '100%',
-  },
-  heading: {
-    ...mentaTypography.heading,
-    color: mentaColors.text.primary,
-    textAlign: 'center',
-    maxWidth: 480,
-  },
-  subtitle: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-    textAlign: 'center',
-    maxWidth: 460,
-  },
-  preview: { gap: mentaSpacing[2], width: '100%', maxWidth: 480 },
-  previewLabel: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-  controls: { gap: mentaSpacing[5], width: '100%' },
-  privacy: { gap: mentaSpacing[2] },
-  toggleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 16,
-  },
-  controlTitle: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-    flexShrink: 1,
-  },
-  body: { ...mentaTypography.body, color: mentaColors.text.secondary },
-  choices: { gap: mentaSpacing[2] },
-  step: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: mentaSpacing[4],
-  },
-  stepCopy: { flex: 1, minWidth: 0, gap: mentaSpacing[2] },
-  headingLeft: { alignSelf: 'stretch', textAlign: 'left' },
-  stepBadge: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.raised,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.round,
-    borderWidth: StyleSheet.hairlineWidth,
-    height: 28,
-    justifyContent: 'center',
-    marginTop: 2,
-    width: 28,
-  },
-  stepNumber: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.action,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: { gap: mentaSpacing[6], paddingBottom: mentaSpacing[6] },
+    pane: { flex: 1 },
+    illustration: {
+      alignItems: 'center',
+      gap: mentaSpacing[4],
+      paddingBottom: mentaSpacing[6],
+      width: '100%',
+    },
+    heading: {
+      ...mentaTypography.heading,
+      color: mentaColors.text.primary,
+      textAlign: 'center',
+      maxWidth: 480,
+    },
+    subtitle: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+      textAlign: 'center',
+      maxWidth: 460,
+    },
+    preview: { gap: mentaSpacing[2], width: '100%', maxWidth: 480 },
+    previewLabel: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+    controls: { gap: mentaSpacing[5], width: '100%' },
+    privacy: { gap: mentaSpacing[2] },
+    toggleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 16,
+    },
+    controlTitle: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+      flexShrink: 1,
+    },
+    body: { ...mentaTypography.body, color: mentaColors.text.secondary },
+    choices: { gap: mentaSpacing[2] },
+    step: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: mentaSpacing[4],
+    },
+    stepCopy: { flex: 1, minWidth: 0, gap: mentaSpacing[2] },
+    headingLeft: { alignSelf: 'stretch', textAlign: 'left' },
+    stepBadge: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.raised,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.round,
+      borderWidth: StyleSheet.hairlineWidth,
+      height: 28,
+      justifyContent: 'center',
+      marginTop: 2,
+      width: 28,
+    },
+    stepNumber: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.action,
+    },
+  });
+  return { styles };
+};

@@ -1,3 +1,6 @@
+jest.mock('@/hooks/usePromiseAccountability', () => ({
+  usePromiseAccountability: () => ({ data: undefined }),
+}));
 import React from 'react';
 import {
   act,
@@ -8,7 +11,7 @@ import {
 } from '@testing-library/react-native';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AppState } from 'react-native';
+import { AppState, Linking } from 'react-native';
 
 import { CameraVerification } from '@/components/CameraVerification';
 import { ThemeProvider } from '@/constants/ThemeContext';
@@ -192,7 +195,7 @@ const renderCameraVerification = (
   return handlers;
 };
 
-describe('CameraVerification permission primer', () => {
+describe('CameraVerification camera access', () => {
   beforeEach(async () => {
     mockVideoPlayer.loop = true;
     mockVideoPlayer.staysActiveInBackground = true;
@@ -222,35 +225,46 @@ describe('CameraVerification permission primer', () => {
     jest.useRealTimers();
   });
 
-  it('shows a proof permission primer before requesting camera access', async () => {
+  it('asks for the camera in one step and lets the system prompt follow', async () => {
     mockRequestCameraPermission.mockResolvedValue({
       granted: true,
       canAskAgain: true,
     });
+    const onAccessGateChange = jest.fn();
 
-    renderCameraVerification();
-
-    expect(screen.getByTestId('camera-proof-primer')).toBeTruthy();
-    expect(screen.getByText('Use the camera for proof')).toBeTruthy();
-    expect(screen.getByText('Review camera access')).toBeTruthy();
-    expect(mockRequestCameraPermission).not.toHaveBeenCalled();
-
-    fireEvent.press(screen.getByTestId('camera-proof-primer-continue'));
+    renderCameraVerification({ onAccessGateChange });
 
     expect(screen.getByTestId('camera-proof-permission')).toBeTruthy();
-    expect(screen.getByText('Allow camera access')).toBeTruthy();
+    expect(screen.getByText('Snap your proof')).toBeTruthy();
     expect(
       screen.getByText(
-        'Camera access lets Menta capture photo proof for this promise. You can also choose a saved photo from your library.'
+        'Menta needs your camera to take the photo. You’ll see it before anything is sent.'
       )
     ).toBeTruthy();
+    expect(onAccessGateChange).toHaveBeenLastCalledWith(true);
     expect(mockRequestCameraPermission).not.toHaveBeenCalled();
 
-    fireEvent.press(screen.getByTestId('camera-proof-permission-action'));
+    fireEvent.press(screen.getByText('Allow camera'));
 
     await waitFor(() =>
       expect(mockRequestCameraPermission).toHaveBeenCalledTimes(1)
     );
+  });
+
+  it('points to Settings once the system will not ask again', async () => {
+    mockCameraPermission = { granted: false, canAskAgain: false };
+    const openSettings = jest
+      .spyOn(Linking, 'openSettings')
+      .mockResolvedValue(undefined);
+
+    renderCameraVerification();
+
+    expect(screen.getByText('Camera access is off')).toBeTruthy();
+    fireEvent.press(screen.getByText('Open Settings'));
+
+    await waitFor(() => expect(openSettings).toHaveBeenCalledTimes(1));
+    expect(mockRequestCameraPermission).not.toHaveBeenCalled();
+    openSettings.mockRestore();
   });
 
   it('opens the system picker without requesting broad library access', async () => {
@@ -261,9 +275,7 @@ describe('CameraVerification permission primer', () => {
 
     renderCameraVerification();
 
-    fireEvent.press(screen.getByTestId('camera-proof-primer-continue'));
-
-    fireEvent.press(screen.getByTestId('camera-proof-library'));
+    fireEvent.press(screen.getByText('Choose a saved photo'));
 
     await waitFor(() =>
       expect(ImagePicker.launchImageLibraryAsync).toHaveBeenCalledTimes(1)
@@ -274,10 +286,20 @@ describe('CameraVerification permission primer', () => {
     expect(
       ImagePicker.requestMediaLibraryPermissionsAsync
     ).not.toHaveBeenCalled();
+    // Choosing a saved photo never asks for camera access.
+    expect(mockRequestCameraPermission).not.toHaveBeenCalled();
     expect(screen.queryByTestId('camera-proof-notice')).toBeNull();
   });
 
-  it('uses a focused microphone primer for video proof', async () => {
+  it('goes back when the person is not ready', () => {
+    const handlers = renderCameraVerification();
+
+    fireEvent.press(screen.getByText('Not now'));
+
+    expect(handlers.onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it('asks only for the microphone when video proof already has the camera', async () => {
     mockCameraPermission = { granted: true, canAskAgain: true };
     mockMicrophonePermission = { granted: false, canAskAgain: true };
     mockRequestMicrophonePermission.mockResolvedValue({
@@ -287,20 +309,12 @@ describe('CameraVerification permission primer', () => {
 
     renderCameraVerification({ verificationType: 'video' });
 
-    expect(screen.getByText('Use the camera for proof')).toBeTruthy();
-    fireEvent.press(screen.getByTestId('camera-proof-primer-continue'));
-
-    expect(screen.getByText('Allow microphone access')).toBeTruthy();
-    expect(
-      screen.getByText(
-        'Microphone access lets Menta capture video proof for this promise. You can also choose a saved video from your library.'
-      )
-    ).toBeTruthy();
-
-    fireEvent.press(screen.getByTestId('camera-proof-permission-action'));
+    expect(screen.getByText('Record your proof')).toBeTruthy();
+    fireEvent.press(screen.getByText('Allow microphone'));
 
     expect(await screen.findByText('Microphone access is off')).toBeTruthy();
     expect(mockRequestMicrophonePermission).toHaveBeenCalledTimes(1);
+    expect(mockRequestCameraPermission).not.toHaveBeenCalled();
   });
 
   it('persists a library capture before preview and records consent only on send', async () => {
@@ -310,10 +324,9 @@ describe('CameraVerification permission primer', () => {
     });
     const handlers = renderCameraVerification();
 
-    fireEvent.press(screen.getByTestId('camera-proof-primer-continue'));
     fireEvent.press(screen.getByTestId('camera-proof-library'));
 
-    expect(await screen.findByText('Check your proof')).toBeTruthy();
+    expect(await screen.findByText('Check your photo')).toBeTruthy();
     const previewDraft = await getProofDraft(
       '11111111-1111-4111-8111-111111111111'
     );
@@ -356,7 +369,6 @@ describe('CameraVerification permission primer', () => {
 
     renderCameraVerification();
 
-    fireEvent.press(screen.getByTestId('camera-proof-primer-continue'));
     fireEvent.press(screen.getByTestId('camera-proof-library'));
 
     expect(

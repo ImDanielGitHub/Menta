@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -15,13 +23,7 @@ import {
   ProofEvidenceViewer,
   type ProofEvidenceRecord,
 } from '@/components/challenge/proof-evidence';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { mentaFonts } from '@/lib/menta-fonts';
 import {
   ChevronLeftIcon,
@@ -58,24 +60,27 @@ const FamilyFrame = ({
   hasTabBar = false,
   contentGap,
   centered = false,
-}: FamilyFrameProps) => (
-  <AppScreen
-    lane="immersive"
-    testID={testID}
-    safeArea
-    scrollable={scrollable}
-    padding={false}
-    hasTabBar={hasTabBar}
-    style={styles.screen}
-    contentContainerStyle={{
-      ...styles.contentFrame,
-      ...(contentGap === undefined ? null : { gap: contentGap }),
-      ...(centered ? styles.centeredLane : null),
-    }}
-  >
-    {children}
-  </AppScreen>
-);
+}: FamilyFrameProps) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <AppScreen
+      lane="immersive"
+      testID={testID}
+      safeArea
+      scrollable={scrollable}
+      padding={false}
+      hasTabBar={hasTabBar}
+      style={styles.screen}
+      contentContainerStyle={{
+        ...styles.contentFrame,
+        ...(contentGap === undefined ? null : { gap: contentGap }),
+        ...(centered ? styles.centeredLane : null),
+      }}
+    >
+      {children}
+    </AppScreen>
+  );
+};
 
 type FamilyHeadingProps = {
   cue?: string;
@@ -98,6 +103,8 @@ const FamilyHeading = ({
   description,
   onBack,
 }: FamilyHeadingProps) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <View style={styles.headingBlock}>
@@ -123,9 +130,10 @@ const FamilyHeading = ({
   );
 };
 
-const PaperReceiptLabel = ({ children }: { children: React.ReactNode }) => (
-  <Text style={styles.paperReceiptLabel}>{children}</Text>
-);
+const PaperReceiptLabel = ({ children }: { children: React.ReactNode }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return <Text style={styles.paperReceiptLabel}>{children}</Text>;
+};
 
 const PromisePaperSheet = ({
   children,
@@ -133,15 +141,19 @@ const PromisePaperSheet = ({
 }: {
   children: React.ReactNode;
   testID: string;
-}) => (
-  <View style={styles.promisePaperSheet} testID={testID}>
-    {children}
-  </View>
-);
+}) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View style={styles.promisePaperSheet} testID={testID}>
+      {children}
+    </View>
+  );
+};
 
-const ActionStack = ({ children }: { children: React.ReactNode }) => (
-  <View style={styles.actionStack}>{children}</View>
-);
+const ActionStack = ({ children }: { children: React.ReactNode }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return <View style={styles.actionStack}>{children}</View>;
+};
 
 export type PromiseMutationRecoveryNotice = {
   title: string;
@@ -212,24 +224,30 @@ const TextAction = ({
   label: string;
   onPress: () => void;
   testID?: string;
-}) => (
-  <Pressable
-    accessibilityRole="button"
-    accessibilityLabel={label}
-    onPress={onPress}
-    style={({ pressed }) => [
-      styles.textAction,
-      pressed ? styles.pressed : null,
-    ]}
-    testID={testID}
-  >
-    <Text
-      style={[styles.textActionLabel, danger ? styles.textActionDanger : null]}
+}) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.textAction,
+        pressed ? styles.pressed : null,
+      ]}
+      testID={testID}
     >
-      {label}
-    </Text>
-  </Pressable>
-);
+      <Text
+        style={[
+          styles.textActionLabel,
+          danger ? styles.textActionDanger : null,
+        ]}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+};
 
 /**
  * Seven-day proof evidence.
@@ -266,40 +284,6 @@ const proofDayDescription: Record<PromiseProofDayState, string> = {
   inactive: 'promise not active',
 };
 
-const proofMarkerStyle = (state: PromiseProofDayState) => {
-  switch (state) {
-    case 'approved':
-      return styles.weekMarkerApproved;
-    case 'waiting':
-      return styles.weekMarkerWaiting;
-    case 'needs-retry':
-      return styles.weekMarkerRetry;
-    case 'today':
-      return styles.weekMarkerToday;
-    case 'missed':
-      return styles.weekMarkerMissed;
-    case 'protected':
-      return styles.weekMarkerProtected;
-    case 'past':
-      return styles.weekMarkerUnresolved;
-    default:
-      return styles.weekMarkerFuture;
-  }
-};
-
-const proofMarkerContent = (
-  state: PromiseProofDayState,
-  accentColor: string
-) => {
-  if (state === 'missed') {
-    return <Text style={styles.weekMarkerMissedText}>×</Text>;
-  }
-  if (state === 'protected') {
-    return <ShieldCheckIcon color={accentColor} size={13} />;
-  }
-  return null;
-};
-
 export type PromiseProofWeekProps = {
   week: readonly PromiseProofDay[];
   /** Short factual caption, e.g. `Proof this week`. */
@@ -310,6 +294,9 @@ export const PromiseProofWeek = ({
   week,
   label = 'Proof this week',
 }: PromiseProofWeekProps) => {
+  const { styles, proofMarkerStyle, proofMarkerContent } =
+    useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
 
   return (
@@ -382,6 +369,8 @@ const PromiseFactRow = ({
   onPaper = false,
   testID,
 }: PromiseFactRowProps) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const phoneLayout = usePhoneLayout();
   const stacksPaperFact =
@@ -472,6 +461,8 @@ export type SoloChallengesLoadingStateProps = {
 export const SoloChallengesLoadingState = ({
   onBack,
 }: SoloChallengesLoadingStateProps) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <FamilyFrame testID="solo-challenges-loading" scrollable={false}>
@@ -507,7 +498,8 @@ export const SoloChallengesLoadingState = ({
 
 export type SoloChallengesEmptyStateProps = {
   onCreateSolo: () => void;
-  onViewHistory: () => void;
+  /** Offered only where finished promises can exist behind this state. */
+  onViewHistory?: () => void;
   onCreateChallenge: () => void;
   /** Kept while older route callers migrate to onCreateChallenge. */
   onBackToCreation?: () => void;
@@ -525,6 +517,8 @@ export const SoloChallengesEmptyState = ({
   onCreateChallenge,
   onBack,
 }: SoloChallengesEmptyStateProps) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <FamilyFrame testID="solo-challenges-empty" centered>
@@ -555,11 +549,13 @@ export const SoloChallengesEmptyState = ({
           testID="solo-empty-create-solo"
         />
         <View style={styles.emptySecondaryActions}>
-          <TextAction
-            label={t('todayProof.solo.view_past')}
-            onPress={onViewHistory}
-            testID="solo-empty-view-history"
-          />
+          {onViewHistory ? (
+            <TextAction
+              label={t('todayProof.solo.view_past')}
+              onPress={onViewHistory}
+              testID="solo-empty-view-history"
+            />
+          ) : null}
           <TextAction
             label={t('todayProof.solo.create_group')}
             onPress={onCreateChallenge}
@@ -586,6 +582,9 @@ export const CreateTabBridgeState = ({
   onLearn,
   onBack,
 }: CreateTabBridgeStateProps) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <FamilyFrame testID="create-tab-bridge" hasTabBar contentGap={16}>
@@ -706,6 +705,9 @@ export type PromiseDetailSkeletonStateProps = {
 export const PromiseDetailSkeletonState = ({
   onBack,
 }: PromiseDetailSkeletonStateProps) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <FamilyFrame testID="promise-detail-loading" scrollable={false}>
@@ -865,17 +867,6 @@ export type PromiseActiveStateProps = {
   onBack?: () => void;
 };
 
-const ACTIVE_PROMISE_STATUS_COLOR: Record<
-  NonNullable<PromiseActiveStateProps['statusTone']>,
-  string
-> = {
-  action: mentaColors.action,
-  warning: mentaColors.warning,
-  success: mentaColors.success,
-  danger: mentaColors.danger,
-  muted: mentaColors.text.secondary,
-};
-
 /**
  * The active solo-promise summary. The promise itself is the single tactile
  * object; evidence and routes remain plain, responsive lanes beneath it.
@@ -900,6 +891,10 @@ export const PromiseActiveState = ({
   onDelete,
   onBack,
 }: PromiseActiveStateProps) => {
+  const mentaColors = useMentaPalette();
+  const { ACTIVE_PROMISE_STATUS_COLOR, styles } =
+    useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const primary = (
     <View style={styles.activePromisePanel} testID="active-promise-sheet">
@@ -1072,6 +1067,9 @@ export const PromiseWaitingReviewState = ({
   onDelete,
   onBack,
 }: PromiseWaitingReviewStateProps) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const resolvedReviewer = reviewerName?.trim();
   const [selectedProof, setSelectedProof] =
@@ -1187,6 +1185,9 @@ export const PromiseHistoryState = ({
   onOpenProof,
   onBack,
 }: PromiseHistoryStateProps) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const { colors } = useTheme();
   const [selectedProof, setSelectedProof] =
@@ -1362,6 +1363,9 @@ export const PromiseRulesState = ({
   onBack,
   onManagePeople,
 }: PromiseRulesStateProps) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const phoneLayout = usePhoneLayout();
   const isIPad = Platform.OS === 'ios' && Platform.isPad;
@@ -1464,6 +1468,7 @@ export const PromiseRulesState = ({
 };
 
 export type PromiseProofDetailStateProps = {
+  reviewFeedback?: React.ReactNode;
   proof: ProofEvidenceRecord;
   onViewProof?: () => void;
   onProofHistory: () => void;
@@ -1472,11 +1477,14 @@ export type PromiseProofDetailStateProps = {
 
 /** A single server-read proof rendered as a physical receipt, not a status card. */
 export const PromiseProofDetailState = ({
+  reviewFeedback,
   proof,
   onViewProof,
   onProofHistory,
   onBack,
 }: PromiseProofDetailStateProps) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const [selectedProof, setSelectedProof] =
     useState<ProofEvidenceRecord | null>(null);
@@ -1506,6 +1514,7 @@ export const PromiseProofDetailState = ({
         onPress={onProofHistory}
         testID="promise-proof-detail-history"
       />
+      {reviewFeedback}
       <ProofEvidenceViewer
         proof={selectedProof}
         visible={Boolean(selectedProof)}
@@ -1544,6 +1553,8 @@ export const PromiseCompleteState = ({
   onDelete,
   onBack,
 }: PromiseCompleteStateProps) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <FamilyFrame testID="promise-complete">
@@ -1640,6 +1651,8 @@ export const PromiseUnavailableState = ({
   onReportProblem,
   onBack,
 }: PromiseUnavailableStateProps) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <FamilyFrame testID="promise-unavailable">
@@ -1714,6 +1727,8 @@ export const NotificationEducationState = ({
   onNotNow,
   onBack,
 }: NotificationEducationStateProps) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <FamilyFrame testID="promise-notification-education">
@@ -1751,10 +1766,7 @@ export const NotificationEducationState = ({
 };
 
 export type ReferralShareOutcome =
-  | 'idle'
-  | 'sheet-closed'
-  | 'copied'
-  | 'copy-failed';
+  'idle' | 'sheet-closed' | 'copied' | 'copy-failed';
 
 export type ReferralBridgeStateProps = {
   promiseTitle: string;
@@ -1777,6 +1789,8 @@ export const ReferralBridgeState = ({
   working = false,
   onBack,
 }: ReferralBridgeStateProps) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <FamilyFrame testID="promise-referral">
@@ -1839,683 +1853,733 @@ export const ReferralBridgeState = ({
   );
 };
 
-const styles = StyleSheet.create({
-  screen: {
-    backgroundColor: mentaColors.canvas,
-  },
-  contentFrame: {
-    width: '100%',
-    alignSelf: 'center',
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingTop: mentaSpacing[4],
-    gap: mentaSpacing[6],
-  },
-  centeredLane: {
-    flexGrow: 1,
-    justifyContent: 'center',
-  },
-  /** Long prose keeps the narrower reading measure. */
-  proseMeasure: {
-    maxWidth: mentaLayout.readingMeasure,
-  },
-  headingBlock: {
-    gap: mentaSpacing[2],
-  },
-  backAction: {
-    alignSelf: 'flex-start',
-    marginBottom: mentaSpacing[1],
-  },
-  cue: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-  title: {
-    ...mentaTypography.heading,
-    color: mentaColors.text.primary,
-  },
-  description: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-  sectionLabel: {
-    ...mentaTypography.labelBold,
-    color: mentaColors.text.muted,
-  },
-  actionStack: {
-    gap: mentaSpacing[3],
-  },
-  promiseSecondaryPane: {
-    gap: mentaSpacing[5],
-  },
-  textAction: {
-    minHeight: mentaLayout.minimumTouchTarget,
-    justifyContent: 'center',
-  },
-  textActionLabel: {
-    ...mentaTypography.bodyMedium,
-    color: mentaColors.action,
-  },
-  textActionDanger: {
-    color: mentaColors.danger,
-  },
-  emptyBlock: {
-    gap: mentaSpacing[3],
-  },
-  emptyLead: {
-    ...mentaTypography.lead,
-    color: mentaColors.text.secondary,
-  },
-  emptyPrimaryAction: {
-    marginTop: mentaSpacing[5],
-  },
-  emptySecondaryActions: {
-    marginTop: mentaSpacing[1],
-  },
-  loadingStack: {
-    gap: mentaSpacing[4],
-  },
-  loadingTitle: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  directSection: {
-    gap: mentaSpacing[3],
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-    paddingVertical: mentaSpacing[4],
-  },
-  rowList: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-  },
-  factSection: {
-    gap: mentaSpacing[2],
-  },
-  factSectionTitle: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  factProse: {
-    ...mentaTypography.body,
-    color: mentaColors.text.primary,
-  },
-  factProseMeta: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.muted,
-  },
-  factRows: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-  },
-  factRow: {
-    minHeight: 60,
-    paddingVertical: mentaSpacing[3],
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: mentaColors.border,
-    gap: mentaSpacing[1],
-  },
-  factRowOnPaper: {
-    borderBottomColor: mentaColors.borderPaper,
-    minHeight: 58,
-    paddingVertical: mentaSpacing[3],
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: mentaSpacing[3],
-  },
-  factRowOnPaperStacked: {
-    flexDirection: 'column',
-    gap: mentaSpacing[1],
-  },
-  factRowLast: {
-    borderBottomWidth: 0,
-  },
-  factRowLabel: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.muted,
-  },
-  factRowLabelOnPaper: {
-    color: mentaColors.text.mutedOnPaper,
-    flexShrink: 0,
-    width: 110,
-  },
-  factRowLabelOnPaperStacked: {
-    width: '100%',
-  },
-  factRowValueLane: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: mentaSpacing[3],
-    flex: 1,
-    minWidth: 0,
-  },
-  factRowValueLaneStacked: {
-    width: '100%',
-  },
-  factRowValue: {
-    ...mentaTypography.bodyMedium,
-    color: mentaColors.text.primary,
-    flexShrink: 1,
-  },
-  factRowValueOnPaper: {
-    color: mentaColors.text.onPaper,
-  },
-  factRowChange: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.action,
-  },
-  factRowChangeOnPaper: {
-    color: mentaColors.actionOnPaper,
-    flexShrink: 0,
-    textAlign: 'right',
-    width: 58,
-  },
-  factRowChangeOnPaperStacked: {
-    width: 'auto',
-  },
-  rulesScreenContent: {
-    flexGrow: 1,
-    paddingTop: 0,
-  },
-  rulesTopBar: {
-    minHeight: 66,
-    paddingBottom: mentaSpacing[5],
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  rulesBackButton: {
-    width: mentaLayout.minimumTouchTarget,
-    height: mentaLayout.minimumTouchTarget,
-    borderRadius: mentaRadii.round,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rulesTopBarSlot: {
-    width: mentaLayout.minimumTouchTarget,
-    height: mentaLayout.minimumTouchTarget,
-  },
-  rulesTopBarTitle: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.text.secondary,
-  },
-  rulesDocument: {
-    width: '100%',
-    flexGrow: 1,
-    gap: 15,
-    borderTopLeftRadius: 22,
-    borderTopRightRadius: 22,
-    backgroundColor: mentaColors.paper,
-    paddingTop: 26,
-    paddingBottom: mentaSpacing[8],
-  },
-  rulesDocumentCompact: {
-    paddingTop: mentaSpacing[5],
-  },
-  rulesDocumentTitle: {
-    fontFamily: mentaFonts.inter.bold,
-    fontSize: 32,
-    lineHeight: 38,
-    letterSpacing: -1.12,
-    color: mentaColors.text.onPaper,
-  },
-  rulesDocumentTitleCompact: {
-    fontSize: 28,
-    lineHeight: 34,
-    letterSpacing: -0.84,
-  },
-  rulesDocumentPromise: {
-    ...mentaTypography.body,
-    color: mentaColors.text.mutedOnPaper,
-  },
-  rulesDocumentSection: {
-    gap: mentaSpacing[2],
-    backgroundColor: mentaColors.paperPressed,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderTopWidth: 2,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.borderPaper,
-    borderRadius: 10,
-    padding: 18,
-  },
-  rulesDocumentSectionTitle: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.onPaper,
-  },
-  rulesDocumentProse: {
-    ...mentaTypography.body,
-    color: mentaColors.text.onPaper,
-  },
-  rulesDocumentMeta: {
-    ...mentaTypography.bodySmall,
-    fontFamily: mentaFonts.inter.medium,
-    color: mentaColors.text.mutedOnPaper,
-  },
-  rulesDocumentRows: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.borderPaper,
-  },
-  createTopBar: {
-    minHeight: mentaLayout.minimumTouchTarget,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  createBackAction: {
-    minHeight: mentaLayout.minimumTouchTarget,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: mentaSpacing[3],
-  },
-  createTopBarLabel: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-    letterSpacing: mentaTypography.label.letterSpacing,
-  },
-  createIntro: {
-    gap: mentaSpacing[2],
-    paddingTop: mentaSpacing[3],
-  },
-  createTitle: {
-    ...mentaTypography.heading,
-    color: mentaColors.text.primary,
-  },
-  createDescription: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-  },
-  createActions: {
-    gap: mentaSpacing[2],
-    paddingTop: mentaSpacing[3],
-  },
-  detailSkeleton: {
-    flex: 1,
-    gap: 14,
-    paddingTop: 10,
-  },
-  skeletonTopBar: {
-    minHeight: mentaLayout.minimumTouchTarget,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  skeletonBack: {
-    width: mentaLayout.minimumTouchTarget,
-    height: mentaLayout.minimumTouchTarget,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.round,
-  },
-  skeletonHeading: {
-    gap: 9,
-  },
-  skeletonLoopPanel: {
-    gap: mentaSpacing[3],
-    paddingTop: mentaSpacing[2],
-    paddingBottom: mentaSpacing[5],
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: mentaColors.border,
-  },
-  skeletonWeekHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: mentaSpacing[4],
-    marginTop: mentaSpacing[2],
-  },
-  skeletonWeekRow: {
-    flexDirection: 'row',
-    gap: 5,
-  },
-  skeletonWeekCell: {
-    flex: 1,
-    minWidth: 0,
-  },
-  skeletonActionRows: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-  },
-  skeletonActionRow: {
-    minHeight: 46,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: mentaSpacing[3],
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: mentaColors.border,
-  },
-  receiptBlock: {
-    gap: mentaSpacing[3],
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.borderPaper,
-    borderRadius: mentaRadii.medium,
-    backgroundColor: mentaColors.paper,
-    padding: mentaSpacing[4],
-  },
-  promisePaperSheet: {
-    width: '100%',
-    gap: mentaSpacing[4],
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.borderPaper,
-    borderRadius: mentaRadii.medium,
-    backgroundColor: mentaColors.paper,
-    padding: mentaSpacing[6],
-    shadowColor: '#000000',
-    shadowOffset: { width: 7, height: 9 },
-    shadowOpacity: 0.42,
-    shadowRadius: 0,
-    elevation: 7,
-  },
-  activePromisePanel: {
-    width: '100%',
-    gap: mentaSpacing[5],
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    backgroundColor: mentaColors.raised,
-    padding: mentaSpacing[4],
-  },
-  activePromiseCopy: {
-    gap: mentaSpacing[2],
-  },
-  activePromiseStatus: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.warning,
-  },
-  activePromisePrompt: {
-    ...mentaTypography.body,
-    color: mentaColors.text.primary,
-  },
-  activePromiseFacts: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-  },
-  activePromiseFactRow: {
-    minHeight: mentaLayout.minimumTouchTarget,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: mentaSpacing[4],
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: mentaColors.border,
-  },
-  activePromiseFactLabel: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.muted,
-  },
-  activePromiseFactValue: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.text.primary,
-    flex: 1,
-    textAlign: 'right',
-  },
-  weekSection: {
-    gap: mentaSpacing[3],
-  },
-  paperStatus: {
-    ...mentaTypography.bodySmallMedium,
-    color: '#8A5B08',
-  },
-  paperPromiseTitle: {
-    ...mentaTypography.title,
-    color: mentaColors.text.onPaper,
-  },
-  paperFactLine: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: mentaSpacing[2],
-  },
-  paperFact: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.text.onPaper,
-    flexShrink: 1,
-  },
-  paperMeta: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.mutedOnPaper,
-  },
-  pendingPaperWrap: {
-    width: '100%',
-    gap: mentaSpacing[3],
-    borderRadius: mentaRadii.medium,
-    backgroundColor: mentaColors.paper,
-    paddingBottom: mentaSpacing[4],
-    shadowColor: '#000000',
-    shadowOffset: { width: 7, height: 9 },
-    shadowOpacity: 0.42,
-    shadowRadius: 0,
-    elevation: 7,
-  },
-  pendingPaperBoundary: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.mutedOnPaper,
-    paddingHorizontal: mentaSpacing[4],
-  },
-  proofReceiptWrap: {
-    width: '100%',
-    borderRadius: mentaRadii.medium,
-    backgroundColor: mentaColors.paper,
-    shadowColor: '#000000',
-    shadowOffset: { width: 7, height: 9 },
-    shadowOpacity: 0.42,
-    shadowRadius: 0,
-    elevation: 7,
-  },
-  receiptTitle: {
-    ...mentaTypography.title,
-    color: mentaColors.text.onPaper,
-  },
-  receiptDescription: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.mutedOnPaper,
-  },
-  paperReceiptLabel: {
-    ...mentaTypography.labelBold,
-    color: mentaColors.text.mutedOnPaper,
-  },
-  weekStrip: {
-    flexDirection: 'row',
-    gap: mentaSpacing[1],
-  },
-  weekDay: {
-    flex: 1,
-    minHeight: 58,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: mentaSpacing[2],
-    borderRadius: mentaRadii.small,
-  },
-  weekDayToday: {
-    backgroundColor: mentaColors.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.action,
-  },
-  weekDayText: {
-    ...mentaTypography.labelBold,
-    color: mentaColors.text.secondary,
-  },
-  weekDayTextToday: {
-    color: mentaColors.action,
-  },
-  weekMarker: {
-    borderRadius: mentaRadii.round,
-  },
-  weekMarkerApproved: {
-    width: 18,
-    height: 18,
-    backgroundColor: mentaColors.success,
-  },
-  weekMarkerWaiting: {
-    width: 18,
-    height: 18,
-    backgroundColor: mentaColors.warning,
-  },
-  weekMarkerRetry: {
-    width: 18,
-    height: 18,
-    backgroundColor: mentaColors.danger,
-  },
-  weekMarkerToday: {
-    width: 18,
-    height: 18,
-    borderWidth: 2,
-    borderColor: mentaColors.action,
-  },
-  weekMarkerUnresolved: {
-    width: 18,
-    height: 18,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-  },
-  weekMarkerMissed: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.danger,
-    height: 18,
-    justifyContent: 'center',
-    width: 18,
-  },
-  weekMarkerMissedText: {
-    color: mentaColors.text.onPaper,
-    fontSize: 14,
-    fontWeight: '700',
-    lineHeight: 16,
-  },
-  weekMarkerProtected: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.paper,
-    borderColor: mentaColors.actionOnPaper,
-    borderWidth: StyleSheet.hairlineWidth,
-    height: 18,
-    justifyContent: 'center',
-    width: 18,
-  },
-  weekMarkerFuture: {
-    width: 8,
-    height: 8,
-    backgroundColor: mentaColors.border,
-  },
-  pressed: {
-    opacity: 0.78,
-  },
-  historyList: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-  },
-  historyLedger: {
-    gap: mentaSpacing[2],
-  },
-  historyOrder: {
-    ...mentaTypography.captionMedium,
-    color: mentaColors.text.secondary,
-  },
-  historyRefreshing: {
-    minHeight: mentaLayout.minimumTouchTarget,
-    justifyContent: 'center',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-  },
-  historyRefreshingText: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-  historyEmpty: {
-    gap: mentaSpacing[2],
-    paddingVertical: mentaSpacing[8],
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-  },
-  historyEmptyTitle: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-  },
-  historyEmptyText: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-    maxWidth: mentaLayout.readingMeasure,
-  },
-  outcomeHistoryRow: {
-    alignItems: 'flex-start',
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 74,
-    paddingVertical: mentaSpacing[4],
-  },
-  outcomeHistoryIcon: {
-    alignItems: 'center',
-    height: 28,
-    justifyContent: 'center',
-    width: 28,
-  },
-  outcomeHistoryCopy: {
-    flex: 1,
-    gap: mentaSpacing[1],
-    minWidth: 0,
-  },
-  outcomeHistoryDay: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  outcomeHistoryDetail: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-  },
-  completionTally: {
-    width: '100%',
-    gap: mentaSpacing[3],
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.borderPaper,
-    borderRadius: mentaRadii.medium,
-    backgroundColor: mentaColors.paper,
-    padding: mentaSpacing[6],
-    shadowColor: '#000000',
-    shadowOffset: { width: 7, height: 9 },
-    shadowOpacity: 0.42,
-    shadowRadius: 0,
-    elevation: 7,
-  },
-  completionCountLine: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    flexWrap: 'wrap',
-  },
-  completionApprovedCount: {
-    ...mentaTypography.display,
-    color: mentaColors.actionOnPaper,
-  },
-  completionTotalCount: {
-    ...mentaTypography.title,
-    color: mentaColors.text.onPaper,
-  },
-  completionTallyLabel: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.text.mutedOnPaper,
-  },
-  completionMarks: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: mentaSpacing[2],
-    paddingTop: mentaSpacing[2],
-  },
-  completionMark: {
-    width: 16,
-    height: 16,
-    borderRadius: mentaRadii.round,
-  },
-  completionMarkApproved: {
-    backgroundColor: mentaColors.actionOnPaper,
-  },
-  completionMarkNotApproved: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.borderPaper,
-    backgroundColor: 'transparent',
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const ACTIVE_PROMISE_STATUS_COLOR: Record<
+    NonNullable<PromiseActiveStateProps['statusTone']>,
+    string
+  > = {
+    action: mentaColors.action,
+    warning: mentaColors.warning,
+    success: mentaColors.success,
+    danger: mentaColors.danger,
+    muted: mentaColors.text.secondary,
+  };
+  const styles = StyleSheet.create({
+    screen: {
+      backgroundColor: mentaColors.canvas,
+    },
+    contentFrame: {
+      width: '100%',
+      alignSelf: 'center',
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingTop: mentaSpacing[4],
+      gap: mentaSpacing[6],
+    },
+    centeredLane: {
+      flexGrow: 1,
+      justifyContent: 'center',
+    },
+    /** Long prose keeps the narrower reading measure. */
+    proseMeasure: {
+      maxWidth: mentaLayout.readingMeasure,
+    },
+    headingBlock: {
+      gap: mentaSpacing[2],
+    },
+    backAction: {
+      alignSelf: 'flex-start',
+      marginBottom: mentaSpacing[1],
+    },
+    cue: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+    title: {
+      ...mentaTypography.heading,
+      color: mentaColors.text.primary,
+    },
+    description: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+    sectionLabel: {
+      ...mentaTypography.labelBold,
+      color: mentaColors.text.muted,
+    },
+    actionStack: {
+      gap: mentaSpacing[3],
+    },
+    promiseSecondaryPane: {
+      gap: mentaSpacing[5],
+    },
+    textAction: {
+      minHeight: mentaLayout.minimumTouchTarget,
+      justifyContent: 'center',
+    },
+    textActionLabel: {
+      ...mentaTypography.bodyMedium,
+      color: mentaColors.action,
+    },
+    textActionDanger: {
+      color: mentaColors.danger,
+    },
+    emptyBlock: {
+      gap: mentaSpacing[3],
+    },
+    emptyLead: {
+      ...mentaTypography.lead,
+      color: mentaColors.text.secondary,
+    },
+    emptyPrimaryAction: {
+      marginTop: mentaSpacing[5],
+    },
+    emptySecondaryActions: {
+      marginTop: mentaSpacing[1],
+    },
+    loadingStack: {
+      gap: mentaSpacing[4],
+    },
+    loadingTitle: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    directSection: {
+      gap: mentaSpacing[3],
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+      paddingVertical: mentaSpacing[4],
+    },
+    rowList: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+    },
+    factSection: {
+      gap: mentaSpacing[2],
+    },
+    factSectionTitle: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    factProse: {
+      ...mentaTypography.body,
+      color: mentaColors.text.primary,
+    },
+    factProseMeta: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.muted,
+    },
+    factRows: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+    },
+    factRow: {
+      minHeight: 60,
+      paddingVertical: mentaSpacing[3],
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: mentaColors.border,
+      gap: mentaSpacing[1],
+    },
+    factRowOnPaper: {
+      borderBottomColor: mentaColors.borderPaper,
+      minHeight: 58,
+      paddingVertical: mentaSpacing[3],
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: mentaSpacing[3],
+    },
+    factRowOnPaperStacked: {
+      flexDirection: 'column',
+      gap: mentaSpacing[1],
+    },
+    factRowLast: {
+      borderBottomWidth: 0,
+    },
+    factRowLabel: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.muted,
+    },
+    factRowLabelOnPaper: {
+      color: mentaColors.text.mutedOnPaper,
+      flexShrink: 0,
+      width: 110,
+    },
+    factRowLabelOnPaperStacked: {
+      width: '100%',
+    },
+    factRowValueLane: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      gap: mentaSpacing[3],
+      flex: 1,
+      minWidth: 0,
+    },
+    factRowValueLaneStacked: {
+      width: '100%',
+    },
+    factRowValue: {
+      ...mentaTypography.bodyMedium,
+      color: mentaColors.text.primary,
+      flexShrink: 1,
+    },
+    factRowValueOnPaper: {
+      color: mentaColors.text.onPaper,
+    },
+    factRowChange: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.action,
+    },
+    factRowChangeOnPaper: {
+      color: mentaColors.actionOnPaper,
+      flexShrink: 0,
+      textAlign: 'right',
+      width: 58,
+    },
+    factRowChangeOnPaperStacked: {
+      width: 'auto',
+    },
+    rulesScreenContent: {
+      flexGrow: 1,
+      paddingTop: 0,
+    },
+    rulesTopBar: {
+      minHeight: 66,
+      paddingBottom: mentaSpacing[5],
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    rulesBackButton: {
+      width: mentaLayout.minimumTouchTarget,
+      height: mentaLayout.minimumTouchTarget,
+      borderRadius: mentaRadii.round,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    rulesTopBarSlot: {
+      width: mentaLayout.minimumTouchTarget,
+      height: mentaLayout.minimumTouchTarget,
+    },
+    rulesTopBarTitle: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.text.secondary,
+    },
+    rulesDocument: {
+      width: '100%',
+      flexGrow: 1,
+      gap: 15,
+      borderTopLeftRadius: 22,
+      borderTopRightRadius: 22,
+      backgroundColor: mentaColors.paper,
+      paddingTop: 26,
+      paddingBottom: mentaSpacing[8],
+    },
+    rulesDocumentCompact: {
+      paddingTop: mentaSpacing[5],
+    },
+    rulesDocumentTitle: {
+      fontFamily: mentaFonts.inter.bold,
+      fontSize: 32,
+      lineHeight: 38,
+      letterSpacing: -1.12,
+      color: mentaColors.text.onPaper,
+    },
+    rulesDocumentTitleCompact: {
+      fontSize: 28,
+      lineHeight: 34,
+      letterSpacing: -0.84,
+    },
+    rulesDocumentPromise: {
+      ...mentaTypography.body,
+      color: mentaColors.text.mutedOnPaper,
+    },
+    rulesDocumentSection: {
+      gap: mentaSpacing[2],
+      backgroundColor: mentaColors.paperPressed,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderTopWidth: 2,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.borderPaper,
+      borderRadius: 10,
+      padding: 18,
+    },
+    rulesDocumentSectionTitle: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.onPaper,
+    },
+    rulesDocumentProse: {
+      ...mentaTypography.body,
+      color: mentaColors.text.onPaper,
+    },
+    rulesDocumentMeta: {
+      ...mentaTypography.bodySmall,
+      fontFamily: mentaFonts.inter.medium,
+      color: mentaColors.text.mutedOnPaper,
+    },
+    rulesDocumentRows: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.borderPaper,
+    },
+    createTopBar: {
+      minHeight: mentaLayout.minimumTouchTarget,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    createBackAction: {
+      minHeight: mentaLayout.minimumTouchTarget,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: mentaSpacing[3],
+    },
+    createTopBarLabel: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+      letterSpacing: mentaTypography.label.letterSpacing,
+    },
+    createIntro: {
+      gap: mentaSpacing[2],
+      paddingTop: mentaSpacing[3],
+    },
+    createTitle: {
+      ...mentaTypography.heading,
+      color: mentaColors.text.primary,
+    },
+    createDescription: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+    },
+    createActions: {
+      gap: mentaSpacing[2],
+      paddingTop: mentaSpacing[3],
+    },
+    detailSkeleton: {
+      flex: 1,
+      gap: 14,
+      paddingTop: 10,
+    },
+    skeletonTopBar: {
+      minHeight: mentaLayout.minimumTouchTarget,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    skeletonBack: {
+      width: mentaLayout.minimumTouchTarget,
+      height: mentaLayout.minimumTouchTarget,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.round,
+    },
+    skeletonHeading: {
+      gap: 9,
+    },
+    skeletonLoopPanel: {
+      gap: mentaSpacing[3],
+      paddingTop: mentaSpacing[2],
+      paddingBottom: mentaSpacing[5],
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: mentaColors.border,
+    },
+    skeletonWeekHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: mentaSpacing[4],
+      marginTop: mentaSpacing[2],
+    },
+    skeletonWeekRow: {
+      flexDirection: 'row',
+      gap: 5,
+    },
+    skeletonWeekCell: {
+      flex: 1,
+      minWidth: 0,
+    },
+    skeletonActionRows: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+    },
+    skeletonActionRow: {
+      minHeight: 46,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: mentaSpacing[3],
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: mentaColors.border,
+    },
+    receiptBlock: {
+      gap: mentaSpacing[3],
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.borderPaper,
+      borderRadius: mentaRadii.medium,
+      backgroundColor: mentaColors.paper,
+      padding: mentaSpacing[4],
+    },
+    promisePaperSheet: {
+      width: '100%',
+      gap: mentaSpacing[4],
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.borderPaper,
+      borderRadius: mentaRadii.medium,
+      backgroundColor: mentaColors.paper,
+      padding: mentaSpacing[6],
+      shadowColor: '#000000',
+      shadowOffset: { width: 7, height: 9 },
+      shadowOpacity: 0.42,
+      shadowRadius: 0,
+      elevation: 7,
+    },
+    activePromisePanel: {
+      width: '100%',
+      gap: mentaSpacing[5],
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      backgroundColor: mentaColors.raised,
+      padding: mentaSpacing[4],
+    },
+    activePromiseCopy: {
+      gap: mentaSpacing[2],
+    },
+    activePromiseStatus: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.warning,
+    },
+    activePromisePrompt: {
+      ...mentaTypography.body,
+      color: mentaColors.text.primary,
+    },
+    activePromiseFacts: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+    },
+    activePromiseFactRow: {
+      minHeight: mentaLayout.minimumTouchTarget,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: mentaSpacing[4],
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: mentaColors.border,
+    },
+    activePromiseFactLabel: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.muted,
+    },
+    activePromiseFactValue: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.text.primary,
+      flex: 1,
+      textAlign: 'right',
+    },
+    weekSection: {
+      gap: mentaSpacing[3],
+    },
+    paperStatus: {
+      ...mentaTypography.bodySmallMedium,
+      color: '#8A5B08',
+    },
+    paperPromiseTitle: {
+      ...mentaTypography.title,
+      color: mentaColors.text.onPaper,
+    },
+    paperFactLine: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      gap: mentaSpacing[2],
+    },
+    paperFact: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.text.onPaper,
+      flexShrink: 1,
+    },
+    paperMeta: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.mutedOnPaper,
+    },
+    pendingPaperWrap: {
+      width: '100%',
+      gap: mentaSpacing[3],
+      borderRadius: mentaRadii.medium,
+      backgroundColor: mentaColors.paper,
+      paddingBottom: mentaSpacing[4],
+      shadowColor: '#000000',
+      shadowOffset: { width: 7, height: 9 },
+      shadowOpacity: 0.42,
+      shadowRadius: 0,
+      elevation: 7,
+    },
+    pendingPaperBoundary: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.mutedOnPaper,
+      paddingHorizontal: mentaSpacing[4],
+    },
+    proofReceiptWrap: {
+      width: '100%',
+      borderRadius: mentaRadii.medium,
+      backgroundColor: mentaColors.paper,
+      shadowColor: '#000000',
+      shadowOffset: { width: 7, height: 9 },
+      shadowOpacity: 0.42,
+      shadowRadius: 0,
+      elevation: 7,
+    },
+    receiptTitle: {
+      ...mentaTypography.title,
+      color: mentaColors.text.onPaper,
+    },
+    receiptDescription: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.mutedOnPaper,
+    },
+    paperReceiptLabel: {
+      ...mentaTypography.labelBold,
+      color: mentaColors.text.mutedOnPaper,
+    },
+    weekStrip: {
+      flexDirection: 'row',
+      gap: mentaSpacing[1],
+    },
+    weekDay: {
+      flex: 1,
+      minHeight: 58,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: mentaSpacing[2],
+      borderRadius: mentaRadii.small,
+    },
+    weekDayToday: {
+      backgroundColor: mentaColors.surface,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.action,
+    },
+    weekDayText: {
+      ...mentaTypography.labelBold,
+      color: mentaColors.text.secondary,
+    },
+    weekDayTextToday: {
+      color: mentaColors.action,
+    },
+    weekMarker: {
+      borderRadius: mentaRadii.round,
+    },
+    weekMarkerApproved: {
+      width: 18,
+      height: 18,
+      backgroundColor: mentaColors.success,
+    },
+    weekMarkerWaiting: {
+      width: 18,
+      height: 18,
+      backgroundColor: mentaColors.warning,
+    },
+    weekMarkerRetry: {
+      width: 18,
+      height: 18,
+      backgroundColor: mentaColors.danger,
+    },
+    weekMarkerToday: {
+      width: 18,
+      height: 18,
+      borderWidth: 2,
+      borderColor: mentaColors.action,
+    },
+    weekMarkerUnresolved: {
+      width: 18,
+      height: 18,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+    },
+    weekMarkerMissed: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.danger,
+      height: 18,
+      justifyContent: 'center',
+      width: 18,
+    },
+    weekMarkerMissedText: {
+      color: mentaColors.text.onPaper,
+      fontSize: 14,
+      fontWeight: '700',
+      lineHeight: 16,
+    },
+    weekMarkerProtected: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.paper,
+      borderColor: mentaColors.actionOnPaper,
+      borderWidth: StyleSheet.hairlineWidth,
+      height: 18,
+      justifyContent: 'center',
+      width: 18,
+    },
+    weekMarkerFuture: {
+      width: 8,
+      height: 8,
+      backgroundColor: mentaColors.border,
+    },
+    pressed: {
+      opacity: 0.78,
+    },
+    historyList: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+    },
+    historyLedger: {
+      gap: mentaSpacing[2],
+    },
+    historyOrder: {
+      ...mentaTypography.captionMedium,
+      color: mentaColors.text.secondary,
+    },
+    historyRefreshing: {
+      minHeight: mentaLayout.minimumTouchTarget,
+      justifyContent: 'center',
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+    },
+    historyRefreshingText: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+    historyEmpty: {
+      gap: mentaSpacing[2],
+      paddingVertical: mentaSpacing[8],
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+    },
+    historyEmptyTitle: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+    },
+    historyEmptyText: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+      maxWidth: mentaLayout.readingMeasure,
+    },
+    outcomeHistoryRow: {
+      alignItems: 'flex-start',
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 74,
+      paddingVertical: mentaSpacing[4],
+    },
+    outcomeHistoryIcon: {
+      alignItems: 'center',
+      height: 28,
+      justifyContent: 'center',
+      width: 28,
+    },
+    outcomeHistoryCopy: {
+      flex: 1,
+      gap: mentaSpacing[1],
+      minWidth: 0,
+    },
+    outcomeHistoryDay: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    outcomeHistoryDetail: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+    },
+    completionTally: {
+      width: '100%',
+      gap: mentaSpacing[3],
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.borderPaper,
+      borderRadius: mentaRadii.medium,
+      backgroundColor: mentaColors.paper,
+      padding: mentaSpacing[6],
+      shadowColor: '#000000',
+      shadowOffset: { width: 7, height: 9 },
+      shadowOpacity: 0.42,
+      shadowRadius: 0,
+      elevation: 7,
+    },
+    completionCountLine: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      flexWrap: 'wrap',
+    },
+    completionApprovedCount: {
+      ...mentaTypography.display,
+      color: mentaColors.actionOnPaper,
+    },
+    completionTotalCount: {
+      ...mentaTypography.title,
+      color: mentaColors.text.onPaper,
+    },
+    completionTallyLabel: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.text.mutedOnPaper,
+    },
+    completionMarks: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: mentaSpacing[2],
+      paddingTop: mentaSpacing[2],
+    },
+    completionMark: {
+      width: 16,
+      height: 16,
+      borderRadius: mentaRadii.round,
+    },
+    completionMarkApproved: {
+      backgroundColor: mentaColors.actionOnPaper,
+    },
+    completionMarkNotApproved: {
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.borderPaper,
+      backgroundColor: 'transparent',
+    },
+  });
+  const proofMarkerStyle = (state: PromiseProofDayState) => {
+    switch (state) {
+      case 'approved':
+        return styles.weekMarkerApproved;
+      case 'waiting':
+        return styles.weekMarkerWaiting;
+      case 'needs-retry':
+        return styles.weekMarkerRetry;
+      case 'today':
+        return styles.weekMarkerToday;
+      case 'missed':
+        return styles.weekMarkerMissed;
+      case 'protected':
+        return styles.weekMarkerProtected;
+      case 'past':
+        return styles.weekMarkerUnresolved;
+      default:
+        return styles.weekMarkerFuture;
+    }
+  };
+  const proofMarkerContent = (
+    state: PromiseProofDayState,
+    accentColor: string
+  ) => {
+    if (state === 'missed') {
+      return <Text style={styles.weekMarkerMissedText}>×</Text>;
+    }
+    if (state === 'protected') {
+      return <ShieldCheckIcon color={accentColor} size={13} />;
+    }
+    return null;
+  };
+  return {
+    ACTIVE_PROMISE_STATUS_COLOR,
+    styles,
+    proofMarkerStyle,
+    proofMarkerContent,
+  };
+};

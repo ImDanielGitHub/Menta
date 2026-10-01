@@ -1,10 +1,10 @@
+import { useMentaPalette } from '@/constants/use-menta-palette';
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { buildInviteShareUrl } from '@/lib/invite-links';
 import { useTranslation } from '@/lib/localization';
 import {
-  mentaColors,
   mentaRadii,
   mentaSpacing,
   mentaTypography,
@@ -29,6 +29,8 @@ export function GroupInviteQRCode({
   showCode = true,
   bare = false,
 }: GroupInviteQRCodeProps) {
+  const mentaColors = useMentaPalette();
+
   const { t } = useTranslation();
   const { colors } = useTheme();
   const [error, setError] = useState<string | null>(null);
@@ -80,6 +82,9 @@ export function GroupInviteQRCode({
         },
       }),
     [
+      mentaColors.danger,
+      mentaColors.paper,
+      mentaColors.text.onPaper,
       bare,
       colors.background.surface,
       colors.border.primary,

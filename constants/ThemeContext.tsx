@@ -1,8 +1,27 @@
-import React, { createContext, useContext, ReactNode, useMemo } from 'react';
-import { Dimensions, useWindowDimensions } from 'react-native';
+import React, {
+  createContext,
+  useContext,
+  ReactNode,
+  useMemo,
+  useEffect,
+} from 'react';
+import {
+  Appearance,
+  Platform,
+  Dimensions,
+  useWindowDimensions,
+  useColorScheme,
+} from 'react-native';
 import { theme, colors, colorUtils, accessibility } from './colors';
 import { getThemeAppearance } from '@/lib/shop/catalogSupport';
-import { mentaColors } from '@/constants/MentaDesignSystem';
+import {
+  mentaColors as darkMentaColors,
+  mentaLightColors,
+  type MentaPalette,
+} from '@/constants/MentaDesignSystem';
+
+import { MentaPaletteContext } from './use-menta-palette';
+import { useAppearanceStore } from '@/store/appearance-store';
 
 type ExtendedBackground = {
   primary: string;
@@ -95,14 +114,25 @@ export type ShadowTokens = typeof theme.shadows & {
   none: Record<string, never>;
 };
 
+type ThemeGradients = {
+  [Group in keyof typeof colors.gradients]: {
+    [Role in keyof (typeof colors.gradients)[Group]]: readonly [
+      string,
+      string,
+      ...string[],
+    ];
+  };
+};
+
 export interface ThemeContextType {
   colors: AppColors;
-  gradients: typeof colors.gradients;
+  gradients: ThemeGradients;
   spacing: typeof theme.spacing;
   typography: typeof theme.typography;
   borderRadius: typeof theme.borderRadius;
   shadows: ShadowTokens;
   isDark: boolean;
+  mentaColors: MentaPalette;
 
   // Utilities
   colorUtils: typeof colorUtils;
@@ -127,8 +157,10 @@ export interface ThemeContextType {
 // Default theme values
 const getDefaultTheme = (
   themeSku?: string | null,
-  dimensions = Dimensions.get('window')
+  dimensions = Dimensions.get('window'),
+  isDark = true
 ): ThemeContextType => {
+  const mentaColors = isDark ? darkMentaColors : mentaLightColors;
   const width = dimensions.width;
   const height = dimensions.height;
   const baseShadows = theme.shadows;
@@ -142,11 +174,49 @@ const getDefaultTheme = (
     none: {},
   };
   const textTokens = colors.text as ExtendedText;
-  const appearance = getThemeAppearance(themeSku);
+  const equipped = getThemeAppearance(themeSku);
+  // Shop colours were authored for dark backgrounds. Keep the equipped accent
+  // in light mode, with a darker foreground and pale surfaces for contrast.
+  const darken = (hex: string) =>
+    '#' +
+    [1, 3, 5]
+      .map(offset =>
+        Math.round(parseInt(hex.slice(offset, offset + 2), 16) * 0.48)
+          .toString(16)
+          .padStart(2, '0')
+      )
+      .join('');
+  const tint = (hex: string) =>
+    '#' +
+    [245, 243, 250]
+      .map((paper, index) =>
+        Math.round(
+          paper * 0.9 +
+            parseInt(hex.slice(index * 2 + 1, index * 2 + 3), 16) * 0.1
+        )
+          .toString(16)
+          .padStart(2, '0')
+      )
+      .join('');
+  const appearance =
+    equipped && !isDark
+      ? {
+          ...equipped,
+          primary: darken(equipped.primary),
+          secondary: darken(equipped.secondary),
+          interactivePrimary: darken(equipped.interactivePrimary),
+          interactiveSecondary: tint(equipped.primary),
+          borderFocus: darken(equipped.primary),
+          backgroundSecondary: mentaColors.surface,
+          surfacePrimary: mentaColors.raised,
+        }
+      : equipped;
+  const primary =
+    appearance?.primary ?? (isDark ? mentaColors.paper : mentaColors.action);
 
   const themeColors: AppColors = {
     ...colors,
-    primary: appearance?.primary ?? mentaColors.paper,
+    primary,
     secondary: appearance?.secondary ?? mentaColors.action,
     background: {
       primary: mentaColors.canvas,
@@ -162,8 +232,8 @@ const getDefaultTheme = (
       tertiary: mentaColors.text.muted,
       muted: mentaColors.text.muted,
       placeholder: mentaColors.text.muted,
-      inverse: mentaColors.text.onPaper,
-      light: textTokens.light,
+      inverse: isDark ? mentaColors.text.onPaper : mentaColors.paper,
+      light: isDark ? textTokens.light : mentaColors.text.secondary,
     },
     border: {
       primary: mentaColors.border,
@@ -172,19 +242,23 @@ const getDefaultTheme = (
       light: mentaColors.border,
     },
     brand: {
-      primary: mentaColors.paper,
+      primary: isDark ? mentaColors.paper : mentaColors.action,
       secondary: mentaColors.text.secondary,
       orange: mentaColors.warning,
       purple: mentaColors.action,
       success: mentaColors.success,
     },
     interactive: {
-      primary: appearance?.interactivePrimary ?? mentaColors.paper,
+      primary: appearance?.interactivePrimary ?? primary,
       secondary: appearance?.interactiveSecondary ?? mentaColors.raised,
       disabled: mentaColors.text.muted,
     },
     surface: {
       ...colors.surface,
+      secondary: mentaColors.raised,
+      hover: mentaColors.raised,
+      active: mentaColors.border,
+      disabled: mentaColors.raised,
       primary: appearance?.surfacePrimary ?? mentaColors.raised,
     },
     accent: {
@@ -212,7 +286,7 @@ const getDefaultTheme = (
     warning: mentaColors.warning,
     error: mentaColors.danger,
     info: mentaColors.info,
-    onPrimary: mentaColors.text.onPaper,
+    onPrimary: isDark ? mentaColors.text.onPaper : mentaColors.paper,
     feedback: {
       success: mentaColors.success,
       warning: mentaColors.warning,
@@ -223,12 +297,27 @@ const getDefaultTheme = (
 
   return {
     colors: themeColors,
-    gradients: colors.gradients || {},
+    gradients: {
+      ...colors.gradients,
+      background: {
+        primary: [mentaColors.canvas, mentaColors.canvas],
+        header: [mentaColors.canvas, mentaColors.surface],
+        subtle: [mentaColors.canvas, mentaColors.raised],
+        card: [mentaColors.surface, mentaColors.raised],
+        surface: [mentaColors.raised, mentaColors.surface],
+        screen: [mentaColors.canvas, mentaColors.canvas],
+      },
+      share: {
+        ...colors.gradients.share,
+        card: [mentaColors.surface, mentaColors.raised],
+      },
+    },
     spacing: theme.spacing,
     typography: theme.typography,
     borderRadius: theme.borderRadius,
     shadows: normalizedShadows,
-    isDark: true, // Always dark theme for black/white design
+    isDark,
+    mentaColors,
     colorUtils,
     accessibility,
 
@@ -261,19 +350,39 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   equippedThemeSku,
 }) => {
   const { fontScale, height, scale, width } = useWindowDimensions();
+  const preference = useAppearanceStore(state => state.preference);
+  const colorScheme = useColorScheme();
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      // The automatic native configuration allows clearing an explicit override.
+      Appearance.setColorScheme(
+        preference === 'system' ? 'unspecified' : preference
+      );
+    }
+  }, [preference]);
+  const isDark =
+    preference === 'system' ? colorScheme !== 'light' : preference === 'dark';
   const themeValue = useMemo(
     () =>
-      getDefaultTheme(equippedThemeSku, {
-        fontScale,
-        height,
-        scale,
-        width,
-      }),
-    [equippedThemeSku, fontScale, height, scale, width]
+      getDefaultTheme(
+        equippedThemeSku,
+        {
+          fontScale,
+          height,
+          scale,
+          width,
+        },
+        isDark
+      ),
+    [equippedThemeSku, fontScale, height, scale, width, isDark]
   );
 
   return (
-    <ThemeContext.Provider value={themeValue}>{children}</ThemeContext.Provider>
+    <ThemeContext.Provider value={themeValue}>
+      <MentaPaletteContext.Provider value={themeValue.mentaColors}>
+        {children}
+      </MentaPaletteContext.Provider>
+    </ThemeContext.Provider>
   );
 };
 

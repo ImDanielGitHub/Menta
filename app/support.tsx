@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import { useTranslation } from '@/lib/localization';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import * as Application from 'expo-application';
@@ -15,12 +22,7 @@ import {
   RefreshCcwIcon,
   SettingsIcon,
 } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useNetworkState } from '@/lib/network';
 import { backOrReplace } from '@/lib/navigation/safe-back';
 import { restorePurchases } from '@/lib/paywall/revenuecat';
@@ -40,6 +42,9 @@ type SupportNotice = {
 } | null;
 
 export default function SupportScreen() {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const router = useRouter();
   const network = useNetworkState();
@@ -257,7 +262,7 @@ export default function SupportScreen() {
         ),
       });
     }
-  }, [appVersion, network, proofDraftsLoading, visibleProofCount]);
+  }, [appVersion, network, proofDraftsLoading, visibleProofCount, t]);
 
   const handleRestorePurchases = useCallback(async () => {
     if (restoreLoading) return;
@@ -373,7 +378,7 @@ export default function SupportScreen() {
     } finally {
       setRestoreLoading(false);
     }
-  }, [hasActiveSession, restoreLoading, router]);
+  }, [hasActiveSession, restoreLoading, router, t]);
 
   const isOffline =
     network.isConnected === false || network.isInternetReachable === false;
@@ -575,40 +580,43 @@ export default function SupportScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    alignSelf: 'center',
-    gap: mentaSpacing[6],
-    flexGrow: 1,
-    paddingBottom: mentaSpacing[12],
-    paddingTop: mentaSpacing[6],
-    width: '100%',
-  },
-  description: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.body,
-  },
-  actions: { gap: mentaSpacing[2] },
-  savedState: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.bodySmall,
-    paddingVertical: mentaSpacing[1],
-  },
-  sectionLabel: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.bodySmallMedium,
-  },
-  primaryLoading: {
-    gap: mentaSpacing[3],
-    justifyContent: 'center',
-    minHeight: 72,
-    paddingVertical: mentaSpacing[3],
-  },
-  directRows: {
-    backgroundColor: mentaColors.surface,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.medium,
-    borderWidth: StyleSheet.hairlineWidth,
-    overflow: 'hidden',
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: {
+      alignSelf: 'center',
+      gap: mentaSpacing[6],
+      flexGrow: 1,
+      paddingBottom: mentaSpacing[12],
+      paddingTop: mentaSpacing[6],
+      width: '100%',
+    },
+    description: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.body,
+    },
+    actions: { gap: mentaSpacing[2] },
+    savedState: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.bodySmall,
+      paddingVertical: mentaSpacing[1],
+    },
+    sectionLabel: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.bodySmallMedium,
+    },
+    primaryLoading: {
+      gap: mentaSpacing[3],
+      justifyContent: 'center',
+      minHeight: 72,
+      paddingVertical: mentaSpacing[3],
+    },
+    directRows: {
+      backgroundColor: mentaColors.surface,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.medium,
+      borderWidth: StyleSheet.hairlineWidth,
+      overflow: 'hidden',
+    },
+  });
+  return { styles };
+};
