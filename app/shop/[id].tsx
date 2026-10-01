@@ -1,3 +1,10 @@
+import {
+  mentaColors as defaultMentaColors,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette } from '@/constants/use-menta-palette';
 import React, {
   useCallback,
   useEffect,
@@ -48,12 +55,7 @@ import {
   ShopItemImpactSkeleton,
 } from '@/components/shop/ShopItemImpactPreview';
 import { useTheme } from '@/constants/ThemeContext';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { screenInsetPadding } from '@/constants/phone-layout';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { useOperationalFlag } from '@/hooks/useOperationalFlag';
@@ -214,6 +216,8 @@ function getPrimaryState({
 }
 
 export default function ShopItemDetailsScreen() {
+  const mentaColors = useMentaPalette();
+
   const { id, action } = useLocalSearchParams<{
     id: string;
     action?: string;
@@ -264,6 +268,9 @@ export default function ShopItemDetailsScreen() {
   const [targets, setTargets] = useState<ChallengeOption[]>([]);
   const [topUpVisible, setTopUpVisible] = useState(false);
   const [paywallVisible, setPaywallVisible] = useState(false);
+  const [paywallVariant, setPaywallVariant] = useState<
+    'default' | 'insufficient'
+  >('default');
   const [adLoading, setAdLoading] = useState(false);
   const [creditLoading, setCreditLoading] = useState(false);
   const [creditPrice, setCreditPrice] = useState<string | null>(null);
@@ -303,6 +310,21 @@ export default function ShopItemDetailsScreen() {
     (approvedCreditSkuSet.has(CREDIT_PACK.id) ||
       approvedCreditSkuSet.has('com.anekedigitalapps.lockedin.credits_large'));
   const creditPurchaseReady = canBuyCredits && Boolean(creditPrice);
+  // Short on Momenta: use the same top-up as creating a promise (ad, Pro or
+  // checking a friend's proof). The older sheet stays only while Momenta packs
+  // are on sale, because the shared top-up does not sell packs.
+  const openTopUp = useCallback(() => {
+    if (canBuyCredits) {
+      setTopUpVisible(true);
+      return;
+    }
+    setPaywallVariant('insufficient');
+    setPaywallVisible(true);
+  }, [canBuyCredits]);
+  const openProPlans = useCallback(() => {
+    setPaywallVariant('default');
+    setPaywallVisible(true);
+  }, []);
 
   const sku = item ? getCatalogItemSku(item) : '';
   const isPowerUp = item ? isShopPowerUp(item.category) : false;
@@ -853,7 +875,7 @@ export default function ShopItemDetailsScreen() {
         phase: 'eligibility',
         source: 'shop',
       });
-      setTopUpVisible(true);
+      openTopUp();
       return;
     }
 
@@ -893,7 +915,7 @@ export default function ShopItemDetailsScreen() {
           });
           purchaseAttemptRef.current = null;
           setStatusSheet(null);
-          setTopUpVisible(true);
+          openTopUp();
           return;
         }
         const notice = getCommerceNotice(
@@ -1072,6 +1094,7 @@ export default function ShopItemDetailsScreen() {
   }, [
     autoConsumedPowerUp,
     insufficient,
+    openTopUp,
     displayName,
     equipCategory,
     equipItem,
@@ -1386,7 +1409,7 @@ export default function ShopItemDetailsScreen() {
               type: 'blocked',
               reason: 'insufficient-momenta',
             });
-            setTopUpVisible(true);
+            openTopUp();
           },
         };
       }
@@ -1415,7 +1438,7 @@ export default function ShopItemDetailsScreen() {
                 type: 'blocked',
                 reason: 'insufficient-momenta',
               });
-              setTopUpVisible(true);
+              openTopUp();
             },
           };
         }
@@ -1454,6 +1477,7 @@ export default function ShopItemDetailsScreen() {
     cost,
     equipped,
     insufficient,
+    openTopUp,
     shortfall,
     t,
     inventoryCount,
@@ -2028,7 +2052,7 @@ export default function ShopItemDetailsScreen() {
                   }
                   onPress={() => {
                     setTopUpVisible(false);
-                    setPaywallVisible(true);
+                    openProPlans();
                   }}
                 />
               ) : null}
@@ -2083,7 +2107,7 @@ export default function ShopItemDetailsScreen() {
               textStyle={styles.secondaryActionText}
               onPress={() => {
                 setTopUpVisible(false);
-                setPaywallVisible(true);
+                openProPlans();
               }}
               fullWidth
             />
@@ -2118,6 +2142,10 @@ export default function ShopItemDetailsScreen() {
 
       <PaywallModal
         visible={paywallVisible}
+        variant={paywallVariant}
+        balance={balance}
+        requiredAmount={cost}
+        onCheckProof={() => router.push('/review-queue')}
         onClose={() => setPaywallVisible(false)}
         onBuyPro={() => setPaywallVisible(false)}
         onBuyCredits={() => setPaywallVisible(false)}
@@ -2167,8 +2195,9 @@ function EarnOptionRow({
   );
 }
 
-const createStyles = (theme: ReturnType<typeof useTheme>) =>
-  StyleSheet.create({
+const createStyles = (theme: ReturnType<typeof useTheme>) => {
+  const mentaColors = theme.mentaColors ?? defaultMentaColors;
+  return StyleSheet.create({
     safeArea: {
       flex: 1,
       backgroundColor: theme.colors.background.primary,
@@ -2427,3 +2456,4 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
       opacity: 0.46,
     },
   });
+};

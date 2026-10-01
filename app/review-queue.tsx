@@ -1,3 +1,4 @@
+import { useMentaPalette } from '@/constants/use-menta-palette';
 /**
  * Review Queue Screen
  * New streamlined review interface for approving/rejecting challenge submissions
@@ -7,13 +8,15 @@ import React from 'react';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { StreamlinedReviewQueue } from '@/components/review/StreamlinedReviewQueue';
 import { AppScreen } from '@/components/ui/AppShell';
-import { mentaColors } from '@/constants/MentaDesignSystem';
+
 import { normalizeReviewQueueParams } from '@/lib/navigation/review-queue-params';
 import { useTranslation } from '@/lib/localization';
 import { useAuthStore } from '@/store/auth-store';
 import { useQueryClient } from '@tanstack/react-query';
 
 export default function ReviewQueueScreen() {
+  const mentaColors = useMentaPalette();
+
   const { t } = useTranslation();
   const userId = useAuthStore(state => state.user?.id);
   const queryClient = useQueryClient();

@@ -1,12 +1,12 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-
 import {
-  mentaColors,
+  type MentaPalette,
   mentaRadii,
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 export type ShopReceiptFact = {
   label: string;
@@ -30,6 +30,8 @@ export function ShopReceiptCard({
   facts,
   testID = 'shop-receipt-card',
 }: ShopReceiptCardProps) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   if (facts.length === 0) return null;
 
   return (
@@ -55,45 +57,48 @@ export function ShopReceiptCard({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: mentaColors.paper,
-    borderRadius: mentaRadii.large,
-    overflow: 'hidden',
-    width: '100%',
-  },
-  title: {
-    color: mentaColors.text.onPaper,
-    ...mentaTypography.title,
-    paddingHorizontal: mentaSpacing[5],
-    paddingVertical: mentaSpacing[4],
-  },
-  row: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    justifyContent: 'space-between',
-    minHeight: 52,
-    paddingHorizontal: mentaSpacing[5],
-    paddingVertical: mentaSpacing[3],
-  },
-  rowDivider: {
-    borderTopColor: mentaColors.borderPaper,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  label: {
-    color: mentaColors.text.mutedOnPaper,
-    ...mentaTypography.bodySmall,
-    flexShrink: 1,
-  },
-  value: {
-    color: mentaColors.text.onPaper,
-    ...mentaTypography.bodySmallMedium,
-    fontVariant: ['tabular-nums'],
-    textAlign: 'right',
-  },
-  valueEmphasis: {
-    color: mentaColors.actionOnPaper,
-    ...mentaTypography.bodySemibold,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    card: {
+      backgroundColor: mentaColors.paper,
+      borderRadius: mentaRadii.large,
+      overflow: 'hidden',
+      width: '100%',
+    },
+    title: {
+      color: mentaColors.text.onPaper,
+      ...mentaTypography.title,
+      paddingHorizontal: mentaSpacing[5],
+      paddingVertical: mentaSpacing[4],
+    },
+    row: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      justifyContent: 'space-between',
+      minHeight: 52,
+      paddingHorizontal: mentaSpacing[5],
+      paddingVertical: mentaSpacing[3],
+    },
+    rowDivider: {
+      borderTopColor: mentaColors.borderPaper,
+      borderTopWidth: StyleSheet.hairlineWidth,
+    },
+    label: {
+      color: mentaColors.text.mutedOnPaper,
+      ...mentaTypography.bodySmall,
+      flexShrink: 1,
+    },
+    value: {
+      color: mentaColors.text.onPaper,
+      ...mentaTypography.bodySmallMedium,
+      fontVariant: ['tabular-nums'],
+      textAlign: 'right',
+    },
+    valueEmphasis: {
+      color: mentaColors.actionOnPaper,
+      ...mentaTypography.bodySemibold,
+    },
+  });
+  return { styles };
+};

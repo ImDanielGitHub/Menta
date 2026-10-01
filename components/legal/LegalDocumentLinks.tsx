@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import {
@@ -5,12 +12,7 @@ import {
   APP_PRIVACY_URL,
   APP_TERMS_URL,
 } from '@/constants/LegalLinks';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import {
   ExternalLinkIcon,
   FileTextIcon,
@@ -63,6 +65,9 @@ export const LegalDocumentLinks = ({
   summaries,
   testID = 'legal-document-links',
 }: LegalDocumentLinksProps) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const isOnboarding = presentation === 'onboarding';
   const isConsent = presentation === 'consent';
   const { t } = useTranslation();
@@ -252,92 +257,95 @@ export const LegalDocumentLinks = ({
   );
 };
 
-const styles = StyleSheet.create({
-  list: {
-    borderBottomColor: mentaColors.border,
-    borderTopColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    width: '100%',
-  },
-  onboardingList: {
-    backgroundColor: 'transparent',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 0,
-  },
-  consentList: {
-    borderBottomColor: mentaColors.borderPaper,
-    borderTopColor: mentaColors.borderPaper,
-  },
-  row: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: mentaLayout.minimumTouchTarget,
-    paddingVertical: mentaSpacing[2],
-  },
-  onboardingRow: {
-    gap: mentaSpacing[2],
-    minHeight: 58,
-    paddingHorizontal: mentaSpacing[1],
-    paddingVertical: mentaSpacing[2],
-  },
-  consentRow: {
-    minHeight: 48,
-    paddingHorizontal: 0,
-    paddingVertical: mentaSpacing[2],
-  },
-  divider: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  consentDivider: {
-    borderBottomColor: mentaColors.borderPaper,
-  },
-  label: {
-    color: mentaColors.action,
-    flex: 1,
-    ...mentaTypography.bodyMedium,
-  },
-  onboardingLabel: {
-    color: mentaColors.text.primary,
-    flex: 0,
-    ...mentaTypography.bodySemibold,
-  },
-  consentLabel: {
-    color: mentaColors.text.onPaper,
-    flex: 1,
-    ...mentaTypography.bodySemibold,
-  },
-  copy: { flex: 1, gap: 2 },
-  description: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.caption,
-  },
-  consentSummary: {
-    color: mentaColors.text.mutedOnPaper,
-    ...mentaTypography.caption,
-    marginTop: 2,
-  },
-  iconLane: {
-    alignItems: 'center',
-    flexShrink: 0,
-    justifyContent: 'center',
-    width: 30,
-  },
-  trailingIcon: {
-    alignItems: 'center',
-    flexShrink: 0,
-    justifyContent: 'center',
-    width: 20,
-  },
-  version: {
-    color: mentaColors.text.secondary,
-    marginLeft: mentaSpacing[3],
-    maxWidth: 130,
-    textAlign: 'right',
-    ...mentaTypography.micro,
-  },
-  pressed: { opacity: 0.72 },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    list: {
+      borderBottomColor: mentaColors.border,
+      borderTopColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      width: '100%',
+    },
+    onboardingList: {
+      backgroundColor: 'transparent',
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      paddingHorizontal: 0,
+    },
+    consentList: {
+      borderBottomColor: mentaColors.borderPaper,
+      borderTopColor: mentaColors.borderPaper,
+    },
+    row: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      minHeight: mentaLayout.minimumTouchTarget,
+      paddingVertical: mentaSpacing[2],
+    },
+    onboardingRow: {
+      gap: mentaSpacing[2],
+      minHeight: 58,
+      paddingHorizontal: mentaSpacing[1],
+      paddingVertical: mentaSpacing[2],
+    },
+    consentRow: {
+      minHeight: 48,
+      paddingHorizontal: 0,
+      paddingVertical: mentaSpacing[2],
+    },
+    divider: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+    consentDivider: {
+      borderBottomColor: mentaColors.borderPaper,
+    },
+    label: {
+      color: mentaColors.action,
+      flex: 1,
+      ...mentaTypography.bodyMedium,
+    },
+    onboardingLabel: {
+      color: mentaColors.text.primary,
+      flex: 0,
+      ...mentaTypography.bodySemibold,
+    },
+    consentLabel: {
+      color: mentaColors.text.onPaper,
+      flex: 1,
+      ...mentaTypography.bodySemibold,
+    },
+    copy: { flex: 1, gap: 2 },
+    description: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.caption,
+    },
+    consentSummary: {
+      color: mentaColors.text.mutedOnPaper,
+      ...mentaTypography.caption,
+      marginTop: 2,
+    },
+    iconLane: {
+      alignItems: 'center',
+      flexShrink: 0,
+      justifyContent: 'center',
+      width: 30,
+    },
+    trailingIcon: {
+      alignItems: 'center',
+      flexShrink: 0,
+      justifyContent: 'center',
+      width: 20,
+    },
+    version: {
+      color: mentaColors.text.secondary,
+      marginLeft: mentaSpacing[3],
+      maxWidth: 130,
+      textAlign: 'right',
+      ...mentaTypography.micro,
+    },
+    pressed: { opacity: 0.72 },
+  });
+  return { styles };
+};

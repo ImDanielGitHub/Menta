@@ -1,3 +1,4 @@
+import { useMentaPalette } from '@/constants/use-menta-palette';
 import React from 'react';
 import {
   Platform,
@@ -14,7 +15,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeftIcon, ChevronRightIcon } from '@/components/ui/icons';
 import { ScreenWrapper, type ScreenWrapperProps } from './ScreenWrapper';
 import {
-  mentaColors,
   mentaLayout,
   mentaRadii,
   mentaSpacing,
@@ -306,6 +306,8 @@ export const AppListRow: React.FC<AppListRowProps> = ({
   style,
   titleStyle,
 }) => {
+  const mentaColors = useMentaPalette();
+
   const { colors } = useTheme();
   const motion = useMotionPreferences();
   const { fontScale } = useWindowDimensions();

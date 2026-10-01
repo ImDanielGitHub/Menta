@@ -20,6 +20,8 @@ const CHALLENGE_TYPES = new Set([
   'challenge_expired',
   'challenge_expiring',
   'streak_reminder',
+  'low_activity',
+  'daily_inspiration',
 ]);
 const GROUP_TYPES = new Set([
   'group_activity',
@@ -29,6 +31,9 @@ const GROUP_TYPES = new Set([
   'verification_approved',
   'verification_pending',
   'verification_rejected',
+  'menta_check_counted',
+  'menta_check_not_yet',
+  'menta_check_stepped_in',
 ]);
 const STREAK_TYPES = new Set([
   'badge_unlocked',

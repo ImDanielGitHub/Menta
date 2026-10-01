@@ -1,9 +1,9 @@
+import { useMentaPalette } from '@/constants/use-menta-palette';
 import React, { useCallback, useEffect } from 'react';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 
 import { ReviewQueueSkeleton } from '@/components/review/StreamlinedReviewQueue';
 import { AppScreen } from '@/components/ui';
-import { mentaColors } from '@/constants/MentaDesignSystem';
 
 import { backOrReplace } from '@/lib/navigation/safe-back';
 const firstParam = (value?: string | string[]) =>
@@ -15,6 +15,8 @@ const firstParam = (value?: string | string[]) =>
  * stable while the original group/challenge context is preserved.
  */
 export default function GroupReviewRedirectScreen() {
+  const mentaColors = useMentaPalette();
+
   const router = useRouter();
   const params = useLocalSearchParams<{
     groupId?: string | string[];

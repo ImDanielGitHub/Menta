@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -53,13 +61,7 @@ import type {
   GroupInvitePreview,
 } from '@/lib/groups/group-invite-contract';
 import { trackProductEvent, trackProductOperation } from '@/lib/posthog';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import {
   createConfirmedReceipt,
   emitConfirmedOutcome,
@@ -94,6 +96,9 @@ type InvitePreviewViewState =
     };
 
 export default function JoinGroupScreen() {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const router = useRouter();
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ code?: string }>();
@@ -1554,196 +1559,199 @@ export default function JoinGroupScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    width: '100%',
-    alignSelf: 'center',
-    gap: mentaSpacing[5],
-    paddingBottom: mentaSpacing[10],
-  },
-  screenHeading: {
-    gap: mentaSpacing[2],
-    paddingVertical: mentaSpacing[3],
-  },
-  screenTitle: {
-    ...mentaTypography.heading,
-    color: mentaColors.text.primary,
-  },
-  screenSubtitle: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-  },
-  directSection: {
-    gap: mentaSpacing[4],
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-    paddingVertical: mentaSpacing[5],
-  },
-  sectionBody: {
-    gap: mentaSpacing[4],
-  },
-  authGateActions: {
-    gap: mentaSpacing[2],
-  },
-  scannerModalCard: {
-    flex: 1,
-    backgroundColor: mentaColors.canvas,
-  },
-  entryStack: {
-    gap: mentaSpacing[4],
-  },
-  fieldLabel: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.text.primary,
-  },
-  pasteAction: {
-    minHeight: mentaLayout.minimumTouchTarget,
-    paddingHorizontal: mentaSpacing[3],
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pasteActionText: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.action,
-  },
-  previewCard: {
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.borderPaper,
-    backgroundColor: mentaColors.paper,
-    padding: mentaSpacing[5],
-    gap: mentaSpacing[4],
-  },
-  previewIdentity: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: mentaSpacing[3],
-  },
-  previewIdentityMark: {
-    width: 58,
-    height: 58,
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.action,
-    backgroundColor: mentaColors.actionSoft,
-  },
-  previewIdentityCopy: {
-    flex: 1,
-    gap: 3,
-  },
-  previewTitle: {
-    ...mentaTypography.heading,
-    color: mentaColors.text.onPaper,
-  },
-  previewBody: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.mutedOnPaper,
-  },
-  previewDivider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: mentaColors.borderPaper,
-  },
-  previewMeta: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: mentaSpacing[2],
-  },
-  previewPill: {
-    borderRadius: mentaRadii.round,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.borderPaper,
-    paddingHorizontal: mentaSpacing[3],
-    paddingVertical: 6,
-  },
-  previewPillText: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.onPaper,
-  },
-  promiseLabel: {
-    ...mentaTypography.labelBold,
-    color: mentaColors.text.mutedOnPaper,
-    textTransform: 'uppercase',
-  },
-  promiseText: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.onPaper,
-  },
-  previewRoleRow: {
-    alignItems: 'center',
-    borderTopColor: mentaColors.borderPaper,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    justifyContent: 'space-between',
-    minHeight: 48,
-  },
-  previewRoleValue: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.text.onPaper,
-  },
-  previewActions: {
-    gap: mentaSpacing[2],
-  },
-  guestPreviewScreen: {
-    flexGrow: 1,
-  },
-  guestPreviewFooter: {
-    gap: mentaSpacing[2],
-    marginTop: 'auto',
-    paddingTop: mentaSpacing[8],
-  },
-  guestInviteCue: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.action,
-    marginBottom: mentaSpacing[2],
-  },
-  guestInviteHelper: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-    marginVertical: mentaSpacing[2],
-  },
-  authInviteScreen: {
-    flexGrow: 1,
-    gap: mentaSpacing[6],
-  },
-  authInviteSummary: {
-    minHeight: 72,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: mentaSpacing[3],
-    borderRadius: mentaRadii.medium,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-    backgroundColor: mentaColors.surface,
-    padding: mentaSpacing[3],
-  },
-  authInviteMark: {
-    width: 42,
-    height: 42,
-    borderRadius: mentaRadii.medium,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.action,
-    backgroundColor: mentaColors.actionSoft,
-  },
-  authInviteCopy: {
-    flex: 1,
-    gap: 2,
-  },
-  authInviteName: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  authInviteMeta: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-  authInviteHeading: {
-    gap: mentaSpacing[2],
-  },
-  authInviteFooter: {
-    gap: mentaSpacing[2],
-    marginTop: 'auto',
-    paddingTop: mentaSpacing[8],
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    content: {
+      width: '100%',
+      alignSelf: 'center',
+      gap: mentaSpacing[5],
+      paddingBottom: mentaSpacing[10],
+    },
+    screenHeading: {
+      gap: mentaSpacing[2],
+      paddingVertical: mentaSpacing[3],
+    },
+    screenTitle: {
+      ...mentaTypography.heading,
+      color: mentaColors.text.primary,
+    },
+    screenSubtitle: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+    },
+    directSection: {
+      gap: mentaSpacing[4],
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+      paddingVertical: mentaSpacing[5],
+    },
+    sectionBody: {
+      gap: mentaSpacing[4],
+    },
+    authGateActions: {
+      gap: mentaSpacing[2],
+    },
+    scannerModalCard: {
+      flex: 1,
+      backgroundColor: mentaColors.canvas,
+    },
+    entryStack: {
+      gap: mentaSpacing[4],
+    },
+    fieldLabel: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.text.primary,
+    },
+    pasteAction: {
+      minHeight: mentaLayout.minimumTouchTarget,
+      paddingHorizontal: mentaSpacing[3],
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    pasteActionText: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.action,
+    },
+    previewCard: {
+      borderRadius: mentaRadii.large,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.borderPaper,
+      backgroundColor: mentaColors.paper,
+      padding: mentaSpacing[5],
+      gap: mentaSpacing[4],
+    },
+    previewIdentity: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: mentaSpacing[3],
+    },
+    previewIdentityMark: {
+      width: 58,
+      height: 58,
+      borderRadius: mentaRadii.large,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.action,
+      backgroundColor: mentaColors.actionSoft,
+    },
+    previewIdentityCopy: {
+      flex: 1,
+      gap: 3,
+    },
+    previewTitle: {
+      ...mentaTypography.heading,
+      color: mentaColors.text.onPaper,
+    },
+    previewBody: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.mutedOnPaper,
+    },
+    previewDivider: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: mentaColors.borderPaper,
+    },
+    previewMeta: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: mentaSpacing[2],
+    },
+    previewPill: {
+      borderRadius: mentaRadii.round,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.borderPaper,
+      paddingHorizontal: mentaSpacing[3],
+      paddingVertical: 6,
+    },
+    previewPillText: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.onPaper,
+    },
+    promiseLabel: {
+      ...mentaTypography.labelBold,
+      color: mentaColors.text.mutedOnPaper,
+      textTransform: 'uppercase',
+    },
+    promiseText: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.onPaper,
+    },
+    previewRoleRow: {
+      alignItems: 'center',
+      borderTopColor: mentaColors.borderPaper,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      justifyContent: 'space-between',
+      minHeight: 48,
+    },
+    previewRoleValue: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.text.onPaper,
+    },
+    previewActions: {
+      gap: mentaSpacing[2],
+    },
+    guestPreviewScreen: {
+      flexGrow: 1,
+    },
+    guestPreviewFooter: {
+      gap: mentaSpacing[2],
+      marginTop: 'auto',
+      paddingTop: mentaSpacing[8],
+    },
+    guestInviteCue: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.action,
+      marginBottom: mentaSpacing[2],
+    },
+    guestInviteHelper: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+      marginVertical: mentaSpacing[2],
+    },
+    authInviteScreen: {
+      flexGrow: 1,
+      gap: mentaSpacing[6],
+    },
+    authInviteSummary: {
+      minHeight: 72,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: mentaSpacing[3],
+      borderRadius: mentaRadii.medium,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+      backgroundColor: mentaColors.surface,
+      padding: mentaSpacing[3],
+    },
+    authInviteMark: {
+      width: 42,
+      height: 42,
+      borderRadius: mentaRadii.medium,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.action,
+      backgroundColor: mentaColors.actionSoft,
+    },
+    authInviteCopy: {
+      flex: 1,
+      gap: 2,
+    },
+    authInviteName: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    authInviteMeta: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+    authInviteHeading: {
+      gap: mentaSpacing[2],
+    },
+    authInviteFooter: {
+      gap: mentaSpacing[2],
+      marginTop: 'auto',
+      paddingTop: mentaSpacing[8],
+    },
+  });
+  return { styles };
+};

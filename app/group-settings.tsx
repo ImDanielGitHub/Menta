@@ -1,3 +1,4 @@
+import { useMentaPalette } from '@/constants/use-menta-palette';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -20,7 +21,7 @@ import {
 } from '@/components/group/GroupAdminPrimitives';
 import { AppButton, AppInlineNotice } from '@/components/ui';
 import { AppTextField } from '@/components/ui/AppFields';
-import ConfirmDestructiveSheet from '@/components/ui/ConfirmDestructiveSheet';
+import DestructiveSheet from '@/components/ui/ConfirmDestructiveSheet';
 import {
   GlobeIcon,
   LockIcon,
@@ -29,7 +30,7 @@ import {
   Trash2Icon,
   UsersIcon,
 } from '@/components/ui/icons';
-import { mentaColors, mentaSpacing } from '@/constants/MentaDesignSystem';
+import { mentaSpacing } from '@/constants/MentaDesignSystem';
 import { groupMemberRoleCopy } from '@/lib/group-member-policy';
 import { useAuthStore } from '@/store/auth-store';
 import { useGroupStore } from '@/store/group-store';
@@ -40,6 +41,8 @@ const normalisePrivacy = (privacy?: string | null): PrivacyOption =>
   privacy === 'private' || privacy === 'secret' ? 'private' : 'public';
 
 export default function GroupSettingsScreen() {
+  const mentaColors = useMentaPalette();
+
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -362,7 +365,7 @@ export default function GroupSettingsScreen() {
         visible={leaveSheetVisible}
       />
       {group ? (
-        <ConfirmDestructiveSheet
+        <DestructiveSheet
           confirmLabel={t('groups.admin.delete')}
           description={t('groups.admin.delete_warning')}
           loading={deleteLoading}

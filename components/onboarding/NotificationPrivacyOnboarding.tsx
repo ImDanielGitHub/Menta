@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   AppState,
@@ -15,14 +23,8 @@ import { AppInlineNotice } from '@/components/ui/AppFeedback';
 import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import { MentaMascot } from '@/components/ui/MentaMascot';
 import { PromiseInviteRoleHero } from '@/components/onboarding/PromiseInviteRoleHero';
-import { BellIcon, CheckIcon, ShieldCheckIcon } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+import { BellIcon, ShieldCheckIcon } from '@/components/ui/icons';
+
 import { mentaFonts } from '@/lib/menta-fonts';
 import { notificationService } from '@/lib/services/notification-service';
 import { retentionNotificationClient } from '@/lib/notifications/retention-notification-client';
@@ -66,6 +68,8 @@ export const NotificationPrivacyOnboarding = ({
   promptContext = 'settings',
   promiseInviteRole = null,
 }: NotificationPrivacyOnboardingProps) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const [screenState, setScreenState] = useState<ScreenState>('checking');
   const [busy, setBusy] = useState(false);
@@ -782,8 +786,17 @@ export const NotificationPrivacyOnboarding = ({
       case 'registration-pending':
         return (
           <>
+            <MentaMascot
+              state="notification-hero"
+              size="hero"
+              style={styles.readinessMascot}
+            />
             <Heading
-              title={t('notifications.registration_pending.title')}
+              title={t(
+                busy
+                  ? 'notifications.status.checking'
+                  : 'notifications.registration_pending.title'
+              )}
               description={t('notifications.registration_pending.body')}
             />
             <ReminderReadiness
@@ -812,7 +825,6 @@ export const NotificationPrivacyOnboarding = ({
                 onPress={() => void retryRegistration()}
               />
               <AppButton
-                disabled={busy}
                 fullWidth
                 size="large"
                 testID="notification-privacy-registration-continue"
@@ -826,6 +838,11 @@ export const NotificationPrivacyOnboarding = ({
       case 'granted':
         return (
           <>
+            <MentaMascot
+              state="notification-hero"
+              size="hero"
+              style={styles.readinessMascot}
+            />
             <Heading
               title={t('notifications.granted.title')}
               description={t('notifications.granted.body')}
@@ -951,80 +968,88 @@ const PreAuthPermissionContent = ({
   state,
   title,
   turnOnLabel,
-}: PreAuthPermissionContentProps) => (
-  <View style={styles.preAuthFlow} testID="notification-permission-before-auth">
-    <NotificationPermissionHero state={state} />
-    <View style={styles.preAuthCopy}>
-      <Text accessibilityRole="header" style={styles.preAuthTitle}>
-        {title}
-      </Text>
-      <Text style={styles.preAuthBody}>{description}</Text>
-    </View>
-    <View style={styles.preAuthActions}>
-      <ActionStack>
-        {state === 'education' ? (
-          <>
+}: PreAuthPermissionContentProps) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View
+      style={styles.preAuthFlow}
+      testID="notification-permission-before-auth"
+    >
+      <NotificationPermissionHero state={state} />
+      <View style={styles.preAuthCopy}>
+        <Text accessibilityRole="header" style={styles.preAuthTitle}>
+          {title}
+        </Text>
+        <Text style={styles.preAuthBody}>{description}</Text>
+      </View>
+      <View style={styles.preAuthActions}>
+        <ActionStack>
+          {state === 'education' ? (
+            <>
+              <AppButton
+                accessibilityHint={permissionHint}
+                fullWidth
+                loading={busy}
+                size="large"
+                testID="notification-privacy-education-continue"
+                title={turnOnLabel}
+                variant="accent"
+                onPress={onRequest}
+              />
+              <AppButton
+                disabled={busy}
+                fullWidth
+                size="large"
+                testID="notification-privacy-education-not-now"
+                title={notNowLabel}
+                variant="ghost"
+                onPress={onComplete}
+              />
+            </>
+          ) : null}
+          {state === 'permission-off' ? (
+            <>
+              <AppButton
+                fullWidth
+                size="large"
+                testID="notification-privacy-permission-off-settings"
+                title={settingsLabel}
+                variant="secondary"
+                onPress={onSettings}
+              />
+              <AppButton
+                fullWidth
+                size="large"
+                testID="notification-privacy-permission-off-continue"
+                title={continueLabel}
+                variant="accent"
+                onPress={onComplete}
+              />
+            </>
+          ) : null}
+          {state === 'granted' ? (
             <AppButton
-              accessibilityHint={permissionHint}
               fullWidth
-              loading={busy}
               size="large"
-              testID="notification-privacy-education-continue"
-              title={turnOnLabel}
+              testID="notification-privacy-granted-promise"
+              title={grantedContinueLabel}
               variant="accent"
-              onPress={onRequest}
-            />
-            <AppButton
-              disabled={busy}
-              fullWidth
-              size="large"
-              testID="notification-privacy-education-not-now"
-              title={notNowLabel}
-              variant="ghost"
               onPress={onComplete}
             />
-          </>
-        ) : null}
-        {state === 'permission-off' ? (
-          <>
-            <AppButton
-              fullWidth
-              size="large"
-              testID="notification-privacy-permission-off-settings"
-              title={settingsLabel}
-              variant="secondary"
-              onPress={onSettings}
-            />
-            <AppButton
-              fullWidth
-              size="large"
-              testID="notification-privacy-permission-off-continue"
-              title={continueLabel}
-              variant="accent"
-              onPress={onComplete}
-            />
-          </>
-        ) : null}
-        {state === 'granted' ? (
-          <AppButton
-            fullWidth
-            size="large"
-            testID="notification-privacy-granted-promise"
-            title={grantedContinueLabel}
-            variant="accent"
-            onPress={onComplete}
-          />
-        ) : null}
-      </ActionStack>
+          ) : null}
+        </ActionStack>
+      </View>
     </View>
-  </View>
-);
+  );
+};
 
 const NotificationPermissionHero = ({
   state,
 }: {
   state: PreAuthPermissionState;
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { height, width } = useWindowDimensions();
   const muted = state === 'permission-off';
   const compact = width <= 340 || height <= 760;
@@ -1069,6 +1094,9 @@ const ReminderPreview = ({
   subtitle: string;
   title: string;
 }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
 
   return (
@@ -1112,42 +1140,37 @@ const ReminderReadiness = ({
   reminderDetail: string;
   reminderLabel: string;
   reminderValue: string;
-}) => (
-  <View
-    accessible
-    accessibilityLabel={`${phoneLabel}. ${phoneDetail}. ${phoneValue}. ${reminderLabel}. ${reminderDetail}. ${reminderValue}.`}
-    accessibilityRole={connected ? 'summary' : 'progressbar'}
-    style={styles.readiness}
-    testID={
-      connected
-        ? 'notification-privacy-ready-receipt'
-        : 'notification-privacy-pending-receipt'
-    }
-  >
-    <View style={styles.readinessMark}>
-      {connected ? (
-        <CheckIcon color={mentaColors.success} size={26} />
-      ) : (
-        <BellIcon color={mentaColors.action} size={24} />
-      )}
+}) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View
+      accessible
+      accessibilityLabel={`${phoneLabel}. ${phoneDetail}. ${phoneValue}. ${reminderLabel}. ${reminderDetail}. ${reminderValue}.`}
+      accessibilityRole={connecting ? 'progressbar' : 'summary'}
+      style={styles.readiness}
+      testID={
+        connected
+          ? 'notification-privacy-ready-receipt'
+          : 'notification-privacy-pending-receipt'
+      }
+    >
+      <View style={styles.readinessFacts}>
+        <ReadinessFact
+          detail={phoneDetail}
+          label={phoneLabel}
+          value={phoneValue}
+        />
+        <View style={styles.readinessDivider} />
+        <ReadinessFact
+          detail={reminderDetail}
+          label={reminderLabel}
+          muted={!connected}
+          value={reminderValue}
+        />
+      </View>
     </View>
-    <View style={styles.readinessFacts}>
-      <ReadinessFact
-        detail={phoneDetail}
-        label={phoneLabel}
-        value={phoneValue}
-      />
-      <View style={styles.readinessDivider} />
-      <ReadinessFact
-        detail={reminderDetail}
-        label={reminderLabel}
-        muted={!connected}
-        value={reminderValue}
-      />
-    </View>
-    {connecting ? <View style={styles.connectingRule} /> : null}
-  </View>
-);
+  );
+};
 
 const ReadinessFact = ({
   detail,
@@ -1159,17 +1182,20 @@ const ReadinessFact = ({
   label: string;
   muted?: boolean;
   value: string;
-}) => (
-  <View style={styles.readinessFact}>
-    <View style={styles.readinessFactCopy}>
-      <Text style={styles.readinessLabel}>{label}</Text>
-      <Text style={styles.readinessDetail}>{detail}</Text>
+}) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View style={styles.readinessFact}>
+      <View style={styles.readinessFactCopy}>
+        <Text style={styles.readinessLabel}>{label}</Text>
+        <Text style={styles.readinessDetail}>{detail}</Text>
+      </View>
+      <Text style={[styles.readinessValue, muted ? styles.mutedValue : null]}>
+        {value}
+      </Text>
     </View>
-    <Text style={[styles.readinessValue, muted ? styles.mutedValue : null]}>
-      {value}
-    </Text>
-  </View>
-);
+  );
+};
 
 const Heading = ({
   title,
@@ -1177,255 +1203,246 @@ const Heading = ({
 }: {
   title: string;
   description: string;
-}) => (
-  <View style={styles.heading}>
-    <Text accessibilityRole="header" style={styles.title}>
-      {title}
-    </Text>
-    <Text style={styles.body}>{description}</Text>
-  </View>
-);
+}) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View style={styles.heading}>
+      <Text accessibilityRole="header" style={styles.title}>
+        {title}
+      </Text>
+      <Text style={styles.body}>{description}</Text>
+    </View>
+  );
+};
 
-const ActionStack = ({ children }: { children: React.ReactNode }) => (
-  <View style={styles.actions}>{children}</View>
-);
+const ActionStack = ({ children }: { children: React.ReactNode }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return <View style={styles.actions}>{children}</View>;
+};
 
-const styles = StyleSheet.create({
-  preAuthLane: {
-    alignSelf: 'center',
-    flexGrow: 1,
-    maxWidth: 780,
-    paddingBottom: mentaSpacing[6],
-    paddingTop: mentaSpacing[2],
-    width: '100%',
-  },
-  preAuthFrame: {
-    flexGrow: 1,
-    width: '100%',
-  },
-  preAuthTopRail: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: mentaLayout.minimumTouchTarget,
-    width: '100%',
-  },
-  preAuthBack: {
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-    minHeight: mentaLayout.minimumTouchTarget,
-    minWidth: mentaLayout.minimumTouchTarget,
-  },
-  preAuthBackText: {
-    color: mentaColors.text.primary,
-    fontSize: 30,
-    lineHeight: 34,
-  },
-  preAuthProgressTrack: {
-    backgroundColor: mentaColors.border,
-    borderRadius: 2,
-    height: 3,
-    overflow: 'hidden',
-    width: 102,
-  },
-  preAuthProgressFill: {
-    backgroundColor: mentaColors.action,
-    borderRadius: 2,
-    height: 3,
-    width: '82%',
-  },
-  preAuthRailSpacer: {
-    minWidth: mentaLayout.minimumTouchTarget,
-  },
-  preAuthContent: {
-    flexGrow: 1,
-    gap: mentaSpacing[6],
-    paddingBottom: mentaSpacing[8],
-    paddingTop: mentaSpacing[5],
-  },
-  preAuthFlow: {
-    flexGrow: 1,
-    gap: mentaSpacing[6],
-  },
-  permissionHero: {
-    alignItems: 'center',
-    height: 300,
-    justifyContent: 'center',
-    overflow: 'hidden',
-    position: 'relative',
-    width: '100%',
-  },
-  permissionHeroCompact: { height: 226 },
-  permissionMascotStage: {
-    alignItems: 'center',
-    height: '100%',
-    justifyContent: 'center',
-    width: '100%',
-  },
-  permissionMascotStageMuted: {
-    opacity: 0.48,
-  },
-  preAuthCopy: {
-    gap: mentaSpacing[3],
-  },
-  preAuthTitle: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.heading,
-    fontFamily: mentaFonts.inter.bold,
-  },
-  preAuthBody: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.lead,
-  },
-  preAuthTrust: {
-    color: mentaColors.text.muted,
-    ...mentaTypography.caption,
-  },
-  preAuthActions: {
-    marginTop: 'auto',
-  },
-  lane: {
-    alignSelf: 'center',
-    flexGrow: 1,
-    paddingBottom: 0,
-    paddingTop: mentaSpacing[2],
-    width: '100%',
-  },
-  content: {
-    flexGrow: 1,
-    gap: mentaSpacing[6],
-    paddingBottom: mentaSpacing[10],
-    paddingTop: mentaSpacing[8],
-  },
-  orientationMascot: {
-    alignItems: 'center',
-    height: 88,
-    justifyContent: 'center',
-  },
-  heading: {
-    gap: mentaSpacing[3],
-  },
-  title: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.heading,
-  },
-  body: {
-    color: mentaColors.text.secondary,
-    maxWidth: mentaLayout.readingMeasure,
-    ...mentaTypography.body,
-  },
-  previewStack: {
-    gap: mentaSpacing[3],
-  },
-  reminderPreview: {
-    backgroundColor: '#F3F1EB',
-    borderColor: mentaColors.borderPaper,
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: mentaSpacing[4],
-    paddingVertical: mentaSpacing[4],
-  },
-  previewMeta: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-    marginBottom: mentaSpacing[3],
-  },
-  previewAppIcon: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(103, 66, 168, 0.11)',
-    borderRadius: mentaRadii.small,
-    height: 28,
-    justifyContent: 'center',
-    width: 28,
-  },
-  previewAppName: {
-    ...mentaTypography.label,
-    color: mentaColors.text.mutedOnPaper,
-  },
-  previewTitle: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.onPaper,
-  },
-  previewBody: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.mutedOnPaper,
-    marginTop: mentaSpacing[1],
-  },
-  readiness: {
-    backgroundColor: mentaColors.surface,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    overflow: 'hidden',
-    padding: mentaSpacing[4],
-  },
-  readinessMark: {
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: mentaColors.actionSoft,
-    borderRadius: mentaRadii.round,
-    height: 48,
-    justifyContent: 'center',
-    marginBottom: mentaSpacing[4],
-    width: 48,
-  },
-  readinessFacts: {
-    gap: mentaSpacing[3],
-  },
-  readinessDivider: {
-    backgroundColor: mentaColors.border,
-    height: StyleSheet.hairlineWidth,
-  },
-  readinessFact: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    justifyContent: 'space-between',
-  },
-  readinessFactCopy: {
-    flex: 1,
-    gap: mentaSpacing[1],
-    minWidth: 0,
-  },
-  readinessLabel: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  readinessDetail: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-  readinessValue: {
-    ...mentaTypography.label,
-    color: mentaColors.success,
-    paddingTop: 2,
-  },
-  mutedValue: {
-    color: mentaColors.text.secondary,
-  },
-  connectingRule: {
-    alignSelf: 'center',
-    backgroundColor: mentaColors.action,
-    borderRadius: mentaRadii.round,
-    height: 2,
-    marginTop: mentaSpacing[4],
-    opacity: 0.7,
-    width: 72,
-  },
-  actions: {
-    gap: mentaSpacing[3],
-    paddingTop: mentaSpacing[2],
-  },
-  permissionChecking: {
-    alignItems: 'center',
-    flexGrow: 1,
-    gap: mentaSpacing[3],
-    justifyContent: 'center',
-    minHeight: 320,
-  },
-  permissionCheckingText: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.bodySmallMedium,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    preAuthLane: {
+      alignSelf: 'center',
+      flexGrow: 1,
+      maxWidth: 780,
+      paddingBottom: mentaSpacing[6],
+      paddingTop: mentaSpacing[2],
+      width: '100%',
+    },
+    preAuthFrame: {
+      flexGrow: 1,
+      width: '100%',
+    },
+    preAuthTopRail: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      minHeight: mentaLayout.minimumTouchTarget,
+      width: '100%',
+    },
+    preAuthBack: {
+      alignItems: 'flex-start',
+      justifyContent: 'center',
+      minHeight: mentaLayout.minimumTouchTarget,
+      minWidth: mentaLayout.minimumTouchTarget,
+    },
+    preAuthBackText: {
+      color: mentaColors.text.primary,
+      fontSize: 30,
+      lineHeight: 34,
+    },
+    preAuthProgressTrack: {
+      backgroundColor: mentaColors.border,
+      borderRadius: 2,
+      height: 3,
+      overflow: 'hidden',
+      width: 102,
+    },
+    preAuthProgressFill: {
+      backgroundColor: mentaColors.action,
+      borderRadius: 2,
+      height: 3,
+      width: '82%',
+    },
+    preAuthRailSpacer: {
+      minWidth: mentaLayout.minimumTouchTarget,
+    },
+    preAuthContent: {
+      flexGrow: 1,
+      gap: mentaSpacing[6],
+      paddingBottom: mentaSpacing[8],
+      paddingTop: mentaSpacing[5],
+    },
+    preAuthFlow: {
+      flexGrow: 1,
+      gap: mentaSpacing[6],
+    },
+    permissionHero: {
+      alignItems: 'center',
+      height: 300,
+      justifyContent: 'center',
+      overflow: 'hidden',
+      position: 'relative',
+      width: '100%',
+    },
+    permissionHeroCompact: { height: 226 },
+    permissionMascotStage: {
+      alignItems: 'center',
+      height: '100%',
+      justifyContent: 'center',
+      width: '100%',
+    },
+    permissionMascotStageMuted: {
+      opacity: 0.48,
+    },
+    preAuthCopy: {
+      gap: mentaSpacing[3],
+    },
+    preAuthTitle: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.heading,
+      fontFamily: mentaFonts.inter.bold,
+    },
+    preAuthBody: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.lead,
+    },
+    preAuthTrust: {
+      color: mentaColors.text.muted,
+      ...mentaTypography.caption,
+    },
+    preAuthActions: {
+      marginTop: 'auto',
+    },
+    lane: {
+      alignSelf: 'center',
+      flexGrow: 1,
+      paddingBottom: 0,
+      paddingTop: mentaSpacing[2],
+      width: '100%',
+    },
+    content: {
+      flexGrow: 1,
+      gap: mentaSpacing[6],
+      paddingBottom: mentaSpacing[10],
+      paddingTop: mentaSpacing[8],
+    },
+    orientationMascot: {
+      alignItems: 'center',
+      height: 88,
+      justifyContent: 'center',
+    },
+    heading: {
+      gap: mentaSpacing[3],
+    },
+    title: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.heading,
+    },
+    body: {
+      color: mentaColors.text.secondary,
+      maxWidth: mentaLayout.readingMeasure,
+      ...mentaTypography.body,
+    },
+    previewStack: {
+      gap: mentaSpacing[3],
+    },
+    reminderPreview: {
+      backgroundColor: '#F3F1EB',
+      borderColor: mentaColors.borderPaper,
+      borderRadius: mentaRadii.large,
+      borderWidth: StyleSheet.hairlineWidth,
+      paddingHorizontal: mentaSpacing[4],
+      paddingVertical: mentaSpacing[4],
+    },
+    previewMeta: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+      marginBottom: mentaSpacing[3],
+    },
+    previewAppIcon: {
+      alignItems: 'center',
+      backgroundColor: 'rgba(103, 66, 168, 0.11)',
+      borderRadius: mentaRadii.small,
+      height: 28,
+      justifyContent: 'center',
+      width: 28,
+    },
+    previewAppName: {
+      ...mentaTypography.label,
+      color: mentaColors.text.mutedOnPaper,
+    },
+    previewTitle: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.onPaper,
+    },
+    previewBody: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.mutedOnPaper,
+      marginTop: mentaSpacing[1],
+    },
+    readiness: {
+      borderColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      paddingVertical: mentaSpacing[5],
+    },
+    readinessMascot: {
+      alignSelf: 'center',
+      width: 160,
+      height: 160,
+    },
+    readinessFacts: {
+      gap: mentaSpacing[4],
+    },
+    readinessDivider: {
+      backgroundColor: mentaColors.border,
+      height: StyleSheet.hairlineWidth,
+    },
+    readinessFact: {
+      alignItems: 'flex-start',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      justifyContent: 'space-between',
+    },
+    readinessFactCopy: {
+      flex: 1,
+      gap: mentaSpacing[1],
+      minWidth: 0,
+    },
+    readinessLabel: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    readinessDetail: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+    },
+    readinessValue: {
+      ...mentaTypography.label,
+      color: mentaColors.success,
+      paddingTop: 2,
+    },
+    mutedValue: {
+      color: mentaColors.text.secondary,
+    },
+    actions: {
+      gap: mentaSpacing[3],
+      paddingTop: mentaSpacing[2],
+    },
+    permissionChecking: {
+      alignItems: 'center',
+      flexGrow: 1,
+      gap: mentaSpacing[3],
+      justifyContent: 'center',
+      minHeight: 320,
+    },
+    permissionCheckingText: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.bodySmallMedium,
+    },
+  });
+  return { styles };
+};

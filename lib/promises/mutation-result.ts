@@ -1,3 +1,4 @@
+import { withTimeout } from '@/utils/api';
 import { supabase } from '@/lib/supabase';
 import {
   translate,
@@ -293,18 +294,23 @@ const callReceiptBoundPromiseMutation = async (
   localise: PromiseMutationTranslator = defaultTranslate
 ): Promise<PromiseMutationRpcAttempt> => {
   try {
-    const response =
-      request.operation === 'leave'
-        ? await supabase.rpc('leave_promise_accountability_v2', {
-            p_challenge_id: request.challengeId,
-            p_client_event_id: request.clientEventId,
-            p_check_only: checkOnly,
-          })
-        : await supabase.rpc('delete_accountability_challenge_v2', {
-            p_challenge_id: request.challengeId,
-            p_client_event_id: request.clientEventId,
-            p_check_only: checkOnly,
-          });
+    const response = await withTimeout(
+      Promise.resolve(
+        request.operation === 'leave'
+          ? supabase.rpc('leave_promise_accountability_v2', {
+              p_challenge_id: request.challengeId,
+              p_client_event_id: request.clientEventId,
+              p_check_only: checkOnly,
+            })
+          : supabase.rpc('delete_accountability_challenge_v2', {
+              p_challenge_id: request.challengeId,
+              p_client_event_id: request.clientEventId,
+              p_check_only: checkOnly,
+            })
+      ),
+      15_000,
+      'Promise mutation'
+    );
 
     if (response.error) {
       if (rpcContractUnavailable(response.error, request.operation)) {

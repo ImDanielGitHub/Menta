@@ -99,6 +99,7 @@ describe('Amplitude transport', () => {
     const { shouldHoldAmplitudeReplayForPathname } = require('@/lib/amplitude');
 
     expect(shouldHoldAmplitudeReplayForPathname('/login')).toBe(true);
+    expect(shouldHoldAmplitudeReplayForPathname('/menta-check')).toBe(true);
     expect(shouldHoldAmplitudeReplayForPathname('/events/event-1/proof')).toBe(
       true
     );

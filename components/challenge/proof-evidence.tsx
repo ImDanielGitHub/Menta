@@ -1,3 +1,11 @@
+import {
+  mentaColors as defaultMentaColors,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette } from '@/constants/use-menta-palette';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
@@ -16,14 +24,8 @@ import {
   TypeIcon,
   VideoIcon,
 } from '@/components/ui/icons';
-import ModalCard from '@/components/ui/modal/ModalCard';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+import { ModalCard } from '@/components/ui/modal/ModalCard';
+
 import { useTheme, type ThemeContextType } from '@/constants/ThemeContext';
 import type { ProofMediaType } from '@/lib/proof-types';
 import { resolveProofVideoUri } from '@/lib/services/proof-media-viewer';
@@ -120,6 +122,8 @@ export function ProofEvidenceRow({
   variant = 'default',
   testID,
 }: ProofEvidenceRowProps) {
+  const mentaColors = useMentaPalette();
+
   const { theme, styles } = useProofEvidenceStyles();
   const { t } = useTranslation();
   const titleLines = useLargeTypeLineLimit(2);
@@ -454,8 +458,9 @@ export function ProofEvidenceViewer({
   );
 }
 
-const createStyles = (theme: ThemeContextType) =>
-  StyleSheet.create({
+const createStyles = (theme: ThemeContextType) => {
+  const mentaColors = theme.mentaColors ?? defaultMentaColors;
+  return StyleSheet.create({
     row: {
       width: '100%',
       minHeight: 92,
@@ -624,3 +629,4 @@ const createStyles = (theme: ThemeContextType) =>
       color: theme.colors.text.secondary,
     },
   });
+};

@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypeScale,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useMemo } from 'react';
 import {
   Pressable,
@@ -11,12 +18,7 @@ import {
 import { AppButton } from '@/components/ui/AppButton';
 import { UsersIcon } from '@/components/ui/icons';
 import { IPadTwoPaneWorkspace } from '@/components/ipad/ipad-workspace';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypeScale,
-} from '@/constants/MentaDesignSystem';
+
 import { mentaFonts } from '@/lib/menta-fonts';
 
 export type IpadEventsWorkspaceItem = {
@@ -51,30 +53,33 @@ const EventRow = ({
   item: IpadEventsWorkspaceItem;
   selected: boolean;
   onSelect: () => void;
-}) => (
-  <Pressable
-    accessibilityHint={item.actionHint}
-    accessibilityLabel={item.title}
-    accessibilityRole="button"
-    accessibilityState={{ selected }}
-    onPress={onSelect}
-    style={({ pressed }) => [
-      styles.eventRow,
-      selected && styles.eventRowSelected,
-      pressed && styles.pressed,
-    ]}
-    testID={`ipad-event-select-${item.key}`}
-  >
-    <Text numberOfLines={2} style={styles.eventTitle}>
-      {item.title}
-    </Text>
-    <Text numberOfLines={2} style={styles.eventMeta}>
-      {item.when}
-      {item.venue ? ` · ${item.venue}` : ''}
-    </Text>
-    <Text style={styles.eventContext}>{item.context}</Text>
-  </Pressable>
-);
+}) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <Pressable
+      accessibilityHint={item.actionHint}
+      accessibilityLabel={item.title}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      onPress={onSelect}
+      style={({ pressed }) => [
+        styles.eventRow,
+        selected && styles.eventRowSelected,
+        pressed && styles.pressed,
+      ]}
+      testID={`ipad-event-select-${item.key}`}
+    >
+      <Text numberOfLines={2} style={styles.eventTitle}>
+        {item.title}
+      </Text>
+      <Text numberOfLines={2} style={styles.eventMeta}>
+        {item.when}
+        {item.venue ? ` · ${item.venue}` : ''}
+      </Text>
+      <Text style={styles.eventContext}>{item.context}</Text>
+    </Pressable>
+  );
+};
 
 export function IpadEventsWorkspace({
   items,
@@ -85,6 +90,9 @@ export function IpadEventsWorkspace({
   refreshing,
   selectedKey,
 }: IpadEventsWorkspaceProps) {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const selectedItem = useMemo(
     () => items.find(item => item.key === selectedKey) ?? items[0] ?? null,
     [items, selectedKey]
@@ -187,118 +195,121 @@ export function IpadEventsWorkspace({
   );
 }
 
-const styles = StyleSheet.create({
-  workspace: {
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    flex: 1,
-    gap: 0,
-    minHeight: 0,
-    overflow: 'hidden',
-  },
-  masterPane: {
-    alignSelf: 'stretch',
-    backgroundColor: mentaColors.surface,
-    borderRightColor: mentaColors.border,
-    borderRightWidth: StyleSheet.hairlineWidth,
-    flex: 0,
-    flexBasis: 390,
-    maxWidth: 440,
-    minWidth: 340,
-  },
-  masterScroll: { flex: 1 },
-  masterContent: {
-    gap: mentaSpacing[8],
-    padding: mentaSpacing[5],
-  },
-  section: { gap: mentaSpacing[2] },
-  sectionLabel: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.semibold,
-    marginBottom: mentaSpacing[1],
-    ...mentaTypeScale.bodySmall,
-  },
-  eventRow: {
-    borderColor: 'transparent',
-    borderRadius: mentaRadii.medium,
-    borderWidth: 1,
-    gap: mentaSpacing[1],
-    minHeight: 104,
-    padding: mentaSpacing[4],
-  },
-  eventRowSelected: {
-    backgroundColor: mentaColors.actionSoft,
-    borderColor: mentaColors.actionBorder,
-  },
-  eventTitle: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.inter.semibold,
-    ...mentaTypeScale.bodyLarge,
-  },
-  eventMeta: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.regular,
-    ...mentaTypeScale.caption,
-  },
-  eventContext: {
-    color: mentaColors.success,
-    fontFamily: mentaFonts.inter.medium,
-    ...mentaTypeScale.caption,
-  },
-  detailPane: { flex: 1 },
-  detailContent: {
-    alignItems: 'flex-start',
-    flexGrow: 1,
-    padding: mentaSpacing[12],
-  },
-  detailTitle: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.newsreader.medium,
-    maxWidth: 680,
-    ...mentaTypeScale.display,
-  },
-  detailWhen: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.inter.medium,
-    marginTop: mentaSpacing[5],
-    ...mentaTypeScale.bodyLarge,
-  },
-  detailVenue: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.regular,
-    marginTop: mentaSpacing[1],
-    ...mentaTypeScale.body,
-  },
-  factRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: mentaSpacing[3],
-    marginTop: mentaSpacing[6],
-  },
-  factPill: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.raised,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.round,
-    borderWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-    paddingHorizontal: mentaSpacing[4],
-    paddingVertical: mentaSpacing[2],
-  },
-  factText: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.medium,
-    ...mentaTypeScale.bodySmall,
-  },
-  description: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.regular,
-    marginBottom: mentaSpacing[8],
-    marginTop: mentaSpacing[8],
-    maxWidth: 680,
-    ...mentaTypeScale.bodyLarge,
-  },
-  pressed: { opacity: 0.72 },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    workspace: {
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: StyleSheet.hairlineWidth,
+      flex: 1,
+      gap: 0,
+      minHeight: 0,
+      overflow: 'hidden',
+    },
+    masterPane: {
+      alignSelf: 'stretch',
+      backgroundColor: mentaColors.surface,
+      borderRightColor: mentaColors.border,
+      borderRightWidth: StyleSheet.hairlineWidth,
+      flex: 0,
+      flexBasis: 390,
+      maxWidth: 440,
+      minWidth: 340,
+    },
+    masterScroll: { flex: 1 },
+    masterContent: {
+      gap: mentaSpacing[8],
+      padding: mentaSpacing[5],
+    },
+    section: { gap: mentaSpacing[2] },
+    sectionLabel: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.semibold,
+      marginBottom: mentaSpacing[1],
+      ...mentaTypeScale.bodySmall,
+    },
+    eventRow: {
+      borderColor: 'transparent',
+      borderRadius: mentaRadii.medium,
+      borderWidth: 1,
+      gap: mentaSpacing[1],
+      minHeight: 104,
+      padding: mentaSpacing[4],
+    },
+    eventRowSelected: {
+      backgroundColor: mentaColors.actionSoft,
+      borderColor: mentaColors.actionBorder,
+    },
+    eventTitle: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.inter.semibold,
+      ...mentaTypeScale.bodyLarge,
+    },
+    eventMeta: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.regular,
+      ...mentaTypeScale.caption,
+    },
+    eventContext: {
+      color: mentaColors.success,
+      fontFamily: mentaFonts.inter.medium,
+      ...mentaTypeScale.caption,
+    },
+    detailPane: { flex: 1 },
+    detailContent: {
+      alignItems: 'flex-start',
+      flexGrow: 1,
+      padding: mentaSpacing[12],
+    },
+    detailTitle: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.newsreader.medium,
+      maxWidth: 680,
+      ...mentaTypeScale.display,
+    },
+    detailWhen: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.inter.medium,
+      marginTop: mentaSpacing[5],
+      ...mentaTypeScale.bodyLarge,
+    },
+    detailVenue: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.regular,
+      marginTop: mentaSpacing[1],
+      ...mentaTypeScale.body,
+    },
+    factRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: mentaSpacing[3],
+      marginTop: mentaSpacing[6],
+    },
+    factPill: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.raised,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.round,
+      borderWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+      paddingHorizontal: mentaSpacing[4],
+      paddingVertical: mentaSpacing[2],
+    },
+    factText: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.medium,
+      ...mentaTypeScale.bodySmall,
+    },
+    description: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.regular,
+      marginBottom: mentaSpacing[8],
+      marginTop: mentaSpacing[8],
+      maxWidth: 680,
+      ...mentaTypeScale.bodyLarge,
+    },
+    pressed: { opacity: 0.72 },
+  });
+  return { styles };
+};

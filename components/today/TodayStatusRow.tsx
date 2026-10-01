@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -11,13 +19,7 @@ import {
   FlameIcon,
 } from '@/components/ui/icons';
 import { MomentaMark } from '@/components/shop/MomentaBalanceChip';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useMotionPreferences } from '@/lib/motion/use-motion-preferences';
 import { useTranslation } from '@/lib/localization';
 
@@ -39,15 +41,9 @@ type TodayStatusRowProps = {
 
 const STREAK_FLEX = 1.2;
 
-const FLAME_COLOR: Record<TodayStreakTone, string> = {
-  kept: mentaColors.success,
-  waiting: mentaColors.text.primary,
-  due: mentaColors.text.primary,
-  risk: mentaColors.warning,
-  none: mentaColors.text.muted,
-};
-
 function StatusChipSkeleton({ flex }: { flex: number }) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   return (
     <View style={[styles.chip, styles.chipSkeleton, { flex }]}>
       <SkeletonLoader
@@ -78,6 +74,9 @@ export function TodayStatusRow({
   streakExpanded,
   streakTone,
 }: TodayStatusRowProps) {
+  const mentaColors = useMentaPalette();
+  const { FLAME_COLOR, styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const motion = useMotionPreferences();
   const displayedStreak = useCountUp(streak, !motion.reduceMotion);
@@ -182,62 +181,72 @@ export function TodayStatusRow({
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    alignSelf: 'stretch',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    width: '100%',
-  },
-  streakSlot: {
-    flex: STREAK_FLEX,
-    minWidth: 0,
-  },
-  momentaSlot: {
-    flex: 1,
-    minWidth: 0,
-  },
-  chip: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.surface,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: mentaLayout.primaryControlHeight + mentaSpacing[1],
-    minWidth: 0,
-    paddingHorizontal: mentaSpacing[4],
-    paddingVertical: mentaSpacing[2],
-  },
-  chipSkeleton: {
-    borderColor: mentaColors.border,
-  },
-  chipSelected: {
-    backgroundColor: mentaColors.actionSoft,
-    borderColor: mentaColors.action,
-  },
-  chipPressed: {
-    backgroundColor: mentaColors.raised,
-  },
-  chipCopy: {
-    flex: 1,
-    gap: 2,
-    minWidth: 0,
-  },
-  chipValue: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-    fontVariant: ['tabular-nums'],
-  },
-  chipCaption: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-  chevronCollapsed: {
-    transform: [{ rotate: '0deg' }],
-  },
-  chevronExpanded: {
-    transform: [{ rotate: '180deg' }],
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const FLAME_COLOR: Record<TodayStreakTone, string> = {
+    kept: mentaColors.success,
+    waiting: mentaColors.text.primary,
+    due: mentaColors.text.primary,
+    risk: mentaColors.warning,
+    none: mentaColors.text.muted,
+  };
+  const styles = StyleSheet.create({
+    row: {
+      alignSelf: 'stretch',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      width: '100%',
+    },
+    streakSlot: {
+      flex: STREAK_FLEX,
+      minWidth: 0,
+    },
+    momentaSlot: {
+      flex: 1,
+      minWidth: 0,
+    },
+    chip: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.surface,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: mentaLayout.primaryControlHeight + mentaSpacing[1],
+      minWidth: 0,
+      paddingHorizontal: mentaSpacing[4],
+      paddingVertical: mentaSpacing[2],
+    },
+    chipSkeleton: {
+      borderColor: mentaColors.border,
+    },
+    chipSelected: {
+      backgroundColor: mentaColors.actionSoft,
+      borderColor: mentaColors.action,
+    },
+    chipPressed: {
+      backgroundColor: mentaColors.raised,
+    },
+    chipCopy: {
+      flex: 1,
+      gap: 2,
+      minWidth: 0,
+    },
+    chipValue: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+      fontVariant: ['tabular-nums'],
+    },
+    chipCaption: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+    chevronCollapsed: {
+      transform: [{ rotate: '0deg' }],
+    },
+    chevronExpanded: {
+      transform: [{ rotate: '180deg' }],
+    },
+  });
+  return { FLAME_COLOR, styles };
+};

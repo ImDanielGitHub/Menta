@@ -195,6 +195,83 @@ describe('Google UMP rewarded-ad gate', () => {
     await expect(initializeAds()).resolves.toMatchObject({ ready: true });
     expect(mockGetConsentInfo).toHaveBeenCalledTimes(1);
     expect(mockInitializeMobileAds).toHaveBeenCalledTimes(1);
+    expect(mockSentryCapture).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'UMP update unavailable' }),
+      { context: 'admob_consent_gather_failed' }
+    );
+  });
+
+  it.each([
+    ['offline', 'The Internet connection appears to be offline.'],
+    ['timeout', 'The request timed out.'],
+  ])(
+    'keeps ads blocked after %s and retries consent on the next request',
+    async (reason, message) => {
+      mockGatherConsent.mockRejectedValueOnce(new Error(message));
+      mockGetConsentInfo.mockResolvedValue(
+        consentInfo({ canRequestAds: false, status: 'UNKNOWN' })
+      );
+      const { initializeAds, showRewardedAdDetailed } = loadAdsModule();
+
+      const [first, second] = await Promise.all([
+        initializeAds(),
+        showRewardedAdDetailed({ appUserId: 'consent-user' }),
+      ]);
+      expect(first).toMatchObject({ ready: false, reason: 'consent_error' });
+      expect(second).toEqual({
+        earned: false,
+        amount: 0,
+        reason: 'consent_error',
+      });
+      expect(mockGatherConsent).toHaveBeenCalledTimes(1);
+      expect(mockInitializeMobileAds).not.toHaveBeenCalled();
+      expect(mockCreateRewardedAd).not.toHaveBeenCalled();
+      expect(mockAdLoad).not.toHaveBeenCalled();
+      expect(mockAdShow).not.toHaveBeenCalled();
+      expect(mockSentryCapture).not.toHaveBeenCalled();
+      expect(mockSentryBreadcrumb).toHaveBeenCalledWith(
+        `admob_consent_gather_${reason}`,
+        { platform: 'ios' }
+      );
+
+      await expect(initializeAds()).resolves.toMatchObject({ ready: true });
+      expect(mockGatherConsent).toHaveBeenCalledTimes(2);
+      expect(mockInitializeMobileAds).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it('retains a valid UMP decision after an offline consent update', async () => {
+    mockGatherConsent.mockRejectedValue(
+      new Error('The Internet connection appears to be offline.')
+    );
+    mockGetConsentInfo.mockResolvedValue(consentInfo({ status: 'OBTAINED' }));
+    const { initializeAds } = loadAdsModule();
+
+    await expect(initializeAds()).resolves.toMatchObject({ ready: true });
+    await expect(initializeAds()).resolves.toMatchObject({ ready: true });
+    expect(mockGatherConsent).toHaveBeenCalledTimes(1);
+    expect(mockInitializeMobileAds).toHaveBeenCalledTimes(1);
+    expect(mockSentryCapture).not.toHaveBeenCalled();
+  });
+
+  it('reports an unreadable consent decision even when the update failed offline', async () => {
+    mockGatherConsent.mockRejectedValueOnce(
+      new Error('The Internet connection appears to be offline.')
+    );
+    const readError = new Error('Consent storage unavailable');
+    mockGetConsentInfo.mockRejectedValueOnce(readError);
+    const { initializeAds } = loadAdsModule();
+
+    await expect(initializeAds()).resolves.toEqual({
+      ready: false,
+      reason: 'consent_error',
+    });
+    expect(mockInitializeMobileAds).not.toHaveBeenCalled();
+    expect(mockSentryCapture).toHaveBeenCalledTimes(1);
+    expect(mockSentryCapture).toHaveBeenCalledWith(readError, {
+      context: 'admob_consent_previous_session_failed',
+    });
+    await expect(initializeAds()).resolves.toMatchObject({ ready: true });
   });
 
   it('keeps ads blocked when both the consent update and previous session are unusable', async () => {

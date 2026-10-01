@@ -2,21 +2,14 @@
   "expo": {
     "name": "Menta",
     "slug": "menta-community",
-    "version": "1.9.6",
-    "runtimeVersion": "1.9.6",
+    "version": "1.9.7",
+    "runtimeVersion": "1.9.7",
     "orientation": "portrait",
     "icon": "./assets/images/AppIcons/appstore.png",
     "backgroundColor": "#080909",
-    "scheme": [
-      "menta",
-      "lockedin",
-      "lockedinprod"
-    ],
-    "userInterfaceStyle": "dark",
-    "platforms": [
-      "ios",
-      "android"
-    ],
+    "scheme": ["menta", "lockedin", "lockedinprod"],
+    "userInterfaceStyle": "automatic",
+    "platforms": ["ios", "android"],
     "ios": {
       "supportsTablet": true,
       "requireFullScreen": false,
@@ -26,12 +19,8 @@
       "icon": "./assets/images/AppIcons/appstore.png",
       "infoPlist": {
         "CFBundleName": "Menta",
-        "UIRequiredDeviceCapabilities": [
-          "arm64"
-        ],
-        "UIBackgroundModes": [
-          "remote-notification"
-        ],
+        "UIRequiredDeviceCapabilities": ["arm64"],
+        "UIBackgroundModes": ["remote-notification"],
         "NSCameraUsageDescription": "Menta uses your camera only when you choose to take a photo or video for proof, or scan a group or event check-in code.",
         "NSMicrophoneUsageDescription": "Menta uses your microphone only when you choose to record a video for proof.",
         "NSUserTrackingUsageDescription": "Menta uses this to measure whether ads from Meta helped someone sign up, create a group, create a promise, or invite a friend. You can decline and still use Menta.",
@@ -77,11 +66,7 @@
         },
         "CFBundleURLTypes": [
           {
-            "CFBundleURLSchemes": [
-              "menta",
-              "lockedin",
-              "lockedinprod"
-            ]
+            "CFBundleURLSchemes": ["menta", "lockedin", "lockedinprod"]
           }
         ],
         "UIApplicationShortcutItems": [
@@ -142,10 +127,7 @@
               "scheme": "lockedinprod"
             }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         }
       ]
     },
@@ -196,16 +178,7 @@
         "expo-localization",
         {
           "supportedLocales": {
-            "ios": [
-              "en",
-              "de",
-              "es",
-              "es-MX",
-              "fr",
-              "fr-CA",
-              "pt-BR",
-              "pt-PT"
-            ],
+            "ios": ["en", "de", "es", "es-MX", "fr", "fr-CA", "pt-BR", "pt-PT"],
             "android": [
               "en",
               "de",

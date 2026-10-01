@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleShortVersionString</key>
-	<string>1.9.6</string>
+	<string>1.9.7</string>
 	<key>CFBundleVersion</key>
-	<string>154</string>
+	<string>163</string>
 	<key>ExpoWidgetsAppGroupIdentifier</key>
 	<string>group.org.example.menta.widgets</string>
 	<key>NSExtension</key>

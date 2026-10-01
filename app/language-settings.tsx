@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useMemo } from 'react';
 import {
   Pressable,
@@ -11,13 +19,7 @@ import { Stack, useRouter } from 'expo-router';
 import { AppScreen, AppTopBar } from '@/components/ui/AppShell';
 import { CheckIcon, GlobeIcon } from '@/components/ui/icons';
 import { SettingsSectionLabel } from '@/components/settings/SettingsDirectRow';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { useTheme } from '@/constants/ThemeContext';
 import {
@@ -55,6 +57,9 @@ const LanguageRow = ({
   testID,
   title,
 }: LanguageRowProps) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const { fontScale } = useWindowDimensions();
   const allowFullWrap = fontScale >= 1.3;
@@ -118,6 +123,8 @@ const languageAccessibilityLabel = (option: LanguageOption): string =>
   `${option.nativeName}. ${option.regionalName}`;
 
 export default function LanguageSettingsScreen() {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const router = useRouter();
   const phoneLayout = usePhoneLayout();
   const { colors } = useTheme();
@@ -221,61 +228,64 @@ export default function LanguageSettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  route: {
-    flex: 1,
-  },
-  content: {
-    paddingBottom: mentaSpacing[12],
-    paddingTop: mentaSpacing[6],
-  },
-  header: {
-    gap: mentaSpacing[3],
-    marginBottom: mentaSpacing[2],
-  },
-  screenTitle: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.journeyTitle,
-  },
-  introduction: {
-    ...mentaTypography.body,
-    maxWidth: mentaLayout.readingMeasure,
-  },
-  optionRow: {
-    alignItems: 'center',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    minHeight: 68,
-    paddingVertical: mentaSpacing[3],
-  },
-  flagLane: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: mentaLayout.iconLane,
-  },
-  flag: {
-    fontSize: 22,
-    lineHeight: 28,
-  },
-  optionCopy: {
-    flex: 1,
-    minWidth: 0,
-    paddingLeft: mentaSpacing[3],
-    paddingRight: mentaSpacing[3],
-  },
-  optionTitle: {
-    ...mentaTypography.bodyMedium,
-  },
-  optionSubtitle: {
-    ...mentaTypography.caption,
-    marginTop: 1,
-  },
-  selection: {
-    alignItems: 'center',
-    borderRadius: mentaRadii.round,
-    borderWidth: StyleSheet.hairlineWidth,
-    height: 24,
-    justifyContent: 'center',
-    width: 24,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    route: {
+      flex: 1,
+    },
+    content: {
+      paddingBottom: mentaSpacing[12],
+      paddingTop: mentaSpacing[6],
+    },
+    header: {
+      gap: mentaSpacing[3],
+      marginBottom: mentaSpacing[2],
+    },
+    screenTitle: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.journeyTitle,
+    },
+    introduction: {
+      ...mentaTypography.body,
+      maxWidth: mentaLayout.readingMeasure,
+    },
+    optionRow: {
+      alignItems: 'center',
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      minHeight: 68,
+      paddingVertical: mentaSpacing[3],
+    },
+    flagLane: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: mentaLayout.iconLane,
+    },
+    flag: {
+      fontSize: 22,
+      lineHeight: 28,
+    },
+    optionCopy: {
+      flex: 1,
+      minWidth: 0,
+      paddingLeft: mentaSpacing[3],
+      paddingRight: mentaSpacing[3],
+    },
+    optionTitle: {
+      ...mentaTypography.bodyMedium,
+    },
+    optionSubtitle: {
+      ...mentaTypography.caption,
+      marginTop: 1,
+    },
+    selection: {
+      alignItems: 'center',
+      borderRadius: mentaRadii.round,
+      borderWidth: StyleSheet.hairlineWidth,
+      height: 24,
+      justifyContent: 'center',
+      width: 24,
+    },
+  });
+  return { styles };
+};

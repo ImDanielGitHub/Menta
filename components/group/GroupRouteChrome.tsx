@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { type ReactNode, useEffect, useRef } from 'react';
 import {
   Animated,
@@ -13,13 +21,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ChevronLeftIcon } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useLargeTypeLineLimit } from '@/lib/accessibility';
 import { useTranslation } from '@/lib/localization';
 import { MOTION_DISTANCES, MOTION_DURATIONS } from '@/lib/motion/tokens';
@@ -54,6 +56,9 @@ export const GroupRouteChrome = ({
   rightAction,
   testID,
 }: GroupRouteChromeProps) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const motion = useMotionPreferences();
   const { width } = useWindowDimensions();
@@ -164,84 +169,88 @@ export const GroupRouteChrome = ({
   );
 };
 
-export const GroupRouteSectionLabel = ({ children }: { children: string }) => (
-  <Text style={styles.legacySectionLabel}>{children}</Text>
-);
+export const GroupRouteSectionLabel = ({ children }: { children: string }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return <Text style={styles.legacySectionLabel}>{children}</Text>;
+};
 
-const styles = StyleSheet.create({
-  safeArea: {
-    backgroundColor: mentaColors.canvas,
-    flex: 1,
-  },
-  topBar: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    height: 60,
-    justifyContent: 'space-between',
-  },
-  backButton: {
-    alignItems: 'center',
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.round,
-    borderWidth: StyleSheet.hairlineWidth,
-    height: mentaLayout.minimumTouchTarget,
-    justifyContent: 'center',
-    width: mentaLayout.minimumTouchTarget,
-  },
-  trailingLane: {
-    alignItems: 'flex-end',
-    flexShrink: 0,
-    minWidth: mentaLayout.trailingActionLane,
-  },
-  scrollContent: {
-    paddingBottom: mentaSpacing[5],
-  },
-  contentWithFooter: {
-    paddingBottom: mentaSpacing[3],
-  },
-  contentFrame: {
-    alignSelf: 'center',
-    width: '100%',
-  },
-  hero: {
-    gap: mentaSpacing[2],
-    paddingBottom: mentaSpacing[6],
-    paddingTop: mentaSpacing[4],
-  },
-  title: {
-    ...mentaTypography.heading,
-    color: mentaColors.text.primary,
-    minWidth: 0,
-  },
-  subtitle: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-  description: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-  },
-  body: {
-    gap: mentaSpacing[6],
-  },
-  footer: {
-    backgroundColor: mentaColors.canvas,
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[2],
-    paddingBottom: mentaSpacing[6],
-    paddingTop: mentaSpacing[3],
-  },
-  footerFrame: {
-    alignSelf: 'center',
-    gap: mentaSpacing[2],
-    width: '100%',
-  },
-  legacySectionLabel: {
-    ...mentaTypography.labelBold,
-    color: mentaColors.text.primary,
-  },
-  pressed: {
-    opacity: 0.72,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    safeArea: {
+      backgroundColor: mentaColors.canvas,
+      flex: 1,
+    },
+    topBar: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      height: 60,
+      justifyContent: 'space-between',
+    },
+    backButton: {
+      alignItems: 'center',
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.round,
+      borderWidth: StyleSheet.hairlineWidth,
+      height: mentaLayout.minimumTouchTarget,
+      justifyContent: 'center',
+      width: mentaLayout.minimumTouchTarget,
+    },
+    trailingLane: {
+      alignItems: 'flex-end',
+      flexShrink: 0,
+      minWidth: mentaLayout.trailingActionLane,
+    },
+    scrollContent: {
+      paddingBottom: mentaSpacing[5],
+    },
+    contentWithFooter: {
+      paddingBottom: mentaSpacing[3],
+    },
+    contentFrame: {
+      alignSelf: 'center',
+      width: '100%',
+    },
+    hero: {
+      gap: mentaSpacing[2],
+      paddingBottom: mentaSpacing[6],
+      paddingTop: mentaSpacing[4],
+    },
+    title: {
+      ...mentaTypography.heading,
+      color: mentaColors.text.primary,
+      minWidth: 0,
+    },
+    subtitle: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+    description: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+    },
+    body: {
+      gap: mentaSpacing[6],
+    },
+    footer: {
+      backgroundColor: mentaColors.canvas,
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[2],
+      paddingBottom: mentaSpacing[6],
+      paddingTop: mentaSpacing[3],
+    },
+    footerFrame: {
+      alignSelf: 'center',
+      gap: mentaSpacing[2],
+      width: '100%',
+    },
+    legacySectionLabel: {
+      ...mentaTypography.labelBold,
+      color: mentaColors.text.primary,
+    },
+    pressed: {
+      opacity: 0.72,
+    },
+  });
+  return { styles };
+};

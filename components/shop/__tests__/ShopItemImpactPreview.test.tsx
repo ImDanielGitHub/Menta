@@ -75,15 +75,35 @@ describe('ShopItemImpactPreview', () => {
 
     expect(screen.getByText('Appearance preview')).toBeTruthy();
     expect(
-      screen.getByText('Ember Theme gives Menta a warmer look.')
+      screen.getByText('Ember Theme changes Menta’s colours.')
     ).toBeTruthy();
     expect(
       screen.getByText(
-        'Buttons, highlights and selected items use Ember’s warm colours.'
+        'Buttons, highlights and selected items use Ember Theme’s colours.'
       )
     ).toBeTruthy();
     expect(screen.getByText('Activates after purchase')).toBeTruthy();
     expect(screen.queryByText(/semantic|stay the same/i)).toBeNull();
+  });
+
+  it('describes each theme with its own name rather than Ember’s warmth', () => {
+    render(
+      <ThemeProvider>
+        <ShopItemImpactPreview
+          item={{
+            id: 'theme-aurora',
+            sku: 'profile_theme_aurora',
+            name: 'Aurora Theme',
+            category: 'cosmetic',
+          }}
+        />
+      </ThemeProvider>
+    );
+
+    expect(
+      screen.getByText('Aurora Theme changes Menta’s colours.')
+    ).toBeTruthy();
+    expect(screen.queryByText(/warm|Ember/)).toBeNull();
   });
 
   it('distinguishes an owned appearance from one that still needs buying', () => {

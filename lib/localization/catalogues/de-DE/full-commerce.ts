@@ -1,5 +1,14 @@
 /** Customer-facing copy for the Momenta wallet, shop, inventory, and Pro flows. */
 export const fullCommerceDeDE = {
+  'commerce.proJourney.continueFree': 'Kostenlos fortfahren',
+  'commerce.free.receiptRetry': 'Dein Versprechen wurde erstellt',
+  'commerce.free.receiptRetryDetail':
+    'Der Beleg konnte nicht gespeichert werden. Versuche es erneut, um die Einrichtung der prüfenden Person abzuschließen. Dabei wird kein weiteres Versprechen erstellt oder berechnet.',
+  'commerce.free.pendingReviewer': 'Warten auf eine prüfende Person',
+  'commerce.free.pendingDetail':
+    'Dein Versprechen und seine Frist haben bereits begonnen. Lade jemanden ein, deinen Nachweis zu prüfen. Wenn du diesen Bildschirm verlässt, laufen Versprechen und Frist weiter.',
+  'commerce.free.finishSetup': 'Prüfende Person einrichten',
+
   'commerce.proJourney.back': 'Zurück',
   'commerce.proJourney.title': 'Menta Pro',
   'commerce.proJourney.subtitle':
@@ -386,8 +395,7 @@ export const fullCommerceDeDE = {
   'commerce.shop.state': 'Status',
   'commerce.shop.reachStreakAuto':
     'Erreiche eine {days}-Tage-Serie. Menta fügt den Serien-Schutz automatisch deinen Gegenständen hinzu.',
-  'commerce.shop.appearanceWarm':
-    '{name} verleiht Menta ein wärmeres Erscheinungsbild.',
+  'commerce.shop.themeTitle': '{name} ändert die Farben von Menta.',
   'commerce.shop.frameTitle': '{name} umrahmt dein Profilfoto.',
   'commerce.shop.oneUse': 'Einmalige Verwendung',
   'commerce.shop.unlocks': 'Wird bei einer {days}-Tage-Serie freigeschaltet',
@@ -514,8 +522,8 @@ export const fullCommerceDeDE = {
     'Fügt 12 Stunden zur Frist eines aktiven Versprechens hinzu.',
   'commerce.shop.choosePromiseAfter':
     'Wähle das aktive Versprechen nach dem Kauf oder später unter deinen Gegenständen aus.',
-  'commerce.shop.buttonsColours':
-    'Schaltflächen, Hervorhebungen und ausgewählte Gegenstände verwenden die warmen Farben von Ember.',
+  'commerce.shop.themeColours':
+    'Schaltflächen, Hervorhebungen und ausgewählte Elemente nutzen die Farben von {name}.',
   'commerce.shop.frameProfile':
     'Der Rahmen erscheint überall dort, wo Menta deine Profilidentität anzeigt.',
   'commerce.shop.frameDescription':
@@ -945,7 +953,7 @@ export const fullCommerceDeDE = {
   'commerce.firstMiss.errorUnavailable':
     'Dieses Angebot für den ersten Tag ist nicht mehr verfügbar. Du kannst heute trotzdem einen Nachweis hinzufügen.',
   'commerce.firstMiss.bubble':
-    '{weekday} ist durchgerutscht. Das passiert allen.',
+    '{weekday} ist vorbeigegangen. Ein verpasster Tag ist nicht die ganze Geschichte.',
   'commerce.firstMiss.decisionTitle': 'Deine Serie von {count} Tagen behalten?',
   'commerce.firstMiss.decisionBody':
     'Dein erster verpasster Tag geht auf uns. Ein kostenloser Serien-Schutz deckt {weekday} ab, und deine Serie bleibt bei {count}.',
@@ -953,6 +961,9 @@ export const fullCommerceDeDE = {
     'Dein erster verpasster Tag geht auf uns. Ein kostenloser Serien-Schutz deckt {weekday} ab.',
   'commerce.firstMiss.keep': 'Serie kostenlos behalten',
   'commerce.firstMiss.startOver': 'Bei Tag 1 neu anfangen',
+  'commerce.free.receiptReadBlocked': 'Prüfe dein gespeichertes Versprechen',
+  'commerce.free.receiptReadBlockedDetail':
+    'Wir konnten das gespeicherte Versprechen nicht sicher lesen. Versuche die Wiederherstellung erneut, bevor du ein weiteres Versprechen startest.',
 } as const;
 
 export type FullCommerceKey = keyof typeof fullCommerceDeDE;

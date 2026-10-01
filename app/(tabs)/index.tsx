@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, {
   useCallback,
   useEffect,
@@ -15,7 +23,10 @@ import {
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import { TodayStateCard } from '@/components/loop/TodayStateCard';
-import { TodayWidgetInvitation } from '@/components/widgets/HomeWidgetEntry';
+import { MentaToday } from '@/components/menta-check/menta-today';
+import { MentaTrialNotice } from '@/components/menta-check/menta-trial-notice';
+import { useMentaCheckToday } from '@/hooks/use-menta-check';
+import { isMentaTodayState } from '@/lib/menta-check/copy';
 import { ProofConnectionMosaic } from '@/components/proof/ProofConnectionMosaic';
 import {
   ProofEvidenceViewer,
@@ -91,13 +102,7 @@ import { createTodayRefreshCoordinator } from '@/lib/today-refresh-coordinator';
 import { readAcceptedReceipt } from '@/lib/loop/read-accepted-receipt';
 import type { ConfirmedReceipt } from '@/lib/loop/types';
 import { getPromiseDayNumber } from '@/lib/loop/day-context';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { useTranslation } from '@/lib/localization';
 import { shouldUseIPadTwoColumnLayout } from '@/constants/responsive-layout';
@@ -549,6 +554,9 @@ const fetchTodaySnapshot = async (args: {
 };
 
 export default function HomeScreen() {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { locale, t } = useTranslation();
   const phoneLayout = usePhoneLayout();
   const { height, width } = useWindowDimensions();
@@ -558,6 +566,7 @@ export default function HomeScreen() {
   );
   const router = useRouter();
   const user = useUser();
+  const mentaToday = useMentaCheckToday();
   const [firstMissRecoveryVisible, setFirstMissRecoveryVisible] =
     useState(false);
   const { isOnline } = useNetworkState();
@@ -888,11 +897,6 @@ export default function HomeScreen() {
         if (selection.primaryChallengeId) {
           router.push(`/challenges/${selection.primaryChallengeId}`);
         }
-        return;
-      }
-
-      if (submission.groupId) {
-        router.push(`/groups/${submission.groupId}`);
         return;
       }
 
@@ -1413,15 +1417,26 @@ export default function HomeScreen() {
                 ? t('today.proof.status.approved')
                 : t('today.proof.status.due');
     const streak = primaryObligation?.streakCount ?? null;
+    // While proof is due, the countdown already says so and the streak chip
+    // above shows the streak. Dropping both rows keeps the proof action above
+    // the tab bar, as in Paper T01.
+    const isProofDue = Boolean(presentation.countdown);
     const facts: TodayPromiseReceiptData['facts'] = [
-      {
-        label: t('today.home.receipt.today'),
-        value: statusLabel,
-        tone: selection.state === 'accepted-today' ? 'default' : 'action',
-      },
+      ...(isProofDue
+        ? []
+        : [
+            {
+              label: t('today.home.receipt.today'),
+              value: statusLabel,
+              tone:
+                selection.state === 'accepted-today'
+                  ? ('default' as const)
+                  : ('action' as const),
+            },
+          ]),
       { label: t('today.home.receipt.proof'), value: proofLabel },
       { label: t('today.home.receipt.progress'), value: progressLabel },
-      ...(streak !== null
+      ...(streak !== null && !isProofDue
         ? [
             {
               label: t('today.home.receipt.streak'),
@@ -1612,7 +1627,24 @@ export default function HomeScreen() {
         <View style={styles.dashboardPrimary}>
           <ErrorBoundary level="component">
             {/* Paper 19 / T03: the first-miss decision replaces the card. */}
-            {firstMissRecoveryVisible ? null : (
+            {firstMissRecoveryVisible ? null : isMentaTodayState(
+                mentaToday.data?.find(
+                  item => item.challengeId === selection.primaryChallengeId
+                )
+              ) ? (
+              <MentaToday
+                promiseReceipt={promiseReceipt}
+                key={
+                  mentaToday.data!.find(
+                    item => item.challengeId === selection.primaryChallengeId
+                  )!.submissionId
+                }
+                item={mentaToday.data!.find(
+                  item => item.challengeId === selection.primaryChallengeId
+                )!}
+                onChanged={refreshToday}
+              />
+            ) : (
               <TodayStateCard
                 presentation={presentation}
                 textScale={phoneLayout.textScale}
@@ -1630,9 +1662,7 @@ export default function HomeScreen() {
             )}
           </ErrorBoundary>
 
-          <TodayWidgetInvitation
-            eligible={selection.state === 'accepted-today'}
-          />
+          <MentaTrialNotice />
 
           {recentMedia.length > 0 ? (
             <ErrorBoundary level="component">
@@ -1764,72 +1794,75 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    gap: mentaSpacing[6],
-  },
-  dashboardLayout: {
-    alignSelf: 'stretch',
-    gap: mentaSpacing[5],
-    width: '100%',
-  },
-  dashboardLayoutRegular: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: mentaSpacing[6],
-  },
-  dashboardPrimary: {
-    flex: 1.25,
-    gap: mentaSpacing[5],
-    minWidth: 0,
-  },
-  dashboardSecondary: {
-    flex: 0.75,
-    gap: mentaSpacing[4],
-    minWidth: 0,
-  },
-  tabBarScrollSpacer: {
-    height: TAB_BAR_PEEK_CLEARANCE,
-  },
-  header: {
-    alignItems: 'center',
-    alignSelf: 'stretch',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    justifyContent: 'space-between',
-    minHeight: mentaSpacing[12],
-    width: '100%',
-  },
-  screenTitle: {
-    ...mentaTypography.heading,
-    color: mentaColors.text.primary,
-    flex: 1,
-    minWidth: 0,
-  },
-  headerActions: {
-    flexShrink: 0,
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-  },
-  newButton: {
-    minHeight: mentaLayout.minimumTouchTarget,
-    borderRadius: mentaRadii.round,
-    paddingHorizontal: mentaSpacing[4],
-  },
-  staleNotice: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.warningSoft,
-    borderColor: mentaColors.warningBorder,
-    borderRadius: mentaRadii.medium,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    padding: mentaSpacing[3],
-  },
-  staleNoticeText: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.primary,
-    flex: 1,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    content: {
+      gap: mentaSpacing[6],
+    },
+    dashboardLayout: {
+      alignSelf: 'stretch',
+      gap: mentaSpacing[5],
+      width: '100%',
+    },
+    dashboardLayoutRegular: {
+      alignItems: 'flex-start',
+      flexDirection: 'row',
+      gap: mentaSpacing[6],
+    },
+    dashboardPrimary: {
+      flex: 1.25,
+      gap: mentaSpacing[5],
+      minWidth: 0,
+    },
+    dashboardSecondary: {
+      flex: 0.75,
+      gap: mentaSpacing[4],
+      minWidth: 0,
+    },
+    tabBarScrollSpacer: {
+      height: TAB_BAR_PEEK_CLEARANCE,
+    },
+    header: {
+      alignItems: 'center',
+      alignSelf: 'stretch',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      justifyContent: 'space-between',
+      minHeight: mentaSpacing[12],
+      width: '100%',
+    },
+    screenTitle: {
+      ...mentaTypography.heading,
+      color: mentaColors.text.primary,
+      flex: 1,
+      minWidth: 0,
+    },
+    headerActions: {
+      flexShrink: 0,
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+    },
+    newButton: {
+      minHeight: mentaLayout.minimumTouchTarget,
+      borderRadius: mentaRadii.round,
+      paddingHorizontal: mentaSpacing[4],
+    },
+    staleNotice: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.warningSoft,
+      borderColor: mentaColors.warningBorder,
+      borderRadius: mentaRadii.medium,
+      borderWidth: 1,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      padding: mentaSpacing[3],
+    },
+    staleNoticeText: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.primary,
+      flex: 1,
+    },
+  });
+  return { styles };
+};

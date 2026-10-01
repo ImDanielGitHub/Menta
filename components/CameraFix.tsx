@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaColors as mediaColors,
+  mentaRadii,
+  mentaSpacing,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -22,11 +29,7 @@ import {
 } from '@/components/ui/icons';
 import { AppButton } from '@/components/ui/AppButton';
 import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-} from '@/constants/MentaDesignSystem';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { addBreadcrumb, captureError, captureMessage } from '@/lib/sentry';
@@ -66,6 +69,8 @@ function ScannerLoadingVisual({
   light?: boolean;
   testID: string;
 }) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const foreground = light ? colors.text.primary : colors.primary;
 
@@ -104,6 +109,8 @@ function ScannerStatePanel({
   secondaryAction,
   testID,
 }: ScannerStatePanelProps) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const phoneLayout = usePhoneLayout();
   const messageColor =
@@ -170,7 +177,8 @@ function ScannerStatePanel({
 }
 
 function ScannerCloseButton({ onPress }: { onPress?: () => void }) {
-  const { colors } = useTheme();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
 
   if (!onPress) return null;
@@ -187,7 +195,7 @@ function ScannerCloseButton({ onPress }: { onPress?: () => void }) {
         pressed && styles.closeButtonPressed,
       ]}
     >
-      <XIcon size={22} color={colors.text.primary} />
+      <XIcon size={22} color={mediaColors.text.primary} />
     </Pressable>
   );
 }
@@ -199,6 +207,8 @@ function ScannerTopBar({
   topInset: number;
   onClose?: () => void;
 }) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   return (
     <View
       pointerEvents="box-none"
@@ -213,6 +223,8 @@ export default function CameraFix({
   onBarCodeScanned,
   onClose,
 }: CameraFixProps) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const [permission, requestPermission] = useCameraPermissions();
   const isFocused = useIsFocused();
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -628,168 +640,171 @@ export default function CameraFix({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  stateTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    lineHeight: 28,
-    marginTop: 16,
-    textAlign: 'center',
-  },
-  statePanel: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    maxWidth: 360,
-    padding: 24,
-  },
-  stateIcon: {
-    minHeight: 48,
-    justifyContent: 'center',
-  },
-  loadingVisual: {
-    alignItems: 'center',
-    gap: mentaSpacing[3],
-  },
-  loadingFrame: {
-    width: 112,
-    height: 88,
-    borderWidth: 1,
-    borderRadius: mentaRadii.large,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  loadingLens: {
-    overflow: 'hidden',
-  },
-  loadingLensIcon: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stateMessage: {
-    textAlign: 'center',
-    fontSize: 16,
-    lineHeight: 22,
-    marginTop: 12,
-  },
-  statePrimaryAction: {
-    marginTop: 24,
-    minWidth: 190,
-  },
-  stateSecondaryAction: {
-    marginTop: 8,
-  },
-  initializingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  initializingText: {
-    color: mentaColors.text.primary,
-    fontSize: 16,
-    marginTop: 16,
-  },
-  inactiveContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: mentaColors.canvas,
-    paddingHorizontal: 24,
-  },
-  inactiveText: {
-    textAlign: 'center',
-    fontSize: 16,
-    marginTop: 16,
-  },
-  pausedIcon: {
-    width: 72,
-    height: 72,
-    borderRadius: mentaRadii.large,
-    borderWidth: 1,
-    borderColor: mentaColors.border,
-    backgroundColor: mentaColors.raised,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  scanArea: {
-    width: 250,
-    height: 250,
-    position: 'relative',
-  },
-  corner: {
-    position: 'absolute',
-    width: 40,
-    height: 40,
-    borderColor: mentaColors.text.primary,
-  },
-  cornerTopLeft: {
-    top: 0,
-    left: 0,
-    borderTopWidth: 3,
-    borderLeftWidth: 3,
-  },
-  cornerTopRight: {
-    top: 0,
-    right: 0,
-    borderTopWidth: 3,
-    borderRightWidth: 3,
-  },
-  cornerBottomLeft: {
-    bottom: 0,
-    left: 0,
-    borderBottomWidth: 3,
-    borderLeftWidth: 3,
-  },
-  cornerBottomRight: {
-    bottom: 0,
-    right: 0,
-    borderBottomWidth: 3,
-    borderRightWidth: 3,
-  },
-  scanText: {
-    color: mentaColors.text.primary,
-    fontSize: 16,
-    marginTop: 30,
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  topBar: {
-    position: 'absolute',
-    left: 12,
-    right: 12,
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    zIndex: 10,
-  },
-  closeButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  closeButtonPressed: {
-    opacity: 0.72,
-    transform: [{ scale: 0.98 }],
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    stateTitle: {
+      fontSize: 22,
+      fontWeight: '700',
+      lineHeight: 28,
+      marginTop: 16,
+      textAlign: 'center',
+    },
+    statePanel: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      maxWidth: 360,
+      padding: 24,
+    },
+    stateIcon: {
+      minHeight: 48,
+      justifyContent: 'center',
+    },
+    loadingVisual: {
+      alignItems: 'center',
+      gap: mentaSpacing[3],
+    },
+    loadingFrame: {
+      width: 112,
+      height: 88,
+      borderWidth: 1,
+      borderRadius: mentaRadii.large,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    loadingLens: {
+      overflow: 'hidden',
+    },
+    loadingLensIcon: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    stateMessage: {
+      textAlign: 'center',
+      fontSize: 16,
+      lineHeight: 22,
+      marginTop: 12,
+    },
+    statePrimaryAction: {
+      marginTop: 24,
+      minWidth: 190,
+    },
+    stateSecondaryAction: {
+      marginTop: 8,
+    },
+    initializingOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.7)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    initializingText: {
+      color: mediaColors.text.primary,
+      fontSize: 16,
+      marginTop: 16,
+    },
+    inactiveContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: mentaColors.canvas,
+      paddingHorizontal: 24,
+    },
+    inactiveText: {
+      textAlign: 'center',
+      fontSize: 16,
+      marginTop: 16,
+    },
+    pausedIcon: {
+      width: 72,
+      height: 72,
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      borderColor: mentaColors.border,
+      backgroundColor: mentaColors.raised,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    overlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    scanArea: {
+      width: 250,
+      height: 250,
+      position: 'relative',
+    },
+    corner: {
+      position: 'absolute',
+      width: 40,
+      height: 40,
+      borderColor: mentaColors.text.primary,
+    },
+    cornerTopLeft: {
+      top: 0,
+      left: 0,
+      borderTopWidth: 3,
+      borderLeftWidth: 3,
+    },
+    cornerTopRight: {
+      top: 0,
+      right: 0,
+      borderTopWidth: 3,
+      borderRightWidth: 3,
+    },
+    cornerBottomLeft: {
+      bottom: 0,
+      left: 0,
+      borderBottomWidth: 3,
+      borderLeftWidth: 3,
+    },
+    cornerBottomRight: {
+      bottom: 0,
+      right: 0,
+      borderBottomWidth: 3,
+      borderRightWidth: 3,
+    },
+    scanText: {
+      color: mentaColors.text.primary,
+      fontSize: 16,
+      marginTop: 30,
+      textAlign: 'center',
+      fontWeight: '500',
+    },
+    topBar: {
+      position: 'absolute',
+      left: 12,
+      right: 12,
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      zIndex: 10,
+    },
+    closeButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    closeButtonPressed: {
+      opacity: 0.72,
+      transform: [{ scale: 0.98 }],
+    },
+  });
+  return { styles };
+};

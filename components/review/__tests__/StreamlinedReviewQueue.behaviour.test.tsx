@@ -1,4 +1,10 @@
+jest.mock('@/hooks/usePromiseAccountability', () => ({
+  usePromiseAccountability: () => ({ data: undefined }),
+}));
 import React from 'react';
+jest.mock('@/components/menta-check/menta-review-hint', () => ({
+  MentaReviewHint: () => null,
+}));
 import { Modal } from 'react-native';
 import {
   act,

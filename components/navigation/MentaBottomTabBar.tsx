@@ -82,7 +82,7 @@ export function MentaBottomTabBar({
 }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const motion = useMotionPreferences();
   const { t } = useTranslation();
   const iPadContentWidth = resolveIPadBottomTabContentWidth(
@@ -102,7 +102,9 @@ export function MentaBottomTabBar({
         {
           paddingBottom: Math.max(insets.bottom, mentaSpacing[5]),
           paddingTop: mentaSpacing[2],
-          backgroundColor: colors.background.secondary,
+          backgroundColor: isDark
+            ? colors.background.secondary
+            : colors.background.primary,
           borderTopColor: colors.border.primary,
           borderRightColor: colors.border.primary,
         },

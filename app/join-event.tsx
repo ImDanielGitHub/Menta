@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
@@ -10,12 +17,7 @@ import {
   SkeletonLoader,
 } from '@/components/ui';
 import { AppScaledText as Text } from '@/components/ui/AppScaledText';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { isValidEventId } from '@/lib/events/links';
 import { useTranslation } from '@/lib/localization';
 import {
@@ -93,6 +95,8 @@ const eventAvailability = (
 };
 
 export default function JoinEventRoute() {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const router = useRouter();
   const { locale, t } = useTranslation();
   const params = useLocalSearchParams<{ eventId?: string | string[] }>();
@@ -356,63 +360,66 @@ export default function JoinEventRoute() {
   );
 }
 
-const styles = StyleSheet.create({
-  content: { gap: mentaSpacing[6], paddingBottom: mentaSpacing[8] },
-  loading: { gap: mentaSpacing[4] },
-  stack: { gap: mentaSpacing[6] },
-  heading: { gap: mentaSpacing[3] },
-  title: { ...mentaTypography.heading, color: mentaColors.text.primary },
-  body: { ...mentaTypography.body, color: mentaColors.text.secondary },
-  eventSurface: {
-    backgroundColor: mentaColors.surface,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[3],
-    padding: mentaSpacing[5],
-  },
-  eventContext: {
-    ...mentaTypography.label,
-    color: mentaColors.action,
-  },
-  eventTitle: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-  },
-  eventMeta: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.text.primary,
-  },
-  eventDescription: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-  },
-  eventFacts: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  eventFactRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    justifyContent: 'space-between',
-    minHeight: 48,
-  },
-  eventFactLabel: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-  },
-  eventFactValue: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.text.primary,
-    flex: 1,
-    textAlign: 'right',
-  },
-  eventConsequence: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-  },
-  actions: { gap: mentaSpacing[3] },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    content: { gap: mentaSpacing[6], paddingBottom: mentaSpacing[8] },
+    loading: { gap: mentaSpacing[4] },
+    stack: { gap: mentaSpacing[6] },
+    heading: { gap: mentaSpacing[3] },
+    title: { ...mentaTypography.heading, color: mentaColors.text.primary },
+    body: { ...mentaTypography.body, color: mentaColors.text.secondary },
+    eventSurface: {
+      backgroundColor: mentaColors.surface,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[3],
+      padding: mentaSpacing[5],
+    },
+    eventContext: {
+      ...mentaTypography.label,
+      color: mentaColors.action,
+    },
+    eventTitle: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+    },
+    eventMeta: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.text.primary,
+    },
+    eventDescription: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+    },
+    eventFacts: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+    },
+    eventFactRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      justifyContent: 'space-between',
+      minHeight: 48,
+    },
+    eventFactLabel: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+    },
+    eventFactValue: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.text.primary,
+      flex: 1,
+      textAlign: 'right',
+    },
+    eventConsequence: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+    },
+    actions: { gap: mentaSpacing[3] },
+  });
+  return { styles };
+};

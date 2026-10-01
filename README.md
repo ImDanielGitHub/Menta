@@ -14,7 +14,9 @@ data.
   This is the hosted service. It does not test a build from this repository.
 - **Run the source code:** follow the steps below and the [installation guide](docs/SETUP.md).
   You will need a computer, native app development tools and a Supabase backend.
-  There is no ready-made APK or IPA in this repository.
+  See the [judge quickstart](docs/JUDGING.md) for the free test path, premium
+  access requirements, and building a standalone Android APK. There is no
+  verified current APK or IPA published with this source snapshot.
 
 ## Install and run the code
 
@@ -75,16 +77,22 @@ services are not connected to the official Menta accounts. See the
 npm run check:public
 npm run type-check
 npm run test:core
+npm run test:judge
 ```
 
 `check:public` checks that the repository keeps independent configuration and
 does not include recognised private files or credentials. Type checking catches
 TypeScript errors. The core tests cover proof status and purchase helpers.
+The judge regression suite covers proof/deletion recovery, reminders, the inbox,
+the free paywall and Menta Check contracts. Some inherited broad-suite contract
+tests still reference private historical migrations or production-only release
+files absent from this edition; they are not a self-hosted database smoke test.
 Run the relevant additional tests when changing other features.
 
 ## About this version
 
-This update brings the app source to **1.9.6**. [SOURCE.md](SOURCE.md) describes
+This update brings the app source to **1.9.7**, including the latest shipped
+proof, deletion, free-plan and reminder fixes. [SOURCE.md](SOURCE.md) describes
 what is included and how updates work; `source-manifest.json` records the exact
 source revision. A source update does not publish an App Store build.
 

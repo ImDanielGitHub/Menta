@@ -1,15 +1,17 @@
-import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { AppCard } from '@/components/ui/AppCard';
-import { AppTag } from '@/components/ui/AppChoice';
-import { CalendarIcon, CameraIcon, UsersIcon } from '@/components/ui/icons';
 import {
-  mentaColors,
+  type MentaPalette,
   mentaLayout,
   mentaRadii,
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
+import React from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { AppCard } from '@/components/ui/AppCard';
+import { AppTag } from '@/components/ui/AppChoice';
+import { CalendarIcon, CameraIcon, UsersIcon } from '@/components/ui/icons';
+
 import type {
   CategoryOption,
   CreateChallengeFormData,
@@ -55,6 +57,9 @@ export function ReviewStep({
     privacyAndVerification: 5,
   },
 }: ReviewStepProps) {
+  const mentaColors = useMentaPalette();
+  const { reviewStyles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const holder = formData.allowSelfReview
     ? 'Only you'
@@ -207,33 +212,36 @@ export function ReviewStep({
   );
 }
 
-const reviewStyles = StyleSheet.create({
-  editAction: {
-    minWidth: mentaLayout.minimumTouchTarget,
-    minHeight: mentaLayout.minimumTouchTarget,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: mentaRadii.small,
-    paddingHorizontal: mentaSpacing[2],
-  },
-  editActionPressed: {
-    backgroundColor: mentaColors.actionSoft,
-  },
-  editWords: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.text.secondary,
-  },
-  editText: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.action,
-  },
-  launchPill: {
-    borderColor: mentaColors.border,
-  },
-  pillText: {
-    color: mentaColors.text.secondary,
-  },
-  divider: {
-    backgroundColor: mentaColors.border,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const reviewStyles = StyleSheet.create({
+    editAction: {
+      minWidth: mentaLayout.minimumTouchTarget,
+      minHeight: mentaLayout.minimumTouchTarget,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: mentaRadii.small,
+      paddingHorizontal: mentaSpacing[2],
+    },
+    editActionPressed: {
+      backgroundColor: mentaColors.actionSoft,
+    },
+    editWords: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.text.secondary,
+    },
+    editText: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.action,
+    },
+    launchPill: {
+      borderColor: mentaColors.border,
+    },
+    pillText: {
+      color: mentaColors.text.secondary,
+    },
+    divider: {
+      backgroundColor: mentaColors.border,
+    },
+  });
+  return { reviewStyles };
+};

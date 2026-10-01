@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import { useTranslation } from '@/lib/localization';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -25,13 +33,7 @@ import {
 } from '@/lib/legal-acceptance';
 import { networkManager } from '@/lib/network';
 import { useAuthStore } from '@/store/auth-store';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 
 const getParam = (value?: string | string[]) =>
@@ -54,23 +56,29 @@ const AgreementRow = ({
   label: string;
   onPress: () => void;
   testID: string;
-}) => (
-  <Pressable
-    accessibilityLabel={label}
-    accessibilityRole="checkbox"
-    accessibilityState={{ checked }}
-    onPress={onPress}
-    style={({ pressed }) => [styles.agreement, pressed && styles.pressed]}
-    testID={testID}
-  >
-    <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
-      {checked ? <CheckIcon color={mentaColors.canvas} size={18} /> : null}
-    </View>
-    <Text style={styles.agreementText}>{label}</Text>
-  </Pressable>
-);
+}) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <Pressable
+      accessibilityLabel={label}
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked }}
+      onPress={onPress}
+      style={({ pressed }) => [styles.agreement, pressed && styles.pressed]}
+      testID={testID}
+    >
+      <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
+        {checked ? <CheckIcon color={mentaColors.canvas} size={18} /> : null}
+      </View>
+      <Text style={styles.agreementText}>{label}</Text>
+    </Pressable>
+  );
+};
 
 export default function LegalAcceptanceScreen() {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const router = useRouter();
   const phoneLayout = usePhoneLayout();
@@ -406,86 +414,89 @@ export default function LegalAcceptanceScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    alignSelf: 'center',
-    flexGrow: 1,
-    gap: mentaSpacing[4],
-    paddingBottom: mentaSpacing[8],
-    paddingTop: mentaSpacing[3],
-    width: '100%',
-  },
-  header: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: mentaLayout.minimumTouchTarget,
-  },
-  headerLabel: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.bodySemibold,
-  },
-  headerBack: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: mentaLayout.minimumTouchTarget,
-    minWidth: mentaLayout.minimumTouchTarget,
-    paddingHorizontal: mentaSpacing[2],
-  },
-  headerBackText: {
-    color: mentaColors.action,
-    ...mentaTypography.bodySmallMedium,
-  },
-  intro: { gap: mentaSpacing[3] },
-  introHero: {
-    alignItems: 'flex-end',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 104,
-  },
-  title: {
-    color: mentaColors.text.primary,
-    flex: 1,
-    ...mentaTypography.heading,
-  },
-  titleAccent: { color: mentaColors.action },
-  mascot: { flexShrink: 0 },
-  body: { color: mentaColors.text.secondary, ...mentaTypography.body },
-  helper: {
-    alignSelf: 'center',
-    color: mentaColors.text.secondary,
-    maxWidth: mentaLayout.readingMeasure,
-    textAlign: 'center',
-    ...mentaTypography.bodySmall,
-  },
-  agreements: { gap: mentaSpacing[3] },
-  agreement: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: mentaLayout.minimumTouchTarget,
-    paddingVertical: mentaSpacing[3],
-  },
-  checkbox: {
-    alignItems: 'center',
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.small,
-    borderWidth: 1,
-    height: 24,
-    justifyContent: 'center',
-    width: 24,
-  },
-  checkboxChecked: {
-    backgroundColor: mentaColors.action,
-    borderColor: mentaColors.action,
-  },
-  agreementText: {
-    color: mentaColors.text.primary,
-    flex: 1,
-    ...mentaTypography.body,
-  },
-  actions: { gap: mentaSpacing[4], marginTop: 'auto' },
-  loadingRecord: { gap: mentaSpacing[5] },
-  loadingAgreementCopy: { flex: 1, gap: mentaSpacing[2], paddingTop: 4 },
-  pressed: { opacity: 0.72 },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: {
+      alignSelf: 'center',
+      flexGrow: 1,
+      gap: mentaSpacing[4],
+      paddingBottom: mentaSpacing[8],
+      paddingTop: mentaSpacing[3],
+      width: '100%',
+    },
+    header: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      minHeight: mentaLayout.minimumTouchTarget,
+    },
+    headerLabel: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.bodySemibold,
+    },
+    headerBack: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: mentaLayout.minimumTouchTarget,
+      minWidth: mentaLayout.minimumTouchTarget,
+      paddingHorizontal: mentaSpacing[2],
+    },
+    headerBackText: {
+      color: mentaColors.action,
+      ...mentaTypography.bodySmallMedium,
+    },
+    intro: { gap: mentaSpacing[3] },
+    introHero: {
+      alignItems: 'flex-end',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 104,
+    },
+    title: {
+      color: mentaColors.text.primary,
+      flex: 1,
+      ...mentaTypography.heading,
+    },
+    titleAccent: { color: mentaColors.action },
+    mascot: { flexShrink: 0 },
+    body: { color: mentaColors.text.secondary, ...mentaTypography.body },
+    helper: {
+      alignSelf: 'center',
+      color: mentaColors.text.secondary,
+      maxWidth: mentaLayout.readingMeasure,
+      textAlign: 'center',
+      ...mentaTypography.bodySmall,
+    },
+    agreements: { gap: mentaSpacing[3] },
+    agreement: {
+      alignItems: 'flex-start',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: mentaLayout.minimumTouchTarget,
+      paddingVertical: mentaSpacing[3],
+    },
+    checkbox: {
+      alignItems: 'center',
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.small,
+      borderWidth: 1,
+      height: 24,
+      justifyContent: 'center',
+      width: 24,
+    },
+    checkboxChecked: {
+      backgroundColor: mentaColors.action,
+      borderColor: mentaColors.action,
+    },
+    agreementText: {
+      color: mentaColors.text.primary,
+      flex: 1,
+      ...mentaTypography.body,
+    },
+    actions: { gap: mentaSpacing[4], marginTop: 'auto' },
+    loadingRecord: { gap: mentaSpacing[5] },
+    loadingAgreementCopy: { flex: 1, gap: mentaSpacing[2], paddingTop: 4 },
+    pressed: { opacity: 0.72 },
+  });
+  return { styles };
+};

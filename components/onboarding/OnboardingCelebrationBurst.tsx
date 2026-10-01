@@ -1,26 +1,14 @@
+import type { MentaPalette } from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 
-import { mentaColors } from '@/constants/MentaDesignSystem';
 import { useMotionPreferences } from '@/lib/motion/use-motion-preferences';
-
-const pieces = [
-  { x: -132, y: -132, rotate: '-130deg', color: mentaColors.action },
-  { x: -96, y: -178, rotate: '-70deg', color: mentaColors.warning },
-  { x: -54, y: -148, rotate: '-35deg', color: mentaColors.text.primary },
-  { x: -18, y: -188, rotate: '-18deg', color: mentaColors.action },
-  { x: 24, y: -168, rotate: '25deg', color: mentaColors.warning },
-  { x: 68, y: -144, rotate: '58deg', color: mentaColors.text.primary },
-  { x: 112, y: -174, rotate: '92deg', color: mentaColors.action },
-  { x: 142, y: -118, rotate: '134deg', color: mentaColors.warning },
-  { x: -148, y: -76, rotate: '-110deg', color: mentaColors.text.primary },
-  { x: 154, y: -52, rotate: '118deg', color: mentaColors.action },
-  { x: -116, y: -36, rotate: '-82deg', color: mentaColors.warning },
-  { x: 120, y: -20, rotate: '76deg', color: mentaColors.text.primary },
-] as const;
 
 /** One-shot, server-confirmed celebration. It never loops or blocks input. */
 export function OnboardingCelebrationBurst() {
+  const { pieces } = useMentaStyles(createPaletteStyles);
+
   const motion = useMotionPreferences();
   const progress = useRef(new Animated.Value(0)).current;
 
@@ -118,3 +106,21 @@ const styles = StyleSheet.create({
     top: 0,
   },
 });
+
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const pieces = [
+    { x: -132, y: -132, rotate: '-130deg', color: mentaColors.action },
+    { x: -96, y: -178, rotate: '-70deg', color: mentaColors.warning },
+    { x: -54, y: -148, rotate: '-35deg', color: mentaColors.text.primary },
+    { x: -18, y: -188, rotate: '-18deg', color: mentaColors.action },
+    { x: 24, y: -168, rotate: '25deg', color: mentaColors.warning },
+    { x: 68, y: -144, rotate: '58deg', color: mentaColors.text.primary },
+    { x: 112, y: -174, rotate: '92deg', color: mentaColors.action },
+    { x: 142, y: -118, rotate: '134deg', color: mentaColors.warning },
+    { x: -148, y: -76, rotate: '-110deg', color: mentaColors.text.primary },
+    { x: 154, y: -52, rotate: '118deg', color: mentaColors.action },
+    { x: -116, y: -36, rotate: '-82deg', color: mentaColors.warning },
+    { x: 120, y: -20, rotate: '76deg', color: mentaColors.text.primary },
+  ] as const;
+  return { pieces };
+};

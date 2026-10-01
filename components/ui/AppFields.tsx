@@ -221,7 +221,10 @@ export const AppTextField = forwardRef<AppTextFieldRef, AppTextFieldProps>(
           {left ? <View style={styles.side}>{left}</View> : null}
           <View style={styles.fieldBody}>
             {showExpoField ? (
-              <Host style={styles.swiftUIHost}>
+              <Host
+                colorScheme={theme.isDark ? 'dark' : 'light'}
+                style={styles.swiftUIHost}
+              >
                 <ExpoTextField
                   ref={expoRef}
                   text={expoTextState}
@@ -240,6 +243,7 @@ export const AppTextField = forwardRef<AppTextFieldRef, AppTextFieldProps>(
               </Host>
             ) : (
               <TextInput
+                keyboardAppearance={theme.isDark ? 'dark' : 'light'}
                 {...props}
                 ref={nativeRef}
                 value={value}
@@ -432,7 +436,10 @@ export const AppSecureField = forwardRef<AppTextFieldRef, AppTextFieldProps>(
         >
           <View style={styles.fieldBody}>
             {showExpoSecureField ? (
-              <Host style={styles.swiftUIHost}>
+              <Host
+                colorScheme={theme.isDark ? 'dark' : 'light'}
+                style={styles.swiftUIHost}
+              >
                 <ExpoSecureField
                   ref={expoRef}
                   text={expoTextState}
@@ -451,6 +458,7 @@ export const AppSecureField = forwardRef<AppTextFieldRef, AppTextFieldProps>(
               </Host>
             ) : (
               <TextInput
+                keyboardAppearance={theme.isDark ? 'dark' : 'light'}
                 {...props}
                 ref={nativeRef}
                 value={value}
@@ -661,7 +669,10 @@ export const AppSwitchRow: React.FC<{
         ]}
       >
         {copy}
-        <Host style={styles.swiftUISwitchHost}>
+        <Host
+          colorScheme={theme.isDark ? 'dark' : 'light'}
+          style={styles.swiftUISwitchHost}
+        >
           <ExpoToggle
             isOn={value}
             modifiers={iosToggleModifiers}
@@ -901,7 +912,10 @@ export const AppDateTimeRow: React.FC<{
       {open ? (
         <View style={styles.datePickerWrap}>
           {Platform.OS === 'ios' ? (
-            <Host style={styles.swiftUIDatePickerHost}>
+            <Host
+              colorScheme={theme.isDark ? 'dark' : 'light'}
+              style={styles.swiftUIDatePickerHost}
+            >
               <ExpoDatePicker
                 selection={value}
                 displayedComponents={['hourAndMinute']}

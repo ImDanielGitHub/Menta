@@ -193,6 +193,7 @@ const gatherAdsConsentOnce = async (): Promise<AdsReadiness> => {
     return consentGatherPromise;
   }
 
+  let retryAfterTransientFailure = false;
   consentGatherPromise = (async () => {
     if (
       !AdsConsent ||
@@ -220,7 +221,28 @@ const gatherAdsConsentOnce = async (): Promise<AdsReadiness> => {
       });
       return readiness;
     } catch (error) {
-      sentryCapture(error, { context: 'admob_consent_gather_failed' });
+      // REACT-NATIVE-96/8R: UMP forwards these iOS transport responses verbatim.
+      // Keep this narrow: other consent failures remain actionable errors.
+      const message =
+        error !== null && typeof error === 'object' && 'message' in error
+          ? error.message
+          : undefined;
+      const transientReason =
+        Platform.OS !== 'ios'
+          ? null
+          : message === 'The Internet connection appears to be offline.'
+            ? 'offline'
+            : message === 'The request timed out.'
+              ? 'timeout'
+              : null;
+      retryAfterTransientFailure = transientReason !== null;
+      if (transientReason) {
+        sentryBreadcrumb(`admob_consent_gather_${transientReason}`, {
+          platform: Platform.OS,
+        });
+      } else {
+        sentryCapture(error, { context: 'admob_consent_gather_failed' });
+      }
 
       // UMP can retain a valid decision from the previous session. The SDK's
       // current guidance is to re-read that decision after an update error.
@@ -232,6 +254,7 @@ const gatherAdsConsentOnce = async (): Promise<AdsReadiness> => {
           canRequestAds: info.canRequestAds,
           status: info.status,
         });
+        if (readiness.ready) retryAfterTransientFailure = false;
         return readiness.ready
           ? readiness
           : {
@@ -247,7 +270,11 @@ const gatherAdsConsentOnce = async (): Promise<AdsReadiness> => {
     }
   })();
 
-  return consentGatherPromise;
+  const readiness = await consentGatherPromise;
+  // Share the in-flight attempt, but do not cache a blocked transport result for
+  // the entire session. The next request must pass through UMP again.
+  if (retryAfterTransientFailure) consentGatherPromise = null;
+  return readiness;
 };
 
 const initializeMobileAdsWhenPermitted = async (): Promise<AdsReadiness> => {

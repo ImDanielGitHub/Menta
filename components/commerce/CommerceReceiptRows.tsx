@@ -1,8 +1,9 @@
+import type { MentaPalette } from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AppFieldRow } from '@/components/ui/AppFields';
-import { mentaColors } from '@/constants/MentaDesignSystem';
 
 export type CommerceReceiptFact = {
   label: string;
@@ -24,6 +25,8 @@ export const CommerceReceiptRows = ({
   facts,
   testID,
 }: CommerceReceiptRowsProps) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   if (facts.length === 0) return null;
 
   return (
@@ -42,11 +45,14 @@ export const CommerceReceiptRows = ({
   );
 };
 
-const styles = StyleSheet.create({
-  rows: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    rows: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+    },
+  });
+  return { styles };
+};

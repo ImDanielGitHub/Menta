@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useEffect } from 'react';
 import { Modal, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, {
@@ -12,13 +20,7 @@ import Svg, { Path } from 'react-native-svg';
 
 import { OnboardingCelebrationBurst } from '@/components/onboarding/OnboardingCelebrationBurst';
 import { AppButton } from '@/components/ui/AppButton';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useMotionPreferences } from '@/lib/motion/use-motion-preferences';
 
 import { ShopItemArt, tokenAlpha } from './ShopItemArt';
@@ -81,6 +83,9 @@ export function ShopPurchaseCelebration({
   secondaryAction,
   onClose,
 }: ShopPurchaseCelebrationProps) {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const motion = useMotionPreferences();
   const pop = useSharedValue(motion.reduceMotion ? 1 : 0);
   const burst = useSharedValue(motion.reduceMotion ? 1 : 0);
@@ -200,84 +205,87 @@ export function ShopPurchaseCelebration({
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    backgroundColor: mentaColors.canvas,
-    flex: 1,
-  },
-  content: {
-    alignItems: 'center',
-    flexGrow: 1,
-    gap: mentaSpacing[6],
-    justifyContent: 'center',
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingVertical: mentaSpacing[8],
-  },
-  stage: {
-    alignItems: 'center',
-    height: STAGE,
-    justifyContent: 'center',
-    width: STAGE,
-  },
-  sunburst: {
-    height: STAGE,
-    left: 0,
-    position: 'absolute',
-    top: 0,
-    width: STAGE,
-  },
-  glow: {
-    backgroundColor: tokenAlpha(mentaColors.action, 0.12),
-    borderRadius: mentaRadii.round,
-    height: 176,
-    position: 'absolute',
-    width: 176,
-  },
-  gain: {
-    backgroundColor: mentaColors.action,
-    borderColor: mentaColors.canvas,
-    borderRadius: mentaRadii.round,
-    borderWidth: 3,
-    paddingHorizontal: mentaSpacing[3],
-    paddingVertical: 2,
-    position: 'absolute',
-    right: -mentaSpacing[3],
-    top: -mentaSpacing[3],
-  },
-  gainText: {
-    color: mentaColors.canvas,
-    ...mentaTypography.bodySemibold,
-    fontVariant: ['tabular-nums'],
-  },
-  burstAnchor: {
-    height: 1,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: STAGE / 2 - 178,
-  },
-  copy: {
-    alignItems: 'center',
-    gap: mentaSpacing[3],
-    maxWidth: mentaLayout.readingMeasure,
-  },
-  title: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.heading,
-    textAlign: 'center',
-  },
-  detail: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.body,
-    textAlign: 'center',
-  },
-  footer: {
-    gap: mentaSpacing[2],
-    paddingBottom: mentaSpacing[4],
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingTop: mentaSpacing[3],
-  },
-  secondaryText: {
-    color: mentaColors.action,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: {
+      backgroundColor: mentaColors.canvas,
+      flex: 1,
+    },
+    content: {
+      alignItems: 'center',
+      flexGrow: 1,
+      gap: mentaSpacing[6],
+      justifyContent: 'center',
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingVertical: mentaSpacing[8],
+    },
+    stage: {
+      alignItems: 'center',
+      height: STAGE,
+      justifyContent: 'center',
+      width: STAGE,
+    },
+    sunburst: {
+      height: STAGE,
+      left: 0,
+      position: 'absolute',
+      top: 0,
+      width: STAGE,
+    },
+    glow: {
+      backgroundColor: tokenAlpha(mentaColors.action, 0.12),
+      borderRadius: mentaRadii.round,
+      height: 176,
+      position: 'absolute',
+      width: 176,
+    },
+    gain: {
+      backgroundColor: mentaColors.action,
+      borderColor: mentaColors.canvas,
+      borderRadius: mentaRadii.round,
+      borderWidth: 3,
+      paddingHorizontal: mentaSpacing[3],
+      paddingVertical: 2,
+      position: 'absolute',
+      right: -mentaSpacing[3],
+      top: -mentaSpacing[3],
+    },
+    gainText: {
+      color: mentaColors.canvas,
+      ...mentaTypography.bodySemibold,
+      fontVariant: ['tabular-nums'],
+    },
+    burstAnchor: {
+      height: 1,
+      left: 0,
+      position: 'absolute',
+      right: 0,
+      top: STAGE / 2 - 178,
+    },
+    copy: {
+      alignItems: 'center',
+      gap: mentaSpacing[3],
+      maxWidth: mentaLayout.readingMeasure,
+    },
+    title: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.heading,
+      textAlign: 'center',
+    },
+    detail: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.body,
+      textAlign: 'center',
+    },
+    footer: {
+      gap: mentaSpacing[2],
+      paddingBottom: mentaSpacing[4],
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingTop: mentaSpacing[3],
+    },
+    secondaryText: {
+      color: mentaColors.action,
+    },
+  });
+  return { styles };
+};

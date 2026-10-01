@@ -1,4 +1,26 @@
 export const notificationsEnNZ = {
+  'notifications.recovery.restart':
+    'One missed day isn’t the whole story. Start again with your next check-in; proof counts after approval.',
+  'notifications.recovery.month':
+    'There’s about a month left in this promise. Your next check-in is a fresh start; proof counts after approval.',
+
+  'notifications.smart.title': 'Smart reminders',
+  'notifications.smart.time': 'Usual reminder time',
+  'notifications.smart.body':
+    'Menta adjusts reminders while proof is due and stops when you submit it. Your usual time guides the timing.',
+  'notifications.smart.advanced': 'Advanced options',
+  'notifications.inbox.title': 'Activity',
+  'notifications.inbox.settings': 'Notification settings',
+  'notifications.inbox.error': 'Could not update activity',
+  'notifications.inbox.error_body':
+    'Try again. Your previous read state is still saved.',
+  'notifications.inbox.loading': 'Loading activity',
+  'notifications.inbox.empty': 'No recent activity',
+  'notifications.inbox.empty_body':
+    'Your recent notification updates will appear here. Check Today for what is due.',
+  'notifications.inbox.unread': 'Unread',
+  'notifications.inbox.hint': 'Opens your activity inbox',
+
   'notifications.topbar.back': 'Back',
   'notifications.topbar.context': 'Optional',
   'notifications.topbar.title': 'Notifications',

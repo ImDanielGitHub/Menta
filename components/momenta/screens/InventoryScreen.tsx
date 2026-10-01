@@ -534,6 +534,7 @@ export default function InventoryScreen() {
         <View style={styles.emptyStateGroup}>
           <ShopStatePanel
             title={t('commerce.shop.noItemsYet')}
+            mascot="items-empty"
             message={getInventoryEmptyCopy(t)}
             actionTitle={t('commerce.action.openShop')}
             onAction={() => selectSection('shop')}

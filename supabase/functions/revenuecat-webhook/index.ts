@@ -1,8 +1,10 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
+import { evaluateWeeklyCreditReceipt } from './weekly-credit-policy.ts';
 
 interface RevenueCatEvent {
   id?: string;
   type?: string;
+  period_type?: string;
   app_user_id?: string;
   event_timestamp_ms?: number;
   app_id?: string;
@@ -343,15 +345,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       : /annual|yearly/i.test(productId)
         ? 12
         : 1;
-    const paidPrice = Number.isFinite(event.price_in_purchased_currency)
-      ? event.price_in_purchased_currency
-      : Number.isFinite(event.price)
-        ? event.price
-        : null;
-    // Entitlement processing remains independent of the confirmed cash receipt.
-    // A missing amount or zero-price trial must not mint the paid weekly grant.
-    const weeklyPaymentConfirmed =
-      typeof paidPrice === 'number' && paidPrice > 0;
+    const weeklyCredit = evaluateWeeklyCreditReceipt(event);
 
     let mappedCredits: number | undefined;
     if (isPurchase) {
@@ -374,7 +368,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       creditReason = 'credit_pack_purchase';
       creditReference = `rc:${store}:${transactionId}:credit_pack`;
       creditDescription = 'Momenta pack';
-    } else if (isPurchase && hasPro && (!weeklyPro || weeklyPaymentConfirmed)) {
+    } else if (isPurchase && hasPro && (!weeklyPro || weeklyCredit.eligible)) {
       creditAmount = /annual|yearly/i.test(productId)
         ? 4000
         : /weekly/i.test(productId)
@@ -434,11 +428,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
             weeklyPro && isPurchase && hasPro
               ? {
                   ...payload,
-                  menta_credit_decision: weeklyPaymentConfirmed
-                    ? 'weekly_payment_confirmed'
-                    : paidPrice === null
-                      ? 'weekly_payment_amount_missing'
-                      : 'weekly_no_paid_amount',
+                  menta_credit_decision: weeklyCredit.reason,
                 }
               : payload,
         }),

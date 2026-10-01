@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
@@ -14,12 +21,7 @@ import {
   SkeletonLoader,
 } from '@/components/ui';
 import { AppScaledText as Text } from '@/components/ui/AppScaledText';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useTranslation } from '@/lib/localization';
 import {
   accountabilityInviteContinueLabel,
@@ -38,6 +40,8 @@ const firstParam = (value: string | string[] | undefined): string =>
   normalizeInviteCode(Array.isArray(value) ? value[0] : value);
 
 export default function JoinPromiseRoute() {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const router = useRouter();
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ code?: string | string[] }>();
@@ -306,35 +310,38 @@ export default function JoinPromiseRoute() {
   );
 }
 
-const styles = StyleSheet.create({
-  content: { gap: mentaSpacing[6], paddingBottom: mentaSpacing[8] },
-  loading: { gap: mentaSpacing[4] },
-  stack: { gap: mentaSpacing[6] },
-  heading: { gap: mentaSpacing[3] },
-  title: { ...mentaTypography.heading, color: mentaColors.text.primary },
-  body: { ...mentaTypography.body, color: mentaColors.text.secondary },
-  roleRows: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  roleRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    justifyContent: 'space-between',
-    minHeight: 52,
-  },
-  roleLabel: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-  },
-  roleValue: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.text.primary,
-    flex: 1,
-    textAlign: 'right',
-  },
-  actions: { gap: mentaSpacing[3] },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    content: { gap: mentaSpacing[6], paddingBottom: mentaSpacing[8] },
+    loading: { gap: mentaSpacing[4] },
+    stack: { gap: mentaSpacing[6] },
+    heading: { gap: mentaSpacing[3] },
+    title: { ...mentaTypography.heading, color: mentaColors.text.primary },
+    body: { ...mentaTypography.body, color: mentaColors.text.secondary },
+    roleRows: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+    },
+    roleRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      justifyContent: 'space-between',
+      minHeight: 52,
+    },
+    roleLabel: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+    },
+    roleValue: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.text.primary,
+      flex: 1,
+      textAlign: 'right',
+    },
+    actions: { gap: mentaSpacing[3] },
+  });
+  return { styles };
+};

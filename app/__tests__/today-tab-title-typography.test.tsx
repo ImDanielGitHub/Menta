@@ -1,8 +1,17 @@
 import React from 'react';
+jest.mock('@/hooks/use-menta-check', () => ({
+  useMentaCheckToday: () => ({ data: [] }),
+  useMentaCheckOverview: () => ({ data: null, refetch: jest.fn() }),
+}));
+jest.mock('@/components/menta-check/menta-trial-notice', () => ({
+  MentaTrialNotice: () => null,
+}));
 import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
 import TodayScreen from '@/app/(tabs)/index';
+import { HomeWidgetEntry } from '@/components/widgets/HomeWidgetEntry';
+import { useHomeWidgetStore } from '@/store/home-widget-store';
 import { TAB_BAR_PEEK_CLEARANCE } from '@/components/ui/ScreenWrapper';
 import { mentaTypography } from '@/constants/MentaDesignSystem';
 import { readTodaySnapshotCache } from '@/lib/today-snapshot-cache';
@@ -18,6 +27,7 @@ let mockHasTabBar: boolean | undefined;
 let mockUser: { id: string } | null = null;
 const mockShouldUseTwoColumns = jest.fn(() => false);
 let mockPresentationState = 'loading';
+let mockSelectionState = 'loading';
 let mockPhoneLayout = {
   isShortHeight: false,
   screenInset: 24,
@@ -155,7 +165,7 @@ jest.mock('@/lib/loop', () => ({
     timezone: 'Pacific/Auckland',
   }),
   decodeGroupRiskSnapshot: jest.fn(),
-  selectDailyLoopState: () => 'loading',
+  selectDailyLoopState: () => ({ state: mockSelectionState }),
 }));
 
 jest.mock('@/lib/proof-drafts', () => ({
@@ -195,6 +205,8 @@ describe('Today tab title typography', () => {
     mockUser = null;
     mockShouldUseTwoColumns.mockReturnValue(false);
     mockPresentationState = 'loading';
+    mockSelectionState = 'loading';
+    useHomeWidgetStore.setState({ available: false, ownerId: null });
     mockPhoneLayout = {
       isShortHeight: false,
       screenInset: 24,
@@ -204,6 +216,39 @@ describe('Today tab title typography', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+  });
+
+  it('keeps widget setup voluntary on first arrival, refocus and return to Today', async () => {
+    mockUser = { id: 'widget-owner' };
+    mockSelectionState = 'accepted-today';
+    mockPresentationState = 'accepted-today';
+    useHomeWidgetStore.setState({
+      available: true,
+      ready: true,
+      ownerId: mockUser.id,
+      preferences: { promiseId: null, dismissed: false, showText: false },
+    });
+    const first = render(<TodayScreen />);
+    expect(screen.queryByTestId('today-widget-invitation')).toBeNull();
+    await act(async () => {
+      mockFocusCallback?.();
+    });
+    expect(screen.queryByTestId('today-widget-invitation')).toBeNull();
+    first.unmount();
+    render(<TodayScreen />);
+    expect(screen.queryByTestId('today-widget-invitation')).toBeNull();
+    expect(mockPush).not.toHaveBeenCalledWith('/home-widget');
+  });
+
+  it('opens widget setup only when the existing Profile entry is pressed', () => {
+    useHomeWidgetStore.setState({ available: true, ownerId: 'widget-owner' });
+    const entry = render(<HomeWidgetEntry />);
+    expect(mockPush).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByRole('button', { name: 'Home Screen widget' }));
+    expect(mockPush).toHaveBeenCalledWith('/home-widget');
+    entry.unmount();
+    render(<HomeWidgetEntry />);
+    expect(mockPush).toHaveBeenCalledTimes(1);
   });
 
   it('renders Today with the canonical section-heading role used by Groups', () => {
@@ -291,6 +336,8 @@ describe('Today tab title typography', () => {
   it('uses adjacent Today lanes only when real secondary content is visible', () => {
     mockShouldUseTwoColumns.mockReturnValue(true);
     mockPresentationState = 'loading';
+    mockSelectionState = 'loading';
+    useHomeWidgetStore.setState({ available: false, ownerId: null });
     render(<TodayScreen />);
 
     expect(screen.getByTestId('today-ipad-two-column')).toBeTruthy();
@@ -325,6 +372,7 @@ describe('Today tab title typography', () => {
   it('finishes pull-to-refresh while optional reminder preferences are stalled', async () => {
     jest.useFakeTimers();
     mockUser = { id: 'today-user' };
+    mockSelectionState = 'accepted-today';
     jest.mocked(supabase.rpc).mockResolvedValueOnce({
       data: { obligations: [], reviews: [], group_risks: [], recent_media: [] },
       error: null,
@@ -353,6 +401,7 @@ describe('Today tab title typography', () => {
   it('recovers pull-to-refresh through the live server when cached storage stalls', async () => {
     jest.useFakeTimers();
     mockUser = { id: 'today-user' };
+    mockSelectionState = 'accepted-today';
     jest
       .mocked(readTodaySnapshotCache)
       .mockImplementationOnce(() => new Promise(() => {}));

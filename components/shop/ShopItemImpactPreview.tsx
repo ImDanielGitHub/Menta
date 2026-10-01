@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -10,12 +17,7 @@ import {
   SnowflakeIcon,
   SparklesIcon,
 } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import {
   formatStreakUnlockCopy,
   getAppearanceSupport,
@@ -56,114 +58,10 @@ type ShopItemImpactPreviewProps = {
   profileName?: string | null;
 };
 
-function buildPreviewModel({
-  item,
-  inventoryCount,
-  owned,
-  equipped,
-  t,
-}: {
-  item: ShopDisplayItem;
-  inventoryCount: number;
-  owned: boolean;
-  equipped: boolean;
-  t: (key: TranslationKey, values?: Record<string, string | number>) => string;
-}): PreviewModel {
-  const sku = getCatalogItemSku(item);
-  const powerUp = getPowerUpDisplayCopy(sku, t);
-  const appearance = getAppearanceSupport(sku);
-  const unlockDays = getUnlockStreakDays(sku, item.unlock_streak_days);
-  const lockedUnlockCopy = unlockDays
-    ? formatStreakUnlockCopy(unlockDays, t)
-    : null;
-
-  if (powerUp && powerUpIsAutoConsumed(sku)) {
-    return {
-      context: t('commerce.shop.automaticProtection'),
-      title: t('commerce.shop.coversMissedDay'),
-      body: powerUp.useSummary,
-      icon: <SnowflakeIcon size={22} color={mentaColors.text.onPaper} />,
-      kind: 'freeze',
-      factLabel: t('commerce.shop.readyLabel'),
-      factValue:
-        inventoryCount > 0
-          ? t('commerce.shop.availableCount', { count: inventoryCount })
-          : t('commerce.shop.afterPurchase'),
-    };
-  }
-
-  if (powerUp && powerUpRequiresChallengeId(sku)) {
-    return {
-      context: t('commerce.shop.promiseDeadline'),
-      title: t('commerce.shop.addsDeadline'),
-      body: t('commerce.shop.choosePromiseAfter'),
-      icon: <ClockIcon size={22} color={mentaColors.text.onPaper} />,
-      kind: 'extension',
-      factLabel: t('commerce.shop.use'),
-      factValue:
-        inventoryCount > 0
-          ? t('commerce.shop.ready', { count: inventoryCount })
-          : t('commerce.shop.choosePromise'),
-    };
-  }
-
-  if (appearance?.equipCategory === 'theme') {
-    return {
-      context: t('commerce.shop.appearancePreview'),
-      title: t('commerce.shop.appearanceWarm', {
-        name: t(appearance.labelKey),
-      }),
-      body:
-        unlockDays && !owned
-          ? t('commerce.shop.reachStreakAuto', { days: unlockDays })
-          : t('commerce.shop.buttonsColours'),
-      icon: <PaletteIcon size={22} color={mentaColors.text.onPaper} />,
-      kind: 'theme',
-      factLabel: t('commerce.shop.state'),
-      factValue: equipped
-        ? t('commerce.shop.activeNow')
-        : owned
-          ? t('commerce.shop.readyToEquip')
-          : lockedUnlockCopy || t('commerce.shop.activatesAfterPurchase'),
-      appearance,
-    };
-  }
-
-  if (appearance?.equipCategory === 'avatar_frame') {
-    return {
-      context: t('commerce.shop.profilePreview'),
-      title: t('commerce.shop.frameTitle', { name: t(appearance.labelKey) }),
-      body:
-        unlockDays && !owned
-          ? t('commerce.shop.frameLockedBody', { days: unlockDays })
-          : t('commerce.shop.frameProfile'),
-      icon: <SparklesIcon size={22} color={mentaColors.text.onPaper} />,
-      kind: 'frame',
-      factLabel: t('commerce.shop.state'),
-      factValue: equipped
-        ? t('commerce.shop.activeNow')
-        : owned
-          ? t('commerce.shop.readyToEquip')
-          : lockedUnlockCopy || t('commerce.shop.activatesAfterPurchase'),
-      appearance,
-    };
-  }
-
-  return {
-    context: t('commerce.shop.itemOutcome'),
-    title: t('commerce.shop.underYourItems', { name: item.name }),
-    body: item.description?.trim() || t('commerce.shop.genericReview'),
-    icon: <SparklesIcon size={22} color={mentaColors.text.onPaper} />,
-    kind: 'generic',
-    factLabel: t('commerce.shop.access'),
-    factValue:
-      owned || inventoryCount > 0
-        ? t('commerce.shop.owned')
-        : t('commerce.shop.afterPurchase'),
-  };
-}
-
 function FreezeDiagram() {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   return (
     <View
       accessibilityElementsHidden
@@ -190,6 +88,8 @@ function FreezeDiagram() {
 }
 
 function ExtensionDiagram({ t }: { t: (key: TranslationKey) => string }) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   return (
     <View
       accessibilityElementsHidden
@@ -225,6 +125,9 @@ function AppearanceDiagram({
   profileName?: string | null;
   t: (key: TranslationKey) => string;
 }) {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const profileNameLines = useLargeTypeLineLimit(1);
   if (kind === 'frame') {
     return (
@@ -281,10 +184,13 @@ export function ShopItemImpactPreview({
   profileImageUrl,
   profileName,
 }: ShopItemImpactPreviewProps) {
+  const mentaColors = useMentaPalette();
+  const { buildPreviewModel, styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const model = useMemo(
     () => buildPreviewModel({ item, inventoryCount, owned, equipped, t }),
-    [equipped, inventoryCount, item, owned, t]
+    [buildPreviewModel, equipped, inventoryCount, item, owned, t]
   );
 
   return (
@@ -346,6 +252,8 @@ export function ShopItemImpactSkeleton({
   compact?: boolean;
   testID?: string;
 }) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   return (
     <View
       accessible={false}
@@ -376,244 +284,356 @@ export function ShopItemImpactSkeleton({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: mentaColors.paper,
-    borderColor: mentaColors.borderPaper,
-    borderCurve: 'continuous',
-    borderRadius: mentaRadii.large,
-    borderWidth: 1,
-    gap: mentaSpacing[3],
-    padding: mentaSpacing[5],
-  },
-  containerCompact: {
-    gap: mentaSpacing[2],
-    padding: mentaSpacing[4],
-  },
-  headingRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-  },
-  iconPlane: {
-    alignItems: 'center',
-    height: 32,
-    justifyContent: 'center',
-    width: 32,
-  },
-  context: {
-    color: mentaColors.text.mutedOnPaper,
-    ...mentaTypography.bodySmallMedium,
-  },
-  title: {
-    color: mentaColors.text.onPaper,
-    ...mentaTypography.journeyTitle,
-  },
-  titleCompact: {
-    ...mentaTypography.title,
-  },
-  body: {
-    color: mentaColors.text.mutedOnPaper,
-    ...mentaTypography.bodySmall,
-  },
-  skeletonIcon: {
-    borderRadius: mentaRadii.medium,
-    height: 32,
-    width: 32,
-  },
-  skeletonContext: {
-    borderRadius: mentaRadii.small,
-    height: 12,
-    width: 126,
-  },
-  skeletonTitle: {
-    borderRadius: mentaRadii.small,
-    height: 26,
-    width: '88%',
-  },
-  skeletonBody: {
-    borderRadius: mentaRadii.small,
-    height: 13,
-    width: '96%',
-  },
-  skeletonDiagram: {
-    gap: mentaSpacing[2],
-    justifyContent: 'center',
-    minHeight: 78,
-  },
-  skeletonDiagramLine: {
-    borderRadius: mentaRadii.small,
-    height: 18,
-    width: '100%',
-  },
-  skeletonDiagramLineShort: {
-    borderRadius: mentaRadii.small,
-    height: 12,
-    width: '64%',
-  },
-  skeletonFactLabel: {
-    borderRadius: mentaRadii.small,
-    height: 11,
-    width: 72,
-  },
-  skeletonFactValue: {
-    borderRadius: mentaRadii.small,
-    height: 13,
-    width: 108,
-  },
-  diagram: {
-    minHeight: 78,
-    justifyContent: 'center',
-  },
-  diagramCompact: {
-    minHeight: 60,
-  },
-  factRow: {
-    alignItems: 'center',
-    borderTopColor: mentaColors.borderPaper,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingTop: mentaSpacing[3],
-  },
-  factLabel: {
-    color: mentaColors.text.mutedOnPaper,
-    ...mentaTypography.bodySmall,
-  },
-  factValue: {
-    color: mentaColors.text.onPaper,
-    ...mentaTypography.bodySmallMedium,
-  },
-  freezeDays: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[1],
-    justifyContent: 'space-between',
-  },
-  freezeDay: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.paperPressed,
-    borderColor: mentaColors.borderPaper,
-    borderRadius: mentaRadii.small,
-    borderWidth: 1,
-    flex: 1,
-    height: 38,
-    justifyContent: 'center',
-    maxWidth: 34,
-    minWidth: 0,
-  },
-  freezeDayComplete: {
-    backgroundColor: mentaColors.successSoft,
-    borderColor: mentaColors.success,
-  },
-  freezeDayProtected: {
-    backgroundColor: 'rgba(184, 140, 255, 0.18)',
-    borderColor: mentaColors.actionOnPaper,
-  },
-  timeline: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    paddingBottom: mentaSpacing[5],
-    position: 'relative',
-  },
-  timelinePoint: {
-    backgroundColor: mentaColors.text.mutedOnPaper,
-    borderRadius: mentaRadii.round,
-    height: 12,
-    width: 12,
-  },
-  timelineDuePoint: {
-    backgroundColor: mentaColors.text.onPaper,
-  },
-  timelineExtendedPoint: {
-    backgroundColor: mentaColors.actionOnPaper,
-  },
-  timelineLine: {
-    backgroundColor: mentaColors.borderPaper,
-    flex: 1,
-    height: 2,
-  },
-  timelineExtendedLine: {
-    backgroundColor: mentaColors.actionOnPaper,
-  },
-  timelineLabels: {
-    bottom: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    left: 0,
-    position: 'absolute',
-    right: 0,
-  },
-  timelineLabel: {
-    color: mentaColors.text.mutedOnPaper,
-    ...mentaTypography.caption,
-  },
-  themePreview: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.canvas,
-    borderCurve: 'continuous',
-    borderRadius: mentaRadii.medium,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 68,
-    padding: mentaSpacing[3],
-  },
-  themeAccent: {
-    borderRadius: mentaRadii.medium,
-    height: 40,
-    width: 40,
-  },
-  themeCopy: {
-    flex: 1,
-    gap: mentaSpacing[2],
-  },
-  themeLineStrong: {
-    backgroundColor: mentaColors.text.primary,
-    borderRadius: mentaRadii.round,
-    height: 7,
-    width: '72%',
-  },
-  themeLine: {
-    backgroundColor: mentaColors.text.muted,
-    borderRadius: mentaRadii.round,
-    height: 5,
-    width: '52%',
-  },
-  themeAction: {
-    borderRadius: mentaRadii.round,
-    height: 30,
-    width: 30,
-  },
-  profilePreview: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[4],
-  },
-  profileAvatar: {
-    flexShrink: 0,
-  },
-  profileLines: {
-    flex: 1,
-    gap: mentaSpacing[2],
-    minWidth: 0,
-  },
-  profileName: {
-    color: mentaColors.text.onPaper,
-    ...mentaTypography.bodyMedium,
-  },
-  profileMeta: {
-    color: mentaColors.text.mutedOnPaper,
-    ...mentaTypography.bodySmall,
-  },
-  genericDiagram: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-  },
-  genericLine: {
-    backgroundColor: mentaColors.borderPaper,
-    borderRadius: mentaRadii.round,
-    flex: 1,
-    height: 2,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  function buildPreviewModel({
+    item,
+    inventoryCount,
+    owned,
+    equipped,
+    t,
+  }: {
+    item: ShopDisplayItem;
+    inventoryCount: number;
+    owned: boolean;
+    equipped: boolean;
+    t: (
+      key: TranslationKey,
+      values?: Record<string, string | number>
+    ) => string;
+  }): PreviewModel {
+    const sku = getCatalogItemSku(item);
+    const powerUp = getPowerUpDisplayCopy(sku, t);
+    const appearance = getAppearanceSupport(sku);
+    const unlockDays = getUnlockStreakDays(sku, item.unlock_streak_days);
+    const lockedUnlockCopy = unlockDays
+      ? formatStreakUnlockCopy(unlockDays, t)
+      : null;
+
+    if (powerUp && powerUpIsAutoConsumed(sku)) {
+      return {
+        context: t('commerce.shop.automaticProtection'),
+        title: t('commerce.shop.coversMissedDay'),
+        body: powerUp.useSummary,
+        icon: <SnowflakeIcon size={22} color={mentaColors.text.onPaper} />,
+        kind: 'freeze',
+        factLabel: t('commerce.shop.readyLabel'),
+        factValue:
+          inventoryCount > 0
+            ? t('commerce.shop.availableCount', { count: inventoryCount })
+            : t('commerce.shop.afterPurchase'),
+      };
+    }
+
+    if (powerUp && powerUpRequiresChallengeId(sku)) {
+      return {
+        context: t('commerce.shop.promiseDeadline'),
+        title: t('commerce.shop.addsDeadline'),
+        body: t('commerce.shop.choosePromiseAfter'),
+        icon: <ClockIcon size={22} color={mentaColors.text.onPaper} />,
+        kind: 'extension',
+        factLabel: t('commerce.shop.use'),
+        factValue:
+          inventoryCount > 0
+            ? t('commerce.shop.ready', { count: inventoryCount })
+            : t('commerce.shop.choosePromise'),
+      };
+    }
+
+    if (appearance?.equipCategory === 'theme') {
+      return {
+        context: t('commerce.shop.appearancePreview'),
+        title: t('commerce.shop.themeTitle', {
+          name: t(appearance.labelKey),
+        }),
+        body:
+          unlockDays && !owned
+            ? t('commerce.shop.reachStreakAuto', { days: unlockDays })
+            : t('commerce.shop.themeColours', { name: t(appearance.labelKey) }),
+        icon: <PaletteIcon size={22} color={mentaColors.text.onPaper} />,
+        kind: 'theme',
+        factLabel: t('commerce.shop.state'),
+        factValue: equipped
+          ? t('commerce.shop.activeNow')
+          : owned
+            ? t('commerce.shop.readyToEquip')
+            : lockedUnlockCopy || t('commerce.shop.activatesAfterPurchase'),
+        appearance,
+      };
+    }
+
+    if (appearance?.equipCategory === 'avatar_frame') {
+      return {
+        context: t('commerce.shop.profilePreview'),
+        title: t('commerce.shop.frameTitle', { name: t(appearance.labelKey) }),
+        body:
+          unlockDays && !owned
+            ? t('commerce.shop.frameLockedBody', { days: unlockDays })
+            : t('commerce.shop.frameProfile'),
+        icon: <SparklesIcon size={22} color={mentaColors.text.onPaper} />,
+        kind: 'frame',
+        factLabel: t('commerce.shop.state'),
+        factValue: equipped
+          ? t('commerce.shop.activeNow')
+          : owned
+            ? t('commerce.shop.readyToEquip')
+            : lockedUnlockCopy || t('commerce.shop.activatesAfterPurchase'),
+        appearance,
+      };
+    }
+
+    return {
+      context: t('commerce.shop.itemOutcome'),
+      title: t('commerce.shop.underYourItems', { name: item.name }),
+      body: item.description?.trim() || t('commerce.shop.genericReview'),
+      icon: <SparklesIcon size={22} color={mentaColors.text.onPaper} />,
+      kind: 'generic',
+      factLabel: t('commerce.shop.access'),
+      factValue:
+        owned || inventoryCount > 0
+          ? t('commerce.shop.owned')
+          : t('commerce.shop.afterPurchase'),
+    };
+  }
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: mentaColors.paper,
+      borderColor: mentaColors.borderPaper,
+      borderCurve: 'continuous',
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      gap: mentaSpacing[3],
+      padding: mentaSpacing[5],
+    },
+    containerCompact: {
+      gap: mentaSpacing[2],
+      padding: mentaSpacing[4],
+    },
+    headingRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+    },
+    iconPlane: {
+      alignItems: 'center',
+      height: 32,
+      justifyContent: 'center',
+      width: 32,
+    },
+    context: {
+      color: mentaColors.text.mutedOnPaper,
+      ...mentaTypography.bodySmallMedium,
+    },
+    title: {
+      color: mentaColors.text.onPaper,
+      ...mentaTypography.journeyTitle,
+    },
+    titleCompact: {
+      ...mentaTypography.title,
+    },
+    body: {
+      color: mentaColors.text.mutedOnPaper,
+      ...mentaTypography.bodySmall,
+    },
+    skeletonIcon: {
+      borderRadius: mentaRadii.medium,
+      height: 32,
+      width: 32,
+    },
+    skeletonContext: {
+      borderRadius: mentaRadii.small,
+      height: 12,
+      width: 126,
+    },
+    skeletonTitle: {
+      borderRadius: mentaRadii.small,
+      height: 26,
+      width: '88%',
+    },
+    skeletonBody: {
+      borderRadius: mentaRadii.small,
+      height: 13,
+      width: '96%',
+    },
+    skeletonDiagram: {
+      gap: mentaSpacing[2],
+      justifyContent: 'center',
+      minHeight: 78,
+    },
+    skeletonDiagramLine: {
+      borderRadius: mentaRadii.small,
+      height: 18,
+      width: '100%',
+    },
+    skeletonDiagramLineShort: {
+      borderRadius: mentaRadii.small,
+      height: 12,
+      width: '64%',
+    },
+    skeletonFactLabel: {
+      borderRadius: mentaRadii.small,
+      height: 11,
+      width: 72,
+    },
+    skeletonFactValue: {
+      borderRadius: mentaRadii.small,
+      height: 13,
+      width: 108,
+    },
+    diagram: {
+      minHeight: 78,
+      justifyContent: 'center',
+    },
+    diagramCompact: {
+      minHeight: 60,
+    },
+    factRow: {
+      alignItems: 'center',
+      borderTopColor: mentaColors.borderPaper,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingTop: mentaSpacing[3],
+    },
+    factLabel: {
+      color: mentaColors.text.mutedOnPaper,
+      ...mentaTypography.bodySmall,
+    },
+    factValue: {
+      color: mentaColors.text.onPaper,
+      ...mentaTypography.bodySmallMedium,
+    },
+    freezeDays: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[1],
+      justifyContent: 'space-between',
+    },
+    freezeDay: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.paperPressed,
+      borderColor: mentaColors.borderPaper,
+      borderRadius: mentaRadii.small,
+      borderWidth: 1,
+      flex: 1,
+      height: 38,
+      justifyContent: 'center',
+      maxWidth: 34,
+      minWidth: 0,
+    },
+    freezeDayComplete: {
+      backgroundColor: mentaColors.successSoft,
+      borderColor: mentaColors.success,
+    },
+    freezeDayProtected: {
+      backgroundColor: 'rgba(184, 140, 255, 0.18)',
+      borderColor: mentaColors.actionOnPaper,
+    },
+    timeline: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      paddingBottom: mentaSpacing[5],
+      position: 'relative',
+    },
+    timelinePoint: {
+      backgroundColor: mentaColors.text.mutedOnPaper,
+      borderRadius: mentaRadii.round,
+      height: 12,
+      width: 12,
+    },
+    timelineDuePoint: {
+      backgroundColor: mentaColors.text.onPaper,
+    },
+    timelineExtendedPoint: {
+      backgroundColor: mentaColors.actionOnPaper,
+    },
+    timelineLine: {
+      backgroundColor: mentaColors.borderPaper,
+      flex: 1,
+      height: 2,
+    },
+    timelineExtendedLine: {
+      backgroundColor: mentaColors.actionOnPaper,
+    },
+    timelineLabels: {
+      bottom: 0,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      left: 0,
+      position: 'absolute',
+      right: 0,
+    },
+    timelineLabel: {
+      color: mentaColors.text.mutedOnPaper,
+      ...mentaTypography.caption,
+    },
+    themePreview: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.canvas,
+      borderCurve: 'continuous',
+      borderRadius: mentaRadii.medium,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 68,
+      padding: mentaSpacing[3],
+    },
+    themeAccent: {
+      borderRadius: mentaRadii.medium,
+      height: 40,
+      width: 40,
+    },
+    themeCopy: {
+      flex: 1,
+      gap: mentaSpacing[2],
+    },
+    themeLineStrong: {
+      backgroundColor: mentaColors.text.primary,
+      borderRadius: mentaRadii.round,
+      height: 7,
+      width: '72%',
+    },
+    themeLine: {
+      backgroundColor: mentaColors.text.muted,
+      borderRadius: mentaRadii.round,
+      height: 5,
+      width: '52%',
+    },
+    themeAction: {
+      borderRadius: mentaRadii.round,
+      height: 30,
+      width: 30,
+    },
+    profilePreview: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[4],
+    },
+    profileAvatar: {
+      flexShrink: 0,
+    },
+    profileLines: {
+      flex: 1,
+      gap: mentaSpacing[2],
+      minWidth: 0,
+    },
+    profileName: {
+      color: mentaColors.text.onPaper,
+      ...mentaTypography.bodyMedium,
+    },
+    profileMeta: {
+      color: mentaColors.text.mutedOnPaper,
+      ...mentaTypography.bodySmall,
+    },
+    genericDiagram: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+    },
+    genericLine: {
+      backgroundColor: mentaColors.borderPaper,
+      borderRadius: mentaRadii.round,
+      flex: 1,
+      height: 2,
+    },
+  });
+  return { buildPreviewModel, styles };
+};

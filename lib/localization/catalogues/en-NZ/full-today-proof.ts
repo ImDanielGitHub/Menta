@@ -280,6 +280,28 @@ export const fullTodayProofEnNZ = {
   'todayProof.solo.promise_meta_short': '{days}-day promise · {proof}',
   'todayProof.solo.current_streak': '{count}-day current streak',
   'todayProof.solo.accepted': 'Accepted',
+  'todayProof.solo.left_today': '{count} left to check in today.',
+  'todayProof.solo.left_today.one': 'One left to check in today.',
+  'todayProof.solo.left_today.other': '{count} left to check in today.',
+  'todayProof.solo.all_checked_in': 'All checked in for today.',
+  'todayProof.solo.nothing_running': 'Nothing running right now.',
+  'todayProof.solo.section_today': 'Today',
+  'todayProof.solo.section_week': 'This week',
+  'todayProof.solo.section_finished': 'Finished',
+  'todayProof.solo.week_kept': '{kept} of {total} days kept',
+  'todayProof.solo.row_kept': '{kept} of {total}',
+  'todayProof.solo.day_of': 'Day {day} of {total}',
+  'todayProof.solo.day_of_with_streak':
+    'Day {day} of {total} · {count}-day streak',
+  'todayProof.solo.check_in_short': 'Check in',
+  'todayProof.solo.log_short': 'Write it',
+  'todayProof.solo.try_again_short': 'Try again',
+  'todayProof.solo.counted_short': 'Counted',
+  'todayProof.solo.waiting_short': 'Waiting',
+  'todayProof.solo.action_accessibility': '{action}: {promise}',
+  'todayProof.solo.week_row_accessibility':
+    '{promise}: {kept} of {total} days kept this week',
+  'todayProof.solo.finished_kept': 'Kept {kept} of {total} days',
   'todayProof.promise.time_unavailable': 'Time unavailable',
   'todayProof.promise.date_unavailable': 'Date unavailable',
   'todayProof.source.promise.submission_time_unavailable':
@@ -395,7 +417,7 @@ export const fullTodayProofEnNZ = {
   'todayProof.promise.delete': 'Delete promise',
   'todayProof.promise.leave': 'Leave promise',
   'todayProof.promise.delete_detail':
-    'Deletes this promise, proof history, invite links, and review context. No undo.',
+    'Deletes this promise, proof history, invite links, and review context. No undo. It still counts towards this month’s creation limit and does not restore your first free promise.',
   'todayProof.promise.leave_detail':
     'You stop submitting proof here. Existing proof stays in the promise history.',
   'todayProof.promise.details': 'Promise details',
@@ -567,7 +589,7 @@ export const fullTodayProofEnNZ = {
   'todayProof.proof.share_title': 'Menta proof receipt',
   'todayProof.proof.ad_break': 'Ad break next',
   'todayProof.proof.ad_break_detail':
-    'A short ad may appear after you leave this receipt. It will not change your proof or Momenta balance.',
+    'Free accounts have a short ad break after every second new proof, when an ad is available. Your proof is already saved. Your Momenta balance stays the same.',
   'todayProof.proof.share_opened': 'Share sheet opened',
   'todayProof.proof.share_opened_detail':
     'Choose an app and send the receipt there to finish.',
@@ -1052,7 +1074,8 @@ export const fullTodayProofEnNZ = {
   'todayProof.promise.proof_type_approval':
     '{proofType} · a day counts only after the proof is approved',
   'todayProof.promise.extend_question': 'Add 12 hours to {promise}?',
-  'todayProof.promise.extension_cost': 'This uses one {item}.',
+  'todayProof.promise.extension_cost':
+    'A little breathing room: use one {item} you already own to add 12 hours while proof is still open.',
   'todayProof.promise.active_for': 'Active for {duration}',
   'todayProof.promise.available_count': '{count} available',
   'todayProof.create.step_progress': 'Step {current} of {total}',

@@ -1,3 +1,6 @@
+import { type MentaPalette, mentaLayout } from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
+
 import { useTranslation } from '@/lib/localization';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -12,10 +15,8 @@ import {
   PaperAuthNotice,
   PaperAuthPromiseCard,
   paperAuthFonts,
-  paperAuthTokens,
 } from '@/components/onboarding/PaperAuthSurface';
 import type { OnboardingDraft } from '@/lib/onboarding-draft';
-import { mentaLayout } from '@/constants/MentaDesignSystem';
 
 export interface PaperAuthMethodsProps {
   draft: OnboardingDraft | null;
@@ -40,6 +41,9 @@ export const PaperAuthMethods: React.FC<PaperAuthMethodsProps> = ({
   errorMessage,
   testID = 'paper-auth-methods',
 }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const providerBusy = appleLoading || googleLoading;
   const hasDraft = Boolean(draft?.promise.trim());
@@ -85,7 +89,7 @@ export const PaperAuthMethods: React.FC<PaperAuthMethodsProps> = ({
         <View style={styles.actions}>
           <PaperAuthButton
             disabled={googleLoading}
-            icon={<AppleIcon color={paperAuthTokens.canvas} size={18} />}
+            icon={<AppleIcon color={mentaColors.text.onPaper} size={18} />}
             loading={appleLoading}
             testID={`${testID}-apple`}
             title={t(
@@ -107,7 +111,7 @@ export const PaperAuthMethods: React.FC<PaperAuthMethodsProps> = ({
           />
           <PaperAuthButton
             disabled={providerBusy}
-            icon={<MailIcon color={paperAuthTokens.muted} size={18} />}
+            icon={<MailIcon color={mentaColors.text.secondary} size={18} />}
             testID={`${testID}-email`}
             title={t(
               'fullAuth.component_onboarding_paperauthmethods.continue_with_email'
@@ -141,31 +145,34 @@ export const PaperAuthMethods: React.FC<PaperAuthMethodsProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  page: {
-    alignSelf: 'center',
-    flexGrow: 1,
-    gap: 20,
-    maxWidth: mentaLayout.taskLane,
-    paddingTop: 28,
-    width: '100%',
-  },
-  actions: {
-    gap: 12,
-    paddingTop: 18,
-    width: '100%',
-  },
-  introAction: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 44,
-    paddingHorizontal: 12,
-  },
-  introActionText: {
-    color: paperAuthTokens.muted,
-    fontFamily: paperAuthFonts.interMedium,
-    fontSize: 14,
-    lineHeight: 20,
-    textDecorationLine: 'underline',
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    page: {
+      alignSelf: 'center',
+      flexGrow: 1,
+      gap: 20,
+      maxWidth: mentaLayout.taskLane,
+      paddingTop: 28,
+      width: '100%',
+    },
+    actions: {
+      gap: 12,
+      paddingTop: 18,
+      width: '100%',
+    },
+    introAction: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 44,
+      paddingHorizontal: 12,
+    },
+    introActionText: {
+      color: mentaColors.text.secondary,
+      fontFamily: paperAuthFonts.interMedium,
+      fontSize: 14,
+      lineHeight: 20,
+      textDecorationLine: 'underline',
+    },
+  });
+  return { styles };
+};

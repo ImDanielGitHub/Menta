@@ -1,16 +1,18 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { TodayPressable } from '@/components/today/TodayPressable';
 import { ChevronRightIcon, TargetIcon } from '@/components/ui/icons';
 import { AppScaledText as Text } from '@/components/ui/AppScaledText';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useTheme } from '@/constants/ThemeContext';
 import {
   useTranslation,
@@ -51,6 +53,9 @@ export const PersonalPromisesShortcut = ({
   onPress,
   textScale,
 }: PersonalPromisesShortcutProps) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const detail = buildDetail(activeCount, bestCurrentStreak, t);
   const { colors } = useTheme();
@@ -83,45 +88,48 @@ export const PersonalPromisesShortcut = ({
   );
 };
 
-const styles = StyleSheet.create({
-  row: {
-    alignItems: 'center',
-    alignSelf: 'center',
-    backgroundColor: mentaColors.surface,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: mentaSpacing[4],
-    maxWidth: mentaLayout.taskLane,
-    minHeight: 76,
-    paddingHorizontal: mentaSpacing[4],
-    paddingVertical: mentaSpacing[3],
-    width: '100%',
-  },
-  tile: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.actionSoft,
-    borderRadius: mentaRadii.medium,
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
-  },
-  rowPressed: {
-    backgroundColor: mentaColors.raised,
-    borderColor: mentaColors.actionBorder,
-  },
-  copy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  title: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  detail: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-    marginTop: 2,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    row: {
+      alignItems: 'center',
+      alignSelf: 'center',
+      backgroundColor: mentaColors.surface,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      flexDirection: 'row',
+      gap: mentaSpacing[4],
+      maxWidth: mentaLayout.taskLane,
+      minHeight: 76,
+      paddingHorizontal: mentaSpacing[4],
+      paddingVertical: mentaSpacing[3],
+      width: '100%',
+    },
+    tile: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.actionSoft,
+      borderRadius: mentaRadii.medium,
+      height: 44,
+      justifyContent: 'center',
+      width: 44,
+    },
+    rowPressed: {
+      backgroundColor: mentaColors.raised,
+      borderColor: mentaColors.actionBorder,
+    },
+    copy: {
+      flex: 1,
+      minWidth: 0,
+    },
+    title: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    detail: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+      marginTop: 2,
+    },
+  });
+  return { styles };
+};

@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import {
   Platform,
@@ -10,12 +17,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ModalCard } from '@/components/ui/modal/ModalCard';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { withReadableLeading } from '@/constants/phone-layout';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { useTheme } from '@/constants/ThemeContext';
@@ -86,6 +88,8 @@ export const CreateHubModal: React.FC<CreateHubModalProps> = ({
   onJoinExistingGroup,
   onBrowseEvents,
 }) => {
+  const { PAPER, styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
@@ -316,14 +320,6 @@ export const CreateHubModal: React.FC<CreateHubModalProps> = ({
   );
 };
 
-const PAPER = {
-  canvas: mentaColors.canvas,
-  border: mentaColors.border,
-  text: mentaColors.text.primary,
-  muted: mentaColors.text.secondary,
-  warning: mentaColors.warning,
-} as const;
-
 const ChoiceRow: React.FC<{
   title: string;
   body: string;
@@ -332,6 +328,8 @@ const ChoiceRow: React.FC<{
   showDivider: boolean;
   testID?: string;
 }> = ({ title, body, icon, onPress, showDivider, testID }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   return (
     <Pressable
@@ -358,124 +356,134 @@ const ChoiceRow: React.FC<{
   );
 };
 
-const styles = StyleSheet.create({
-  card: {
-    padding: 0,
-    overflow: 'hidden',
-  },
-  screen: {
-    flex: 1,
-    backgroundColor: PAPER.canvas,
-  },
-  topBar: {
-    height: 54,
-    paddingHorizontal: 24,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  backButton: {
-    width: mentaLayout.minimumTouchTarget,
-    height: mentaLayout.minimumTouchTarget,
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-  },
-  topBarLabel: {
-    color: PAPER.text,
-    ...mentaTypography.bodySmallMedium,
-    marginLeft: 9,
-  },
-  scroll: {
-    flex: 1,
-  },
-  content: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 17,
-    paddingBottom: 24,
-  },
-  iPadFrame: {
-    alignSelf: 'center',
-    maxWidth: IPAD_MAX_CONTENT_WIDTH,
-    width: '100%',
-  },
-  title: {
-    color: PAPER.text,
-    ...mentaTypography.heading,
-  },
-  fullMeasure: {
-    maxWidth: '100%',
-  },
-  subtitle: {
-    color: PAPER.muted,
-    ...mentaTypography.body,
-    marginTop: 8,
-  },
-  choiceList: {
-    borderBottomColor: PAPER.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: PAPER.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    marginTop: 24,
-  },
-  choiceRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 14,
-    minHeight: 82,
-    paddingHorizontal: 2,
-    paddingVertical: 14,
-  },
-  choiceDivider: {
-    borderBottomColor: PAPER.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  choiceIcon: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-    width: 28,
-  },
-  choiceText: {
-    flex: 1,
-    minWidth: 0,
-    gap: 3,
-  },
-  choiceTitle: {
-    ...mentaTypography.bodySemibold,
-    color: PAPER.text,
-  },
-  choiceBody: {
-    ...mentaTypography.caption,
-    color: PAPER.muted,
-  },
-  notice: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: PAPER.warning,
-    borderRadius: mentaRadii.medium,
-    backgroundColor: mentaColors.warningSoft,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    padding: 12,
-    gap: 10,
-    marginTop: 14,
-  },
-  noticeBody: {
-    flex: 1,
-    gap: 4,
-  },
-  noticeTitle: {
-    color: PAPER.text,
-    ...mentaTypography.bodySmallMedium,
-  },
-  noticeMessage: {
-    color: PAPER.muted,
-    ...mentaTypography.caption,
-  },
-  noticeAction: {
-    color: PAPER.text,
-    ...mentaTypography.labelBold,
-    marginTop: 3,
-  },
-});
-
 export default CreateHubModal;
+
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const PAPER = {
+    canvas: mentaColors.canvas,
+    border: mentaColors.border,
+    text: mentaColors.text.primary,
+    muted: mentaColors.text.secondary,
+    warning: mentaColors.warning,
+  } as const;
+  const styles = StyleSheet.create({
+    card: {
+      padding: 0,
+      overflow: 'hidden',
+    },
+    screen: {
+      flex: 1,
+      backgroundColor: PAPER.canvas,
+    },
+    topBar: {
+      height: 54,
+      paddingHorizontal: 24,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    backButton: {
+      width: mentaLayout.minimumTouchTarget,
+      height: mentaLayout.minimumTouchTarget,
+      alignItems: 'flex-start',
+      justifyContent: 'center',
+    },
+    topBarLabel: {
+      color: PAPER.text,
+      ...mentaTypography.bodySmallMedium,
+      marginLeft: 9,
+    },
+    scroll: {
+      flex: 1,
+    },
+    content: {
+      flexGrow: 1,
+      paddingHorizontal: 24,
+      paddingTop: 17,
+      paddingBottom: 24,
+    },
+    iPadFrame: {
+      alignSelf: 'center',
+      maxWidth: IPAD_MAX_CONTENT_WIDTH,
+      width: '100%',
+    },
+    title: {
+      color: PAPER.text,
+      ...mentaTypography.heading,
+    },
+    fullMeasure: {
+      maxWidth: '100%',
+    },
+    subtitle: {
+      color: PAPER.muted,
+      ...mentaTypography.body,
+      marginTop: 8,
+    },
+    choiceList: {
+      borderBottomColor: PAPER.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: PAPER.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      marginTop: 24,
+    },
+    choiceRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 14,
+      minHeight: 82,
+      paddingHorizontal: 2,
+      paddingVertical: 14,
+    },
+    choiceDivider: {
+      borderBottomColor: PAPER.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+    choiceIcon: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+      width: 28,
+    },
+    choiceText: {
+      flex: 1,
+      minWidth: 0,
+      gap: 3,
+    },
+    choiceTitle: {
+      ...mentaTypography.bodySemibold,
+      color: PAPER.text,
+    },
+    choiceBody: {
+      ...mentaTypography.caption,
+      color: PAPER.muted,
+    },
+    notice: {
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: PAPER.warning,
+      borderRadius: mentaRadii.medium,
+      backgroundColor: mentaColors.warningSoft,
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      padding: 12,
+      gap: 10,
+      marginTop: 14,
+    },
+    noticeBody: {
+      flex: 1,
+      gap: 4,
+    },
+    noticeTitle: {
+      color: PAPER.text,
+      ...mentaTypography.bodySmallMedium,
+    },
+    noticeMessage: {
+      color: PAPER.muted,
+      ...mentaTypography.caption,
+    },
+    noticeAction: {
+      color: PAPER.text,
+      ...mentaTypography.labelBold,
+      marginTop: 3,
+    },
+  });
+  return { PAPER, styles };
+};

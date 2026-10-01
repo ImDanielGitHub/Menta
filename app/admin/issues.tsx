@@ -1,14 +1,16 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { AppButton, AppScreen, AppTopBar } from '@/components/ui';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { backOrReplace } from '@/lib/navigation/safe-back';
 
 /**
@@ -17,6 +19,8 @@ import { backOrReplace } from '@/lib/navigation/safe-back';
  * queue sample, report data, or mutation control.
  */
 export default function AdminIssuesScreen() {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const router = useRouter();
 
   return (
@@ -50,28 +54,31 @@ export default function AdminIssuesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    alignSelf: 'center',
-    flexGrow: 1,
-    gap: mentaSpacing[4],
-    maxWidth: mentaLayout.taskLane,
-    paddingBottom: mentaSpacing[6],
-    width: '100%',
-  },
-  intro: {
-    gap: mentaSpacing[3],
-    paddingTop: mentaSpacing[8],
-  },
-  title: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.heading,
-  },
-  description: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.body,
-  },
-  returnButton: {
-    marginTop: 'auto',
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: {
+      alignSelf: 'center',
+      flexGrow: 1,
+      gap: mentaSpacing[4],
+      maxWidth: mentaLayout.taskLane,
+      paddingBottom: mentaSpacing[6],
+      width: '100%',
+    },
+    intro: {
+      gap: mentaSpacing[3],
+      paddingTop: mentaSpacing[8],
+    },
+    title: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.heading,
+    },
+    description: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.body,
+    },
+    returnButton: {
+      marginTop: 'auto',
+    },
+  });
+  return { styles };
+};

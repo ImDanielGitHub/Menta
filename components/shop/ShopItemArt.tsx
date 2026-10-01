@@ -1,13 +1,15 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { LockIcon } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-} from '@/constants/MentaDesignSystem';
+
 import { getAppearanceSupport } from '@/lib/shop/catalogSupport';
 import {
   powerUpIsAutoConsumed,
@@ -49,13 +51,6 @@ const kindIllustration: Record<'freeze' | 'extension' | 'item', number> = {
 };
 
 /** Ice for freezes, violet for time, mint for everything else. */
-const kindTint: Record<ShopArtKind, string> = {
-  freeze: mentaColors.info,
-  extension: mentaColors.action,
-  theme: mentaColors.action,
-  frame: mentaColors.action,
-  item: mentaColors.success,
-};
 
 type ShopItemArtProps = {
   sku?: string | null;
@@ -78,6 +73,9 @@ export function ShopItemArt({
   muted = false,
   testID,
 }: ShopItemArtProps) {
+  const mentaColors = useMentaPalette();
+  const { kindTint, styles } = useMentaStyles(createPaletteStyles);
+
   const kind = getShopArtKind(sku);
   const appearance = getAppearanceSupport(sku);
   const tint = kindTint[kind];
@@ -203,29 +201,39 @@ export function ShopItemArt({
   );
 }
 
-const styles = StyleSheet.create({
-  tile: {
-    alignItems: 'center',
-    borderWidth: 1,
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  themeAccent: {
-    borderWidth: 2,
-    position: 'absolute',
-  },
-  muted: {
-    opacity: 0.45,
-  },
-  lockBadge: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.raised,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.round,
-    borderWidth: 1,
-    bottom: -mentaSpacing[1],
-    justifyContent: 'center',
-    position: 'absolute',
-    right: -mentaSpacing[1],
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const kindTint: Record<ShopArtKind, string> = {
+    freeze: mentaColors.info,
+    extension: mentaColors.action,
+    theme: mentaColors.action,
+    frame: mentaColors.action,
+    item: mentaColors.success,
+  };
+  const styles = StyleSheet.create({
+    tile: {
+      alignItems: 'center',
+      borderWidth: 1,
+      justifyContent: 'center',
+      overflow: 'hidden',
+    },
+    themeAccent: {
+      borderWidth: 2,
+      position: 'absolute',
+    },
+    muted: {
+      opacity: 0.45,
+    },
+    lockBadge: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.raised,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.round,
+      borderWidth: 1,
+      bottom: -mentaSpacing[1],
+      justifyContent: 'center',
+      position: 'absolute',
+      right: -mentaSpacing[1],
+    },
+  });
+  return { kindTint, styles };
+};

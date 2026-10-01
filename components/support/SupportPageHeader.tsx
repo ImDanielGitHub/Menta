@@ -1,8 +1,12 @@
+import {
+  type MentaPalette,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { AppTopBar } from '@/components/ui';
-import { mentaColors, mentaTypography } from '@/constants/MentaDesignSystem';
 
 type SupportPageHeaderProps = {
   title: string;
@@ -19,40 +23,46 @@ export const SupportPageHeader = ({
   title,
   onBack,
   trailing,
-}: SupportPageHeaderProps) => (
-  <View style={styles.header}>
-    <AppTopBar
-      onBack={onBack}
-      style={StyleSheet.absoluteFill}
-      trailing={trailing}
-    />
-    <View
-      accessible
-      accessibilityRole="header"
-      pointerEvents="none"
-      style={[styles.copy, !onBack && styles.copyWithoutBack]}
-    >
-      <Text style={styles.title}>{title}</Text>
+}: SupportPageHeaderProps) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View style={styles.header}>
+      <AppTopBar
+        onBack={onBack}
+        style={StyleSheet.absoluteFill}
+        trailing={trailing}
+      />
+      <View
+        accessible
+        accessibilityRole="header"
+        pointerEvents="none"
+        style={[styles.copy, !onBack && styles.copyWithoutBack]}
+      >
+        <Text style={styles.title}>{title}</Text>
+      </View>
     </View>
-  </View>
-);
+  );
+};
 
-const styles = StyleSheet.create({
-  header: {
-    justifyContent: 'center',
-    minHeight: 64,
-    position: 'relative',
-  },
-  copy: {
-    marginLeft: 56,
-    marginRight: 56,
-    minWidth: 0,
-  },
-  copyWithoutBack: {
-    marginLeft: 0,
-  },
-  title: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.title,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    header: {
+      justifyContent: 'center',
+      minHeight: 64,
+      position: 'relative',
+    },
+    copy: {
+      marginLeft: 56,
+      marginRight: 56,
+      minWidth: 0,
+    },
+    copyWithoutBack: {
+      marginLeft: 0,
+    },
+    title: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.title,
+    },
+  });
+  return { styles };
+};

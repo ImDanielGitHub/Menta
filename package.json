@@ -1,7 +1,7 @@
 {
   "name": "menta",
   "main": "expo-router/entry",
-  "version": "1.9.6",
+  "version": "1.9.7",
   "scripts": {
     "postinstall": "patch-package",
     "start": "expo start --dev-client",
@@ -12,7 +12,8 @@
     "test": "jest --runInBand",
     "test:core": "jest --runInBand lib/__tests__/solo-submission-status.test.ts lib/__tests__/promise-submission-read.test.ts lib/paywall/__tests__/revenuecat.test.ts",
     "check:public": "node scripts/check-public-export.mjs",
-    "export:ios": "expo export --platform ios --output-dir dist-ios"
+    "export:ios": "expo export --platform ios --output-dir dist-ios",
+    "test:judge": "jest --runInBand app/__tests__/activity-inbox.test.tsx app/__tests__/challenge-delete-navigation.test.tsx app/__tests__/notification-settings.test.tsx app/__tests__/widget-restart-intent.test.ts components/menta-check/__tests__/menta-today.test.tsx components/momenta/__tests__/momenta-top-up.test.tsx components/ui/__tests__/SimpleBottomSheet-dismissal.test.tsx components/challenge/create/__tests__/PromiseFlow.theme.test.tsx hooks/__tests__/use-promise-mutation-flow.test.tsx hooks/__tests__/use-activity-inbox.test.tsx lib/notifications/__tests__/activity-inbox.test.ts lib/paywall/__tests__/onboarding-paywall.test.ts supabase/functions/menta-check/__tests__/jev.test.ts supabase/functions/menta-check/__tests__/policy.test.ts supabase/functions/menta-check/__tests__/media.test.ts"
   },
   "dependencies": {
     "@amplitude/analytics-react-native": "^1.8.0",

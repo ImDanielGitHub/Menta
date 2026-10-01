@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { Platform, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -6,12 +13,7 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppScaledText as Text } from '@/components/ui/AppScaledText';
 import { ExternalLinkIcon, RefreshCcwIcon } from '@/components/ui/icons';
 import Modal from '@/components/ui/modal/ModalCard';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { shouldUseIPadTwoColumnLayout } from '@/constants/responsive-layout';
 import type { AppUpdateMode } from '@/lib/app-update-policy';
 import { useTranslation } from '@/lib/localization/use-translation';
@@ -39,6 +41,9 @@ export const AppUpdateGateSurface = ({
   visible,
   storeOpenFailed = false,
 }: AppUpdateGateSurfaceProps) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { width } = useWindowDimensions();
   const { t } = useTranslation();
   const usesWideWorkspace = shouldUseIPadTwoColumnLayout(
@@ -171,83 +176,86 @@ export const AppUpdateGateSurface = ({
   );
 };
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  sheetSafeArea: {
-    flexGrow: 0,
-  },
-  workspace: {
-    alignSelf: 'center',
-    gap: mentaSpacing[8],
-    justifyContent: 'center',
-    maxWidth: 680,
-    padding: mentaSpacing[6],
-    width: '100%',
-  },
-  workspaceFull: {
-    flex: 1,
-  },
-  workspaceWide: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[12],
-    maxWidth: 1040,
-  },
-  contextPane: {
-    gap: mentaSpacing[5],
-  },
-  actionPane: {
-    gap: mentaSpacing[5],
-  },
-  workspacePane: {
-    flex: 1,
-  },
-  icon: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.raised,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.medium,
-    borderWidth: StyleSheet.hairlineWidth,
-    height: 56,
-    justifyContent: 'center',
-    width: 56,
-  },
-  heading: {
-    gap: mentaSpacing[3],
-  },
-  title: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.display,
-  },
-  body: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.body,
-  },
-  receipt: {
-    backgroundColor: mentaColors.raised,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.medium,
-    borderWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[3],
-    padding: mentaSpacing[5],
-  },
-  receiptRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[4],
-    justifyContent: 'space-between',
-  },
-  receiptLabel: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.caption,
-  },
-  receiptValue: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.bodySemibold,
-  },
-  actions: {
-    gap: mentaSpacing[3],
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    safeArea: {
+      flex: 1,
+    },
+    sheetSafeArea: {
+      flexGrow: 0,
+    },
+    workspace: {
+      alignSelf: 'center',
+      gap: mentaSpacing[8],
+      justifyContent: 'center',
+      maxWidth: 680,
+      padding: mentaSpacing[6],
+      width: '100%',
+    },
+    workspaceFull: {
+      flex: 1,
+    },
+    workspaceWide: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[12],
+      maxWidth: 1040,
+    },
+    contextPane: {
+      gap: mentaSpacing[5],
+    },
+    actionPane: {
+      gap: mentaSpacing[5],
+    },
+    workspacePane: {
+      flex: 1,
+    },
+    icon: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.raised,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.medium,
+      borderWidth: StyleSheet.hairlineWidth,
+      height: 56,
+      justifyContent: 'center',
+      width: 56,
+    },
+    heading: {
+      gap: mentaSpacing[3],
+    },
+    title: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.display,
+    },
+    body: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.body,
+    },
+    receipt: {
+      backgroundColor: mentaColors.raised,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.medium,
+      borderWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[3],
+      padding: mentaSpacing[5],
+    },
+    receiptRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[4],
+      justifyContent: 'space-between',
+    },
+    receiptLabel: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.caption,
+    },
+    receiptValue: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.bodySemibold,
+    },
+    actions: {
+      gap: mentaSpacing[3],
+    },
+  });
+  return { styles };
+};

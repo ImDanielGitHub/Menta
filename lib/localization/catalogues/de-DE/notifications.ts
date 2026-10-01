@@ -6,6 +6,28 @@ type NotificationsKey = Extract<
 >;
 
 export const notificationsDeDE = {
+  'notifications.recovery.restart':
+    'Ein verpasster Tag ist nicht die ganze Geschichte. Dein nächster Check-in ist ein neuer Anfang; der Nachweis zählt nach der Freigabe.',
+  'notifications.recovery.month':
+    'Für dieses Versprechen bleibt noch etwa ein Monat. Dein nächster Check-in ist ein neuer Anfang; der Nachweis zählt nach der Freigabe.',
+
+  'notifications.smart.title': 'Intelligente Erinnerungen',
+  'notifications.smart.time': 'Übliche Erinnerungszeit',
+  'notifications.smart.body':
+    'Menta passt Erinnerungen an, solange ein Nachweis fällig ist, und beendet sie nach dem Einreichen. Deine übliche Zeit dient als Orientierung.',
+  'notifications.smart.advanced': 'Erweiterte Optionen',
+  'notifications.inbox.title': 'Aktivität',
+  'notifications.inbox.settings': 'Mitteilungseinstellungen',
+  'notifications.inbox.error': 'Aktivität konnte nicht aktualisiert werden',
+  'notifications.inbox.error_body':
+    'Versuche es erneut. Dein bisheriger Lesestatus bleibt gespeichert.',
+  'notifications.inbox.loading': 'Aktivität wird geladen',
+  'notifications.inbox.empty': 'Keine aktuelle Aktivität',
+  'notifications.inbox.empty_body':
+    'Deine letzten Mitteilungen erscheinen hier. Unter Heute siehst du, was fällig ist.',
+  'notifications.inbox.unread': 'Ungelesen',
+  'notifications.inbox.hint': 'Öffnet deinen Aktivitätseingang',
+
   'notifications.topbar.back': 'Zurück',
   'notifications.topbar.context': 'Optional',
   'notifications.topbar.title': 'Mitteilungen',

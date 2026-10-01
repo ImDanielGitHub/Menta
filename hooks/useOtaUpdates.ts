@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as Updates from 'expo-updates';
+import { restartIntoDownloadedOta } from '@/lib/ota-updates';
 import { showToast } from '@/components/ui/Toast';
 import { isE2EMode } from '@/lib/e2e';
 import { useTranslation } from '@/lib/localization/use-translation';
@@ -33,7 +34,7 @@ export function useOtaUpdates(options: UseOtaUpdatesOptions = {}): void {
             action: {
               label: t('shared.update.ready.restart'),
               onPress: () => {
-                Updates.reloadAsync().catch(() => undefined);
+                restartIntoDownloadedOta().catch(() => undefined);
               },
             },
             duration: 12000,

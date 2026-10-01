@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
@@ -15,12 +22,7 @@ import {
   RotateCcwIcon,
   SnowflakeIcon,
 } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { MOTION_DURATIONS } from '@/lib/motion/tokens';
 import { useMotionPreferences } from '@/lib/motion/use-motion-preferences';
 import { useTranslation } from '@/lib/localization';
@@ -40,6 +42,9 @@ function DayMark({
   status: TodayWeekDayStatus;
   isToday: boolean;
 }) {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const motion = useMotionPreferences();
   const scale = useSharedValue(1);
   const previousStatus = useRef(status);
@@ -99,6 +104,8 @@ export function TodayWeekRow({
 }: {
   days: readonly TodayWeekDay[] | null;
 }) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
 
   if (!days) {
@@ -149,53 +156,56 @@ export function TodayWeekRow({
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    alignSelf: 'stretch',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: mentaSpacing[1],
-    width: '100%',
-  },
-  day: {
-    alignItems: 'center',
-    gap: mentaSpacing[2],
-    minWidth: DAY_MARK_SIZE,
-  },
-  dayLabel: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.muted,
-    textAlign: 'center',
-  },
-  dayLabelToday: {
-    ...mentaTypography.captionMedium,
-    color: mentaColors.text.primary,
-  },
-  mark: {
-    alignItems: 'center',
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.round,
-    borderWidth: 1,
-    height: DAY_MARK_SIZE,
-    justifyContent: 'center',
-    width: DAY_MARK_SIZE,
-  },
-  markApproved: {
-    backgroundColor: mentaColors.success,
-    borderColor: mentaColors.success,
-  },
-  markPending: {
-    borderColor: mentaColors.text.muted,
-  },
-  markCorrection: {
-    backgroundColor: mentaColors.warningSoft,
-    borderColor: mentaColors.warning,
-  },
-  markProtected: {
-    borderColor: mentaColors.info,
-  },
-  markTodayOpen: {
-    borderColor: mentaColors.action,
-    borderWidth: 2,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    row: {
+      alignSelf: 'stretch',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingHorizontal: mentaSpacing[1],
+      width: '100%',
+    },
+    day: {
+      alignItems: 'center',
+      gap: mentaSpacing[2],
+      minWidth: DAY_MARK_SIZE,
+    },
+    dayLabel: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.muted,
+      textAlign: 'center',
+    },
+    dayLabelToday: {
+      ...mentaTypography.captionMedium,
+      color: mentaColors.text.primary,
+    },
+    mark: {
+      alignItems: 'center',
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.round,
+      borderWidth: 1,
+      height: DAY_MARK_SIZE,
+      justifyContent: 'center',
+      width: DAY_MARK_SIZE,
+    },
+    markApproved: {
+      backgroundColor: mentaColors.success,
+      borderColor: mentaColors.success,
+    },
+    markPending: {
+      borderColor: mentaColors.text.muted,
+    },
+    markCorrection: {
+      backgroundColor: mentaColors.warningSoft,
+      borderColor: mentaColors.warning,
+    },
+    markProtected: {
+      borderColor: mentaColors.info,
+    },
+    markTodayOpen: {
+      borderColor: mentaColors.action,
+      borderWidth: 2,
+    },
+  });
+  return { styles };
+};

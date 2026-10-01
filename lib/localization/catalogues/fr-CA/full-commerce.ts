@@ -1,5 +1,14 @@
 /** Customer-facing copy for the Momenta wallet, shop, inventory, and Pro flows. */
 export const fullCommerceFrCA = {
+  'commerce.proJourney.continueFree': 'Continuer gratuitement',
+  'commerce.free.receiptRetry': 'Votre promesse a été créée',
+  'commerce.free.receiptRetryDetail':
+    'Nous n’avons pas pu enregistrer sa confirmation. Réessayez pour terminer la configuration du vérificateur. Cela ne créera ni ne facturera une autre promesse.',
+  'commerce.free.pendingReviewer': 'En attente de vérification',
+  'commerce.free.pendingDetail':
+    'Ta promesse et son délai ont déjà commencé. Invite un ami à vérifier ta preuve. Quitter cet écran laisse la promesse et son délai en cours.',
+  'commerce.free.finishSetup': 'Terminer le choix du vérificateur',
+
   'commerce.proJourney.back': 'Retour',
   'commerce.proJourney.title': 'Menta Pro',
   'commerce.proJourney.subtitle':
@@ -384,8 +393,7 @@ export const fullCommerceFrCA = {
   'commerce.shop.state': 'État',
   'commerce.shop.reachStreakAuto':
     'Atteignez une série de {days} jours. Menta l’ajoute automatiquement à Vos éléments.',
-  'commerce.shop.appearanceWarm':
-    '{name} donne à Menta un aspect plus chaleureux.',
+  'commerce.shop.themeTitle': '{name} change les couleurs de Menta.',
   'commerce.shop.frameTitle': '{name} encadre votre photo de profil.',
   'commerce.shop.oneUse': 'une utilisation',
   'commerce.shop.unlocks': 'Débloqué à une série de {days} jours',
@@ -509,8 +517,8 @@ export const fullCommerceFrCA = {
     'Ajoute 12 heures à la date limite d’une promesse active.',
   'commerce.shop.choosePromiseAfter':
     'Choisissez la promesse active après l’achat, ou plus tard depuis « Vos éléments ».',
-  'commerce.shop.buttonsColours':
-    'Les boutons, surbrillances et éléments sélectionnés utilisent les couleurs chaudes d’Ember.',
+  'commerce.shop.themeColours':
+    'Les boutons, les surlignages et les éléments sélectionnés utilisent les couleurs de {name}.',
   'commerce.shop.frameProfile':
     'Le cadre apparaît partout où Menta montre votre identité de profil.',
   'commerce.shop.frameDescription':
@@ -914,7 +922,7 @@ export const fullCommerceFrCA = {
   'commerce.firstMiss.errorUnavailable':
     'Cette offre du premier jour n’est plus disponible. Vous pouvez quand même ajouter une preuve aujourd’hui.',
   'commerce.firstMiss.bubble':
-    '{weekday} vous a échappé. Ça arrive à tout le monde.',
+    '{weekday} est passé. Un jour manqué ne résume pas tout.',
   'commerce.firstMiss.decisionTitle': 'Garder votre série de {count} jours?',
   'commerce.firstMiss.decisionBody':
     'Votre premier jour manqué est offert. Un gel de série gratuit couvre {weekday}, et votre série reste à {count}.',
@@ -922,6 +930,9 @@ export const fullCommerceFrCA = {
     'Votre premier jour manqué est offert. Un gel de série gratuit couvre {weekday}.',
   'commerce.firstMiss.keep': 'Garder ma série gratuitement',
   'commerce.firstMiss.startOver': 'Recommencer au jour 1',
+  'commerce.free.receiptReadBlocked': 'Vérifie ta promesse enregistrée',
+  'commerce.free.receiptReadBlockedDetail':
+    'Nous n’avons pas pu lire la promesse enregistrée de façon sûre. Réessaie la récupération avant de commencer une autre promesse.',
 } as const;
 
 export type FullCommerceFrCAKey = keyof typeof fullCommerceFrCA;

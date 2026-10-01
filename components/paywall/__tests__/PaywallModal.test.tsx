@@ -7,6 +7,7 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import { StyleSheet, View } from 'react-native';
+import { ProOfferJourney } from '@/components/paywall/pro-offer-journey';
 import PaywallModal from '@/components/paywall/PaywallModal';
 import { ThemeProvider } from '@/constants/ThemeContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -67,8 +68,8 @@ jest.mock('react-native-purchases', () => ({
 describe('PaywallModal', () => {
   const reviewWeeklyOffer = async () => {
     fireEvent.press(screen.getByText('See Pro plans'));
-    fireEvent.press(await screen.findByRole('radio', { name: /^Weekly Pro/ }));
-    fireEvent.press(screen.getByText('Review my offer'));
+    fireEvent.press(await screen.findByRole('radio', { name: /^Weekly/ }));
+    fireEvent.press(screen.getByText(/^Continue with (weekly|yearly)/i));
     await screen.findByText('Your Pro plan.');
   };
 
@@ -154,16 +155,86 @@ describe('PaywallModal', () => {
     jest.useRealTimers();
   });
 
+  it.each(['benefits', 'plans', 'offer'] as const)(
+    'offers one explicit free choice on %s',
+    async stage => {
+      const onFree = jest.fn();
+      const onClose = jest.fn();
+      const { purchasePlan, restorePurchases } = jest.requireMock(
+        '@/lib/paywall/revenuecat'
+      );
+      render(
+        <PaywallModal
+          visible
+          context="menta_check"
+          onClose={onClose}
+          onContinueFree={onFree}
+        />,
+        { wrapper: Wrapper }
+      );
+      if (stage !== 'benefits')
+        fireEvent.press(screen.getByText('See Pro plans'));
+      if (stage === 'offer') {
+        fireEvent.press(await screen.findByRole('radio', { name: /^Weekly/ }));
+        fireEvent.press(screen.getByText(/^Continue with weekly/i));
+        await screen.findByText('Your Pro plan.');
+      }
+      const free = screen.getByRole('button', { name: 'Continue with free' });
+      fireEvent.press(free);
+      fireEvent.press(free);
+      expect(onFree).toHaveBeenCalledTimes(1);
+      expect(onClose).toHaveBeenCalledTimes(1);
+      expect(purchasePlan).not.toHaveBeenCalled();
+      expect(restorePurchases).not.toHaveBeenCalled();
+    }
+  );
+  it('does not interpret an ordinary close as choosing free', () => {
+    const onFree = jest.fn();
+    const onClose = jest.fn();
+    const view = render(
+      <PaywallModal visible onClose={onClose} onContinueFree={onFree} />,
+      { wrapper: Wrapper }
+    );
+    view.rerender(
+      <PaywallModal visible={false} onClose={onClose} onContinueFree={onFree} />
+    );
+    expect(onFree).not.toHaveBeenCalled();
+  });
+  it.each(['purchase', 'restore'] as const)(
+    'blocks free while native %s is unresolved',
+    async operation => {
+      const onFree = jest.fn();
+      const onClose = jest.fn();
+      const api = jest.requireMock('@/lib/paywall/revenuecat');
+      const pending =
+        operation === 'purchase' ? api.purchasePlan : api.restorePurchases;
+      pending.mockImplementation(() => new Promise(() => {}));
+      render(
+        <PaywallModal visible onClose={onClose} onContinueFree={onFree} />,
+        { wrapper: Wrapper }
+      );
+      const capturedChoice =
+        screen.UNSAFE_getByType(ProOfferJourney).props.onContinueFree;
+      if (operation === 'purchase') {
+        await reviewWeeklyOffer();
+        fireEvent.press(screen.getByText('Subscribe to Pro'));
+      } else
+        fireEvent.press(
+          screen.getByRole('button', { name: 'Restore purchases' })
+        );
+      await waitFor(() => expect(pending).toHaveBeenCalledTimes(1));
+      act(() => capturedChoice());
+      expect(onFree).not.toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
+    }
+  );
+
   it('offers a return to setup instead of promising free access in hard onboarding', async () => {
     const onClose = jest.fn();
     render(<PaywallModal visible context="onboarding" onClose={onClose} />, {
       wrapper: Wrapper,
     });
-    expect(
-      await screen.findByText(
-        'Start your promise with Menta Pro. Choose a plan to continue.'
-      )
-    ).toBeTruthy();
+    expect(await screen.findByText('Menta checks every promise')).toBeTruthy();
     expect(screen.queryByText('Keep using Menta for free')).toBeNull();
     fireEvent.press(screen.getByText('Back'));
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -444,10 +515,10 @@ describe('PaywallModal', () => {
 
     fireEvent.press(screen.getByTestId('momenta-top-up-primary'));
     fireEvent.press(await screen.findByText('See Pro plans'));
+    expect(await screen.findByRole('radio', { name: /^Weekly/ })).toBeTruthy();
     expect(
-      await screen.findByRole('radio', { name: /^Weekly Pro/ })
+      screen.getByRole('button', { name: 'Restore purchases' })
     ).toBeTruthy();
-    expect(screen.getByText('Restore purchases')).toBeTruthy();
   });
 
   it('closes back to the draft from the top-up sheet', () => {
@@ -496,10 +567,8 @@ describe('PaywallModal', () => {
     expect(screen.getByText('More active promises and groups')).toBeTruthy();
     expect(screen.queryByRole('radio')).toBeNull();
     fireEvent.press(screen.getByText('See Pro plans'));
-    expect(
-      await screen.findByRole('radio', { name: /^Weekly Pro/ })
-    ).toBeTruthy();
-    expect(screen.getByRole('radio', { name: /^Annual Pro/ })).toBeTruthy();
+    expect(await screen.findByRole('radio', { name: /^Weekly/ })).toBeTruthy();
+    expect(screen.getByRole('radio', { name: /^Yearly/ })).toBeTruthy();
     expect(screen.queryByText('Subscribe to Pro')).toBeNull();
   });
 
@@ -536,9 +605,7 @@ describe('PaywallModal', () => {
     );
 
     fireEvent.press(screen.getByText('See Pro plans'));
-    expect(
-      await screen.findByRole('radio', { name: /^Weekly Pro/ })
-    ).toBeTruthy();
+    expect(await screen.findByRole('radio', { name: /^Weekly/ })).toBeTruthy();
     expect(screen.queryByText(/Watch ad for/)).toBeNull();
     expect(screen.queryByText(/Watch one short ad/)).toBeNull();
     expect(onWatchAd).not.toHaveBeenCalled();
@@ -562,30 +629,34 @@ describe('PaywallModal', () => {
       wrapper: Wrapper,
     });
     fireEvent.press(screen.getByText('See Pro plans'));
-    const weekly = await screen.findByRole('radio', { name: /^Weekly Pro/ });
-    const annual = screen.getByRole('radio', { name: /^Annual Pro/ });
+    const weekly = await screen.findByRole('radio', { name: /^Weekly/ });
+    const annual = screen.getByRole('radio', { name: /^Yearly/ });
+    // Paper J02 leads with yearly.
     expect(weekly.props.accessibilityState.checked).toBe(false);
-    expect(annual.props.accessibilityState.checked).toBe(false);
+    expect(annual.props.accessibilityState.checked).toBe(true);
     expect(
-      screen.getByRole('button', { name: 'Review my offer' })
-    ).toBeDisabled();
+      screen.getByRole('button', { name: 'Continue with yearly' })
+    ).toBeEnabled();
     fireEvent.press(weekly);
     expect(
-      screen.getByRole('radio', { name: /^Weekly Pro/ }).props
-        .accessibilityState.checked
+      screen.getByRole('button', { name: 'Continue with weekly' })
+    ).toBeEnabled();
+    expect(
+      screen.getByRole('radio', { name: /^Weekly/ }).props.accessibilityState
+        .checked
     ).toBe(true);
     expect(
-      screen.getByRole('radio', { name: /^Annual Pro/ }).props
-        .accessibilityState.checked
+      screen.getByRole('radio', { name: /^Yearly/ }).props.accessibilityState
+        .checked
     ).toBe(false);
     fireEvent.press(annual);
     expect(
-      screen.getByRole('radio', { name: /^Weekly Pro/ }).props
-        .accessibilityState.checked
+      screen.getByRole('radio', { name: /^Weekly/ }).props.accessibilityState
+        .checked
     ).toBe(false);
     expect(
-      screen.getByRole('radio', { name: /^Annual Pro/ }).props
-        .accessibilityState.checked
+      screen.getByRole('radio', { name: /^Yearly/ }).props.accessibilityState
+        .checked
     ).toBe(true);
     expect(purchasePlan).not.toHaveBeenCalled();
   });
@@ -594,8 +665,8 @@ describe('PaywallModal', () => {
       wrapper: EmberWrapper,
     });
     fireEvent.press(screen.getByText('See Pro plans'));
-    fireEvent.press(await screen.findByRole('radio', { name: /^Weekly Pro/ }));
-    const selected = screen.getByRole('radio', { name: /^Weekly Pro/ });
+    fireEvent.press(await screen.findByRole('radio', { name: /^Weekly/ }));
+    const selected = screen.getByRole('radio', { name: /^Weekly/ });
     expect(selected.props.accessibilityState.checked).toBe(true);
     expect(
       selected
@@ -629,12 +700,12 @@ describe('PaywallModal', () => {
       wrapper: Wrapper,
     });
     fireEvent.press(screen.getByText('See Pro plans'));
-    const option = await screen.findByRole('radio', { name: /^Weekly Pro/ });
+    const option = await screen.findByRole('radio', { name: /^Weekly/ });
     expect(option.props.accessibilityLabel).toContain(
       'Rp1.590.000,00 billed each week.'
     );
     fireEvent.press(option);
-    fireEvent.press(screen.getByText('Review my offer'));
+    fireEvent.press(screen.getByText(/^Continue with (weekly|yearly)/i));
     expect(await screen.findByText('Rp1.590.000,00')).toBeTruthy();
     expect(
       screen.getAllByText(
@@ -642,19 +713,16 @@ describe('PaywallModal', () => {
       )
     ).not.toHaveLength(0);
   });
-  it('requires selection and review of exact terms before offering checkout', async () => {
+  it('requires a review of exact terms before offering checkout', async () => {
     const { purchasePlan } = jest.requireMock('@/lib/paywall/revenuecat');
     render(<PaywallModal visible onClose={jest.fn()} context="general" />, {
       wrapper: Wrapper,
     });
     fireEvent.press(screen.getByText('See Pro plans'));
-    expect(
-      screen.getByRole('button', { name: 'Review my offer' })
-    ).toBeDisabled();
     expect(screen.queryByText('Subscribe to Pro')).toBeNull();
-    fireEvent.press(await screen.findByRole('radio', { name: /^Annual Pro/ }));
+    fireEvent.press(await screen.findByRole('radio', { name: /^Yearly/ }));
     expect(screen.queryByText('Subscribe to Pro')).toBeNull();
-    fireEvent.press(screen.getByText('Review my offer'));
+    fireEvent.press(screen.getByText(/^Continue with (weekly|yearly)/i));
     expect(await screen.findByText('Your Pro plan.')).toBeTruthy();
     expect(
       screen.getAllByText('$59.99 billed each year. Renews automatically.')
@@ -683,12 +751,12 @@ describe('PaywallModal', () => {
       wrapper: Wrapper,
     });
     fireEvent.press(screen.getByText('See Pro plans'));
-    const option = await screen.findByRole('radio', { name: /^Weekly Pro/ });
+    const option = await screen.findByRole('radio', { name: /^Weekly/ });
     expect(option.props.accessibilityLabel).toContain(
       'NZ$9.99 billed each week.'
     );
     fireEvent.press(option);
-    fireEvent.press(screen.getByText('Review my offer'));
+    fireEvent.press(screen.getByText(/^Continue with (weekly|yearly)/i));
     expect(await screen.findByText('NZ$9.99')).toBeTruthy();
     expect(
       screen.getAllByText('NZ$9.99 billed each week. Renews automatically.')
@@ -987,7 +1055,9 @@ describe('PaywallModal', () => {
     );
 
     fireEvent.press(screen.getByText('See Pro plans'));
-    fireEvent.press(await screen.findByText('Restore purchases'));
+    fireEvent.press(
+      await screen.findByRole('button', { name: 'Restore purchases' })
+    );
 
     expect(await screen.findByText('Menta Pro is active again')).toBeTruthy();
     expect(
@@ -1026,7 +1096,9 @@ describe('PaywallModal', () => {
     });
 
     fireEvent.press(screen.getByText('See Pro plans'));
-    fireEvent.press(await screen.findByText('Restore purchases'));
+    fireEvent.press(
+      await screen.findByRole('button', { name: 'Restore purchases' })
+    );
 
     expect(await screen.findByTestId('paywall-state-restoring')).toBeTruthy();
     expect(screen.getByText('Restoring purchases…')).toBeTruthy();
@@ -1083,7 +1155,9 @@ describe('PaywallModal', () => {
     });
 
     fireEvent.press(screen.getByText('See Pro plans'));
-    fireEvent.press(await screen.findByText('Restore purchases'));
+    fireEvent.press(
+      await screen.findByRole('button', { name: 'Restore purchases' })
+    );
 
     expect(await screen.findByText('Could not restore purchases')).toBeTruthy();
     expect(
@@ -1107,7 +1181,9 @@ describe('PaywallModal', () => {
     });
 
     fireEvent.press(screen.getByText('See Pro plans'));
-    fireEvent.press(await screen.findByText('Restore purchases'));
+    fireEvent.press(
+      await screen.findByRole('button', { name: 'Restore purchases' })
+    );
 
     expect(
       await screen.findByText('No matching purchase was found')
@@ -1131,7 +1207,9 @@ describe('PaywallModal', () => {
     });
 
     fireEvent.press(screen.getByText('See Pro plans'));
-    fireEvent.press(await screen.findByText('Restore purchases'));
+    fireEvent.press(
+      await screen.findByRole('button', { name: 'Restore purchases' })
+    );
 
     expect(
       await screen.findByText('Pro is taking longer to activate')
@@ -1154,7 +1232,7 @@ describe('PaywallModal', () => {
     ).toBeTruthy();
     expect(screen.getByText('Try again')).toBeTruthy();
     expect(
-      screen.getByRole('button', { name: 'Review my offer' })
+      screen.getByRole('button', { name: /^Continue with (?!free)/i })
     ).toBeDisabled();
   });
   it('does not expose a native checkout when purchases are unsupported', async () => {
@@ -1169,7 +1247,7 @@ describe('PaywallModal', () => {
       await screen.findByText('Plans aren’t available right now')
     ).toBeTruthy();
     expect(
-      screen.getByRole('button', { name: 'Review my offer' })
+      screen.getByRole('button', { name: /^Continue with (?!free)/i })
     ).toBeDisabled();
     expect(screen.queryByText('Subscribe to Pro')).toBeNull();
     expect(screen.queryByText(/native build|configured/i)).toBeNull();
@@ -1189,7 +1267,7 @@ describe('PaywallModal', () => {
     ).toBeTruthy();
     expect(screen.queryByRole('radio')).toBeNull();
     expect(
-      screen.getByRole('button', { name: 'Review my offer' })
+      screen.getByRole('button', { name: /^Continue with (?!free)/i })
     ).toBeDisabled();
     expect(screen.queryByText('Subscribe to Pro')).toBeNull();
   });
@@ -1219,7 +1297,9 @@ describe('PaywallModal', () => {
       wrapper: Wrapper,
     });
     await reviewWeeklyOffer();
-    expect(screen.getByText('Restore purchases')).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Restore purchases' })
+    ).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Terms of Use' })).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Privacy Policy' })).toBeTruthy();
     expect(screen.getByText('Subscribe to Pro')).toBeTruthy();

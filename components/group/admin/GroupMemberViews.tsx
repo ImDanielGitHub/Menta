@@ -1,3 +1,9 @@
+import {
+  type MentaPalette,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -9,11 +15,7 @@ import {
 } from '@/components/group/GroupAdminPrimitives';
 import { Avatar } from '@/components/ui';
 import { MoreVerticalIcon } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { getMemberName } from '@/components/group/admin/group-member-governance';
 import { groupMemberRoleCopy } from '@/lib/group-member-policy';
 import { useLargeTypeLineLimit } from '@/lib/accessibility';
@@ -37,6 +39,9 @@ export const MemberRow = ({
   onPress: () => void;
   readOnly: boolean;
 }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const memberNameLines = useLargeTypeLineLimit(1);
 
@@ -98,6 +103,8 @@ export const MemberRow = ({
 };
 
 export const MembersSkeleton = () => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <View
@@ -133,34 +140,37 @@ export const MemberState = ({
   />
 );
 
-const styles = StyleSheet.create({
-  memberRow: {
-    alignItems: 'center',
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 72,
-    paddingHorizontal: mentaSpacing[4],
-  },
-  memberCopy: { flex: 1, gap: mentaSpacing[1], minWidth: 0 },
-  memberName: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  memberRole: { ...mentaTypography.label, color: mentaColors.text.secondary },
-  memberTrailing: {
-    alignItems: 'flex-end',
-    flexShrink: 0,
-    justifyContent: 'center',
-    width: 44,
-  },
-  locked: {
-    ...mentaTypography.micro,
-    color: mentaColors.text.secondary,
-    fontFamily: mentaTypography.bodySemibold.fontFamily,
-  },
-  skeleton: { gap: mentaSpacing[3] },
-  disabledRow: { opacity: 0.56 },
-  pressed: { opacity: 0.76 },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    memberRow: {
+      alignItems: 'center',
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 72,
+      paddingHorizontal: mentaSpacing[4],
+    },
+    memberCopy: { flex: 1, gap: mentaSpacing[1], minWidth: 0 },
+    memberName: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    memberRole: { ...mentaTypography.label, color: mentaColors.text.secondary },
+    memberTrailing: {
+      alignItems: 'flex-end',
+      flexShrink: 0,
+      justifyContent: 'center',
+      width: 44,
+    },
+    locked: {
+      ...mentaTypography.micro,
+      color: mentaColors.text.secondary,
+      fontFamily: mentaTypography.bodySemibold.fontFamily,
+    },
+    skeleton: { gap: mentaSpacing[3] },
+    disabledRow: { opacity: 0.56 },
+    pressed: { opacity: 0.76 },
+  });
+  return { styles };
+};

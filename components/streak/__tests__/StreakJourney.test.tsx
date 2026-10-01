@@ -68,6 +68,25 @@ describe('streak journey surfaces', () => {
     expect(screen.queryByTestId('streak-progress')).toBeNull();
   });
 
+  it.each([undefined, 7, 27, 28, 31, 32, NaN])(
+    'only mentions a month for about a month of verified remaining time: %s',
+    remainingDays => {
+      render(
+        <BrokenStreakRecoveryCard
+          missedLocalDay="2026-08-11"
+          previousStreak={4}
+          resultingStreak={0}
+          remainingDays={remainingDays}
+          onStartReturn={jest.fn()}
+          onViewHistory={jest.fn()}
+        />
+      );
+      const month = remainingDays === 28 || remainingDays === 31;
+      expect(Boolean(screen.queryByText(/about a month left/))).toBe(month);
+      expect(screen.getByText(/proof counts after approval/)).toBeTruthy();
+    }
+  );
+
   it('uses the exact ended run and routes return and history separately', () => {
     const onStartReturn = jest.fn();
     const onViewHistory = jest.fn();

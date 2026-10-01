@@ -1,12 +1,14 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { MentaMascot } from '@/components/ui/MentaMascot';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-} from '@/constants/MentaDesignSystem';
+
 import { useTheme } from '@/constants/ThemeContext';
 import { useTranslation } from '@/lib/localization';
 import { mentaFonts } from '@/lib/menta-fonts';
@@ -20,6 +22,8 @@ const CARD_INK_SOFT = '#2A1A4A';
  * line appears only while the server says rewards are active and uncapped.
  */
 export function ProfileInviteCard({ onInvite }: { onInvite: () => void }) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const { colors } = useTheme();
   const getProgramme = useReferralStore(
@@ -92,65 +96,68 @@ export function ProfileInviteCard({ onInvite }: { onInvite: () => void }) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    borderRadius: 22,
-    flexDirection: 'row',
-    marginBottom: mentaSpacing[2],
-    minHeight: 190,
-    overflow: 'hidden',
-    padding: mentaSpacing[5],
-  },
-  // A soft lift toward the top-left, in place of a gradient dependency.
-  wash: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: mentaRadii.round,
-    height: 260,
-    left: -90,
-    opacity: 0.18,
-    position: 'absolute',
-    top: -140,
-    width: 260,
-  },
-  pressed: {
-    opacity: 0.9,
-  },
-  copy: {
-    flex: 1,
-    gap: mentaSpacing[2],
-    maxWidth: 240,
-    zIndex: 1,
-  },
-  title: {
-    color: CARD_INK,
-    fontFamily: mentaFonts.newsreader.semibold,
-    fontSize: 26,
-    letterSpacing: -0.5,
-    lineHeight: 30,
-  },
-  body: {
-    color: CARD_INK_SOFT,
-    fontFamily: mentaFonts.inter.regular,
-    fontSize: 15,
-    lineHeight: 21,
-  },
-  action: {
-    alignSelf: 'flex-start',
-    backgroundColor: CARD_INK,
-    borderRadius: 14,
-    marginTop: mentaSpacing[2],
-    minHeight: 44,
-    justifyContent: 'center',
-    paddingHorizontal: mentaSpacing[4],
-  },
-  actionText: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.inter.semibold,
-    fontSize: 15,
-  },
-  mascot: {
-    bottom: -12,
-    position: 'absolute',
-    right: -14,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    card: {
+      borderRadius: 22,
+      flexDirection: 'row',
+      marginBottom: mentaSpacing[2],
+      minHeight: 190,
+      overflow: 'hidden',
+      padding: mentaSpacing[5],
+    },
+    // A soft lift toward the top-left, in place of a gradient dependency.
+    wash: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: mentaRadii.round,
+      height: 260,
+      left: -90,
+      opacity: 0.18,
+      position: 'absolute',
+      top: -140,
+      width: 260,
+    },
+    pressed: {
+      opacity: 0.9,
+    },
+    copy: {
+      flex: 1,
+      gap: mentaSpacing[2],
+      maxWidth: 240,
+      zIndex: 1,
+    },
+    title: {
+      color: CARD_INK,
+      fontFamily: mentaFonts.newsreader.semibold,
+      fontSize: 26,
+      letterSpacing: -0.5,
+      lineHeight: 30,
+    },
+    body: {
+      color: CARD_INK_SOFT,
+      fontFamily: mentaFonts.inter.regular,
+      fontSize: 15,
+      lineHeight: 21,
+    },
+    action: {
+      alignSelf: 'flex-start',
+      backgroundColor: CARD_INK,
+      borderRadius: 14,
+      marginTop: mentaSpacing[2],
+      minHeight: 44,
+      justifyContent: 'center',
+      paddingHorizontal: mentaSpacing[4],
+    },
+    actionText: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.inter.semibold,
+      fontSize: 15,
+    },
+    mascot: {
+      bottom: -12,
+      position: 'absolute',
+      right: -14,
+    },
+  });
+  return { styles };
+};

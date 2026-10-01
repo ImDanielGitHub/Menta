@@ -480,7 +480,14 @@ describe('NotificationPrivacyOnboarding', () => {
       expect(
         mockedNotificationService.syncPushRegistrationForUser
       ).toHaveBeenCalledWith('user-1');
-      expect(screen.getByText('Reminders are not ready yet')).toBeTruthy();
+      expect(
+        screen.getByTestId('notification-privacy-pending-receipt')
+      ).toBeTruthy();
+      expect(screen.queryByText('Reminders are not ready yet')).toBeNull();
+      expect(
+        screen.getByTestId('notification-privacy-registration-continue').props
+          .accessibilityState.disabled
+      ).toBe(false);
     });
 
     view.rerender(

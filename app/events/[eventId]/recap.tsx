@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   Pressable,
@@ -30,13 +38,7 @@ import { AppInlineNotice } from '@/components/ui/AppFeedback';
 import { AppScreen } from '@/components/ui/AppShell';
 import { SkeletonLoader, SkeletonText } from '@/components/ui/SkeletonLoader';
 import { ArrowLeftIcon, ImageIcon, Share2Icon } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { screenInsetPadding } from '@/constants/phone-layout';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { useAuthStore } from '@/store/auth-store';
@@ -57,14 +59,20 @@ const RecapRow = ({
   label: string;
   value: string;
   last?: boolean;
-}) => (
-  <View style={[styles.row, last ? styles.rowLast : null]}>
-    <Text style={styles.rowLabel}>{label}</Text>
-    <Text style={styles.rowValue}>{value}</Text>
-  </View>
-);
+}) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View style={[styles.row, last ? styles.rowLast : null]}>
+      <Text style={styles.rowLabel}>{label}</Text>
+      <Text style={styles.rowValue}>{value}</Text>
+    </View>
+  );
+};
 
 export default function EventRecapScreen() {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { locale, t } = useTranslation();
   const numberFormatter = useMemo(
     () => new Intl.NumberFormat(locale),
@@ -453,114 +461,117 @@ export default function EventRecapScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: mentaColors.canvas },
-  content: {
-    flexGrow: 1,
-    gap: mentaSpacing[5],
-    paddingBottom: mentaSpacing[6],
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingTop: mentaSpacing[6],
-  },
-  topBar: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: mentaLayout.trailingActionLane,
-  },
-  iconButton: {
-    alignItems: 'center',
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.round,
-    borderWidth: StyleSheet.hairlineWidth,
-    height: mentaLayout.trailingActionLane,
-    justifyContent: 'center',
-    width: mentaLayout.trailingActionLane,
-  },
-  pressed: { opacity: 0.72 },
-  topLabel: {
-    ...mentaTypography.labelBold,
-    color: mentaColors.text.secondary,
-  },
-  trailingLane: { width: mentaLayout.trailingActionLane },
-  hero: { gap: mentaSpacing[2] },
-  title: {
-    ...mentaTypography.journeyTitle,
-    color: mentaColors.text.primary,
-  },
-  body: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-  },
-  completedAt: {
-    ...mentaTypography.micro,
-    color: mentaColors.text.secondary,
-  },
-  loadingState: { gap: mentaSpacing[4], paddingTop: mentaSpacing[6] },
-  missingState: {
-    flex: 1,
-    gap: mentaSpacing[4],
-    justifyContent: 'center',
-    padding: mentaLayout.screenInset,
-  },
-  stateSection: { gap: mentaSpacing[4], paddingTop: mentaSpacing[8] },
-  stateTitle: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-  },
-  rows: {
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  row: {
-    alignItems: 'center',
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: 58,
-  },
-  rowLast: { borderBottomWidth: 0 },
-  rowLabel: {
-    ...mentaTypography.body,
-    color: mentaColors.text.primary,
-  },
-  rowValue: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  albumSection: { gap: mentaSpacing[4] },
-  albumHeading: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-  },
-  albumHeadingCopy: { flex: 1, gap: mentaSpacing[1] },
-  sectionLabel: {
-    ...mentaTypography.labelBold,
-    color: mentaColors.text.primary,
-  },
-  albumCount: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-  },
-  emptyAlbum: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[3],
-    justifyContent: 'center',
-    minHeight: 176,
-    paddingVertical: mentaSpacing[6],
-  },
-  footer: {
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[2],
-    justifyContent: 'center',
-    minHeight: 120,
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingVertical: mentaSpacing[3],
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: { flex: 1, backgroundColor: mentaColors.canvas },
+    content: {
+      flexGrow: 1,
+      gap: mentaSpacing[5],
+      paddingBottom: mentaSpacing[6],
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingTop: mentaSpacing[6],
+    },
+    topBar: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      minHeight: mentaLayout.trailingActionLane,
+    },
+    iconButton: {
+      alignItems: 'center',
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.round,
+      borderWidth: StyleSheet.hairlineWidth,
+      height: mentaLayout.trailingActionLane,
+      justifyContent: 'center',
+      width: mentaLayout.trailingActionLane,
+    },
+    pressed: { opacity: 0.72 },
+    topLabel: {
+      ...mentaTypography.labelBold,
+      color: mentaColors.text.secondary,
+    },
+    trailingLane: { width: mentaLayout.trailingActionLane },
+    hero: { gap: mentaSpacing[2] },
+    title: {
+      ...mentaTypography.journeyTitle,
+      color: mentaColors.text.primary,
+    },
+    body: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+    },
+    completedAt: {
+      ...mentaTypography.micro,
+      color: mentaColors.text.secondary,
+    },
+    loadingState: { gap: mentaSpacing[4], paddingTop: mentaSpacing[6] },
+    missingState: {
+      flex: 1,
+      gap: mentaSpacing[4],
+      justifyContent: 'center',
+      padding: mentaLayout.screenInset,
+    },
+    stateSection: { gap: mentaSpacing[4], paddingTop: mentaSpacing[8] },
+    stateTitle: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+    },
+    rows: {
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+    },
+    row: {
+      alignItems: 'center',
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      minHeight: 58,
+    },
+    rowLast: { borderBottomWidth: 0 },
+    rowLabel: {
+      ...mentaTypography.body,
+      color: mentaColors.text.primary,
+    },
+    rowValue: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    albumSection: { gap: mentaSpacing[4] },
+    albumHeading: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+    },
+    albumHeadingCopy: { flex: 1, gap: mentaSpacing[1] },
+    sectionLabel: {
+      ...mentaTypography.labelBold,
+      color: mentaColors.text.primary,
+    },
+    albumCount: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+    },
+    emptyAlbum: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[3],
+      justifyContent: 'center',
+      minHeight: 176,
+      paddingVertical: mentaSpacing[6],
+    },
+    footer: {
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[2],
+      justifyContent: 'center',
+      minHeight: 120,
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingVertical: mentaSpacing[3],
+    },
+  });
+  return { styles };
+};

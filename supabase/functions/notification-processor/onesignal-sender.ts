@@ -37,6 +37,9 @@ const SAFE_NOTIFICATION_TYPES = new Set([
   'group_streak_warning',
   'low_activity',
   'maintenance',
+  'menta_check_counted',
+  'menta_check_not_yet',
+  'menta_check_stepped_in',
   'missed_streak',
   'momenta_reward',
   'review_reminder',
@@ -248,6 +251,21 @@ export const buildSafePushCopy = (input: {
       return {
         title: 'Menta notification test',
         body: 'Open notification settings to finish checking delivery.',
+      };
+    case 'menta_check_counted':
+      return {
+        title: 'That counts!',
+        body: 'Menta checked your proof. Open Menta to see it.',
+      };
+    case 'menta_check_not_yet':
+      return {
+        title: 'Not quite yet',
+        body: 'Menta needs another photo. Open Menta to send one.',
+      };
+    case 'menta_check_stepped_in':
+      return {
+        title: 'Menta checked your proof',
+        body: 'Your group was busy, so Menta had a look. It counts.',
       };
     default:
       return { title: 'Menta update', body: 'Open Menta to see the update.' };

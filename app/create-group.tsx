@@ -1,3 +1,15 @@
+import {
+  mentaColors as defaultMentaColors,
+  type MentaPalette,
+  mentaHeadingRoles,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypeScale,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -32,15 +44,7 @@ import {
   XIcon,
 } from '@/components/ui/icons';
 import { MentaMascot } from '@/components/ui/MentaMascot';
-import {
-  mentaColors,
-  mentaHeadingRoles,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypeScale,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import {
   useTheme,
   useThemedStyles,
@@ -70,7 +74,6 @@ import {
 import { mentaFonts } from '@/lib/menta-fonts';
 import { useQuotaGate } from '@/lib/hooks/useQuotaGate';
 import { resolveAdaptiveLayout } from '@/constants/responsive-layout';
-import { RevenueCatAPI } from '@/lib/paywall/revenuecat';
 import {
   resolveCommitmentTemplate,
   type CommitmentTemplateId,
@@ -118,31 +121,14 @@ type GroupParams = {
 
 type PrivacyOption = 'public' | 'private';
 
-const privacyOptions: {
-  id: PrivacyOption;
-  labelKey: 'groups.create.public_label' | 'groups.create.private_label';
-  noteKey: 'groups.create.public_note' | 'groups.create.private_note';
-  icon: React.ReactNode;
-}[] = [
-  {
-    id: 'public',
-    labelKey: 'groups.create.public_label',
-    noteKey: 'groups.create.public_note',
-    icon: <GlobeIcon size={20} color={mentaColors.text.primary} />,
-  },
-  {
-    id: 'private',
-    labelKey: 'groups.create.private_label',
-    noteKey: 'groups.create.private_note',
-    icon: <LockIcon size={20} color={mentaColors.text.primary} />,
-  },
-];
-
 const getSingleParam = (
   value: string | string[] | undefined
 ): string | undefined => (Array.isArray(value) ? value[0] : value);
 
 export default function CreateGroupScreen() {
+  const mentaColors = useMentaPalette();
+  const { privacyOptions } = useMentaStyles(createPaletteStyles);
+
   const router = useRouter();
   const { t, locale } = useTranslation();
   const params = useLocalSearchParams<GroupParams>();
@@ -511,10 +497,46 @@ export default function CreateGroupScreen() {
     void submit();
   };
 
+  const purchaseRefreshOwner = React.useRef(user?.id);
+  React.useEffect(() => {
+    purchaseRefreshOwner.current = user?.id;
+    return () => {
+      purchaseRefreshOwner.current = undefined;
+    };
+  }, [user?.id]);
+
   const refreshAfterPurchase = React.useCallback(async () => {
-    await RevenueCatAPI.refreshCustomerInfo();
-    if (user?.id) await fetchBalance(user.id);
-  }, [fetchBalance, user?.id]);
+    try {
+      const ownerId = user?.id;
+      if (!ownerId) return;
+      await fetchBalance(ownerId, { throwOnError: true });
+      const cost = await getCreateGroupCost(ownerId);
+      if (purchaseRefreshOwner.current !== ownerId) return;
+      setEffectiveCreateCost(cost);
+      // The paywall calls this after confirmed activation. Keep unresolved
+      // creation recovery intact; the next explicit submit rechecks all gates.
+      if (
+        creationRecoveryState === 'none' &&
+        (paywallVariant === 'quota' || paywallVariant === 'insufficient') &&
+        cost <= useMomentaStore.getState().balance
+      ) {
+        setCreationError(current =>
+          current === creationError ? null : current
+        );
+        setCostConfirmation(null);
+      }
+    } catch {
+      // Keep the draft and existing retry guidance if readback fails. The
+      // paywall does not await this callback; never leak a rejected promise.
+    }
+  }, [
+    creationError,
+    creationRecoveryState,
+    fetchBalance,
+    getCreateGroupCost,
+    paywallVariant,
+    user?.id,
+  ]);
 
   const linkCreatedGroupToPromise = React.useCallback(
     async (
@@ -2172,8 +2194,9 @@ const ReviewDetailRow: React.FC<{
   );
 };
 
-const createStyles = (theme: ThemeContextType) =>
-  StyleSheet.create({
+const createStyles = (theme: ThemeContextType) => {
+  const mentaColors = theme.mentaColors ?? defaultMentaColors;
+  return StyleSheet.create({
     screen: {
       flex: 1,
       backgroundColor: mentaColors.canvas,
@@ -2507,3 +2530,27 @@ const createStyles = (theme: ThemeContextType) =>
       transform: [{ scale: 0.98 }],
     },
   });
+};
+
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const privacyOptions: {
+    id: PrivacyOption;
+    labelKey: 'groups.create.public_label' | 'groups.create.private_label';
+    noteKey: 'groups.create.public_note' | 'groups.create.private_note';
+    icon: React.ReactNode;
+  }[] = [
+    {
+      id: 'public',
+      labelKey: 'groups.create.public_label',
+      noteKey: 'groups.create.public_note',
+      icon: <GlobeIcon size={20} color={mentaColors.text.primary} />,
+    },
+    {
+      id: 'private',
+      labelKey: 'groups.create.private_label',
+      noteKey: 'groups.create.private_note',
+      icon: <LockIcon size={20} color={mentaColors.text.primary} />,
+    },
+  ];
+  return { privacyOptions };
+};

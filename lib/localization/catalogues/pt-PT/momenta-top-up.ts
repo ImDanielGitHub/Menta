@@ -21,6 +21,8 @@ export const momentaTopUpPtPT = {
   'commerce.topUp.watchTitle': 'Ver um anúncio curto',
   'commerce.topUp.watchAnotherTitle': 'Ver outro',
   'commerce.topUp.watchDetail': 'Cerca de 30 segundos',
+  'commerce.topUp.watchReadyIn': 'O próximo fica pronto em {time}',
+  'commerce.topUp.watchAnotherIn': 'Ver outro em {time}',
   'commerce.topUp.watchCooldown':
     'O próximo fica pronto dentro de alguns minutos',
   'commerce.topUp.watchDailyLimit': 'Por hoje é tudo. Amanhã há mais.',
@@ -87,6 +89,21 @@ export const momentaTopUpPtPT = {
   'commerce.momentaGuide.getCta': 'Obter Momenta',
   'commerce.momentaGuide.orPro':
     'Ou adere ao Pro por {amount} todas as semanas',
+  'commerce.proJourney.yearlyTitle': 'Anual',
+  'commerce.proJourney.weeklyTitle': 'Semanal',
+  'commerce.proJourney.yearlyPrice': '{price} por ano',
+  'commerce.proJourney.thenPerWeek': 'Depois, {price} por semana',
+  'commerce.proJourney.renewsWeekly': 'Renova todas as semanas',
+  'commerce.proJourney.aWeek': 'por semana',
+  'commerce.proJourney.firstWeekCaption': 'primeira semana',
+  'commerce.proJourney.savePercent': 'Poupe {percent}%',
+  'commerce.proJourney.momentaAcrossYear': '{amount} Momenta ao longo do ano',
+  'commerce.proJourney.momentaEveryWeek': '{amount} Momenta todas as semanas',
+  'commerce.proJourney.cancelInSettings':
+    'Cancele quando quiser nas Definições.',
+  'commerce.proJourney.continueYearly': 'Continuar com o anual',
+  'commerce.proJourney.continueWeekly': 'Continuar com o semanal',
+  'commerce.proJourney.restoreShort': 'Restaurar',
   'commerce.proJourney.planQuestion':
     'O mesmo Pro nos dois. Qual te serve melhor?',
   'commerce.proJourney.backToPromise':

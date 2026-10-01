@@ -1,13 +1,15 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-
-import { AppButton } from '@/components/ui/AppButton';
 import {
-  mentaColors,
+  type MentaPalette,
   mentaRadii,
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+
+import { AppButton } from '@/components/ui/AppButton';
+
 import { useTranslation } from '@/lib/localization';
 
 export type WelcomeBonusReceipt = {
@@ -31,6 +33,8 @@ export const WelcomeBonusCard: React.FC<WelcomeBonusCardProps> = ({
   onContinue,
   presentation = 'card',
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   if (
     !receipt?.confirmed ||
@@ -52,9 +56,7 @@ export const WelcomeBonusCard: React.FC<WelcomeBonusCardProps> = ({
       <Text style={styles.heading}>
         {t('economy.welcome.heading', { amount: receipt.amount })}
       </Text>
-      <Text style={styles.body}>
-        {t('economy.welcome.body')}
-      </Text>
+      <Text style={styles.body}>{t('economy.welcome.body')}</Text>
 
       {onContinue ? (
         <AppButton
@@ -69,30 +71,33 @@ export const WelcomeBonusCard: React.FC<WelcomeBonusCardProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  card: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.borderPaper,
-    borderRadius: mentaRadii.large,
-    backgroundColor: mentaColors.paper,
-    padding: mentaSpacing[5],
-    marginBottom: mentaSpacing[4],
-  },
-  modalCard: {
-    marginBottom: 0,
-    paddingHorizontal: mentaSpacing[5],
-    paddingVertical: mentaSpacing[5],
-  },
-  heading: {
-    ...mentaTypography.title,
-    color: mentaColors.text.onPaper,
-    marginBottom: mentaSpacing[2],
-  },
-  body: {
-    ...mentaTypography.body,
-    color: mentaColors.text.mutedOnPaper,
-    marginBottom: mentaSpacing[4],
-  },
-});
-
 export default WelcomeBonusCard;
+
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    card: {
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.borderPaper,
+      borderRadius: mentaRadii.large,
+      backgroundColor: mentaColors.paper,
+      padding: mentaSpacing[5],
+      marginBottom: mentaSpacing[4],
+    },
+    modalCard: {
+      marginBottom: 0,
+      paddingHorizontal: mentaSpacing[5],
+      paddingVertical: mentaSpacing[5],
+    },
+    heading: {
+      ...mentaTypography.title,
+      color: mentaColors.text.onPaper,
+      marginBottom: mentaSpacing[2],
+    },
+    body: {
+      ...mentaTypography.body,
+      color: mentaColors.text.mutedOnPaper,
+      marginBottom: mentaSpacing[4],
+    },
+  });
+  return { styles };
+};

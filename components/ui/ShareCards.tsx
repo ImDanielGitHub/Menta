@@ -1,4 +1,5 @@
 import React from 'react';
+import { mentaColors } from '@/constants/MentaDesignSystem';
 import { StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/constants/ThemeContext';
@@ -153,11 +154,11 @@ export const StreakMilestoneCard: React.FC<{
           label={badge ?? t('shared.share.milestoneBadge')}
           tone="streak"
         />
-        <Text style={[styles.posterMeta, { color: theme.colors.text.inverse }]}>
+        <Text style={[styles.posterMeta, { color: mentaColors.text.onPaper }]}>
           {t('shared.share.day', { day: dayCount })}
         </Text>
       </View>
-      <Text style={[styles.posterTitle, { color: theme.colors.text.inverse }]}>
+      <Text style={[styles.posterTitle, { color: mentaColors.text.onPaper }]}>
         {title}
       </Text>
       <Text style={[styles.posterSubtitle, { color: 'rgba(7, 9, 11, 0.76)' }]}>

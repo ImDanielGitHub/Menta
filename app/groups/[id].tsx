@@ -1,3 +1,12 @@
+import {
+  type MentaPalette,
+  mentaHeadingRoles,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   RefreshControl,
@@ -7,6 +16,7 @@ import {
   type DimensionValue,
 } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect } from 'expo-router/react-navigation';
 
 import { AppButton } from '@/components/ui/AppButton';
 import PublicGroupPreviewModal from '@/components/group/PublicGroupPreviewModal';
@@ -37,14 +47,7 @@ import {
   Trash2Icon,
   UsersIcon,
 } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaHeadingRoles,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { useGroupPendingReviews } from '@/hooks/useGroupPendingReviews';
 import { useGroupAccountabilityBoard } from '@/hooks/useGroupAccountabilityBoard';
@@ -67,6 +70,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { useGroupStore } from '@/store/group-store';
 
 import { backOrReplace } from '@/lib/navigation/safe-back';
+import { sanitizeCorrectionReason } from '@/lib/proof-correction-copy';
 import { useTranslation } from '@/lib/localization';
 import type { TranslationKey } from '@/lib/localization/en-NZ';
 import {
@@ -147,28 +151,10 @@ const getChallengeProofType = (
   return isGroupProofType(raw) ? raw : 'photo';
 };
 
-const groupColors = {
-  text: {
-    primary: mentaColors.text.primary,
-    secondary: mentaColors.text.secondary,
-    tertiary: mentaColors.text.muted,
-    inverse: mentaColors.canvas,
-  },
-  border: {
-    primary: mentaColors.border,
-    secondary: mentaColors.border,
-  },
-  status: {
-    error: mentaColors.danger,
-    success: mentaColors.success,
-    warning: mentaColors.warning,
-  },
-  background: {
-    tertiary: mentaColors.skeleton,
-  },
-} as const;
-
 export default function GroupDetailScreen() {
+  const mentaColors = useMentaPalette();
+  const { groupColors, styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const { id, created } = useLocalSearchParams<GroupDetailParams>();
   const groupId = Array.isArray(id) ? id[0] : id;
@@ -297,6 +283,32 @@ export default function GroupDetailScreen() {
   const hasPendingReviews =
     pendingReviewCount !== undefined && pendingReviewCount > 0;
   const firstSharedChallenge = challenges[0];
+  const ownRetrySubmissionId = accountabilityBoard.data?.members.find(
+    member => member.userId === user?.id && member.status === 'retry'
+  )?.submissionId;
+  const proofTargetRef = useRef('');
+  const proofTarget = `${user?.id ?? ''}:${groupId ?? ''}:${firstSharedChallenge?.id ?? ''}:${ownRetrySubmissionId ?? ''}:${canSubmitGroupProof}:${isMember}:${isReadOnly}`;
+  proofTargetRef.current = proofTarget;
+  const proofHandoffRef = useRef({
+    active: false,
+    version: 0,
+    busy: false,
+    target: '',
+  });
+  useFocusEffect(
+    useCallback(() => {
+      const handoff = proofHandoffRef.current;
+      handoff.target = proofTarget;
+      handoff.active = true;
+      handoff.version += 1;
+      handoff.busy = false;
+      return () => {
+        handoff.active = false;
+        handoff.version += 1;
+        handoff.busy = false;
+      };
+    }, [proofTarget])
+  );
   const hasSharedChallenge = Boolean(firstSharedChallenge);
   const ownerMember = sortedMembers.find(
     member => member.user_id === group?.owner_id
@@ -666,13 +678,53 @@ export default function GroupDetailScreen() {
     });
   }, [groupId, router]);
 
-  const openGroupProofSubmission = useCallback(() => {
-    if (!canSubmitGroupProof) return;
+  const openGroupProofSubmission = useCallback(async () => {
+    const handoff = proofHandoffRef.current;
+    if (!canSubmitGroupProof || !handoff.active || handoff.busy) return;
     if (!firstSharedChallenge) {
       createChallenge();
       return;
     }
 
+    const target = proofTargetRef.current;
+    const version = handoff.version;
+    const isCurrent = () =>
+      handoff.active &&
+      handoff.version === version &&
+      handoff.target === target &&
+      proofTargetRef.current === target;
+    let correctionReason: string | null = null;
+    if (user?.id && ownRetrySubmissionId) {
+      handoff.busy = true;
+      try {
+        const { data, error } = await supabase
+          .from('challenge_submissions')
+          .select('review_notes')
+          .eq('id', ownRetrySubmissionId)
+          .eq('user_id', user.id)
+          .eq('challenge_id', firstSharedChallenge.id)
+          .eq('status', 'rejected')
+          .maybeSingle();
+        if (!isCurrent()) return;
+        if (error) throw error;
+        correctionReason = sanitizeCorrectionReason(data?.review_notes);
+      } catch {
+        if (!isCurrent()) return;
+        setActionNotice({
+          kind: 'error',
+          title: t('today.state.action.try_again'),
+          message: t('todayProof.promise.refresh_failed'),
+        });
+        return;
+      } finally {
+        // A cancelled older read must not release a newer request's tap guard.
+        if (handoff.version === version) handoff.busy = false;
+      }
+    }
+
+    if (!isCurrent()) return;
+    // Keep repeated taps suppressed until navigation blurs this focus scope.
+    handoff.busy = true;
     router.push({
       pathname: '/verification',
       params: {
@@ -681,6 +733,7 @@ export default function GroupDetailScreen() {
         verificationType: getChallengeProofType(firstSharedChallenge),
         suggestedVerificationType: getChallengeProofType(firstSharedChallenge),
         source: 'group_detail',
+        ...(correctionReason ? { correctionReason } : {}),
       },
     });
   }, [
@@ -689,6 +742,9 @@ export default function GroupDetailScreen() {
     firstSharedChallenge,
     groupId,
     router,
+    ownRetrySubmissionId,
+    user?.id,
+    t,
   ]);
 
   if (boardState === 'loading' && !group) {
@@ -1322,6 +1378,8 @@ const LoadingLine: React.FC<{ width: DimensionValue; height?: number }> = ({
   width,
   height = 14,
 }) => {
+  const mentaColors = useMentaPalette();
+
   return (
     <View
       style={{
@@ -1335,6 +1393,9 @@ const LoadingLine: React.FC<{ width: DimensionValue; height?: number }> = ({
 };
 
 const LoadingMetric: React.FC<{ label: string }> = ({ label }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   return (
     <View style={[styles.metric, { borderColor: mentaColors.border }]}>
       <LoadingLine width="52%" height={22} />
@@ -1350,6 +1411,9 @@ const LoadingRow: React.FC<{
   metaWidth: DimensionValue;
   avatar?: boolean;
 }> = ({ titleWidth, metaWidth, avatar = false }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   return (
     <View
       style={[
@@ -1383,187 +1447,210 @@ const LoadingRow: React.FC<{
   );
 };
 
-const styles = StyleSheet.create({
-  content: {
-    width: '100%',
-    gap: mentaSpacing[6],
-    paddingBottom: mentaSpacing[12],
-  },
-  iPadContextPane: {
-    gap: mentaSpacing[5],
-    paddingBottom: mentaSpacing[10],
-    paddingTop: mentaSpacing[5],
-  },
-  iPadContextHeader: {
-    gap: mentaSpacing[2],
-  },
-  iPadContextTitle: {
-    ...mentaTypography.title,
-  },
-  iPadContextBody: {
-    ...mentaTypography.bodySmall,
-  },
-  iPadContextFacts: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  iPadContextActions: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: mentaSpacing[2],
-  },
-  detailHeader: {
-    paddingTop: mentaSpacing[3],
-  },
-  paperStateContent: {
-    flex: 1,
-    width: '100%',
-    gap: mentaSpacing[3],
-    paddingBottom: mentaSpacing[6],
-  },
-  loadingContent: {
-    width: '100%',
-    gap: mentaSpacing[6],
-    paddingBottom: mentaSpacing[12],
-  },
-  failedContent: {
-    flex: 1,
-    width: '100%',
-    justifyContent: 'space-between',
-    gap: mentaSpacing[6],
-    paddingBottom: mentaSpacing[8],
-  },
-  failedHero: {
-    gap: mentaSpacing[6],
-  },
-  failedBanner: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: mentaRadii.medium,
-    padding: mentaSpacing[4],
-  },
-  failedPanel: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: mentaRadii.medium,
-    padding: mentaSpacing[4],
-  },
-  failedActions: {
-    gap: mentaSpacing[3],
-  },
-  loadingBoard: {
-    gap: mentaSpacing[3],
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: mentaRadii.large,
-    padding: mentaSpacing[4],
-  },
-  loadingRows: {
-    gap: mentaSpacing[2],
-  },
-  loadingRow: {
-    minHeight: 68,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: mentaSpacing[3],
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: mentaRadii.medium,
-    padding: mentaSpacing[3],
-  },
-  loadingRowIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: mentaRadii.round,
-  },
-  loadingAvatar: {
-    width: 34,
-    height: 34,
-    borderRadius: mentaRadii.round,
-  },
-  loadingRowCopy: {
-    flex: 1,
-    minWidth: 0,
-    gap: mentaSpacing[2],
-  },
-  hero: {
-    gap: mentaSpacing[2],
-  },
-  title: {
-    ...mentaTypography.heading,
-  },
-  description: {
-    ...mentaTypography.body,
-  },
-  createdReceipt: {
-    gap: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: mentaRadii.large,
-    padding: mentaSpacing[4],
-  },
-  createdReceiptHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-  },
-  createdReceiptIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: mentaRadii.round,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: mentaColors.paper,
-  },
-  createdReceiptCopy: {
-    flex: 1,
-    minWidth: 0,
-    gap: 6,
-  },
-  createdReceiptTitle: {
-    ...mentaTypography.title,
-  },
-  createdReceiptBody: {
-    ...mentaTypography.body,
-  },
-  createdReceiptSecondaryActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 10,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  actionNoticeText: {
-    flex: 1,
-    minWidth: 0,
-  },
-  actionNoticeTitle: {
-    ...mentaTypography.bodySmallMedium,
-  },
-  actionNoticeMessage: {
-    ...mentaTypography.caption,
-    marginTop: mentaSpacing[1],
-  },
-  metric: {
-    flex: 1,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    paddingVertical: 14,
-  },
-  metricLabel: {
-    marginTop: 4,
-    ...mentaTypography.micro,
-  },
-  sheetTitle: {
-    ...mentaHeadingRoles.section,
-  },
-  sheetBody: {
-    ...mentaTypography.bodySmall,
-    marginTop: mentaSpacing[2],
-  },
-  leaveSheetActions: {
-    gap: mentaSpacing[3],
-    marginTop: mentaSpacing[5],
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const groupColors = {
+    text: {
+      primary: mentaColors.text.primary,
+      secondary: mentaColors.text.secondary,
+      tertiary: mentaColors.text.muted,
+      inverse: mentaColors.canvas,
+    },
+    border: {
+      primary: mentaColors.border,
+      secondary: mentaColors.border,
+    },
+    status: {
+      error: mentaColors.danger,
+      success: mentaColors.success,
+      warning: mentaColors.warning,
+    },
+    background: {
+      tertiary: mentaColors.skeleton,
+    },
+  } as const;
+  const styles = StyleSheet.create({
+    content: {
+      width: '100%',
+      gap: mentaSpacing[6],
+      paddingBottom: mentaSpacing[12],
+    },
+    iPadContextPane: {
+      gap: mentaSpacing[5],
+      paddingBottom: mentaSpacing[10],
+      paddingTop: mentaSpacing[5],
+    },
+    iPadContextHeader: {
+      gap: mentaSpacing[2],
+    },
+    iPadContextTitle: {
+      ...mentaTypography.title,
+    },
+    iPadContextBody: {
+      ...mentaTypography.bodySmall,
+    },
+    iPadContextFacts: {
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopWidth: StyleSheet.hairlineWidth,
+    },
+    iPadContextActions: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: mentaSpacing[2],
+    },
+    detailHeader: {
+      paddingTop: mentaSpacing[3],
+    },
+    paperStateContent: {
+      flex: 1,
+      width: '100%',
+      gap: mentaSpacing[3],
+      paddingBottom: mentaSpacing[6],
+    },
+    loadingContent: {
+      width: '100%',
+      gap: mentaSpacing[6],
+      paddingBottom: mentaSpacing[12],
+    },
+    failedContent: {
+      flex: 1,
+      width: '100%',
+      justifyContent: 'space-between',
+      gap: mentaSpacing[6],
+      paddingBottom: mentaSpacing[8],
+    },
+    failedHero: {
+      gap: mentaSpacing[6],
+    },
+    failedBanner: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 12,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderRadius: mentaRadii.medium,
+      padding: mentaSpacing[4],
+    },
+    failedPanel: {
+      borderWidth: StyleSheet.hairlineWidth,
+      borderRadius: mentaRadii.medium,
+      padding: mentaSpacing[4],
+    },
+    failedActions: {
+      gap: mentaSpacing[3],
+    },
+    loadingBoard: {
+      gap: mentaSpacing[3],
+      borderWidth: StyleSheet.hairlineWidth,
+      borderRadius: mentaRadii.large,
+      padding: mentaSpacing[4],
+    },
+    loadingRows: {
+      gap: mentaSpacing[2],
+    },
+    loadingRow: {
+      minHeight: 68,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: mentaSpacing[3],
+      borderWidth: StyleSheet.hairlineWidth,
+      borderRadius: mentaRadii.medium,
+      padding: mentaSpacing[3],
+    },
+    loadingRowIcon: {
+      width: 34,
+      height: 34,
+      borderRadius: mentaRadii.round,
+    },
+    loadingAvatar: {
+      width: 34,
+      height: 34,
+      borderRadius: mentaRadii.round,
+    },
+    loadingRowCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: mentaSpacing[2],
+    },
+    hero: {
+      gap: mentaSpacing[2],
+    },
+    title: {
+      ...mentaTypography.heading,
+    },
+    description: {
+      ...mentaTypography.body,
+    },
+    createdReceipt: {
+      gap: 16,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderRadius: mentaRadii.large,
+      padding: mentaSpacing[4],
+    },
+    createdReceiptHeader: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 12,
+    },
+    createdReceiptIcon: {
+      width: 34,
+      height: 34,
+      borderRadius: mentaRadii.round,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: mentaColors.paper,
+    },
+    createdReceiptCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 6,
+    },
+    createdReceiptTitle: {
+      ...mentaTypography.title,
+    },
+    createdReceiptBody: {
+      ...mentaTypography.body,
+    },
+    createdReceiptSecondaryActions: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: 10,
+    },
+    statsGrid: {
+      flexDirection: 'row',
+      gap: 10,
+    },
+    actionNoticeText: {
+      flex: 1,
+      minWidth: 0,
+    },
+    actionNoticeTitle: {
+      ...mentaTypography.bodySmallMedium,
+    },
+    actionNoticeMessage: {
+      ...mentaTypography.caption,
+      marginTop: mentaSpacing[1],
+    },
+    metric: {
+      flex: 1,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      paddingVertical: 14,
+    },
+    metricLabel: {
+      marginTop: 4,
+      ...mentaTypography.micro,
+    },
+    sheetTitle: {
+      ...mentaHeadingRoles.section,
+    },
+    sheetBody: {
+      ...mentaTypography.bodySmall,
+      marginTop: mentaSpacing[2],
+    },
+    leaveSheetActions: {
+      gap: mentaSpacing[3],
+      marginTop: mentaSpacing[5],
+    },
+  });
+  return { groupColors, styles };
+};

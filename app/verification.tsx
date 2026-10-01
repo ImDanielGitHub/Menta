@@ -1,3 +1,9 @@
+import {
+  mentaColors as defaultMentaColors,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaCheckToday } from '@/hooks/use-menta-check';
 import React, {
   useCallback,
   useEffect,
@@ -21,7 +27,6 @@ import {
   AppScreen,
   AppTopBar,
   KeyboardDismissWrapper,
-  MentaMascot,
 } from '@/components/ui';
 import { AppTextArea } from '@/components/ui/AppFields';
 import { UploadIcon } from '@/components/ui/icons';
@@ -31,13 +36,15 @@ import {
 } from '@/components/CameraVerification';
 import { MilestoneModal } from '@/components/challenge/MilestoneModal';
 import { HoldToSendButton, ProofReceiptPanel } from '@/components/proof';
-import { OnboardingCelebrationBurst } from '@/components/onboarding/OnboardingCelebrationBurst';
-import { useTheme, useThemedStyles } from '@/constants/ThemeContext';
 import {
-  mentaColors,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+  getProofSendCopy,
+  ProofCheckerLine,
+} from '@/components/proof/ProofCheckerLine';
+import { ProofOutcomeView } from '@/components/proof/ProofOutcomeView';
+import { usePromiseAccountability } from '@/hooks/usePromiseAccountability';
+import { resolveProofChecker } from '@/lib/proof/proof-roles';
+import { useTheme, useThemedStyles } from '@/constants/ThemeContext';
+
 import {
   createClientEventId,
   getActiveProofDraftForChallenge,
@@ -219,6 +226,21 @@ export default function ChallengeVerificationScreen() {
     ? rawVerificationType
     : null;
   const { user } = useAuthStore();
+  const mentaToday = useMentaCheckToday();
+  const mentaProof = mentaToday.data?.find(
+    item => item.challengeId === challengeId && item.reviewMode === 'menta'
+  );
+  const accountability = usePromiseAccountability(challengeId);
+  const proofChecker = useMemo(
+    () =>
+      resolveProofChecker({
+        summary: accountability.data,
+        viewerId: user?.id,
+        mentaChecks: Boolean(mentaProof),
+      }),
+    [accountability.data, mentaProof, user?.id]
+  );
+  const proofSendCopy = getProofSendCopy(proofChecker, t);
 
   const [clientEventId, setClientEventId] = useState(
     () => routeClientEventId ?? createClientEventId()
@@ -237,6 +259,10 @@ export default function ChallengeVerificationScreen() {
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [textProof, setTextProof] = useState('');
+  // While the camera asks for access, it owns the screen (Paper C01/C02).
+  const [showsCameraAccess, setShowsCameraAccess] = useState(false);
+  // While a captured photo or video waits to be sent (Paper page 25, S01).
+  const [showsMediaPreview, setShowsMediaPreview] = useState(false);
   const [textProofError, setTextProofError] = useState<string | null>(null);
   const [receiptNotice, setReceiptNotice] = useState<{
     tone: 'info' | 'error';
@@ -665,10 +691,7 @@ export default function ChallengeVerificationScreen() {
   ]);
 
   const leaveReceipt = useCallback(
-    (
-      navigate: () => void,
-      action: 'close' | 'view_promise' | 'review_queue'
-    ) => {
+    (navigate: () => void, action: 'close' | 'view_promise') => {
       const currentStatus = receiptStatus ?? activeDraft?.status;
       if (currentStatus) {
         trackProductEvent('Proof Receipt Action', {
@@ -711,24 +734,6 @@ export default function ChallengeVerificationScreen() {
 
   const status = receiptStatus ?? activeDraft?.status ?? null;
   const receiptGroupId = activeDraft?.groupId ?? routeGroupId;
-
-  const openReviewQueue = useCallback(() => {
-    router.push({
-      pathname: '/review-queue',
-      params: {
-        ...(challengeId ? { challengeId } : {}),
-        ...(activeDraft?.submissionId
-          ? { submissionId: activeDraft.submissionId }
-          : {}),
-        ...(receiptGroupId ? { groupId: receiptGroupId } : {}),
-        entryPoint: receiptGroupId ? 'group_board' : 'proof_receipt',
-      },
-    });
-  }, [activeDraft?.submissionId, challengeId, receiptGroupId, router]);
-
-  const leaveReceiptToReviewQueue = useCallback(() => {
-    leaveReceipt(openReviewQueue, 'review_queue');
-  }, [leaveReceipt, openReviewQueue]);
 
   const reportProofIssue = useCallback(() => {
     if (!activeDraft?.submissionId || !challengeId) return;
@@ -850,10 +855,10 @@ export default function ChallengeVerificationScreen() {
         };
       case 'pending-review':
         return {
-          primaryLabel: t('todayProof.proof.review_someone'),
-          onPrimary: leaveReceiptToReviewQueue,
-          secondaryLabel: t('todayProof.proof.back'),
-          onSecondary: leaveReceiptToPreviousScreen,
+          primaryLabel: t('todayProof.proof.done'),
+          onPrimary: leaveReceiptToPreviousScreen,
+          secondaryLabel: t('todayProof.proof.view_promise'),
+          onSecondary: leaveReceiptToChallenge,
         };
       case 'accepted':
         return {
@@ -901,7 +906,6 @@ export default function ChallengeVerificationScreen() {
     isSubmitting,
     leaveReceiptToChallenge,
     leaveReceiptToPreviousScreen,
-    leaveReceiptToReviewQueue,
     navigateBack,
     navigateToChallenge,
     resetForNewProof,
@@ -942,7 +946,9 @@ export default function ChallengeVerificationScreen() {
   if (!verificationType || !challengeId) return null;
 
   const proofModeCopy = getProofModeCopy(verificationType, t);
-  const shouldShowMascot = status === 'accepted' || status === 'pending-review';
+  const showsOutcome =
+    screenMode === 'receipt' &&
+    (status === 'accepted' || status === 'pending-review');
 
   return (
     <AppScreen
@@ -951,34 +957,81 @@ export default function ChallengeVerificationScreen() {
       hasTabBar={false}
       scrollable
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.screenContent}
+      contentContainerStyle={[
+        styles.screenContent,
+        showsCameraAccess && screenMode !== 'receipt'
+          ? styles.cameraAccessContent
+          : null,
+      ]}
     >
       <Stack.Screen options={{ headerShown: false }} />
       <AppTopBar
         title={
-          screenMode === 'receipt' && status
-            ? t('todayProof.proof.receipt')
-            : proofModeCopy.title
+          showsOutcome
+            ? undefined
+            : showsMediaPreview && screenMode !== 'receipt'
+              ? verificationType === 'video'
+                ? t('proofRoles.send.check_video')
+                : t('proofRoles.send.check_photo')
+              : screenMode === 'receipt' && status
+                ? t('todayProof.proof.receipt')
+                : showsCameraAccess
+                  ? undefined
+                  : proofModeCopy.title
         }
         subtitle={
-          screenMode === 'receipt' && status
+          (screenMode === 'receipt' && status) ||
+          showsCameraAccess ||
+          showsMediaPreview
             ? undefined
             : proofModeCopy.subtitle
         }
         onBack={handleBack}
       />
 
-      {screenMode === 'receipt' && status ? (
+      {screenMode === 'receipt' &&
+      (status === 'accepted' || status === 'pending-review') ? (
+        <ProofOutcomeView
+          status={status}
+          checker={proofChecker}
+          detailOverride={receiptDetailOverride}
+          celebrationKey={celebrationId}
+          proofType={activeDraft?.proofType ?? verificationType}
+          mediaUri={activeDraft?.localMediaUri ?? activeDraft?.remoteMediaUrl}
+          sentAt={activeDraft?.updatedAt}
+          primaryActionLabel={receiptActions?.primaryLabel}
+          onPrimaryAction={receiptActions?.onPrimary}
+          secondaryActionLabel={receiptActions?.secondaryLabel}
+          onSecondaryAction={receiptActions?.onSecondary}
+          shareActionLabel={t('todayProof.proof.share_receipt')}
+          onShareAction={() => void handleShareReceipt()}
+          onReportIssue={
+            activeDraft?.submissionId ? reportProofIssue : undefined
+          }
+          actionsDisabled={isSubmitting}
+          notices={
+            <>
+              {proofAdBreakHint?.due ? (
+                <AppInlineNotice
+                  title={t('todayProof.proof.ad_break')}
+                  description={t('todayProof.proof.ad_break_detail')}
+                  tone="info"
+                  testID="proof-ad-break-notice"
+                />
+              ) : null}
+              {receiptNotice ? (
+                <AppInlineNotice
+                  title={receiptNotice.title}
+                  description={receiptNotice.description}
+                  tone={receiptNotice.tone === 'error' ? 'error' : 'info'}
+                  testID="proof-receipt-share-notice"
+                />
+              ) : null}
+            </>
+          }
+        />
+      ) : screenMode === 'receipt' && status ? (
         <View style={styles.receiptScreen}>
-          {status === 'accepted' && celebrationId ? (
-            <OnboardingCelebrationBurst key={celebrationId} />
-          ) : null}
-          {shouldShowMascot ? (
-            <MentaMascot
-              state={status === 'accepted' ? 'proof-proud' : 'review-needed'}
-              size="md"
-            />
-          ) : null}
           {proofAdBreakHint?.due ? (
             <AppInlineNotice
               title={t('todayProof.proof.ad_break')}
@@ -1058,7 +1111,11 @@ export default function ChallengeVerificationScreen() {
               testID="correction-proof-context"
             />
           ) : null}
-          <Text style={styles.safetyDisclosure}>{PROOF_SAFETY_DISCLOSURE}</Text>
+          {showsCameraAccess || showsMediaPreview ? null : (
+            <Text style={styles.safetyDisclosure}>
+              {PROOF_SAFETY_DISCLOSURE}
+            </Text>
+          )}
           {verificationType === 'text' ? (
             <KeyboardDismissWrapper
               testID="text-proof-keyboard-dismiss-area"
@@ -1100,18 +1157,24 @@ export default function ChallengeVerificationScreen() {
                   {textProof.length} / 240
                 </Text>
               </View>
+              <ProofCheckerLine checker={proofChecker} />
               <HoldToSendButton
                 onComplete={handleTextSubmit}
                 disabled={isSubmitting}
                 label={t('todayProof.proof.hold_label')}
                 holdingLabel={t('todayProof.proof.hold_holding')}
-                hint={t('todayProof.proof.release_cancel')}
+                hint={
+                  proofSendCopy?.hint ?? t('todayProof.proof.release_cancel')
+                }
                 tapAlternativeLabel={t('todayProof.proof.send_one_tap')}
                 testID="text-proof-hold-to-send"
               />
             </KeyboardDismissWrapper>
           ) : (
             <CameraVerification
+              mentaRule={mentaProof?.rule}
+              proofChecker={proofChecker}
+              proofRule={accountability.data?.promise.verificationDescription}
               key={`${clientEventId}-${activeDraft?.localMediaUri ?? 'new'}`}
               challengeId={challengeId}
               groupId={receiptGroupId}
@@ -1127,6 +1190,8 @@ export default function ChallengeVerificationScreen() {
               onVerificationComplete={handleCapturedProof}
               onCaptureIssue={handleCaptureIssue}
               onCancel={handleBack}
+              onAccessGateChange={setShowsCameraAccess}
+              onPreviewChange={setShowsMediaPreview}
             />
           )}
         </>
@@ -1146,11 +1211,16 @@ export default function ChallengeVerificationScreen() {
   );
 }
 
-const createStyles = (theme: ReturnType<typeof useTheme>) =>
-  StyleSheet.create({
+const createStyles = (theme: ReturnType<typeof useTheme>) => {
+  const mentaColors = theme.mentaColors ?? defaultMentaColors;
+  return StyleSheet.create({
     screenContent: {
       gap: mentaSpacing[6],
       paddingTop: mentaSpacing[5],
+    },
+    cameraAccessContent: {
+      flexGrow: 1,
+      paddingTop: 0,
     },
     receiptScreen: {
       gap: mentaSpacing[6],
@@ -1214,3 +1284,4 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
       width: '100%',
     },
   });
+};

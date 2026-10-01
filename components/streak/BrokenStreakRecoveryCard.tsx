@@ -1,13 +1,15 @@
+import {
+  type MentaPalette,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
 import { MentaMascot } from '@/components/ui/MentaMascot';
-import {
-  mentaColors,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useTheme } from '@/constants/ThemeContext';
 import { useTranslation } from '@/lib/localization';
 
@@ -15,17 +17,23 @@ interface BrokenStreakRecoveryCardProps {
   missedLocalDay: string;
   previousStreak: number;
   resultingStreak: number;
+  /** Days until an explicit server-saved end date for an active daily promise. */
+  remainingDays?: number;
   onStartReturn: () => void;
   onViewHistory: () => void;
 }
 
-const formatMissedDay = (localDay: string, fallback: string): string => {
+const formatMissedDay = (
+  localDay: string,
+  fallback: string,
+  locale: string
+): string => {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(localDay);
   if (!match) return fallback;
 
   return new Date(
     Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12)
-  ).toLocaleDateString('en-NZ', { weekday: 'long', timeZone: 'UTC' });
+  ).toLocaleDateString(locale, { weekday: 'long', timeZone: 'UTC' });
 };
 
 /** A server-confirmed missed day remains visible while today starts a new run. */
@@ -35,14 +43,18 @@ export const BrokenStreakRecoveryCard: React.FC<
   missedLocalDay,
   previousStreak,
   resultingStreak,
+  remainingDays,
   onStartReturn,
   onViewHistory,
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const missedDay = formatMissedDay(
     missedLocalDay,
-    t('todayProof.streak.missed_day')
+    t('todayProof.streak.missed_day'),
+    locale
   );
   const previousUnit =
     previousStreak === 1
@@ -95,7 +107,14 @@ export const BrokenStreakRecoveryCard: React.FC<
         </View>
       </View>
 
-      <Text style={styles.note}>{t('todayProof.streak.recovery_note')}</Text>
+      <Text style={styles.note}>
+        {typeof remainingDays === 'number' &&
+        Number.isInteger(remainingDays) &&
+        remainingDays >= 28 &&
+        remainingDays <= 31
+          ? t('notifications.recovery.month')
+          : t('notifications.recovery.restart')}
+      </Text>
 
       <View style={styles.actions}>
         <AppButton
@@ -121,63 +140,66 @@ export const BrokenStreakRecoveryCard: React.FC<
   );
 };
 
-const styles = StyleSheet.create({
-  section: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[5],
-    marginHorizontal: mentaSpacing[6],
-    marginTop: mentaSpacing[5],
-    paddingVertical: mentaSpacing[5],
-  },
-  heading: {
-    gap: mentaSpacing[2],
-  },
-  outcomeLabel: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.danger,
-  },
-  title: {
-    ...mentaTypography.journeyTitle,
-    color: mentaColors.text.primary,
-  },
-  copy: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-  },
-  facts: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  factRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[4],
-    justifyContent: 'space-between',
-    minHeight: 50,
-  },
-  factDivider: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  factLabel: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-  },
-  factValue: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-    fontVariant: ['tabular-nums'],
-  },
-  note: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-  },
-  actions: {
-    gap: mentaSpacing[2],
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    section: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[5],
+      marginHorizontal: mentaSpacing[6],
+      marginTop: mentaSpacing[5],
+      paddingVertical: mentaSpacing[5],
+    },
+    heading: {
+      gap: mentaSpacing[2],
+    },
+    outcomeLabel: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.danger,
+    },
+    title: {
+      ...mentaTypography.journeyTitle,
+      color: mentaColors.text.primary,
+    },
+    copy: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+    },
+    facts: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+    },
+    factRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[4],
+      justifyContent: 'space-between',
+      minHeight: 50,
+    },
+    factDivider: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+    factLabel: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+    },
+    factValue: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+      fontVariant: ['tabular-nums'],
+    },
+    note: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+    },
+    actions: {
+      gap: mentaSpacing[2],
+    },
+  });
+  return { styles };
+};

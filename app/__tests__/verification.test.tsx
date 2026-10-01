@@ -1,4 +1,14 @@
+jest.mock('@/hooks/usePromiseAccountability', () => ({
+  usePromiseAccountability: () => ({ data: undefined }),
+}));
 import React from 'react';
+jest.mock('@/hooks/use-menta-check', () => ({
+  useMentaCheckToday: () => ({ data: [] }),
+  useMentaCheckOverview: () => ({ data: null, refetch: jest.fn() }),
+}));
+jest.mock('@/components/menta-check/menta-trial-notice', () => ({
+  MentaTrialNotice: () => null,
+}));
 import {
   Keyboard,
   Pressable,
@@ -158,6 +168,56 @@ jest.mock('@/components/proof', () => {
       <View>
         <Text>{status}</Text>
         {detailOverride ? <Text>{detailOverride}</Text> : null}
+        {primaryActionLabel && onPrimaryAction ? (
+          <Pressable onPress={onPrimaryAction}>
+            <Text>{primaryActionLabel}</Text>
+          </Pressable>
+        ) : null}
+        {secondaryActionLabel && onSecondaryAction ? (
+          <Pressable onPress={onSecondaryAction}>
+            <Text>{secondaryActionLabel}</Text>
+          </Pressable>
+        ) : null}
+        {shareActionLabel && onShareAction ? (
+          <Pressable onPress={onShareAction}>
+            <Text>{shareActionLabel}</Text>
+          </Pressable>
+        ) : null}
+      </View>
+    ),
+  };
+});
+
+jest.mock('@/components/proof/ProofOutcomeView', () => {
+  const React = require('react');
+  const { Pressable, Text, View } = require('react-native');
+
+  return {
+    ProofOutcomeView: ({
+      status,
+      detailOverride,
+      notices,
+      primaryActionLabel,
+      onPrimaryAction,
+      secondaryActionLabel,
+      onSecondaryAction,
+      shareActionLabel,
+      onShareAction,
+    }: {
+      status: string;
+      detailOverride?: string | null;
+      notices?: React.ReactNode;
+      primaryActionLabel?: string;
+      onPrimaryAction?: () => void;
+      secondaryActionLabel?: string;
+      onSecondaryAction?: () => void;
+      shareActionLabel?: string;
+      onShareAction?: () => void;
+    }) => (
+      <View>
+        <Text>{status}</Text>
+        {detailOverride ? <Text>{detailOverride}</Text> : null}
+        {notices}
         {primaryActionLabel && onPrimaryAction ? (
           <Pressable onPress={onPrimaryAction}>
             <Text>{primaryActionLabel}</Text>
@@ -393,6 +453,24 @@ describe('ChallengeVerificationScreen durable proof receipts', () => {
     });
   });
 
+  it.each(['photo', 'video', 'text'])(
+    'shows the complete correction handoff in the existing %s compose notice',
+    type => {
+      const feedback =
+        'Action not visible\nInclude the full walk route next time.';
+      mockRouteParams = {
+        challengeId: 'challenge-123',
+        verificationType: type,
+        source: 'group_detail',
+        correctionReason: `  ${feedback}  `,
+      };
+      const { getByText } = render(<ChallengeVerificationScreen />);
+      expect(getByText('What to change')).toBeTruthy();
+      expect(getByText(feedback)).toBeTruthy();
+      expect(mockSubmitChallengeProof).not.toHaveBeenCalled();
+    }
+  );
+
   it('dismisses the keyboard on return without submitting or clearing text', () => {
     const dismissSpy = jest
       .spyOn(Keyboard, 'dismiss')
@@ -504,7 +582,7 @@ describe('ChallengeVerificationScreen durable proof receipts', () => {
     await waitFor(() => expect(getByText('Ad break next')).toBeTruthy());
     expect(
       getByText(
-        'A short ad may appear after you leave this receipt. It will not change your proof or Momenta balance.'
+        'Free accounts have a short ad break after every second new proof, when an ad is available. Your proof is already saved. Your Momenta balance stays the same.'
       )
     ).toBeTruthy();
 

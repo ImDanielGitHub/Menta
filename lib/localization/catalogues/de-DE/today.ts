@@ -49,11 +49,11 @@ export const todayDeDE = {
   'today.home.momenta.accessibility_unknown':
     'Momenta-Guthaben noch nicht bestätigt. Öffnet deine Wallet.',
   'today.home.week.accessibility':
-    'Letzte 7 Tage: {count} Tage mit bestätigtem Nachweis.',
+    'Letzte 7 Tage: {count} Tage, an denen jedes Versprechen gehalten wurde.',
   'today.home.week.accessibility.one':
-    'Letzte 7 Tage: {count} Tag mit bestätigtem Nachweis.',
+    'Letzte 7 Tage: {count} Tag, an dem jedes Versprechen gehalten wurde.',
   'today.home.week.accessibility.other':
-    'Letzte 7 Tage: {count} Tage mit bestätigtem Nachweis.',
+    'Letzte 7 Tage: {count} Tage, an denen jedes Versprechen gehalten wurde.',
   'today.home.streaks.title': 'Deine Serien',
   'today.home.streaks.note':
     'Eine Serie zählt Tage mit bestätigtem Nachweis, nicht Tage mit offenem Versprechen.',

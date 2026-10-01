@@ -1,14 +1,16 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { AppButton, type AppButtonProps } from '@/components/ui/AppButton';
 import { LockIcon } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useLargeTypeLineLimit } from '@/lib/accessibility';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 
@@ -75,6 +77,8 @@ export function ShopItemCard({
   accessibilityLabel,
   testID,
 }: ShopItemCardProps) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const phoneLayout = usePhoneLayout();
   const stackAction =
     Boolean(action) &&
@@ -203,6 +207,9 @@ export function ShopItemCard({
 }
 
 export function ShopTrailPill({ trail }: { trail: ShopItemCardTrail }) {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   if (trail.kind === 'quiet') {
     return <Text style={styles.quietTrail}>{trail.label}</Text>;
   }
@@ -242,159 +249,162 @@ export function ShopTrailPill({ trail }: { trail: ShopItemCardTrail }) {
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: {
-    paddingTop: mentaSpacing[2],
-  },
-  card: {
-    backgroundColor: mentaColors.surface,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: 1,
-    gap: mentaSpacing[3],
-    minHeight: 96,
-    justifyContent: 'center',
-    paddingHorizontal: mentaSpacing[4],
-    paddingVertical: mentaSpacing[4],
-  },
-  cardSelected: {
-    backgroundColor: mentaColors.actionSoft,
-    borderColor: mentaColors.actionBorder,
-    borderWidth: 2,
-  },
-  cardStacked: {
-    gap: mentaSpacing[4],
-  },
-  cardPressed: {
-    backgroundColor: mentaColors.raised,
-  },
-  identity: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[4],
-  },
-  identityAction: {
-    flex: 1,
-    minWidth: 0,
-  },
-  identityPressed: {
-    opacity: 0.8,
-  },
-  copy: {
-    flex: 1,
-    gap: mentaSpacing[1],
-    minWidth: 0,
-  },
-  title: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.bodySemibold,
-    fontSize: 17,
-    lineHeight: 23,
-  },
-  titleMuted: {
-    color: mentaColors.text.secondary,
-  },
-  description: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.bodySmall,
-  },
-  meta: {
-    color: mentaColors.action,
-    ...mentaTypography.captionMedium,
-  },
-  reason: {
-    color: mentaColors.text.muted,
-    ...mentaTypography.captionMedium,
-  },
-  quantity: {
-    backgroundColor: mentaColors.action,
-    borderColor: mentaColors.surface,
-    borderRadius: mentaRadii.round,
-    borderWidth: 2,
-    minWidth: 28,
-    paddingHorizontal: mentaSpacing[2],
-    paddingVertical: 1,
-    position: 'absolute',
-    right: -mentaSpacing[2],
-    top: -mentaSpacing[2],
-  },
-  quantityEmpty: {
-    backgroundColor: mentaColors.raised,
-  },
-  quantityText: {
-    color: mentaColors.canvas,
-    ...mentaTypography.labelBold,
-    textAlign: 'center',
-  },
-  quantityTextEmpty: {
-    color: mentaColors.text.muted,
-  },
-  pill: {
-    alignItems: 'center',
-    borderRadius: mentaRadii.round,
-    borderWidth: 1,
-    flexDirection: 'row',
-    flexShrink: 0,
-    gap: mentaSpacing[1] + 2,
-    maxWidth: 148,
-    minHeight: 36,
-    paddingLeft: mentaSpacing[2],
-    paddingRight: mentaSpacing[3],
-  },
-  pillIconOnly: {
-    justifyContent: 'center',
-    paddingLeft: 0,
-    paddingRight: 0,
-    width: 36,
-  },
-  pillPrice: {
-    backgroundColor: mentaColors.actionSoft,
-    borderColor: mentaColors.actionBorder,
-  },
-  pillGrey: {
-    backgroundColor: 'transparent',
-    borderColor: mentaColors.border,
-  },
-  pillOwned: {
-    backgroundColor: mentaColors.successSoft,
-    borderColor: 'transparent',
-    paddingLeft: mentaSpacing[3],
-  },
-  pillText: {
-    ...mentaTypography.bodySmallMedium,
-    flexShrink: 1,
-    fontVariant: ['tabular-nums'],
-  },
-  pillTextPrice: {
-    color: mentaColors.action,
-  },
-  pillTextGrey: {
-    color: mentaColors.text.muted,
-  },
-  pillTextOwned: {
-    color: mentaColors.success,
-  },
-  quietTrail: {
-    color: mentaColors.text.muted,
-    ...mentaTypography.caption,
-    flexShrink: 0,
-    maxWidth: 108,
-    textAlign: 'right',
-  },
-  tag: {
-    backgroundColor: mentaColors.action,
-    borderRadius: mentaRadii.round,
-    paddingHorizontal: mentaSpacing[2] + 2,
-    paddingVertical: 2,
-    position: 'absolute',
-    right: mentaSpacing[4],
-    top: 0,
-  },
-  tagSuccess: {
-    backgroundColor: mentaColors.success,
-  },
-  tagText: {
-    color: mentaColors.canvas,
-    ...mentaTypography.labelBold,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    wrap: {
+      paddingTop: mentaSpacing[2],
+    },
+    card: {
+      backgroundColor: mentaColors.surface,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      gap: mentaSpacing[3],
+      minHeight: 96,
+      justifyContent: 'center',
+      paddingHorizontal: mentaSpacing[4],
+      paddingVertical: mentaSpacing[4],
+    },
+    cardSelected: {
+      backgroundColor: mentaColors.actionSoft,
+      borderColor: mentaColors.actionBorder,
+      borderWidth: 2,
+    },
+    cardStacked: {
+      gap: mentaSpacing[4],
+    },
+    cardPressed: {
+      backgroundColor: mentaColors.raised,
+    },
+    identity: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[4],
+    },
+    identityAction: {
+      flex: 1,
+      minWidth: 0,
+    },
+    identityPressed: {
+      opacity: 0.8,
+    },
+    copy: {
+      flex: 1,
+      gap: mentaSpacing[1],
+      minWidth: 0,
+    },
+    title: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.bodySemibold,
+      fontSize: 17,
+      lineHeight: 23,
+    },
+    titleMuted: {
+      color: mentaColors.text.secondary,
+    },
+    description: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.bodySmall,
+    },
+    meta: {
+      color: mentaColors.action,
+      ...mentaTypography.captionMedium,
+    },
+    reason: {
+      color: mentaColors.text.muted,
+      ...mentaTypography.captionMedium,
+    },
+    quantity: {
+      backgroundColor: mentaColors.action,
+      borderColor: mentaColors.surface,
+      borderRadius: mentaRadii.round,
+      borderWidth: 2,
+      minWidth: 28,
+      paddingHorizontal: mentaSpacing[2],
+      paddingVertical: 1,
+      position: 'absolute',
+      right: -mentaSpacing[2],
+      top: -mentaSpacing[2],
+    },
+    quantityEmpty: {
+      backgroundColor: mentaColors.raised,
+    },
+    quantityText: {
+      color: mentaColors.canvas,
+      ...mentaTypography.labelBold,
+      textAlign: 'center',
+    },
+    quantityTextEmpty: {
+      color: mentaColors.text.muted,
+    },
+    pill: {
+      alignItems: 'center',
+      borderRadius: mentaRadii.round,
+      borderWidth: 1,
+      flexDirection: 'row',
+      flexShrink: 0,
+      gap: mentaSpacing[1] + 2,
+      maxWidth: 148,
+      minHeight: 36,
+      paddingLeft: mentaSpacing[2],
+      paddingRight: mentaSpacing[3],
+    },
+    pillIconOnly: {
+      justifyContent: 'center',
+      paddingLeft: 0,
+      paddingRight: 0,
+      width: 36,
+    },
+    pillPrice: {
+      backgroundColor: mentaColors.actionSoft,
+      borderColor: mentaColors.actionBorder,
+    },
+    pillGrey: {
+      backgroundColor: 'transparent',
+      borderColor: mentaColors.border,
+    },
+    pillOwned: {
+      backgroundColor: mentaColors.successSoft,
+      borderColor: 'transparent',
+      paddingLeft: mentaSpacing[3],
+    },
+    pillText: {
+      ...mentaTypography.bodySmallMedium,
+      flexShrink: 1,
+      fontVariant: ['tabular-nums'],
+    },
+    pillTextPrice: {
+      color: mentaColors.action,
+    },
+    pillTextGrey: {
+      color: mentaColors.text.muted,
+    },
+    pillTextOwned: {
+      color: mentaColors.success,
+    },
+    quietTrail: {
+      color: mentaColors.text.muted,
+      ...mentaTypography.caption,
+      flexShrink: 0,
+      maxWidth: 108,
+      textAlign: 'right',
+    },
+    tag: {
+      backgroundColor: mentaColors.action,
+      borderRadius: mentaRadii.round,
+      paddingHorizontal: mentaSpacing[2] + 2,
+      paddingVertical: 2,
+      position: 'absolute',
+      right: mentaSpacing[4],
+      top: 0,
+    },
+    tagSuccess: {
+      backgroundColor: mentaColors.success,
+    },
+    tagText: {
+      color: mentaColors.canvas,
+      ...mentaTypography.labelBold,
+    },
+  });
+  return { styles };
+};

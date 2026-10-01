@@ -1,7 +1,8 @@
+import { useMentaPalette } from '@/constants/use-menta-palette';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Tabs, useLocalSearchParams, useRouter } from 'expo-router';
 
-import CreateHubModal from '@/components/creation/CreateHubModal';
+import { CreateHubModal } from '@/components/creation/CreateHubModal';
 import { MentaBottomTabBar } from '@/components/navigation/MentaBottomTabBar';
 import {
   useGroupCooldownCheck,
@@ -24,10 +25,12 @@ import {
 } from '@/lib/navigation/create-entry';
 import { resolvePendingInviteOpenAction } from '@/lib/navigation/pending-invite-open';
 import type { CommitmentTemplateId } from '@/lib/commitments/templates';
-import { mentaColors } from '@/constants/MentaDesignSystem';
+
 import { useTranslation } from '@/lib/localization';
 
 export default function TabLayout() {
+  const mentaColors = useMentaPalette();
+
   const router = useRouter();
   const { t } = useTranslation();
   const params = useLocalSearchParams<{

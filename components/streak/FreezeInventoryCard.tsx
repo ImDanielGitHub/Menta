@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -5,12 +12,7 @@ import { FreezeSlots } from '@/components/shop/FreezeSlots';
 import { ShopItemArt } from '@/components/shop/ShopItemArt';
 import { ShopPressable } from '@/components/shop/ShopPressable';
 import { AppButton } from '@/components/ui/AppButton';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { getEarnedFreezeGrantCopy } from '@/lib/economy/contract';
 import { useTranslation } from '@/lib/localization';
 
@@ -26,6 +28,8 @@ export const FreezeInventoryCard: React.FC<FreezeInventoryCardProps> = ({
   onPress,
   onGetMore,
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const availableLabel = t('todayProof.streak.freezes_left', {
     count: freezeCount,
@@ -87,48 +91,51 @@ export const FreezeInventoryCard: React.FC<FreezeInventoryCardProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: mentaColors.surface,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: 1,
-    gap: mentaSpacing[4],
-    padding: mentaSpacing[4],
-  },
-  body: {
-    gap: mentaSpacing[4],
-  },
-  cardPressed: {
-    opacity: 0.8,
-  },
-  headerRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-  },
-  headerCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  title: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.bodySemibold,
-  },
-  subtitle: {
-    color: mentaColors.info,
-    ...mentaTypography.captionMedium,
-    marginTop: 2,
-  },
-  action: {
-    color: mentaColors.action,
-    ...mentaTypography.bodySmallMedium,
-  },
-  copy: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.bodySmall,
-  },
-  getMoreText: {
-    color: mentaColors.action,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    card: {
+      backgroundColor: mentaColors.surface,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      gap: mentaSpacing[4],
+      padding: mentaSpacing[4],
+    },
+    body: {
+      gap: mentaSpacing[4],
+    },
+    cardPressed: {
+      opacity: 0.8,
+    },
+    headerRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+    },
+    headerCopy: {
+      flex: 1,
+      minWidth: 0,
+    },
+    title: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.bodySemibold,
+    },
+    subtitle: {
+      color: mentaColors.info,
+      ...mentaTypography.captionMedium,
+      marginTop: 2,
+    },
+    action: {
+      color: mentaColors.action,
+      ...mentaTypography.bodySmallMedium,
+    },
+    copy: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.bodySmall,
+    },
+    getMoreText: {
+      color: mentaColors.action,
+    },
+  });
+  return { styles };
+};

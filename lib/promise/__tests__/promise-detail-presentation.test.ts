@@ -23,6 +23,24 @@ const dueSolo: SoloActivePromiseGate = {
 };
 
 describe('Promise detail presentation authority', () => {
+  it('keeps personal promises in their detail flow when Menta or invited people review them', () => {
+    const personal = {
+      ...dueSolo,
+      isPersonalPromise: true,
+      allowSelfReview: false,
+      groupId: 'invitation-container',
+    };
+    expect(shouldShowSoloActivePromise(personal)).toBe(true);
+    expect(shouldShowSoloActivePromise({ ...personal, canSubmit: false })).toBe(
+      false
+    );
+    expect(
+      shouldShowSoloActivePromise({ ...personal, isUserParticipant: false })
+    ).toBe(false);
+    expect(
+      shouldShowSoloActivePromise({ ...personal, isPersonalPromise: false })
+    ).toBe(false);
+  });
   it('shows the active sheet only for a confirmed due solo participant', () => {
     expect(shouldShowSoloActivePromise(dueSolo)).toBe(true);
   });

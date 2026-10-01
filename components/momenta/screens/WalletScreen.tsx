@@ -1,3 +1,10 @@
+import {
+  mentaColors as defaultMentaColors,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette } from '@/constants/use-menta-palette';
 import React, {
   useCallback,
   useEffect,
@@ -48,12 +55,7 @@ import {
   UserPlusIcon,
 } from '@/components/ui/icons';
 import { useTheme } from '@/constants/ThemeContext';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useOperationalFlag } from '@/hooks/useOperationalFlag';
 import {
   areVerifiedAdRewardsEnabled,
@@ -190,6 +192,8 @@ const CREDIT_PACK = {
 };
 
 export default function WalletScreen() {
+  const mentaColors = useMentaPalette();
+
   const selectSection = useMomentaSectionNavigation();
   const inPrimaryTab = useMomentaPrimaryTab();
   const sectionActive = useMomentaSectionIsActive('wallet');
@@ -1060,8 +1064,9 @@ function TopUpOptionRow({
   );
 }
 
-const createStyles = (theme: ReturnType<typeof useTheme>) =>
-  StyleSheet.create({
+const createStyles = (theme: ReturnType<typeof useTheme>) => {
+  const mentaColors = theme.mentaColors ?? defaultMentaColors;
+  return StyleSheet.create({
     topBar: {
       flexDirection: 'row',
       justifyContent: 'flex-start',
@@ -1291,3 +1296,4 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
       paddingTop: 4,
     },
   });
+};

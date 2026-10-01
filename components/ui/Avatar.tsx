@@ -1,3 +1,4 @@
+import { useMentaPalette } from '@/constants/use-menta-palette';
 import React from 'react';
 import {
   StyleSheet,
@@ -9,7 +10,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/constants/ThemeContext';
-import { mentaColors } from '@/constants/MentaDesignSystem';
+
 import { useMomentaStore } from '@/store/momenta-store';
 import { getAvatarFrameAppearance } from '@/lib/shop/catalogSupport';
 
@@ -38,6 +39,8 @@ export const Avatar: React.FC<AvatarProps> = ({
   frameSku,
   testID,
 }) => {
+  const mentaColors = useMentaPalette();
+
   const theme = useTheme();
   const { colors } = theme;
   const { equippedItems, equippedItemSkus } = useMomentaStore();

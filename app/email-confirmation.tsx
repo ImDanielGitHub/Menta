@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -10,24 +18,14 @@ import {
 } from '@/components/ui';
 import { AppScaledText as Text } from '@/components/ui/AppScaledText';
 import { MailIcon } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { useTranslation } from '@/lib/localization';
 import { useAuthStore } from '@/store/auth-store';
 import { useEmailConfirmationStore } from '@/store/email-confirmation-store';
 
 type ConfirmationStatus =
-  | 'expired'
-  | 'invalid'
-  | 'failed'
-  | 'account-mismatch'
-  | 'storage';
+  'expired' | 'invalid' | 'failed' | 'account-mismatch' | 'storage';
 
 const getParam = (value?: string | string[]) =>
   typeof value === 'string' ? value : '';
@@ -62,6 +60,9 @@ const getResendFailureMessage = (
 };
 
 export default function EmailConfirmationScreen() {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const router = useRouter();
   const phoneLayout = usePhoneLayout();
   const { t } = useTranslation();
@@ -470,59 +471,62 @@ export default function EmailConfirmationScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    alignSelf: 'center',
-    flexGrow: 1,
-    gap: mentaSpacing[4],
-    maxWidth: mentaLayout.phoneFrameMax,
-    paddingBottom: mentaSpacing[8],
-    paddingTop: mentaSpacing[4],
-    width: '100%',
-  },
-  loadingBody: {
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
-    padding: mentaSpacing[6],
-  },
-  intro: { alignItems: 'flex-start', gap: mentaSpacing[2] },
-  icon: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.actionSoft,
-    borderRadius: mentaRadii.large,
-    height: 56,
-    justifyContent: 'center',
-    marginBottom: mentaSpacing[1],
-    width: 56,
-  },
-  title: { color: mentaColors.text.primary, ...mentaTypography.heading },
-  body: { color: mentaColors.text.secondary, ...mentaTypography.body },
-  emailReceipt: {
-    backgroundColor: mentaColors.raised,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: 1,
-    gap: mentaSpacing[1],
-    padding: mentaSpacing[4],
-  },
-  emailLabel: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.caption,
-  },
-  email: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.bodySemibold,
-  },
-  savedCopy: {
-    alignSelf: 'center',
-    color: mentaColors.text.secondary,
-    maxWidth: mentaLayout.readingMeasure,
-    ...mentaTypography.bodySmall,
-  },
-  actions: {
-    gap: mentaSpacing[3],
-    marginTop: 'auto',
-    paddingTop: mentaSpacing[2],
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: {
+      alignSelf: 'center',
+      flexGrow: 1,
+      gap: mentaSpacing[4],
+      maxWidth: mentaLayout.phoneFrameMax,
+      paddingBottom: mentaSpacing[8],
+      paddingTop: mentaSpacing[4],
+      width: '100%',
+    },
+    loadingBody: {
+      alignItems: 'center',
+      flex: 1,
+      justifyContent: 'center',
+      padding: mentaSpacing[6],
+    },
+    intro: { alignItems: 'flex-start', gap: mentaSpacing[2] },
+    icon: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.actionSoft,
+      borderRadius: mentaRadii.large,
+      height: 56,
+      justifyContent: 'center',
+      marginBottom: mentaSpacing[1],
+      width: 56,
+    },
+    title: { color: mentaColors.text.primary, ...mentaTypography.heading },
+    body: { color: mentaColors.text.secondary, ...mentaTypography.body },
+    emailReceipt: {
+      backgroundColor: mentaColors.raised,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      gap: mentaSpacing[1],
+      padding: mentaSpacing[4],
+    },
+    emailLabel: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.caption,
+    },
+    email: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.bodySemibold,
+    },
+    savedCopy: {
+      alignSelf: 'center',
+      color: mentaColors.text.secondary,
+      maxWidth: mentaLayout.readingMeasure,
+      ...mentaTypography.bodySmall,
+    },
+    actions: {
+      gap: mentaSpacing[3],
+      marginTop: 'auto',
+      paddingTop: mentaSpacing[2],
+    },
+  });
+  return { styles };
+};

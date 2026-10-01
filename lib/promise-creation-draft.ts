@@ -1,3 +1,8 @@
+import type {
+  ReviewerChoice,
+  CheckInPlan,
+} from '@/components/challenge/create/PromiseFlow';
+import type { CommitmentTemplateId } from '@/lib/commitments/templates';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {
   ChallengeDifficulty,
@@ -20,6 +25,14 @@ const draftDurations = [7, 14, 30] as const;
 
 export type PromiseCreationDraft = {
   version: 1;
+  reviewer?: ReviewerChoice;
+  checkInPlan?: CheckInPlan;
+  templateId?: CommitmentTemplateId;
+  mentaBackup?: boolean;
+  mentaMomenta?: boolean;
+  groupId?: string | null;
+  stepId?: 'name' | 'proof' | 'who' | 'length' | 'review';
+  pendingFriendChallengeId?: string | null;
   ownerUserId: string;
   currentStep: 0 | 1 | 2 | 3;
   title: string;
@@ -80,6 +93,87 @@ const isDraftDuration = (
 ): value is (typeof draftDurations)[number] =>
   typeof value === 'number' && draftDurations.includes(value as 7 | 14 | 30);
 
+const decodeExtras = (
+  value: Record<string, unknown>
+): Partial<PromiseCreationDraft> | null => {
+  const result: Partial<PromiseCreationDraft> = {};
+  if (value.reviewer !== undefined) {
+    const r = value.reviewer;
+    if (
+      !isRecord(r) ||
+      !['self', 'friend', 'menta', 'group'].includes(String(r.kind))
+    )
+      return null;
+    if (
+      r.kind === 'group' &&
+      (!hasBoundedString(r.groupId, 128) || !hasBoundedString(r.name, 200))
+    )
+      return null;
+    result.reviewer =
+      r.kind === 'group'
+        ? {
+            kind: 'group',
+            groupId: r.groupId as string,
+            name: r.name as string,
+          }
+        : ({ kind: r.kind } as ReviewerChoice);
+  }
+  if (value.checkInPlan !== undefined) {
+    const plan = value.checkInPlan;
+    if (
+      !isRecord(plan) ||
+      !['every', 'weekdays', 'custom'].includes(String(plan.kind))
+    )
+      return null;
+    if (
+      plan.kind === 'custom' &&
+      (!Array.isArray(plan.days) ||
+        plan.days.length > 7 ||
+        plan.days.some(day => !Number.isInteger(day) || day < 1 || day > 7) ||
+        new Set(plan.days).size !== plan.days.length)
+    )
+      return null;
+    result.checkInPlan =
+      plan.kind === 'custom'
+        ? { kind: 'custom', days: [...(plan.days as number[])] }
+        : ({ kind: plan.kind } as CheckInPlan);
+  }
+  for (const key of ['mentaBackup', 'mentaMomenta'] as const) {
+    if (value[key] !== undefined) {
+      if (typeof value[key] !== 'boolean') return null;
+      result[key] = value[key];
+    }
+  }
+  for (const key of [
+    'templateId',
+    'groupId',
+    'pendingFriendChallengeId',
+  ] as const) {
+    if (value[key] === undefined) continue;
+    if (key === 'templateId' && value[key] === null) return null;
+    if (value[key] !== null && !hasBoundedString(value[key], 128)) return null;
+    if (
+      key === 'pendingFriendChallengeId' &&
+      value[key] !== null &&
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        value[key] as string
+      )
+    )
+      return null;
+    Object.assign(result, { [key]: value[key] });
+  }
+  if (value.stepId !== undefined) {
+    if (
+      !['name', 'proof', 'who', 'length', 'review'].includes(
+        String(value.stepId)
+      )
+    )
+      return null;
+    result.stepId = value.stepId as PromiseCreationDraft['stepId'];
+  }
+  return result;
+};
+
 export const getPromiseCreationDraftKey = (userId: string): string =>
   `${PROMISE_CREATION_DRAFT_PREFIX}:${userId}`;
 
@@ -115,7 +209,10 @@ export const decodePromiseCreationDraft = (
       return null;
     }
 
+    const extras = decodeExtras(value);
+    if (!extras) return null;
     return {
+      ...extras,
       version: 1,
       ownerUserId: value.ownerUserId,
       currentStep: value.currentStep,
@@ -143,17 +240,125 @@ export const getOwnedPromiseCreationDraft = (args: {
   return draft?.ownerUserId === args.userId ? draft : null;
 };
 
+// Serialize account-owned local storage operations and create requests separately.
+// A new route can wait for an earlier request without blocking its receipt save.
+const draftOperations = new Map<string, Promise<void>>();
+const creationRequests = new Map<string, Promise<void>>();
+const withOwnedOperation = async <Result>(
+  operations: Map<string, Promise<void>>,
+  owner: string,
+  operation: () => Promise<Result>
+): Promise<Result> => {
+  const previous = operations.get(owner) ?? Promise.resolve();
+  const result = previous.then(operation);
+  const settled = result.then(
+    () => undefined,
+    () => undefined
+  );
+  operations.set(owner, settled);
+  try {
+    return await result;
+  } finally {
+    if (operations.get(owner) === settled) operations.delete(owner);
+  }
+};
+
+/** A remounted route must finish reading an earlier receipt before creating. */
+export const withPromiseCreationRequest = <Result>(
+  owner: string,
+  operation: () => Promise<Result>
+): Promise<Result> => withOwnedOperation(creationRequests, owner, operation);
+
+export type PromiseReceiptRecovery = {
+  draft: PromiseCreationDraft;
+  persistence: 'pending' | 'saved' | 'failed';
+};
+const confirmedReceipts = new Map<string, PromiseReceiptRecovery>();
+const receiptListeners = new Map<
+  string,
+  Set<(receipt: PromiseReceiptRecovery) => void>
+>();
+const notifyReceipt = (owner: string) => {
+  const receipt = confirmedReceipts.get(owner);
+  if (receipt)
+    receiptListeners.get(owner)?.forEach(listener => listener(receipt));
+};
+
+/** Process-local recovery, always keyed by the request owner; not durable storage. */
+export const retainPromiseCreationReceipt = (
+  input: PromiseCreationDraftInput,
+  persistence: PromiseReceiptRecovery['persistence'] = 'pending'
+): PromiseCreationDraft => {
+  const existing = confirmedReceipts.get(input.ownerUserId);
+  if (existing) return existing.draft;
+  const draft = decodePromiseCreationDraft(
+    JSON.stringify(
+      buildPromiseCreationDraft({
+        ...input,
+        unknownCreateResultAt: null,
+        todayReadbackRequestedAt: null,
+      })
+    )
+  );
+  if (!draft?.pendingFriendChallengeId)
+    throw new Error('Invalid owned promise receipt');
+  confirmedReceipts.set(input.ownerUserId, { draft, persistence });
+  notifyReceipt(input.ownerUserId);
+  return draft;
+};
+
+export const getPromiseCreationReceiptRecovery = (
+  owner: string
+): PromiseReceiptRecovery | null => confirmedReceipts.get(owner) ?? null;
+
+export const subscribePromiseCreationReceipts = (
+  owner: string,
+  listener: (receipt: PromiseReceiptRecovery) => void
+): (() => void) => {
+  const listeners = receiptListeners.get(owner) ?? new Set();
+  receiptListeners.set(owner, listeners);
+  listeners.add(listener);
+  const receipt = confirmedReceipts.get(owner);
+  if (receipt) listener(receipt);
+  return () => {
+    listeners.delete(listener);
+    if (!listeners.size) receiptListeners.delete(owner);
+  };
+};
+
+const readStoredDraft = async (
+  owner: string
+): Promise<PromiseCreationDraft | null> => {
+  const raw = await AsyncStorage.getItem(getPromiseCreationDraftKey(owner));
+  if (raw === null) return null;
+  const draft = getOwnedPromiseCreationDraft({ raw, userId: owner });
+  if (!draft)
+    throw new Error('Saved promise recovery could not be read safely');
+  return draft;
+};
+
 export const loadPromiseCreationDraft = async (
   userId: string
 ): Promise<PromiseCreationDraft | null> => {
-  const raw = await AsyncStorage.getItem(getPromiseCreationDraftKey(userId));
-  return getOwnedPromiseCreationDraft({ raw, userId });
+  const receipt = confirmedReceipts.get(userId);
+  if (receipt) return receipt.draft;
+  return withOwnedOperation(draftOperations, userId, async () => {
+    const currentReceipt = confirmedReceipts.get(userId);
+    if (currentReceipt) return currentReceipt.draft;
+    const draft = await readStoredDraft(userId);
+    const lateReceipt = confirmedReceipts.get(userId);
+    if (lateReceipt) return lateReceipt.draft;
+    if (draft?.pendingFriendChallengeId)
+      return retainPromiseCreationReceipt(draft, 'saved');
+    return draft;
+  });
 };
 
 export const buildPromiseCreationDraft = (
   input: PromiseCreationDraftInput
 ): PromiseCreationDraft => ({
   version: 1,
+  ...(decodeExtras(input as unknown as Record<string, unknown>) ?? {}),
   ownerUserId: input.ownerUserId,
   currentStep: input.currentStep,
   title: input.title.slice(0, 100),
@@ -171,15 +376,85 @@ export const buildPromiseCreationDraft = (
 export const savePromiseCreationDraft = async (
   input: PromiseCreationDraftInput
 ): Promise<PromiseCreationDraft> => {
-  const draft = buildPromiseCreationDraft(input);
-  await AsyncStorage.setItem(
-    getPromiseCreationDraftKey(input.ownerUserId),
-    JSON.stringify(draft)
-  );
-  return draft;
+  // Capture before any storage await, so write/read failure cannot discard an ID.
+  if (input.pendingFriendChallengeId) retainPromiseCreationReceipt(input);
+  return withOwnedOperation(draftOperations, input.ownerUserId, async () => {
+    const owner = input.ownerUserId;
+    try {
+      const memory = confirmedReceipts.get(owner);
+      const existing = memory ? memory.draft : await readStoredDraft(owner);
+      const protectedDraft = existing?.pendingFriendChallengeId
+        ? existing
+        : existing?.unknownCreateResultAt &&
+            existing.unknownCreateResultAt !== input.unknownCreateResultAt
+          ? existing
+          : null;
+      const draft = protectedDraft ?? buildPromiseCreationDraft(input);
+      await AsyncStorage.setItem(
+        getPromiseCreationDraftKey(owner),
+        JSON.stringify(draft)
+      );
+      const receipt = confirmedReceipts.get(owner);
+      if (receipt) {
+        confirmedReceipts.set(owner, { ...receipt, persistence: 'saved' });
+        notifyReceipt(owner);
+      }
+      return draft;
+    } catch (error) {
+      const receipt = confirmedReceipts.get(owner);
+      if (receipt) {
+        confirmedReceipts.set(owner, { ...receipt, persistence: 'failed' });
+        notifyReceipt(owner);
+      }
+      throw error;
+    }
+  });
 };
 
-/** A deliberate create receipt is the only condition that removes a draft. */
+/** Clear only this known failed attempt, never a newer attempt or receipt. */
+export const cancelPromiseCreationAttempt = async (
+  input: PromiseCreationDraftInput,
+  attemptAt: string
+): Promise<void> =>
+  withOwnedOperation(draftOperations, input.ownerUserId, async () => {
+    if (confirmedReceipts.has(input.ownerUserId)) return;
+    const existing = await readStoredDraft(input.ownerUserId);
+    if (
+      existing?.pendingFriendChallengeId ||
+      existing?.unknownCreateResultAt !== attemptAt
+    )
+      return;
+    await AsyncStorage.setItem(
+      getPromiseCreationDraftKey(input.ownerUserId),
+      JSON.stringify(buildPromiseCreationDraft(input))
+    );
+  });
+
+/** Explicit new request after the person has checked Today; never erase an ID. */
+export const saveFreshPromiseCreationDraft = async (
+  input: PromiseCreationDraftInput
+): Promise<void> =>
+  withOwnedOperation(draftOperations, input.ownerUserId, async () => {
+    const existing = await readStoredDraft(input.ownerUserId);
+    if (
+      confirmedReceipts.has(input.ownerUserId) ||
+      existing?.pendingFriendChallengeId ||
+      (existing?.unknownCreateResultAt && !existing.todayReadbackRequestedAt)
+    )
+      throw new Error(
+        'Check the owned promise before starting another request'
+      );
+    await AsyncStorage.setItem(
+      getPromiseCreationDraftKey(input.ownerUserId),
+      JSON.stringify(buildPromiseCreationDraft(input))
+    );
+  });
+
+/** Confirmed completion of the owned flow. Failed clears retain recovery memory. */
 export const clearPromiseCreationDraft = async (
   userId: string
-): Promise<void> => AsyncStorage.removeItem(getPromiseCreationDraftKey(userId));
+): Promise<void> =>
+  withOwnedOperation(draftOperations, userId, async () => {
+    await AsyncStorage.removeItem(getPromiseCreationDraftKey(userId));
+    confirmedReceipts.delete(userId);
+  });

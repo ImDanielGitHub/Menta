@@ -1,4 +1,20 @@
+import {
+  mentaColors as defaultMentaColors,
+  type MentaPalette,
+  mentaHeadingRoles,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
+import { AppSwitchRow } from '@/components/ui/AppFields';
+import { MentaConsent } from '@/components/menta-check/menta-consent';
+import { useMentaCheckOverview } from '@/hooks/use-menta-check';
+import { buyMentaCheckPass, setPromiseReviewMode } from '@/lib/menta-check/api';
+import { openPaywall } from '@/lib/paywall/manager';
 import {
   Keyboard,
   Platform,
@@ -9,6 +25,7 @@ import {
   View,
 } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect } from 'expo-router/react-navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -31,14 +48,7 @@ import {
   useThemedStyles,
   type ThemeContextType,
 } from '@/constants/ThemeContext';
-import {
-  mentaColors,
-  mentaHeadingRoles,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { AUTHORING_SAFETY_DISCLOSURE } from '@/lib/content-safety';
 import { useAuthStore } from '@/store/auth-store';
 import { useChallengeStore, type Challenge } from '@/store/challenge-store';
@@ -72,7 +82,6 @@ import {
   resolveCreatePromiseGate,
   type CreatePromiseQuote,
 } from '@/lib/economy/create-promise-quote';
-import { RevenueCatAPI } from '@/lib/paywall/revenuecat';
 import {
   resolveChallengeMode,
   type ChallengeCreateSearchParams,
@@ -99,6 +108,12 @@ import {
   clearPromiseCreationDraft,
   loadPromiseCreationDraft,
   savePromiseCreationDraft,
+  withPromiseCreationRequest,
+  retainPromiseCreationReceipt,
+  subscribePromiseCreationReceipts,
+  getPromiseCreationReceiptRecovery,
+  cancelPromiseCreationAttempt,
+  saveFreshPromiseCreationDraft,
   type PromiseCreationDraftInput,
 } from '@/lib/promise-creation-draft';
 import { buildInviteShareUrl } from '@/lib/invite-links';
@@ -172,6 +187,11 @@ const getProofTypeLabel = (
 };
 
 export default function CreateChallengeScreen() {
+  const mentaOverview = useMentaCheckOverview();
+  const [mentaConsentVisible, setMentaConsentVisible] = React.useState(false);
+  const [mentaSetupFailed, setMentaSetupFailed] = React.useState(false);
+  const [mentaBackup, setMentaBackup] = React.useState(false);
+  const [mentaMomenta, setMentaMomenta] = React.useState(false);
   const { t, locale } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -298,8 +318,13 @@ export default function CreateChallengeScreen() {
   const [reviewer, setReviewer] = React.useState<ReviewerChoice>({
     kind: 'self',
   });
+  const [restoredGroupId, setRestoredGroupId] = React.useState<string | null>(
+    null
+  );
   const groupId =
-    routeGroupId ?? (reviewer.kind === 'group' ? reviewer.groupId : null);
+    routeGroupId ??
+    restoredGroupId ??
+    (reviewer.kind === 'group' ? reviewer.groupId : null);
   const mode: 'solo' | 'group' =
     routeMode === 'group' || groupId ? 'group' : 'solo';
   const checkInWeekdays = checkInWeekdaysFor(checkInPlan);
@@ -314,6 +339,7 @@ export default function CreateChallengeScreen() {
   const [creationError, setCreationError] = React.useState<{
     title: string;
     message: string;
+    kind?: PromiseCreationRecovery['kind'] | 'receipt-read';
   } | null>(null);
   const [creationRecovery, setCreationRecovery] =
     React.useState<PromiseCreationRecovery | null>(null);
@@ -336,7 +362,38 @@ export default function CreateChallengeScreen() {
   >(null);
   const [todayReadbackRequestedAt, setTodayReadbackRequestedAt] =
     React.useState<string | null>(null);
+  const [pendingFriendChallengeId, setPendingFriendChallengeId] =
+    React.useState<string | null>(null);
+  const pendingFriendRef = React.useRef<string | null>(null);
+  const setupOpeningRef = React.useRef(false);
+  const creationScopeRef = React.useRef({
+    active: false,
+    version: 0,
+    owner: user?.id,
+    context: '',
+    freeChosen: false,
+  });
+  const creationContext = `${user?.id ?? ''}:${routeMode}:${routeGroupId ?? ''}`;
+  const currentCreationContext = React.useRef(creationContext);
+  currentCreationContext.current = creationContext;
+  useFocusEffect(
+    React.useCallback(() => {
+      const scope = creationScopeRef.current;
+      scope.active = true;
+      scope.version += 1;
+      scope.owner = user?.id;
+      scope.context = creationContext;
+      scope.freeChosen = false;
+      setupOpeningRef.current = false;
+      return () => {
+        scope.active = false;
+        scope.version += 1;
+        setupOpeningRef.current = false;
+      };
+    }, [creationContext, user?.id])
+  );
   const submittingRef = React.useRef(false);
+  const submissionOperationRef = React.useRef<number | null>(null);
   const creationReceiptRef = React.useRef(false);
 
   React.useEffect(() => {
@@ -377,9 +434,14 @@ export default function CreateChallengeScreen() {
   const activeStepId = stepIds[Math.min(currentStep, stepIds.length - 1)];
   const nextStepId = stepIds[currentStep + 1];
   const isReviewStep = activeStepId === 'review';
+  const mentaPassCost =
+    reviewer.kind === 'menta' && mentaMomenta && !mentaOverview.data?.isPro
+      ? (mentaOverview.data?.passCost ?? 20)
+      : 0;
+  const reviewAmount = (promiseQuote?.cost ?? 0) + mentaPassCost;
   const reviewShortfall =
-    isReviewStep && promiseQuote && promiseQuote.cost > balance
-      ? promiseQuote.cost - balance
+    isReviewStep && promiseQuote && reviewAmount > balance
+      ? reviewAmount - balance
       : 0;
   const narratorState: MascotState =
     activeStepId === 'proof'
@@ -411,14 +473,16 @@ export default function CreateChallengeScreen() {
     difficultyOptions[1];
   const scheduleLabel = describeCheckInPlan(checkInPlan, locale, t);
   const checkerLabel =
-    reviewer.kind === 'group'
-      ? reviewer.name
-      : routeGroupId
-        ? (groups.find(group => group.id === routeGroupId)?.name ??
-          t('todayProof.createFlow.yourGroups'))
-        : reviewer.kind === 'friend'
-          ? t('todayProof.createFlow.checkerFriend')
-          : t('todayProof.createFlow.checkerMe');
+    reviewer.kind === 'menta'
+      ? t('mentaCheck.receipt.checkedBy')
+      : reviewer.kind === 'group'
+        ? reviewer.name
+        : routeGroupId
+          ? (groups.find(group => group.id === routeGroupId)?.name ??
+            t('todayProof.createFlow.yourGroups'))
+          : reviewer.kind === 'friend'
+            ? t('todayProof.createFlow.checkerFriend')
+            : t('todayProof.createFlow.checkerMe');
   const primaryCta =
     activeStepId === 'name'
       ? t('todayProof.create.choose_proof')
@@ -475,7 +539,9 @@ export default function CreateChallengeScreen() {
       overrides: Partial<
         Pick<
           PromiseCreationDraftInput,
-          'unknownCreateResultAt' | 'todayReadbackRequestedAt'
+          | 'unknownCreateResultAt'
+          | 'todayReadbackRequestedAt'
+          | 'pendingFriendChallengeId'
         >
       > = {}
     ): PromiseCreationDraftInput | null => {
@@ -483,6 +549,17 @@ export default function CreateChallengeScreen() {
 
       return {
         ownerUserId: user.id,
+        reviewer,
+        checkInPlan,
+        templateId,
+        mentaBackup,
+        mentaMomenta,
+        groupId,
+        stepId: activeStepId,
+        pendingFriendChallengeId:
+          overrides.pendingFriendChallengeId === undefined
+            ? pendingFriendRef.current
+            : overrides.pendingFriendChallengeId,
         // Drafts keep four steps; a saved review reopens on the length step.
         currentStep: toPromiseDraftStep(Math.min(currentStep, 3)),
         title,
@@ -504,6 +581,13 @@ export default function CreateChallengeScreen() {
     },
     [
       currentStep,
+      reviewer,
+      checkInPlan,
+      templateId,
+      mentaBackup,
+      mentaMomenta,
+      groupId,
+      activeStepId,
       description,
       difficulty,
       proofDescription,
@@ -517,12 +601,104 @@ export default function CreateChallengeScreen() {
     ]
   );
 
+  const restorePromiseDraft = React.useCallback(
+    (draft: PromiseCreationDraftInput) => {
+      if (draft.ownerUserId !== user?.id) return;
+      if (draft.pendingFriendChallengeId) {
+        setCreationRecovery(null);
+        const recovery = getPromiseCreationReceiptRecovery(draft.ownerUserId);
+        setCreationError(
+          recovery?.persistence === 'failed'
+            ? {
+                title: t('commerce.free.receiptRetry'),
+                message: t('commerce.free.receiptRetryDetail'),
+              }
+            : null
+        );
+      }
+      const restoredStep = draft.pendingFriendChallengeId
+        ? 'review'
+        : draft.stepId;
+      setCurrentStep(
+        restoredStep
+          ? (showsReviewerStep
+              ? ['name', 'proof', 'who', 'length', 'review']
+              : ['name', 'proof', 'length', 'review']
+            ).indexOf(restoredStep)
+          : draft.currentStep
+      );
+      setReviewer(draft.reviewer ?? { kind: 'self' });
+      setCheckInPlan(draft.checkInPlan ?? { kind: 'every' });
+      setTemplateId(draft.templateId);
+      setMentaBackup(draft.mentaBackup ?? false);
+      setMentaMomenta(draft.mentaMomenta ?? false);
+      setRestoredGroupId(draft.groupId ?? null);
+      pendingFriendRef.current = draft.pendingFriendChallengeId ?? null;
+      setPendingFriendChallengeId(pendingFriendRef.current);
+      creationReceiptRef.current = Boolean(pendingFriendRef.current);
+      setTitle(draft.title);
+      setDescription(draft.description);
+      setProofType(draft.proofType);
+      setProofDescription(draft.proofDescription);
+      setSubmissionText(draft.submissionText);
+      setDuration(draft.duration);
+      setDifficulty(draft.difficulty);
+      setUnknownCreateResultAt(draft.unknownCreateResultAt);
+      setTodayReadbackRequestedAt(draft.todayReadbackRequestedAt);
+      if (draft.unknownCreateResultAt) {
+        const recovery = getPromiseCreationRecovery(
+          {
+            message: t(
+              'todayProof.residual.network_request_failed_before_a_response_arrived'
+            ),
+          },
+          locale
+        );
+        setCreationRecovery(recovery);
+        setCreationError(recovery);
+      }
+    },
+    [locale, showsReviewerStep, t, user?.id]
+  );
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const owner = user?.id;
+      if (!owner) return;
+      const scope = creationScopeRef.current;
+      const version = scope.version;
+      const unsubscribe = subscribePromiseCreationReceipts(owner, recovery => {
+        if (
+          scope.active &&
+          scope.version === version &&
+          scope.owner === owner &&
+          currentCreationContext.current === creationContext
+        )
+          restorePromiseDraft(recovery.draft);
+      });
+      // Reading a durable receipt publishes it to the current owned observer.
+      void loadPromiseCreationDraft(owner).catch(() => undefined);
+      return unsubscribe;
+    }, [creationContext, restorePromiseDraft, user?.id])
+  );
+
   React.useEffect(() => {
     let cancelled = false;
     const userId = user?.id;
 
     const resetToRouteDefaults = () => {
+      submittingRef.current = false;
+      submissionOperationRef.current = null;
+      setIsSubmitting(false);
+      setIsSavingDraftExit(false);
       setCurrentStep(0);
+      setReviewer({ kind: 'self' });
+      setCheckInPlan({ kind: 'every' });
+      setMentaBackup(false);
+      setMentaMomenta(false);
+      setRestoredGroupId(null);
+      pendingFriendRef.current = null;
+      setPendingFriendChallengeId(null);
       setTemplateId(selectedParamTemplate?.id);
       setTitle(onboardingTitle ?? selectedParamTemplate?.title ?? '');
       setDescription(selectedParamTemplate?.description ?? '');
@@ -558,13 +734,6 @@ export default function CreateChallengeScreen() {
       };
     }
 
-    if (hasExplicitRouteDefaults) {
-      setIsDraftRestoring(false);
-      return () => {
-        cancelled = true;
-      };
-    }
-
     setIsDraftRestoring(true);
     void loadPromiseCreationDraft(userId)
       .then(draft => {
@@ -572,31 +741,22 @@ export default function CreateChallengeScreen() {
           return;
         }
 
-        setCurrentStep(draft.currentStep);
-        setTitle(draft.title);
-        setDescription(draft.description);
-        setProofType(draft.proofType);
-        setProofDescription(draft.proofDescription);
-        setSubmissionText(draft.submissionText);
-        setDuration(draft.duration);
-        setDifficulty(draft.difficulty);
-        setUnknownCreateResultAt(draft.unknownCreateResultAt);
-        setTodayReadbackRequestedAt(draft.todayReadbackRequestedAt);
-        if (draft.unknownCreateResultAt) {
-          const recovery = getPromiseCreationRecovery(
-            {
-              message: t(
-                'todayProof.residual.network_request_failed_before_a_response_arrived'
-              ),
-            },
-            locale
-          );
-          setCreationRecovery(recovery);
-          setCreationError(recovery);
-        }
+        // Route defaults may replace an unfinished draft, never a receipt.
+        if (
+          hasExplicitRouteDefaults &&
+          !draft.pendingFriendChallengeId &&
+          !draft.unknownCreateResultAt
+        )
+          return;
+        restorePromiseDraft(draft);
       })
-      .catch(error => {
-        console.warn('[PromiseCreationDraft] Could not restore draft:', error);
+      .catch(() => {
+        if (!cancelled)
+          setCreationError({
+            kind: 'receipt-read',
+            title: t('commerce.free.receiptReadBlocked'),
+            message: t('commerce.free.receiptReadBlockedDetail'),
+          });
       })
       .finally(() => {
         if (!cancelled) setIsDraftRestoring(false);
@@ -607,6 +767,8 @@ export default function CreateChallengeScreen() {
     };
   }, [
     hasExplicitRouteDefaults,
+    restorePromiseDraft,
+    showsReviewerStep,
     onboardingTitle,
     onboardingVerificationType,
     selectedParamTemplate,
@@ -662,6 +824,55 @@ export default function CreateChallengeScreen() {
     }
     handleViewCreatedChallenge();
   }, [groupId, handleViewCreatedChallenge, router]);
+
+  const continueFriendSetup = async (
+    exit = false,
+    restoredDraft?: PromiseCreationDraftInput
+  ) => {
+    if (restoredDraft && restoredDraft.ownerUserId !== user?.id) return;
+    const id =
+      restoredDraft?.pendingFriendChallengeId ?? pendingFriendRef.current;
+    const scope = creationScopeRef.current;
+    if (!id || !scope.active || setupOpeningRef.current) return;
+    const version = scope.version;
+    setupOpeningRef.current = true;
+    let navigated = false;
+    try {
+      const draft =
+        restoredDraft ??
+        buildCurrentPromiseDraft({ pendingFriendChallengeId: id });
+      if (!draft) return;
+      await savePromiseCreationDraft({
+        ...draft,
+        stepId: 'review',
+        reviewer: { kind: 'friend' },
+        mentaBackup: false,
+        mentaMomenta: false,
+      });
+      if (
+        !scope.active ||
+        scope.version !== version ||
+        currentCreationContext.current !== scope.context
+      )
+        return;
+      if (exit) backOrReplace(router, '/(tabs)');
+      else
+        router.push({
+          pathname: '/promise-accountability',
+          params: { challengeId: id, source: 'promise', requiredReviewer: '1' },
+        });
+      navigated = true;
+    } catch {
+      if (scope.active && scope.version === version)
+        setCreationError({
+          title: t('commerce.free.receiptRetry'),
+          message: t('commerce.free.receiptRetryDetail'),
+        });
+    } finally {
+      if (scope.version === version && !navigated)
+        setupOpeningRef.current = false;
+    }
+  };
 
   const handleInviteFriend = React.useCallback(() => {
     if (!createdChallenge) return;
@@ -739,6 +950,10 @@ export default function CreateChallengeScreen() {
   };
 
   const goBack = () => {
+    if (pendingFriendRef.current) {
+      void continueFriendSetup(true);
+      return;
+    }
     if (isCreationBusy || submittingRef.current) return;
     if (currentStep === 0) {
       handleCloseCreateChallenge();
@@ -747,7 +962,49 @@ export default function CreateChallengeScreen() {
     setCurrentStep(step => Math.max(0, step - 1));
   };
 
+  const retryReceiptRead = async () => {
+    const scope = creationScopeRef.current;
+    const owner = user?.id;
+    const version = scope.version;
+    const context = currentCreationContext.current;
+    if (!owner || !scope.active || setupOpeningRef.current) return;
+    const current = () =>
+      creationScopeRef.current.active &&
+      creationScopeRef.current.version === version &&
+      creationScopeRef.current.owner === owner &&
+      currentCreationContext.current === context;
+    setupOpeningRef.current = true;
+    setIsDraftRestoring(true);
+    try {
+      const saved = await loadPromiseCreationDraft(owner);
+      if (!current()) return;
+      if (saved?.pendingFriendChallengeId || saved?.unknownCreateResultAt)
+        restorePromiseDraft(saved);
+      else setCreationError(null);
+    } catch {
+      if (current())
+        setCreationError({
+          kind: 'receipt-read',
+          title: t('commerce.free.receiptReadBlocked'),
+          message: t('commerce.free.receiptReadBlockedDetail'),
+        });
+    } finally {
+      if (current()) {
+        setupOpeningRef.current = false;
+        setIsDraftRestoring(false);
+      }
+    }
+  };
+
   const goNext = () => {
+    if (creationError?.kind === 'receipt-read') {
+      void retryReceiptRead();
+      return;
+    }
+    if (pendingFriendRef.current) {
+      void continueFriendSetup();
+      return;
+    }
     if (isCreationBusy || submittingRef.current || isCreationOutcomeUnknown) {
       return;
     }
@@ -786,13 +1043,59 @@ export default function CreateChallengeScreen() {
     void submit();
   };
 
+  const purchaseRefreshOwner = React.useRef(user?.id);
+  React.useEffect(() => {
+    purchaseRefreshOwner.current = user?.id;
+    return () => {
+      purchaseRefreshOwner.current = undefined;
+    };
+  }, [user?.id]);
+
   const refreshPro = React.useCallback(async () => {
-    await RevenueCatAPI.refreshCustomerInfo();
-    if (user?.id) await fetchBalance(user.id);
-  }, [fetchBalance, user?.id]);
+    try {
+      const ownerId = user?.id;
+      const scopeVersion = creationScopeRef.current.version;
+      if (!ownerId || !creationScopeRef.current.active) return;
+      await fetchBalance(ownerId, { throwOnError: true });
+      const quote = await getCreatePromiseQuote(ownerId);
+      if (
+        purchaseRefreshOwner.current !== ownerId ||
+        !creationScopeRef.current.active ||
+        creationScopeRef.current.version !== scopeVersion
+      )
+        return;
+      setPromiseQuote(quote);
+      // This callback follows the paywall's confirmed purchase receipt. Refresh
+      // the server quote before removing the obsolete gate notice, and never
+      // discard an unresolved creation receipt or submit the draft automatically.
+      if (
+        !unknownCreateResultAt &&
+        !creationRecovery &&
+        (paywallVariant === 'quota' || paywallVariant === 'insufficient') &&
+        resolveCreatePromiseGate(quote).allowed &&
+        quote.cost + mentaPassCost <= useMomentaStore.getState().balance
+      ) {
+        setCreationError(current =>
+          current === creationError ? null : current
+        );
+      }
+    } catch {
+      // Keep the draft and existing retry guidance if readback fails. The
+      // paywall does not await this callback; never leak a rejected promise.
+    }
+  }, [
+    creationError,
+    creationRecovery,
+    fetchBalance,
+    getCreatePromiseQuote,
+    mentaPassCost,
+    paywallVariant,
+    unknownCreateResultAt,
+    user?.id,
+  ]);
 
   const submit = async () => {
-    if (submittingRef.current) return;
+    if (submittingRef.current || pendingFriendRef.current) return;
     if (isCreationOutcomeUnknown) return;
 
     if (!user?.id) {
@@ -817,144 +1120,356 @@ export default function CreateChallengeScreen() {
       return;
     }
 
+    const operationScope = creationScopeRef.current;
+    const operationVersion = operationScope.version;
+    const operationOwner = user.id;
+    const operationContext = creationContext;
+    const operationCurrent = () =>
+      operationScope.active &&
+      operationScope.version === operationVersion &&
+      operationScope.owner === operationOwner &&
+      operationScope.context === operationContext &&
+      currentCreationContext.current === operationContext;
+    if (!operationCurrent()) return;
     submittingRef.current = true;
+    submissionOperationRef.current = operationVersion;
     setIsSubmitting(true);
     setCreationError(null);
     setCreationRecovery(null);
+    let attemptedDraft: PromiseCreationDraftInput | null = null;
     try {
-      let quote = promiseQuote;
-      try {
-        quote = await getCreatePromiseQuote(user.id);
-        setPromiseQuote(quote);
-      } catch {
-        if (!quote) {
-          setCreationError({
-            title: t('todayProof.create.cost_unconfirmed'),
-            message: t('todayProof.create.cost_unconfirmed_detail'),
-          });
+      await withPromiseCreationRequest(operationOwner, async () => {
+        // This is a fresh account-owned read, not a continuation from the old
+        // screen generation. It also waits for a remounted route's earlier RPC.
+        let savedDraft: Awaited<ReturnType<typeof loadPromiseCreationDraft>>;
+        try {
+          savedDraft = await loadPromiseCreationDraft(operationOwner);
+        } catch {
+          if (operationCurrent())
+            setCreationError({
+              kind: 'receipt-read',
+              title: t('commerce.free.receiptReadBlocked'),
+              message: t('commerce.free.receiptReadBlockedDetail'),
+            });
           return;
         }
-      }
-
-      const gate = resolveCreatePromiseGate(quote);
-      if (!gate.allowed) {
-        const quotaCopy = describeCreatePromiseQuota(gate.reason, t);
-        setPaywallVariant('quota');
-        setQuotaLimit(gate.limit);
-        setCreationError(quotaCopy);
-        setPaywallVisible(true);
-        return;
-      }
-
-      await fetchBalance(user.id);
-      const currentBalance = useMomentaStore.getState().balance;
-      const cost = quote.cost;
-      if (cost > currentBalance) {
-        setPaywallVariant('insufficient');
-        setQuotaLimit(undefined);
-        setCreationError({
-          title: t('todayProof.create.more_momenta'),
-          message: `This promise costs ${cost.toLocaleString()} Momenta and your balance is ${currentBalance.toLocaleString()}. Your draft is still here.`,
-        });
-        setPaywallVisible(true);
-        return;
-      }
-
-      // The review screen shows the cost and what is left, so starting the
-      // promise is the confirmation.
-      const startDate = new Date();
-      const endDate = addDays(startDate, Math.max(1, duration - 1));
-
-      const { challenge, receipt } = await createChallengeWithPayment({
-        title: trimmedTitle,
-        description:
-          description.trim() || selectedTemplate?.description || trimmedTitle,
-        category: selectedTemplate?.category ?? 'personal',
-        startDate: toDateString(startDate),
-        endDate: toDateString(endDate),
-        creatorId: user.id,
-        verificationType: proofType,
-        verificationFrequency: 'daily',
-        isPublic: false,
-        duration,
-        difficulty,
-        pointsValue: selectedDifficulty.points,
-        verificationDescription: proofDescription.trim(),
-        submissionText: submissionText.trim(),
-        allowExtensions: selectedDifficulty.maxExtensions > 0,
-        maxExtensions: selectedDifficulty.maxExtensions,
-        deadlineType: 'fixed',
-        allowSelfReview: mode === 'solo',
-        groupId: groupId ?? undefined,
-        cost,
-        checkInWeekdays,
-      });
-
-      if (groupId) {
-        const queryKey = groupQueryKeys.challenges(user.id, groupId);
-        queryClient.setQueryData(queryKey, (current: unknown) => {
-          const existing = Array.isArray(current) ? current : [];
-          return [
-            {
-              id: challenge.id,
-              title: challenge.title,
-              description: challenge.description,
-              category: challenge.category,
-              verification_type: challenge.verificationType,
-              start_date: challenge.startDate,
-              end_date: challenge.endDate,
-              is_public: challenge.isPublic,
-              allow_self_review: challenge.allowSelfReview,
-              creator_id: challenge.creatorId,
-              added_to_group_at: challenge.createdAt,
-            },
-            ...existing.filter(item => item?.id !== challenge.id),
-          ];
-        });
-        void queryClient.invalidateQueries({ queryKey });
-      }
-
-      // The RPC returned a challenge id, which is the authoritative receipt
-      // required before this device removes the user-owned local draft.
-      creationReceiptRef.current = true;
-      const confirmedChallengeId = challenge.id.trim();
-      setCreatedChallenge(challenge);
-      setCreationReceipt(receipt);
-      if (confirmedChallengeId) {
-        void emitConfirmedOutcome(
-          'promise-created',
-          createConfirmedReceipt('promise-creation', confirmedChallengeId)
-        );
-      }
-      trackProductEvent('Promise Created', {
-        creation_source: isOnboardingHandoff ? 'onboarding' : mode,
-        duration_bucket: getPromiseDurationBucket(duration),
-        is_first_promise: Boolean(receipt?.isFirstPromise),
-        proof_type: isProofType(challenge.verificationType)
-          ? challenge.verificationType
-          : 'photo',
-      });
-      trackMetaAdsCreatePromise();
-      try {
-        await clearPromiseCreationDraft(user.id);
-      } catch (draftError) {
-        console.warn(
-          '[PromiseCreationDraft] Could not clear confirmed draft:',
-          draftError
-        );
-      }
-      if (isOnboardingHandoff) {
+        if (!operationCurrent()) return;
+        if (
+          savedDraft?.pendingFriendChallengeId ||
+          savedDraft?.unknownCreateResultAt
+        ) {
+          restorePromiseDraft(savedDraft);
+          if (savedDraft.pendingFriendChallengeId)
+            await continueFriendSetup(false, savedDraft);
+          return;
+        }
+        let quote = promiseQuote;
         try {
-          await clearOnboardingDraft(user.id);
-        } catch (onboardingDraftError) {
-          console.warn(
-            '[OnboardingDraft] Could not clear confirmed handoff:',
-            onboardingDraftError
+          quote = await getCreatePromiseQuote(operationOwner);
+          if (!operationCurrent()) return;
+          setPromiseQuote(quote);
+        } catch {
+          if (!operationCurrent()) return;
+          if (!quote) {
+            setCreationError({
+              title: t('todayProof.create.cost_unconfirmed'),
+              message: t('todayProof.create.cost_unconfirmed_detail'),
+            });
+            return;
+          }
+        }
+
+        if (!operationCurrent()) return;
+        const gate = resolveCreatePromiseGate(quote);
+        if (!gate.allowed) {
+          const quotaCopy = describeCreatePromiseQuota(gate.reason, t);
+          setPaywallVariant('quota');
+          setQuotaLimit(gate.limit);
+          setCreationError(quotaCopy);
+          setPaywallVisible(true);
+          return;
+        }
+
+        await fetchBalance(user.id);
+        if (!operationCurrent()) return;
+        const currentBalance = useMomentaStore.getState().balance;
+        const cost = quote.cost;
+        if (cost + mentaPassCost > currentBalance) {
+          setPaywallVariant('insufficient');
+          setQuotaLimit(undefined);
+          setCreationError({
+            title: t('todayProof.create.more_momenta'),
+            message: `This promise costs ${cost.toLocaleString()} Momenta and your balance is ${currentBalance.toLocaleString()}. Your draft is still here.`,
+          });
+          setPaywallVisible(true);
+          return;
+        }
+
+        // The review screen shows the cost and what is left, so starting the
+        // promise is the confirmation.
+        const startDate = new Date();
+        if (
+          reviewer.kind === 'menta' ||
+          (mentaBackup && (mode === 'group' || reviewer.kind === 'friend'))
+        ) {
+          const latest = await mentaOverview.refetch();
+          if (!operationCurrent()) return;
+          if (!latest.data?.consented) {
+            setMentaConsentVisible(true);
+            return;
+          }
+          if (
+            reviewer.kind === 'menta' &&
+            !latest.data.isPro &&
+            !mentaMomenta
+          ) {
+            const scope = creationScopeRef.current;
+            const version = scope.version;
+            const draft = buildCurrentPromiseDraft();
+            scope.freeChosen = false;
+            const stillCurrent = () =>
+              scope.active &&
+              scope.version === version &&
+              currentCreationContext.current === scope.context &&
+              scope.owner === user.id &&
+              !pendingFriendRef.current;
+            openPaywall({
+              context: 'menta_check',
+              onContinueFree: () => {
+                if (!stillCurrent() || scope.freeChosen) return;
+                scope.freeChosen = true;
+                setReviewer({ kind: 'friend' });
+                setMentaBackup(false);
+                setMentaMomenta(false);
+                setCreationError(null);
+                setCreationRecovery(null);
+                const whoStep = stepIds.indexOf('who');
+                setCurrentStep(whoStep >= 0 ? whoStep : 0);
+                if (draft)
+                  void savePromiseCreationDraft({
+                    ...draft,
+                    reviewer: { kind: 'friend' },
+                    mentaBackup: false,
+                    mentaMomenta: false,
+                    stepId: 'who',
+                    currentStep: toPromiseDraftStep(whoStep),
+                  }).catch(() => {
+                    if (stillCurrent())
+                      setCreationError({
+                        title: t('todayProof.create.draft_not_saved'),
+                        message: t('todayProof.create.draft_not_saved_detail'),
+                      });
+                  });
+              },
+              onProConfirmed: () => {
+                if (stillCurrent() && !scope.freeChosen)
+                  void mentaOverview.refetch();
+              },
+            });
+            return;
+          }
+        }
+        const endDate = addDays(startDate, Math.max(1, duration - 1));
+
+        const confirmedDraft = buildCurrentPromiseDraft();
+        if (!confirmedDraft) return;
+        const attemptAt = new Date().toISOString();
+        const attemptDraft = {
+          ...confirmedDraft,
+          unknownCreateResultAt: attemptAt,
+          todayReadbackRequestedAt: null,
+        };
+        let durableAttempt: Awaited<
+          ReturnType<typeof savePromiseCreationDraft>
+        >;
+        try {
+          durableAttempt = await savePromiseCreationDraft(attemptDraft);
+        } catch {
+          if (operationCurrent())
+            setCreationError({
+              title: t('todayProof.create.draft_not_saved'),
+              message: t('todayProof.create.draft_not_saved_detail'),
+            });
+          return;
+        }
+        if (!operationCurrent()) return;
+        if (
+          !durableAttempt ||
+          durableAttempt.pendingFriendChallengeId ||
+          durableAttempt.unknownCreateResultAt !== attemptAt
+        ) {
+          if (durableAttempt) restorePromiseDraft(durableAttempt);
+          return;
+        }
+        attemptedDraft = attemptDraft;
+        let creationResult: Awaited<
+          ReturnType<typeof createChallengeWithPayment>
+        >;
+        try {
+          creationResult = await createChallengeWithPayment({
+            title: trimmedTitle,
+            description:
+              description.trim() ||
+              selectedTemplate?.description ||
+              trimmedTitle,
+            category: selectedTemplate?.category ?? 'personal',
+            startDate: toDateString(startDate),
+            endDate: toDateString(endDate),
+            creatorId: user.id,
+            verificationType: proofType,
+            verificationFrequency: 'daily',
+            isPublic: false,
+            duration,
+            difficulty,
+            pointsValue: selectedDifficulty.points,
+            verificationDescription: proofDescription.trim(),
+            submissionText: submissionText.trim(),
+            allowExtensions: selectedDifficulty.maxExtensions > 0,
+            maxExtensions: selectedDifficulty.maxExtensions,
+            deadlineType: 'fixed',
+            allowSelfReview: mode === 'solo' && reviewer.kind !== 'friend',
+            groupId: groupId ?? undefined,
+            cost,
+            checkInWeekdays,
+          });
+        } catch (error) {
+          const recovery = getPromiseCreationRecovery(error, locale);
+          if (
+            isLegalAcceptanceRequiredError(error) ||
+            ['session-expired', 'quota-active', 'quota-monthly'].includes(
+              recovery.kind
+            )
+          ) {
+            try {
+              await cancelPromiseCreationAttempt(confirmedDraft, attemptAt);
+              attemptedDraft = null;
+            } catch {
+              // Retain the durable block if this known rejection cannot be saved.
+            }
+          }
+          throw error;
+        }
+        const { challenge, receipt } = creationResult;
+        attemptedDraft = null;
+        const confirmedChallengeId = challenge.id.trim();
+        if (reviewer.kind === 'friend' && confirmedDraft) {
+          const ownedReceipt = retainPromiseCreationReceipt({
+            ...confirmedDraft,
+            ownerUserId: operationOwner,
+            reviewer: { kind: 'friend' },
+            mentaBackup: false,
+            mentaMomenta: false,
+            stepId: 'review',
+            pendingFriendChallengeId: confirmedChallengeId,
+          });
+          // A server receipt belongs to the account that sent the request, even
+          // after it leaves. Shared screen refs belong only to the current scope.
+          if (operationCurrent()) {
+            creationReceiptRef.current = true;
+            pendingFriendRef.current = confirmedChallengeId;
+            setPendingFriendChallengeId(confirmedChallengeId);
+          }
+          try {
+            await savePromiseCreationDraft(ownedReceipt);
+          } catch {
+            if (operationCurrent())
+              setCreationError({
+                title: t('commerce.free.receiptRetry'),
+                message: t('commerce.free.receiptRetryDetail'),
+              });
+          }
+        }
+        if (!operationCurrent()) return;
+        creationReceiptRef.current = true;
+
+        if (groupId) {
+          const queryKey = groupQueryKeys.challenges(user.id, groupId);
+          queryClient.setQueryData(queryKey, (current: unknown) => {
+            const existing = Array.isArray(current) ? current : [];
+            return [
+              {
+                id: challenge.id,
+                title: challenge.title,
+                description: challenge.description,
+                category: challenge.category,
+                verification_type: challenge.verificationType,
+                start_date: challenge.startDate,
+                end_date: challenge.endDate,
+                is_public: challenge.isPublic,
+                allow_self_review: challenge.allowSelfReview,
+                creator_id: challenge.creatorId,
+                added_to_group_at: challenge.createdAt,
+              },
+              ...existing.filter(item => item?.id !== challenge.id),
+            ];
+          });
+          void queryClient.invalidateQueries({ queryKey });
+        }
+
+        if (
+          reviewer.kind === 'menta' ||
+          (mentaBackup && (mode === 'group' || reviewer.kind === 'friend'))
+        ) {
+          try {
+            const result =
+              reviewer.kind === 'menta' &&
+              mentaMomenta &&
+              !mentaOverview.data?.isPro
+                ? await buyMentaCheckPass(challenge.id)
+                : await setPromiseReviewMode(
+                    challenge.id,
+                    reviewer.kind === 'menta' ? 'menta' : 'people',
+                    reviewer.kind === 'menta' ? null : 24
+                  );
+            if (!operationCurrent()) return;
+            setMentaSetupFailed(!result.success);
+            if (result.success) await fetchBalance(user.id);
+          } catch {
+            if (!operationCurrent()) return;
+            setMentaSetupFailed(true);
+          }
+        }
+        if (!operationCurrent()) return;
+        setCreatedChallenge(challenge);
+        setCreationReceipt(receipt);
+        if (confirmedChallengeId) {
+          void emitConfirmedOutcome(
+            'promise-created',
+            createConfirmedReceipt('promise-creation', confirmedChallengeId)
           );
         }
-      }
+        trackProductEvent('Promise Created', {
+          creation_source: isOnboardingHandoff ? 'onboarding' : mode,
+          duration_bucket: getPromiseDurationBucket(duration),
+          is_first_promise: Boolean(receipt?.isFirstPromise),
+          proof_type: isProofType(challenge.verificationType)
+            ? challenge.verificationType
+            : 'photo',
+        });
+        trackMetaAdsCreatePromise();
+        try {
+          if (reviewer.kind !== 'friend')
+            await clearPromiseCreationDraft(user.id);
+        } catch (draftError) {
+          console.warn(
+            '[PromiseCreationDraft] Could not clear confirmed draft:',
+            draftError
+          );
+        }
+        if (isOnboardingHandoff) {
+          try {
+            await clearOnboardingDraft(user.id);
+          } catch (onboardingDraftError) {
+            console.warn(
+              '[OnboardingDraft] Could not clear confirmed handoff:',
+              onboardingDraftError
+            );
+          }
+        }
+      });
     } catch (error) {
-      if (isLegalAcceptanceRequiredError(error)) {
+      if (!operationCurrent()) return;
+      if (!attemptedDraft && isLegalAcceptanceRequiredError(error)) {
         const draft = buildCurrentPromiseDraft();
         if (draft) {
           try {
@@ -967,6 +1482,7 @@ export default function CreateChallengeScreen() {
           }
         }
 
+        if (!operationCurrent()) return;
         const returnParams = new URLSearchParams({ mode });
         if (groupId) returnParams.set('groupId', groupId);
         router.push({
@@ -979,7 +1495,12 @@ export default function CreateChallengeScreen() {
         return;
       }
 
-      const recovery = getPromiseCreationRecovery(error, locale);
+      const recovery = getPromiseCreationRecovery(
+        attemptedDraft
+          ? new Error('Network request failed before a response arrived')
+          : error,
+        locale
+      );
       setCreationRecovery(recovery);
       setCreationError(recovery);
       if (
@@ -991,7 +1512,9 @@ export default function CreateChallengeScreen() {
         setPaywallVisible(true);
       }
       if (recovery.kind === 'unknown-result') {
-        const unknownResultAt = new Date().toISOString();
+        const unknownResultAt =
+          (attemptedDraft as PromiseCreationDraftInput | null)
+            ?.unknownCreateResultAt ?? new Date().toISOString();
         setUnknownCreateResultAt(unknownResultAt);
         setTodayReadbackRequestedAt(null);
         const draft = buildCurrentPromiseDraft({
@@ -1008,8 +1531,12 @@ export default function CreateChallengeScreen() {
         }
       }
     } finally {
-      submittingRef.current = false;
-      setIsSubmitting(false);
+      if (submissionOperationRef.current === operationVersion) {
+        submissionOperationRef.current = null;
+        submittingRef.current = false;
+        if (currentCreationContext.current === operationContext)
+          setIsSubmitting(false);
+      }
     }
   };
 
@@ -1042,24 +1569,46 @@ export default function CreateChallengeScreen() {
     }
   };
 
-  const handleStartFreshPromise = () => {
-    if (!todayReadbackRequestedAt) return;
-
-    setCreationError(null);
-    setCreationRecovery(null);
-    setUnknownCreateResultAt(null);
-    setTodayReadbackRequestedAt(null);
+  const handleStartFreshPromise = async () => {
+    if (!todayReadbackRequestedAt || isSavingDraftExit) return;
+    const scope = creationScopeRef.current;
+    const version = scope.version;
+    const context = creationContext;
+    if (!scope.active || currentCreationContext.current !== context) return;
     const draft = buildCurrentPromiseDraft({
       unknownCreateResultAt: null,
       todayReadbackRequestedAt: null,
     });
-    if (draft) {
-      void savePromiseCreationDraft(draft).catch(draftError => {
-        console.warn(
-          '[PromiseCreationDraft] Could not save fresh-start choice:',
-          draftError
-        );
-      });
+    if (!draft) return;
+    setIsSavingDraftExit(true);
+    try {
+      await saveFreshPromiseCreationDraft(draft);
+      if (
+        !scope.active ||
+        scope.version !== version ||
+        currentCreationContext.current !== context
+      )
+        return;
+      setCreationError(null);
+      setCreationRecovery(null);
+      setUnknownCreateResultAt(null);
+      setTodayReadbackRequestedAt(null);
+    } catch {
+      if (
+        scope.active &&
+        scope.version === version &&
+        currentCreationContext.current === context
+      )
+        setCreationError({
+          title: t('todayProof.create.draft_not_saved'),
+          message: t('todayProof.create.draft_not_saved_detail'),
+        });
+    } finally {
+      if (
+        scope.version === version &&
+        currentCreationContext.current === context
+      )
+        setIsSavingDraftExit(false);
     }
   };
 
@@ -1192,14 +1741,38 @@ export default function CreateChallengeScreen() {
     }
 
     return (
-      <PromiseReviewStep
-        short={reviewShortfall > 0}
-        bubble={narratorMessage}
-        promiseTitle={title.trim()}
-        summary={promiseSummaryParts.join(' · ')}
-        checker={checkerLabel}
-        firstProof={describeFirstProofDay(checkInWeekdays, locale, t)}
-      />
+      <>
+        <PromiseReviewStep
+          short={reviewShortfall > 0}
+          bubble={narratorMessage}
+          promiseTitle={title.trim()}
+          summary={promiseSummaryParts.join(' · ')}
+          checker={checkerLabel}
+          firstProof={describeFirstProofDay(checkInWeekdays, locale, t)}
+        />
+        {reviewer.kind === 'menta' && !mentaOverview.data?.isPro ? (
+          <AppSwitchRow
+            title={t('mentaCheck.keep.ctaPass')}
+            subtitle={t('mentaCheck.option.passNote', {
+              cost: mentaOverview.data?.passCost ?? 20,
+            })}
+            value={mentaMomenta}
+            onChange={next => {
+              if (!isCreationBusy) setMentaMomenta(next);
+            }}
+          />
+        ) : null}
+        {mode === 'group' || reviewer.kind === 'friend' ? (
+          <AppSwitchRow
+            title={t('mentaCheck.group.backupToggle')}
+            subtitle={t('mentaCheck.group.after24')}
+            value={mentaBackup}
+            onChange={next => {
+              if (!isCreationBusy) setMentaBackup(next);
+            }}
+          />
+        ) : null}
+      </>
     );
   };
 
@@ -1296,28 +1869,48 @@ export default function CreateChallengeScreen() {
     );
   }
 
-  const creationNotice = creationError ? (
+  const creationNotice = pendingFriendChallengeId ? (
+    <CreationStateNotice
+      title={
+        creationError
+          ? t('commerce.free.receiptRetry')
+          : t('commerce.free.pendingReviewer')
+      }
+      description={
+        creationError
+          ? t('commerce.free.receiptRetryDetail')
+          : t('commerce.free.pendingDetail')
+      }
+      tone={creationError ? 'error' : 'warning'}
+      actionLabel={creationError ? t('commerce.action.tryAgain') : undefined}
+      onAction={creationError ? () => void continueFriendSetup() : undefined}
+    />
+  ) : creationError ? (
     <View style={styles.creationError}>
       <CreationStateNotice
         title={creationError.title}
         description={creationError.message}
         tone={creationRecovery?.kind === 'unknown-result' ? 'warning' : 'error'}
         actionLabel={
-          creationRecovery?.kind === 'session-expired'
-            ? 'Sign in'
-            : creationRecovery?.kind === 'unknown-result'
-              ? 'Check Today'
-              : canSaveGateDraftAndExit
-                ? 'Save draft and exit'
-                : undefined
+          creationError.kind === 'receipt-read'
+            ? t('commerce.action.tryAgain')
+            : creationRecovery?.kind === 'session-expired'
+              ? 'Sign in'
+              : creationRecovery?.kind === 'unknown-result'
+                ? 'Check Today'
+                : canSaveGateDraftAndExit
+                  ? 'Save draft and exit'
+                  : undefined
         }
         onAction={
-          creationRecovery?.kind === 'session-expired' ||
-          creationRecovery?.kind === 'unknown-result'
-            ? handleCreationRecoveryAction
-            : canSaveGateDraftAndExit
-              ? () => void handleSaveDraftAndExit()
-              : undefined
+          creationError.kind === 'receipt-read'
+            ? () => void retryReceiptRead()
+            : creationRecovery?.kind === 'session-expired' ||
+                creationRecovery?.kind === 'unknown-result'
+              ? handleCreationRecoveryAction
+              : canSaveGateDraftAndExit
+                ? () => void handleSaveDraftAndExit()
+                : undefined
         }
       />
     </View>
@@ -1406,19 +1999,23 @@ export default function CreateChallengeScreen() {
               ]}
             >
               <View ref={footerActionsRef} style={styles.footerActions}>
-                {isReviewStep && promiseQuote ? (
+                {isReviewStep && promiseQuote && !pendingFriendChallengeId ? (
                   <CostReceipt
-                    cost={promiseQuote.cost}
+                    cost={reviewAmount}
                     balance={balance}
-                    freeLabel={describeCreatePromiseCost(promiseQuote.cost)}
+                    freeLabel={describeCreatePromiseCost(reviewAmount)}
                   />
                 ) : null}
                 <AppButton
                   testID={`create-promise-primary-${activeStepId}`}
                   accessibilityLabel={
-                    isCreationOutcomeUnknown
-                      ? unknownCreationPrimaryLabel
-                      : primaryCta
+                    creationError?.kind === 'receipt-read'
+                      ? t('commerce.action.tryAgain')
+                      : isCreationOutcomeUnknown
+                        ? unknownCreationPrimaryLabel
+                        : pendingFriendChallengeId
+                          ? t('commerce.free.finishSetup')
+                          : primaryCta
                   }
                   onPress={goNext}
                   disabled={
@@ -1432,12 +2029,16 @@ export default function CreateChallengeScreen() {
                       ? isDraftRestoring
                         ? t('todayProof.create.restoring')
                         : t('todayProof.residual.creating_promise')
-                      : isCreationOutcomeUnknown
-                        ? unknownCreationPrimaryLabel
-                        : primaryCta
+                      : creationError?.kind === 'receipt-read'
+                        ? t('commerce.action.tryAgain')
+                        : isCreationOutcomeUnknown
+                          ? unknownCreationPrimaryLabel
+                          : pendingFriendChallengeId
+                            ? t('commerce.free.finishSetup')
+                            : primaryCta
                   }
                 />
-                {isReviewStep ? (
+                {isReviewStep && !pendingFriendChallengeId ? (
                   <AppButton
                     testID="create-promise-edit"
                     variant="text"
@@ -1457,8 +2058,43 @@ export default function CreateChallengeScreen() {
         </AppScreen>
       </View>
 
+      <MentaConsent
+        visible={mentaConsentVisible}
+        source="create"
+        onClose={() => {
+          setMentaConsentVisible(false);
+          setMentaBackup(false);
+          if (reviewer.kind === 'menta') setReviewer({ kind: 'self' });
+        }}
+        onAccepted={() => {
+          setMentaConsentVisible(false);
+          void mentaOverview.refetch();
+        }}
+      />
+      {mentaSetupFailed && createdChallenge ? (
+        <ModalCard
+          visible
+          onClose={() => {
+            setMentaSetupFailed(false);
+            router.push('/menta-check');
+          }}
+        >
+          <Text>{t('mentaCheck.receipt.selfFallback')}</Text>
+          <AppButton
+            title={t('mentaCheck.settings.title')}
+            onPress={() => {
+              setMentaSetupFailed(false);
+              router.push('/menta-check');
+            }}
+          />
+        </ModalCard>
+      ) : null}
       <CreationReceiptSheet
-        visible={Boolean(createdChallenge)}
+        visible={
+          Boolean(createdChallenge) &&
+          !mentaSetupFailed &&
+          !pendingFriendChallengeId
+        }
         mode={mode}
         title={createdChallengeTitle}
         proofType={createdProofType}
@@ -1491,9 +2127,9 @@ export default function CreateChallengeScreen() {
         variant={paywallVariant}
         quotaLimit={quotaLimit}
         quotaContext="challenge"
-        shortfall={Math.max((promiseQuote?.cost ?? 0) - balance, 0)}
+        shortfall={Math.max(reviewAmount - balance, 0)}
         balance={balance}
-        requiredAmount={promiseQuote?.cost}
+        requiredAmount={reviewAmount}
         onWatchAd={watchRewardedAd}
         adRewardAmount={adRewardAmount}
         onCheckProof={() => router.push('/review-queue' as never)}
@@ -1508,6 +2144,8 @@ const CostReceipt: React.FC<{
   balance: number;
   freeLabel: string;
 }> = ({ cost, balance, freeLabel }) => {
+  const { costReceiptStyles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const short = cost > balance;
   return (
@@ -1543,28 +2181,6 @@ const CostReceipt: React.FC<{
   );
 };
 
-const costReceiptStyles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: mentaSpacing[3],
-    paddingVertical: mentaSpacing[4],
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-  },
-  side: { gap: mentaSpacing[1], flexShrink: 1 },
-  end: { alignItems: 'flex-end' },
-  label: {
-    ...mentaTypography.label,
-    color: mentaColors.text.muted,
-  },
-  value: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-  },
-});
-
 const CreationStateNotice: React.FC<{
   testID?: string;
   title: string;
@@ -1573,6 +2189,8 @@ const CreationStateNotice: React.FC<{
   actionLabel?: string;
   onAction?: () => void;
 }> = ({ testID, title, description, tone, actionLabel, onAction }) => {
+  const mentaColors = useMentaPalette();
+
   const styles = useThemedStyles(createStyles);
 
   if (tone === 'info') {
@@ -1659,6 +2277,8 @@ const CreationReceiptSheet: React.FC<{
   onSetReminder,
   onInvitePerson,
 }) => {
+  const mentaColors = useMentaPalette();
+
   const { t } = useTranslation();
   const theme = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -1852,8 +2472,9 @@ const ReceiptPaperFact: React.FC<{ label: string; value: string }> = ({
   );
 };
 
-const createStyles = (theme: ThemeContextType) =>
-  StyleSheet.create({
+const createStyles = (theme: ThemeContextType) => {
+  const mentaColors = theme.mentaColors ?? defaultMentaColors;
+  return StyleSheet.create({
     screen: {
       flex: 1,
       backgroundColor: mentaColors.canvas,
@@ -2336,3 +2957,29 @@ const createStyles = (theme: ThemeContextType) =>
       transform: [{ scale: 0.985 }],
     },
   });
+};
+
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const costReceiptStyles = StyleSheet.create({
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: mentaSpacing[3],
+      paddingVertical: mentaSpacing[4],
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+    },
+    side: { gap: mentaSpacing[1], flexShrink: 1 },
+    end: { alignItems: 'flex-end' },
+    label: {
+      ...mentaTypography.label,
+      color: mentaColors.text.muted,
+    },
+    value: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+    },
+  });
+  return { costReceiptStyles };
+};

@@ -1,3 +1,9 @@
+import {
+  type MentaPalette,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import { useTranslation } from '@/lib/localization';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -5,11 +11,6 @@ import { StyleSheet, Text, View } from 'react-native';
 import { AppInlineNotice } from '@/components/ui';
 import { AppButton } from '@/components/ui/AppButton';
 import { SimpleBottomSheet } from '@/components/ui/SimpleBottomSheet';
-import {
-  mentaColors,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
 
 export type SignOutSheetState = 'confirm' | 'signing-out' | 'failed';
 
@@ -24,6 +25,8 @@ export const SettingsSignOutSheet = ({
   status: SignOutSheetState;
   visible: boolean;
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const isSigningOut = status === 'signing-out';
   const hasFailed = status === 'failed';
@@ -103,22 +106,25 @@ export const SettingsSignOutSheet = ({
   );
 };
 
-const styles = StyleSheet.create({
-  controls: {
-    gap: mentaSpacing[3],
-  },
-  sheetBody: {
-    gap: mentaSpacing[6],
-  },
-  statusCopy: {
-    gap: mentaSpacing[2],
-  },
-  title: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.title,
-  },
-  body: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.body,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    controls: {
+      gap: mentaSpacing[3],
+    },
+    sheetBody: {
+      gap: mentaSpacing[6],
+    },
+    statusCopy: {
+      gap: mentaSpacing[2],
+    },
+    title: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.title,
+    },
+    body: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.body,
+    },
+  });
+  return { styles };
+};

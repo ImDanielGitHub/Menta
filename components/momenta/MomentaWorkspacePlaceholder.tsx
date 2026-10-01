@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -5,12 +12,7 @@ import { useRouter } from 'expo-router';
 import { AppScreen, AppTopBar } from '@/components/ui/AppShell';
 import { AppScaledText as Text } from '@/components/ui/AppScaledText';
 import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useTranslation } from '@/lib/localization/use-translation';
 import { backOrReplace } from '@/lib/navigation/safe-back';
 import {
@@ -25,6 +27,8 @@ export function MomentaWorkspacePlaceholder({
 }: {
   section: MomentaSection;
 }) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const router = useRouter();
   const inPrimaryTab = useMomentaPrimaryTab();
@@ -99,19 +103,22 @@ export function MomentaWorkspacePlaceholder({
   );
 }
 
-const styles = StyleSheet.create({
-  content: { paddingTop: mentaSpacing[4], gap: mentaSpacing[5] },
-  title: { ...mentaTypography.heading, color: mentaColors.text.primary },
-  skeleton: { gap: mentaSpacing[5] },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: mentaSpacing[4],
-    minHeight: 96,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: 1,
-    paddingHorizontal: mentaSpacing[4],
-  },
-  copy: { flex: 1, gap: mentaSpacing[2] },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    content: { paddingTop: mentaSpacing[4], gap: mentaSpacing[5] },
+    title: { ...mentaTypography.heading, color: mentaColors.text.primary },
+    skeleton: { gap: mentaSpacing[5] },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: mentaSpacing[4],
+      minHeight: 96,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      paddingHorizontal: mentaSpacing[4],
+    },
+    copy: { flex: 1, gap: mentaSpacing[2] },
+  });
+  return { styles };
+};

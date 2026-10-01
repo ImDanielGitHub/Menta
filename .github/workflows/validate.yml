@@ -23,3 +23,4 @@ jobs:
       - run: npm run check:public
       - run: npm run type-check
       - run: npm run test:core
+      - run: npm run test:judge

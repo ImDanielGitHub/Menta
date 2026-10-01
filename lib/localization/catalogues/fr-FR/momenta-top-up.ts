@@ -22,6 +22,8 @@ export const momentaTopUpFrFR = {
   'commerce.topUp.watchTitle': 'Regarder une courte pub',
   'commerce.topUp.watchAnotherTitle': 'En regarder une autre',
   'commerce.topUp.watchDetail': 'Environ 30 secondes',
+  'commerce.topUp.watchReadyIn': 'Le prochain sera prêt dans {time}',
+  'commerce.topUp.watchAnotherIn': 'Un autre dans {time}',
   'commerce.topUp.watchCooldown':
     'La prochaine sera prête dans quelques minutes',
   'commerce.topUp.watchDailyLimit':
@@ -90,6 +92,21 @@ export const momentaTopUpFrFR = {
   'commerce.momentaGuide.ad': 'Regarder une courte pub',
   'commerce.momentaGuide.getCta': 'Obtenir des Momenta',
   'commerce.momentaGuide.orPro': 'Ou passez à Pro pour {amount} chaque semaine',
+  'commerce.proJourney.yearlyTitle': 'Annuel',
+  'commerce.proJourney.weeklyTitle': 'Hebdomadaire',
+  'commerce.proJourney.yearlyPrice': '{price} par an',
+  'commerce.proJourney.thenPerWeek': 'Puis {price} par semaine',
+  'commerce.proJourney.renewsWeekly': 'Renouvelé chaque semaine',
+  'commerce.proJourney.aWeek': 'par semaine',
+  'commerce.proJourney.firstWeekCaption': 'première semaine',
+  'commerce.proJourney.savePercent': 'Économisez {percent} %',
+  'commerce.proJourney.momentaAcrossYear': '{amount} Momenta sur l’année',
+  'commerce.proJourney.momentaEveryWeek': '{amount} Momenta chaque semaine',
+  'commerce.proJourney.cancelInSettings':
+    'Annulez à tout moment dans les Réglages.',
+  'commerce.proJourney.continueYearly': 'Continuer avec l’annuel',
+  'commerce.proJourney.continueWeekly': 'Continuer avec l’hebdomadaire',
+  'commerce.proJourney.restoreShort': 'Restaurer',
   'commerce.proJourney.planQuestion':
     'Le même Pro dans les deux cas. Lequel vous convient ?',
   'commerce.proJourney.backToPromise':

@@ -1,3 +1,11 @@
+import {
+  mentaColors as defaultMentaColors,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette } from '@/constants/use-menta-palette';
 import React, {
   useEffect,
   useMemo,
@@ -24,6 +32,8 @@ import {
 } from '@/constants/ThemeContext';
 import { DEFAULT_AD_REWARD } from '@/lib/hooks/useAdReward';
 import { isAdUnavailableReason, type RewardAdResult } from '@/lib/ads';
+import { readAdAvailability } from '@/lib/ad-availability';
+import { ECONOMY_CONTRACT_V1 } from '@/lib/economy/contract';
 import { useOperationalFlag } from '@/hooks/useOperationalFlag';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppInlineNotice } from '@/components/ui/AppFeedback';
@@ -44,17 +54,12 @@ import { MentaMascot } from '@/components/ui/MentaMascot';
 import {
   addBreadcrumb as sentryBreadcrumb,
   captureError as sentryCapture,
+  captureMessage as sentryMessage,
 } from '@/lib/sentry';
 import { APP_PRIVACY_URL, APP_TERMS_URL } from '@/constants/LegalLinks';
 import { getQuotaLimitCopy } from '@/lib/paywall/pro-copy';
 import { CommerceReceiptRows } from '@/components/commerce/CommerceReceiptRows';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { getPaywallAnalyticsPlacement } from '@/lib/product-analytics';
 import { trackProductEvent } from '@/lib/posthog';
 import { setAmplitudeSessionReplayHold } from '@/lib/amplitude';
@@ -96,9 +101,11 @@ type PaywallModalProps = {
   visible: boolean;
   onClose: () => void;
   onBuyPro?: () => void;
+  onContinueFree?: () => void;
   onBuyCredits?: () => void;
   onWatchAd?: () => Promise<RewardAdResult | boolean | void>;
-  context?: 'challenge' | 'group' | 'member' | 'general' | 'onboarding';
+  context?:
+    'challenge' | 'group' | 'member' | 'general' | 'onboarding' | 'menta_check';
   /** Set only by the assigned pre-activation onboarding gate. */
   onboardingOwnerId?: string;
   initialView?: 'plans' | 'active' | 'pending';
@@ -124,6 +131,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
   visible: requestedVisible,
   onClose,
   onBuyPro,
+  onContinueFree,
   onBuyCredits: _onBuyCredits,
   onWatchAd,
   context = 'general',
@@ -138,11 +146,21 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
   quotaLimit,
   quotaContext = 'general',
 }) => {
+  const mentaColors = useMentaPalette();
+
   const allowed = usePaywallAllowed(onboardingOwnerId);
   const ownerId = useAuthStore(state => state.user?.id);
   const previousOwner = useRef(ownerId);
   const ownerChanged = previousOwner.current !== ownerId;
   const operationRevision = useRef(0);
+  const freeChoiceTaken = useRef(false);
+  useEffect(() => {
+    if (requestedVisible) freeChoiceTaken.current = false;
+    return () => {
+      operationRevision.current += 1;
+      freeChoiceTaken.current = true;
+    };
+  }, [requestedVisible]);
   const visible = requestedVisible && allowed && !ownerChanged;
   useEffect(() => {
     if (requestedVisible && (!allowed || ownerChanged)) {
@@ -186,6 +204,8 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
   const [adLoading, setAdLoading] = useState(false);
   const [adCredited, setAdCredited] = useState(0);
   const [adRest, setAdRest] = useState<MomentaTopUpAdRest>(null);
+  // When a resting ad can pay out again (epoch ms), for the countdown.
+  const [adReadyAt, setAdReadyAt] = useState<number | null>(null);
   const [adFeedback, setAdFeedback] = useState<{
     variant: 'info' | 'warning' | 'error' | 'success';
     title?: string;
@@ -207,6 +227,19 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
   const [paywallStage, setPaywallStage] = useState<PaywallStage>('plans');
   const purchaseInFlightRef = useRef(false);
   const restoreInFlightRef = useRef(false);
+  const handleContinueFree = () => {
+    if (
+      !visible ||
+      freeChoiceTaken.current ||
+      purchaseInFlightRef.current ||
+      restoreInFlightRef.current
+    )
+      return;
+    freeChoiceTaken.current = true;
+    operationRevision.current += 1;
+    onContinueFree?.();
+    onClose();
+  };
 
   // If the native purchase promise does not return, move to a recovery state
   // without guessing whether Apple charged the account.
@@ -274,6 +307,23 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
         );
         if (!pack?.product.priceString) continue;
         const intro = pack.product.introPrice;
+        const freeTrialDays =
+          plan === 'weekly' && intro?.price === 0 && intro.cycles === 1
+            ? intro.periodUnit === 'DAY'
+              ? intro.periodNumberOfUnits
+              : intro.periodUnit === 'WEEK'
+                ? intro.periodNumberOfUnits * 7
+                : 0
+            : 0;
+        const freeTrialMonth =
+          plan === 'weekly' &&
+          intro?.price === 0 &&
+          intro.cycles === 1 &&
+          intro.periodUnit === 'MONTH' &&
+          intro.periodNumberOfUnits === 1;
+        const freeTrialEligible =
+          (freeTrialDays > 0 || freeTrialMonth) &&
+          (await RevenueCatAPI.isIntroEligible(pack.product.identifier));
         const eligible =
           plan === 'weekly' &&
           intro &&
@@ -286,7 +336,15 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
         available.push({
           plan,
           price: pack.product.priceString,
+          ...(typeof pack.product.price === 'number' &&
+          typeof pack.product.currencyCode === 'string'
+            ? {
+                amount: pack.product.price,
+                currencyCode: pack.product.currencyCode,
+              }
+            : {}),
           ...(eligible && intro ? { introPrice: intro.priceString } : {}),
+          ...(freeTrialEligible ? { freeTrialDays, freeTrialMonth } : {}),
         });
       }
       if (request !== offeringsRequest.current) return;
@@ -634,6 +692,19 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
             normalized.reason === 'daily_limit'
           ) {
             setAdRest(normalized.reason);
+            setAdReadyAt(
+              normalized.reason === 'cooldown'
+                ? Date.now() + ECONOMY_CONTRACT_V1.ads.cooldownSeconds * 1000
+                : null
+            );
+            // The availability check should have rested the ad before it
+            // played. Reaching here means someone watched an ad for nothing.
+            try {
+              sentryMessage('ad_reward_refused_after_play', 'warning', {
+                tags: { reason: normalized.reason, surface: 'paywall' },
+                extras: { variant, context },
+              });
+            } catch {}
           }
           setAdFeedback(adFailureMessage(normalized.reason));
         } else {
@@ -665,6 +736,10 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
       // onWatchAd resolves with earned=true only after the caller's server
       // credit succeeds. Show that confirmed result without guessing a balance.
       setAdCredited(current => current + confirmedAmount);
+      // The server will not pay for another ad inside the cooldown, so rest
+      // the option now rather than after the next ad has played.
+      setAdRest('cooldown');
+      setAdReadyAt(Date.now() + ECONOMY_CONTRACT_V1.ads.cooldownSeconds * 1000);
       setAdFeedback({
         variant: 'success',
         message: t('commerce.wallet.addedToBalance', {
@@ -725,6 +800,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
       setAdFeedback(null);
       setAdCredited(0);
       setAdRest(null);
+      setAdReadyAt(null);
       setPurchaseFeedback(null);
       setShowFullPaywall(false);
       setPaywallStage('plans');
@@ -734,6 +810,55 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
       }
     }
   }, [initialView, visible]);
+
+  // Know before offering an ad whether the server would pay for it, so the
+  // top-up opens resting (Paper M03) instead of letting an unpaid ad play.
+  useEffect(() => {
+    if (!visible || variant !== 'insufficient' || !adsEnabled || !ownerId) {
+      return undefined;
+    }
+    let cancelled = false;
+    readAdAvailability(ownerId)
+      .then(availability => {
+        if (cancelled) return;
+        setAdRest(availability.rest);
+        setAdReadyAt(availability.readyAt);
+        if (availability.rest) {
+          try {
+            sentryBreadcrumb('topup_ads_resting', {
+              reason: availability.rest,
+              context,
+              secondsLeft: availability.readyAt
+                ? Math.round((availability.readyAt - Date.now()) / 1000)
+                : null,
+            });
+          } catch {}
+        }
+      })
+      .catch(error => {
+        // Unknown availability keeps the ad offered; the server still decides.
+        try {
+          sentryBreadcrumb('topup_ad_availability_failed', { context });
+          sentryCapture(error, { context: 'topup_ad_availability' });
+        } catch {}
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [adsEnabled, context, ownerId, variant, visible]);
+
+  // A cooldown ends by itself: offer the ad again when it does.
+  useEffect(() => {
+    if (adRest !== 'cooldown' || adReadyAt === null) return undefined;
+    const timer = setTimeout(
+      () => {
+        setAdRest(null);
+        setAdReadyAt(null);
+      },
+      Math.max(0, adReadyAt - Date.now())
+    );
+    return () => clearTimeout(timer);
+  }, [adReadyAt, adRest]);
 
   // Handler for "Go Pro" buttons - always show full paywall with purchase options
   const handleGoProPress = useCallback(() => {
@@ -1251,7 +1376,12 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
       unavailable={offeringsUnavailable}
       context={context}
       onPurchase={plan => void handleBuyPlan(plan)}
-      onClose={onClose}
+      onContinueFree={handleContinueFree}
+      freeDisabled={Boolean(subscriptionLoading) || restoreLoading}
+      onClose={() => {
+        setShowFullPaywall(false);
+        onClose();
+      }}
       onRetry={() => void loadOfferings()}
       onRestore={() => void handleRestorePurchases()}
       restoring={restoreLoading}
@@ -1281,6 +1411,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
       }
       adLoading={adLoading}
       adRest={adRest}
+      adReadyAt={adReadyAt}
       credited={adCredited}
       feedback={renderAdFeedback()}
       onGoPro={handleGoProPress}
@@ -1404,31 +1535,38 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
       >
         {shouldShowFullPaywall ? (
           <>
-            <Pressable
-              style={({ pressed }) => [
-                styles.closeButton,
-                styles.fullScreenCloseButton,
-                { top: insets.top + theme.spacing.sm },
-                pressed && styles.closePressed,
-              ]}
-              onPress={() => {
-                setShowFullPaywall(false);
-                onClose();
-              }}
-              accessibilityLabel={t(
-                onboardingOwnerId
-                  ? 'commerce.proJourney.back'
-                  : 'commerce.paywall.close'
-              )}
-              accessibilityRole="button"
-              testID="paywall-close"
-            >
-              {onboardingOwnerId ? (
-                <ChevronLeftIcon size={20} color={theme.colors.text.primary} />
-              ) : (
-                <XIcon size={20} color={theme.colors.text.primary} />
-              )}
-            </Pressable>
+            {/* The Pro journey draws its own close and back control (Paper
+                J01-J03); this one serves the purchased and pending states. */}
+            {paywallStateContent ? (
+              <Pressable
+                style={({ pressed }) => [
+                  styles.closeButton,
+                  styles.fullScreenCloseButton,
+                  { top: insets.top + theme.spacing.sm },
+                  pressed && styles.closePressed,
+                ]}
+                onPress={() => {
+                  setShowFullPaywall(false);
+                  onClose();
+                }}
+                accessibilityLabel={t(
+                  onboardingOwnerId
+                    ? 'commerce.proJourney.back'
+                    : 'commerce.paywall.close'
+                )}
+                accessibilityRole="button"
+                testID="paywall-close"
+              >
+                {onboardingOwnerId ? (
+                  <ChevronLeftIcon
+                    size={20}
+                    color={theme.colors.text.primary}
+                  />
+                ) : (
+                  <XIcon size={20} color={theme.colors.text.primary} />
+                )}
+              </Pressable>
+            ) : null}
             <View style={styles.fullScreenCard}>
               <View
                 style={{
@@ -1547,8 +1685,9 @@ interface PaywallStyles {
   legalDisclaimer: TextStyle;
 }
 
-const createStyles = (theme: ThemeContextType) =>
-  StyleSheet.create<PaywallStyles>({
+const createStyles = (theme: ThemeContextType) => {
+  const mentaColors = theme.mentaColors ?? defaultMentaColors;
+  return StyleSheet.create<PaywallStyles>({
     overlay: {
       flex: 1,
     },
@@ -1936,5 +2075,6 @@ const createStyles = (theme: ThemeContextType) =>
       textAlign: 'center',
     },
   });
+};
 
 export default PaywallModal;

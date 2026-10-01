@@ -6,13 +6,16 @@ with your own Supabase backend and provider accounts.
 
 ## Current source
 
-The app source is updated to version **1.9.6**.
+The app source is updated to version **1.9.7**.
 `source-manifest.json` records the exact upstream commit and a SHA-256 hash for
-each selected file before public configuration changes.
+each selected file before public configuration changes. Each `publicSha256`
+records its actual public bytes; `npm run check:public` verifies those hashes.
 
-This replaces the earlier partial 1.9.5 update. It includes the newer onboarding,
+This updates the previous public 1.9.6 snapshot. It includes the newer onboarding,
 Today and You screens, Pro journey, Momenta top-ups, shop, invitations, widget
-support, icon and language fixes. Source inclusion does not establish that every
+support, icon and language fixes, light/dark appearance, Menta Check, smart
+reminders and the activity inbox. It also includes the current free-plan
+paywall, trial-credit reconciliation, proof media reuse and deletion recovery fixes. Source inclusion does not establish that every
 feature has been tested on a device in this edition.
 
 ## What is different here
@@ -26,8 +29,11 @@ listing. The public build cannot direct users to the hosted app's store page.
 
 The database starts from a data-free public baseline. Later migrations add
 invite expiry after account deletion, the timezone-name cache and the profile
-month summary, and weekday check-in schedules. The production-only notification schedule migration is omitted
-because it modifies jobs that a new installation does not have.
+month summary, weekday check-in schedules, Menta Check and the current proof/review fixes.
+Worker and evidence-retention schedules are deliberately not installed by the
+public forward migrations; configure them for your own backend. The earlier
+production-only notification schedule migration is omitted because it modifies
+jobs that a new installation does not have.
 [The setup guide](docs/SETUP.md#remote-notifications-and-scheduled-work)
 explains how to configure your own scheduled work.
 

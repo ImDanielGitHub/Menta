@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Platform,
@@ -26,13 +34,7 @@ import {
   PlusIcon,
   VideoIcon,
 } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useTranslation } from '@/lib/localization';
 import { resolveProofVideoUri } from '@/lib/services/proof-media-viewer';
 import { addBreadcrumb } from '@/lib/sentry';
@@ -42,14 +44,9 @@ type Localise = ReturnType<typeof useTranslation>['t'];
 export type ProofConnectionMediaType = 'photo' | 'video';
 export type ProofConnectionState = 'approved' | 'waiting' | 'needs-retry';
 export type ProofConnectionAvailability =
-  | 'available'
-  | 'privacy-hidden'
-  | 'unavailable';
+  'available' | 'privacy-hidden' | 'unavailable';
 export type ProofConnectionMediaLoadState =
-  | 'loading'
-  | 'ready'
-  | 'error'
-  | 'privacy-hidden';
+  'loading' | 'ready' | 'error' | 'privacy-hidden';
 
 export type ProofConnectionMosaicItem = {
   id: string;
@@ -208,6 +205,9 @@ const ProofVideoThumbnail = ({
   localise: Localise;
   onStateChange?: (state: ProofConnectionMediaLoadState) => void;
 }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const player = useVideoPlayer(null);
   const [thumbnail, setThumbnail] = useState<VideoThumbnail | null>(null);
   const [failed, setFailed] = useState(false);
@@ -289,6 +289,9 @@ const MosaicTile = ({
   style,
   testID,
 }: MosaicTileProps) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const availability = item.availability ?? 'available';
   const previewUrl = mediaPreviewUrl(item);
   const stateLabel = resolvedStateLabel(item, localise);
@@ -367,7 +370,7 @@ const MosaicTile = ({
             importantForAccessibility="no-hide-descendants"
             style={styles.playButton}
           >
-            <PlayIcon size={20} color={mentaColors.text.primary} />
+            <PlayIcon size={20} color={mentaColors.paper} />
           </View>
         ) : null}
 
@@ -426,12 +429,8 @@ const MosaicTile = ({
           testID={`${testID}-encourage`}
         >
           <HeartIcon
-            color={
-              item.encouragedByCurrentUser
-                ? mentaColors.action
-                : mentaColors.text.primary
-            }
-            fill={item.encouragedByCurrentUser ? mentaColors.action : 'none'}
+            color={item.encouragedByCurrentUser ? '#B88CFF' : mentaColors.paper}
+            fill={item.encouragedByCurrentUser ? '#B88CFF' : 'none'}
             size={17}
           />
           {item.reactionCount ? (
@@ -453,50 +452,53 @@ const LoadingMosaic = ({
   bottomHeight: number;
   accessibilityLabel: string;
   testID: string;
-}) => (
-  <View
-    accessible
-    accessibilityLabel={accessibilityLabel}
-    accessibilityRole="progressbar"
-    style={styles.mosaic}
-    testID={testID}
-  >
-    <View style={[styles.topRow, { height: topHeight }]}>
-      <SkeletonLoader
-        announce={false}
-        borderRadius={mentaRadii.large}
-        height={topHeight}
-        style={styles.featuredTile}
-      />
-      <View style={styles.sideColumn}>
+}) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View
+      accessible
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="progressbar"
+      style={styles.mosaic}
+      testID={testID}
+    >
+      <View style={[styles.topRow, { height: topHeight }]}>
+        <SkeletonLoader
+          announce={false}
+          borderRadius={mentaRadii.large}
+          height={topHeight}
+          style={styles.featuredTile}
+        />
+        <View style={styles.sideColumn}>
+          <SkeletonLoader
+            announce={false}
+            borderRadius={mentaRadii.medium}
+            height={(topHeight - MOSAIC_GAP) / 2}
+          />
+          <SkeletonLoader
+            announce={false}
+            borderRadius={mentaRadii.medium}
+            height={(topHeight - MOSAIC_GAP) / 2}
+          />
+        </View>
+      </View>
+      <View style={[styles.bottomRow, { height: bottomHeight }]}>
         <SkeletonLoader
           announce={false}
           borderRadius={mentaRadii.medium}
-          height={(topHeight - MOSAIC_GAP) / 2}
+          height={bottomHeight}
+          style={styles.bottomTile}
         />
         <SkeletonLoader
           announce={false}
           borderRadius={mentaRadii.medium}
-          height={(topHeight - MOSAIC_GAP) / 2}
+          height={bottomHeight}
+          style={styles.bottomTile}
         />
       </View>
     </View>
-    <View style={[styles.bottomRow, { height: bottomHeight }]}>
-      <SkeletonLoader
-        announce={false}
-        borderRadius={mentaRadii.medium}
-        height={bottomHeight}
-        style={styles.bottomTile}
-      />
-      <SkeletonLoader
-        announce={false}
-        borderRadius={mentaRadii.medium}
-        height={bottomHeight}
-        style={styles.bottomTile}
-      />
-    </View>
-  </View>
-);
+  );
+};
 
 const EmptyMosaic = ({
   copy,
@@ -506,40 +508,44 @@ const EmptyMosaic = ({
   copy: ProofConnectionMosaicCopy;
   onAddProof?: () => void;
   testID: string;
-}) => (
-  <View style={styles.emptyState} testID={testID}>
-    <View accessibilityElementsHidden style={styles.emptyContactSheet}>
-      <View style={styles.emptyRow}>
-        <View style={styles.emptyTile} />
-        <View style={styles.emptyTile} />
-      </View>
-      <View style={styles.emptyRow}>
-        <View style={styles.emptyTile} />
-        <View style={[styles.emptyTile, styles.emptyAddTile]}>
-          <PlusIcon size={25} color={mentaColors.canvas} />
+}) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <View style={styles.emptyState} testID={testID}>
+      <View accessibilityElementsHidden style={styles.emptyContactSheet}>
+        <View style={styles.emptyRow}>
+          <View style={styles.emptyTile} />
+          <View style={styles.emptyTile} />
+        </View>
+        <View style={styles.emptyRow}>
+          <View style={styles.emptyTile} />
+          <View style={[styles.emptyTile, styles.emptyAddTile]}>
+            <PlusIcon size={25} color={mentaColors.canvas} />
+          </View>
         </View>
       </View>
+      <Text accessibilityRole="header" style={styles.emptyTitle}>
+        {copy.emptyTitle}
+      </Text>
+      {onAddProof ? (
+        <Pressable
+          accessibilityLabel={copy.addProof}
+          accessibilityRole="button"
+          onPress={onAddProof}
+          style={({ pressed }) => [
+            styles.emptyAction,
+            pressed ? styles.primaryPressed : null,
+          ]}
+          testID={`${testID}-add`}
+        >
+          <CameraIcon size={19} color={mentaColors.canvas} />
+          <Text style={styles.emptyActionText}>{copy.addProof}</Text>
+        </Pressable>
+      ) : null}
     </View>
-    <Text accessibilityRole="header" style={styles.emptyTitle}>
-      {copy.emptyTitle}
-    </Text>
-    {onAddProof ? (
-      <Pressable
-        accessibilityLabel={copy.addProof}
-        accessibilityRole="button"
-        onPress={onAddProof}
-        style={({ pressed }) => [
-          styles.emptyAction,
-          pressed ? styles.primaryPressed : null,
-        ]}
-        testID={`${testID}-add`}
-      >
-        <CameraIcon size={19} color={mentaColors.canvas} />
-        <Text style={styles.emptyActionText}>{copy.addProof}</Text>
-      </Pressable>
-    ) : null}
-  </View>
-);
+  );
+};
 
 /**
  * A compact, promise-scoped media wall for proof that people have chosen to
@@ -565,6 +571,9 @@ export const ProofConnectionMosaic = ({
   style,
   testID = 'proof-connection-mosaic',
 }: ProofConnectionMosaicProps) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const windowLayout = useWindowDimensions();
   const copy = useMemo(
@@ -782,256 +791,259 @@ export const ProofConnectionMosaic = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    gap: mentaSpacing[4],
-  },
-  header: {
-    minHeight: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: mentaSpacing[4],
-  },
-  headerCopy: {
-    flex: 1,
-    minWidth: 0,
-    gap: 2,
-  },
-  title: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-  },
-  supportingLabel: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-  addButton: {
-    width: mentaLayout.primaryControlHeight,
-    height: mentaLayout.primaryControlHeight,
-    flexShrink: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: mentaRadii.round,
-    backgroundColor: mentaColors.action,
-  },
-  primaryPressed: {
-    backgroundColor: mentaColors.actionPressed,
-    transform: [{ scale: 0.98 }],
-  },
-  inlineError: {
-    minHeight: 52,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: mentaSpacing[3],
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.warning,
-    paddingVertical: mentaSpacing[1],
-  },
-  inlineErrorText: {
-    ...mentaTypography.caption,
-    flex: 1,
-    color: mentaColors.text.secondary,
-  },
-  retryButton: {
-    minWidth: 76,
-    minHeight: mentaLayout.minimumTouchTarget,
-    flexShrink: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: mentaRadii.small,
-  },
-  retryText: {
-    ...mentaTypography.captionMedium,
-    color: mentaColors.action,
-  },
-  mosaic: {
-    width: '100%',
-    gap: MOSAIC_GAP,
-  },
-  topRow: {
-    width: '100%',
-    flexDirection: 'row',
-    gap: MOSAIC_GAP,
-  },
-  sideColumn: {
-    height: '100%',
-    flex: 1,
-    gap: MOSAIC_GAP,
-  },
-  bottomRow: {
-    width: '100%',
-    flexDirection: 'row',
-    gap: MOSAIC_GAP,
-  },
-  tile: {
-    position: 'relative',
-    overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    backgroundColor: mentaColors.surface,
-  },
-  featuredTile: {
-    height: '100%',
-    flex: 1.9,
-  },
-  onlyTile: {
-    width: '100%',
-    height: '100%',
-  },
-  sideTile: {
-    width: '100%',
-    flex: 1,
-    borderRadius: mentaRadii.medium,
-  },
-  bottomTile: {
-    height: '100%',
-    flex: 1,
-    borderRadius: mentaRadii.medium,
-  },
-  openProofTarget: {
-    flex: 1,
-    overflow: 'hidden',
-  },
-  pressed: {
-    opacity: 0.78,
-  },
-  mediaPlaceholder: {
-    ...StyleSheet.absoluteFill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: mentaColors.raised,
-  },
-  playButton: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    width: mentaLayout.minimumTouchTarget,
-    height: mentaLayout.minimumTouchTarget,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: mentaRadii.round,
-    backgroundColor: 'rgba(8, 9, 9, 0.72)',
-    transform: [
-      { translateX: -mentaLayout.minimumTouchTarget / 2 },
-      { translateY: -mentaLayout.minimumTouchTarget / 2 },
-    ],
-  },
-  copyGradient: {
-    position: 'absolute',
-    right: 0,
-    bottom: 0,
-    left: 0,
-    minHeight: 78,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    gap: mentaSpacing[2],
-    padding: mentaSpacing[3],
-    paddingRight: 58,
-  },
-  tileCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  contributorName: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.text.primary,
-  },
-  submittedLabel: {
-    ...mentaTypography.micro,
-    color: mentaColors.text.primary,
-  },
-  duration: {
-    ...mentaTypography.micro,
-    color: mentaColors.text.primary,
-  },
-  reaction: {
-    position: 'absolute',
-    right: mentaSpacing[2],
-    bottom: mentaSpacing[2],
-    zIndex: 2,
-    minWidth: mentaLayout.minimumTouchTarget,
-    minHeight: mentaLayout.minimumTouchTarget,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: mentaSpacing[1],
-    borderRadius: mentaRadii.round,
-    backgroundColor: 'rgba(8, 9, 9, 0.74)',
-    paddingHorizontal: mentaSpacing[2],
-  },
-  reactionSelected: {
-    backgroundColor: 'rgba(8, 9, 9, 0.86)',
-  },
-  reactionPressed: {
-    transform: [{ scale: 0.96 }],
-  },
-  reactionCount: {
-    ...mentaTypography.micro,
-    color: mentaColors.text.primary,
-  },
-  overflowScrim: {
-    ...StyleSheet.absoluteFill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(8, 9, 9, 0.62)',
-  },
-  overflowText: {
-    ...mentaTypography.heading,
-    color: mentaColors.text.primary,
-  },
-  emptyState: {
-    minHeight: 360,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: mentaSpacing[4],
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    backgroundColor: mentaColors.surface,
-    padding: mentaSpacing[6],
-  },
-  emptyContactSheet: {
-    width: 184,
-    height: 144,
-    gap: MOSAIC_GAP,
-  },
-  emptyRow: {
-    flex: 1,
-    flexDirection: 'row',
-    gap: MOSAIC_GAP,
-  },
-  emptyTile: {
-    flex: 1,
-    borderRadius: mentaRadii.small,
-    backgroundColor: mentaColors.raised,
-  },
-  emptyAddTile: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: mentaColors.action,
-  },
-  emptyTitle: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-    textAlign: 'center',
-  },
-  emptyAction: {
-    minWidth: 180,
-    height: mentaLayout.primaryControlHeight,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: mentaSpacing[2],
-    borderRadius: mentaRadii.medium,
-    backgroundColor: mentaColors.action,
-    paddingHorizontal: mentaSpacing[4],
-  },
-  emptyActionText: {
-    ...mentaTypography.control,
-    color: mentaColors.canvas,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    container: {
+      width: '100%',
+      gap: mentaSpacing[4],
+    },
+    header: {
+      minHeight: 56,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: mentaSpacing[4],
+    },
+    headerCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2,
+    },
+    title: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+    },
+    supportingLabel: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+    addButton: {
+      width: mentaLayout.primaryControlHeight,
+      height: mentaLayout.primaryControlHeight,
+      flexShrink: 0,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: mentaRadii.round,
+      backgroundColor: mentaColors.action,
+    },
+    primaryPressed: {
+      backgroundColor: mentaColors.actionPressed,
+      transform: [{ scale: 0.98 }],
+    },
+    inlineError: {
+      minHeight: 52,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: mentaSpacing[3],
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.warning,
+      paddingVertical: mentaSpacing[1],
+    },
+    inlineErrorText: {
+      ...mentaTypography.caption,
+      flex: 1,
+      color: mentaColors.text.secondary,
+    },
+    retryButton: {
+      minWidth: 76,
+      minHeight: mentaLayout.minimumTouchTarget,
+      flexShrink: 0,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: mentaRadii.small,
+    },
+    retryText: {
+      ...mentaTypography.captionMedium,
+      color: mentaColors.action,
+    },
+    mosaic: {
+      width: '100%',
+      gap: MOSAIC_GAP,
+    },
+    topRow: {
+      width: '100%',
+      flexDirection: 'row',
+      gap: MOSAIC_GAP,
+    },
+    sideColumn: {
+      height: '100%',
+      flex: 1,
+      gap: MOSAIC_GAP,
+    },
+    bottomRow: {
+      width: '100%',
+      flexDirection: 'row',
+      gap: MOSAIC_GAP,
+    },
+    tile: {
+      position: 'relative',
+      overflow: 'hidden',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      backgroundColor: mentaColors.surface,
+    },
+    featuredTile: {
+      height: '100%',
+      flex: 1.9,
+    },
+    onlyTile: {
+      width: '100%',
+      height: '100%',
+    },
+    sideTile: {
+      width: '100%',
+      flex: 1,
+      borderRadius: mentaRadii.medium,
+    },
+    bottomTile: {
+      height: '100%',
+      flex: 1,
+      borderRadius: mentaRadii.medium,
+    },
+    openProofTarget: {
+      flex: 1,
+      overflow: 'hidden',
+    },
+    pressed: {
+      opacity: 0.78,
+    },
+    mediaPlaceholder: {
+      ...StyleSheet.absoluteFill,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: mentaColors.raised,
+    },
+    playButton: {
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      width: mentaLayout.minimumTouchTarget,
+      height: mentaLayout.minimumTouchTarget,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: mentaRadii.round,
+      backgroundColor: 'rgba(8, 9, 9, 0.72)',
+      transform: [
+        { translateX: -mentaLayout.minimumTouchTarget / 2 },
+        { translateY: -mentaLayout.minimumTouchTarget / 2 },
+      ],
+    },
+    copyGradient: {
+      position: 'absolute',
+      right: 0,
+      bottom: 0,
+      left: 0,
+      minHeight: 78,
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      justifyContent: 'space-between',
+      gap: mentaSpacing[2],
+      padding: mentaSpacing[3],
+      paddingRight: 58,
+    },
+    tileCopy: {
+      flex: 1,
+      minWidth: 0,
+    },
+    contributorName: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.paper,
+    },
+    submittedLabel: {
+      ...mentaTypography.micro,
+      color: mentaColors.paper,
+    },
+    duration: {
+      ...mentaTypography.micro,
+      color: mentaColors.paper,
+    },
+    reaction: {
+      position: 'absolute',
+      right: mentaSpacing[2],
+      bottom: mentaSpacing[2],
+      zIndex: 2,
+      minWidth: mentaLayout.minimumTouchTarget,
+      minHeight: mentaLayout.minimumTouchTarget,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: mentaSpacing[1],
+      borderRadius: mentaRadii.round,
+      backgroundColor: 'rgba(8, 9, 9, 0.74)',
+      paddingHorizontal: mentaSpacing[2],
+    },
+    reactionSelected: {
+      backgroundColor: 'rgba(8, 9, 9, 0.86)',
+    },
+    reactionPressed: {
+      transform: [{ scale: 0.96 }],
+    },
+    reactionCount: {
+      ...mentaTypography.micro,
+      color: mentaColors.paper,
+    },
+    overflowScrim: {
+      ...StyleSheet.absoluteFill,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(8, 9, 9, 0.62)',
+    },
+    overflowText: {
+      ...mentaTypography.heading,
+      color: mentaColors.paper,
+    },
+    emptyState: {
+      minHeight: 360,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: mentaSpacing[4],
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      backgroundColor: mentaColors.surface,
+      padding: mentaSpacing[6],
+    },
+    emptyContactSheet: {
+      width: 184,
+      height: 144,
+      gap: MOSAIC_GAP,
+    },
+    emptyRow: {
+      flex: 1,
+      flexDirection: 'row',
+      gap: MOSAIC_GAP,
+    },
+    emptyTile: {
+      flex: 1,
+      borderRadius: mentaRadii.small,
+      backgroundColor: mentaColors.raised,
+    },
+    emptyAddTile: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: mentaColors.action,
+    },
+    emptyTitle: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+      textAlign: 'center',
+    },
+    emptyAction: {
+      minWidth: 180,
+      height: mentaLayout.primaryControlHeight,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: mentaSpacing[2],
+      borderRadius: mentaRadii.medium,
+      backgroundColor: mentaColors.action,
+      paddingHorizontal: mentaSpacing[4],
+    },
+    emptyActionText: {
+      ...mentaTypography.control,
+      color: mentaColors.canvas,
+    },
+  });
+  return { styles };
+};

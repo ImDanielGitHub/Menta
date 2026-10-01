@@ -2,6 +2,7 @@ import {
   accountabilityRoleCopy,
   buildPromiseAccountabilityShareMessage,
   decodePromiseAccountabilitySummary,
+  fetchPromiseAccountability,
   leavePromiseWithRoleAwareFallback,
   loadPromiseAccountabilityInvitePreview,
 } from '@/lib/promises/accountability';
@@ -13,9 +14,13 @@ import {
 } from '@/lib/promises/accountability-picker';
 
 const mockRpc = jest.fn();
+const mockRefreshSession = jest.fn();
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { rpc: (...args: unknown[]) => mockRpc(...args) },
+  supabase: {
+    rpc: (...args: unknown[]) => mockRpc(...args),
+    auth: { refreshSession: () => mockRefreshSession() },
+  },
 }));
 
 const USER_ID = '01234567-89ab-4def-8123-456789abcdef';
@@ -28,6 +33,121 @@ const CLIENT_EVENT_ID = '51234567-89ab-4def-8123-456789abcdef';
 describe('promise accountability contract', () => {
   beforeEach(() => {
     mockRpc.mockReset();
+    mockRefreshSession.mockReset();
+  });
+
+  it.each([
+    ['AUTH_REQUIRED', 401, 'todayProof.residual.sign_in_again'],
+    [
+      'PROMISE_NOT_FOUND',
+      404,
+      'todayProof.residual.menta_could_not_confirm_that_this_account_can_open_the_promise_a',
+    ],
+  ] as const)(
+    'preserves the %s denial with localized recovery guidance',
+    async (code, status, key) => {
+      mockRpc.mockResolvedValue({
+        data: { success: false, error: code },
+        error: null,
+      });
+      const localise = (key: Parameters<typeof translate>[1]) =>
+        translate('de-DE', key);
+
+      await expect(
+        fetchPromiseAccountability(PROMISE_ID, localise)
+      ).rejects.toMatchObject({
+        code,
+        status,
+        message: localise(key),
+      });
+      expect(mockRpc).toHaveBeenCalledTimes(1);
+      expect(mockRefreshSession).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each([
+    { success: true, result_code: 'PROMISE_ACCOUNTABILITY_V1' },
+    { success: false, error: 'UNEXPECTED_SERVER_FAILURE' },
+    { success: true, error: 'AUTH_REQUIRED' },
+  ])('keeps malformed and unexpected responses actionable: %j', async data => {
+    mockRpc.mockResolvedValue({ data, error: null });
+    await expect(fetchPromiseAccountability(PROMISE_ID)).rejects.toThrow(
+      'Menta returned incomplete promise accountability details.'
+    );
+    expect(mockRefreshSession).not.toHaveBeenCalled();
+  });
+
+  it('refreshes an expired token only once and preserves a subsequent server denial', async () => {
+    mockRpc
+      .mockResolvedValueOnce({
+        data: null,
+        error: { code: 'PGRST301', status: 401 },
+      })
+      .mockResolvedValueOnce({
+        data: { success: false, error: 'AUTH_REQUIRED' },
+        error: null,
+      });
+    mockRefreshSession.mockResolvedValue({ error: null });
+
+    await expect(fetchPromiseAccountability(PROMISE_ID)).rejects.toMatchObject({
+      code: 'AUTH_REQUIRED',
+      status: 401,
+    });
+    expect(mockRefreshSession).toHaveBeenCalledTimes(1);
+    expect(mockRpc).toHaveBeenCalledTimes(2);
+  });
+
+  it('allows an explicit retry after access is restored without inventing a success', async () => {
+    mockRpc.mockResolvedValueOnce({
+      data: { success: false, error: 'PROMISE_NOT_FOUND' },
+      error: null,
+    });
+    await expect(fetchPromiseAccountability(PROMISE_ID)).rejects.toMatchObject({
+      code: 'PROMISE_NOT_FOUND',
+    });
+
+    mockRpc.mockResolvedValueOnce({
+      error: null,
+      data: {
+        success: true,
+        result_code: 'PROMISE_ACCOUNTABILITY_V1',
+        promise: {
+          id: PROMISE_ID,
+          title: 'Walk after work',
+          description: null,
+          verification_description: null,
+          duration: null,
+          allow_self_review: false,
+        },
+        group: null,
+        members: [],
+        accepted_count: 0,
+        is_shared: false,
+        can_invite: false,
+        invite: null,
+      },
+    });
+    await expect(fetchPromiseAccountability(PROMISE_ID)).resolves.toMatchObject(
+      { promise: { id: PROMISE_ID }, members: [], canInvite: false }
+    );
+    expect(mockRpc).toHaveBeenCalledTimes(2);
+    expect(mockRefreshSession).not.toHaveBeenCalled();
+  });
+
+  it('retains the transport error if token refresh fails', async () => {
+    mockRpc.mockResolvedValue({
+      data: null,
+      error: { code: 'PGRST301', status: 401 },
+    });
+    mockRefreshSession.mockResolvedValue({
+      error: new Error('Session revoked'),
+    });
+    await expect(fetchPromiseAccountability(PROMISE_ID)).rejects.toMatchObject({
+      code: 'PGRST301',
+      status: 401,
+    });
+    expect(mockRpc).toHaveBeenCalledTimes(1);
+    expect(mockRefreshSession).toHaveBeenCalledTimes(1);
   });
 
   it('decodes a promise that is still private while an invitation is pending', () => {

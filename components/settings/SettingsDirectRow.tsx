@@ -1,3 +1,4 @@
+import { useMentaPalette } from '@/constants/use-menta-palette';
 import React from 'react';
 import {
   Pressable,
@@ -10,7 +11,6 @@ import {
 } from 'react-native';
 import { ChevronRightIcon } from '@/components/ui/icons';
 import {
-  mentaColors,
   mentaLayout,
   mentaSpacing,
   mentaTypography,
@@ -57,6 +57,8 @@ export const SettingsDirectRow = ({
   testID,
   style,
 }: SettingsDirectRowProps) => {
+  const mentaColors = useMentaPalette();
+
   const { colors } = useTheme();
   const { fontScale } = useWindowDimensions();
   const shouldAllowFullWrap = fontScale >= 1.3;

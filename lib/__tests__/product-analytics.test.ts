@@ -42,6 +42,7 @@ describe('product analytics contract', () => {
       'Notification In-App Outcome',
       'Notification Provider Outcome',
       'Notification Test Journey',
+      'Activity Inbox',
       'App Update Journey',
       'Store Review Request',
       'Feedback Journey',

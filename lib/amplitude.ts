@@ -58,6 +58,7 @@ const SENSITIVE_AMPLITUDE_REPLAY_PATHS = new Set([
   '/momenta',
   '/review-queue',
   '/group-review',
+  '/menta-check',
 ]);
 
 export const shouldHoldAmplitudeReplayForPathname = (

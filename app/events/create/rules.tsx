@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React, {
   useCallback,
   useEffect,
@@ -18,12 +25,7 @@ import {
   AppTextField,
   SkeletonText,
 } from '@/components/ui';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { createClientEventId } from '@/lib/client-event-id';
 import {
   buildEventCreateSchedule,
@@ -69,6 +71,8 @@ const eventLinkFor = (created: EventCreated): string => {
 };
 
 export default function EventRulesScreen() {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const router = useRouter();
   const user = useAuthStore(state => state.user);
@@ -502,49 +506,55 @@ export default function EventRulesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: mentaColors.canvas },
-  content: {
-    flexGrow: 1,
-    gap: mentaSpacing[5],
-    paddingTop: mentaSpacing[5],
-    paddingBottom: mentaSpacing[12],
-  },
-  lead: { gap: mentaSpacing[3] },
-  eyebrow: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-  title: { ...mentaTypography.journeyTitle, color: mentaColors.text.primary },
-  body: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-    maxWidth: mentaLayout.readingMeasure,
-  },
-  form: { gap: mentaSpacing[5] },
-  promiseCard: { gap: mentaSpacing[2] },
-  paperEyebrow: {
-    ...mentaTypography.labelBold,
-    color: mentaColors.text.mutedOnPaper,
-  },
-  paperTitle: { ...mentaTypography.title, color: mentaColors.text.onPaper },
-  paperBody: { ...mentaTypography.body, color: mentaColors.text.mutedOnPaper },
-  ruleBlock: { gap: mentaSpacing[3] },
-  sectionLabel: {
-    ...mentaTypography.labelBold,
-    color: mentaColors.text.secondary,
-  },
-  rows: {
-    backgroundColor: mentaColors.surface,
-    borderColor: mentaColors.border,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  receipt: { gap: mentaSpacing[3] },
-  publishedLead: { gap: mentaSpacing[2] },
-  mainActions: { gap: mentaSpacing[3] },
-  copyNotice: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.success,
-  },
-  copyNoticeError: { color: mentaColors.danger },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: { flex: 1, backgroundColor: mentaColors.canvas },
+    content: {
+      flexGrow: 1,
+      gap: mentaSpacing[5],
+      paddingTop: mentaSpacing[5],
+      paddingBottom: mentaSpacing[12],
+    },
+    lead: { gap: mentaSpacing[3] },
+    eyebrow: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+    title: { ...mentaTypography.journeyTitle, color: mentaColors.text.primary },
+    body: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+      maxWidth: mentaLayout.readingMeasure,
+    },
+    form: { gap: mentaSpacing[5] },
+    promiseCard: { gap: mentaSpacing[2] },
+    paperEyebrow: {
+      ...mentaTypography.labelBold,
+      color: mentaColors.text.mutedOnPaper,
+    },
+    paperTitle: { ...mentaTypography.title, color: mentaColors.text.onPaper },
+    paperBody: {
+      ...mentaTypography.body,
+      color: mentaColors.text.mutedOnPaper,
+    },
+    ruleBlock: { gap: mentaSpacing[3] },
+    sectionLabel: {
+      ...mentaTypography.labelBold,
+      color: mentaColors.text.secondary,
+    },
+    rows: {
+      backgroundColor: mentaColors.surface,
+      borderColor: mentaColors.border,
+      borderWidth: StyleSheet.hairlineWidth,
+    },
+    receipt: { gap: mentaSpacing[3] },
+    publishedLead: { gap: mentaSpacing[2] },
+    mainActions: { gap: mentaSpacing[3] },
+    copyNotice: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.success,
+    },
+    copyNoticeError: { color: mentaColors.danger },
+  });
+  return { styles };
+};

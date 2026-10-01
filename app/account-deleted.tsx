@@ -1,3 +1,9 @@
+import {
+  type MentaPalette,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import { useTranslation } from '@/lib/localization';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Linking, StyleSheet, Text, View } from 'react-native';
@@ -10,11 +16,7 @@ import {
   SkeletonButton,
   SkeletonLoader,
 } from '@/components/ui';
-import {
-  mentaColors,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import {
   clearAccountDeletionReceipt,
   readAccountDeletionReceipt,
@@ -24,6 +26,8 @@ import {
 const APPLE_SIGN_IN_MANAGEMENT_URL = 'https://support.apple.com/en-nz/102571';
 
 export default function AccountDeletedScreen() {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const router = useRouter();
   const [receipt, setReceipt] = useState<AccountDeletionReceipt>();
@@ -172,21 +176,24 @@ export default function AccountDeletedScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    alignSelf: 'center',
-    flexGrow: 1,
-    width: '100%',
-  },
-  frame: {
-    flexGrow: 1,
-    gap: mentaSpacing[8],
-    justifyContent: 'center',
-    paddingBottom: mentaSpacing[12],
-    paddingTop: mentaSpacing[10],
-  },
-  intro: { gap: mentaSpacing[3] },
-  title: { color: mentaColors.text.primary, ...mentaTypography.heading },
-  body: { color: mentaColors.text.secondary, ...mentaTypography.body },
-  actions: { gap: mentaSpacing[3] },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: {
+      alignSelf: 'center',
+      flexGrow: 1,
+      width: '100%',
+    },
+    frame: {
+      flexGrow: 1,
+      gap: mentaSpacing[8],
+      justifyContent: 'center',
+      paddingBottom: mentaSpacing[12],
+      paddingTop: mentaSpacing[10],
+    },
+    intro: { gap: mentaSpacing[3] },
+    title: { color: mentaColors.text.primary, ...mentaTypography.heading },
+    body: { color: mentaColors.text.secondary, ...mentaTypography.body },
+    actions: { gap: mentaSpacing[3] },
+  });
+  return { styles };
+};

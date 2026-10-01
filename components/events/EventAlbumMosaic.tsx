@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import {
   Image,
@@ -8,12 +15,6 @@ import {
   View,
 } from 'react-native';
 
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
 import type { EventAlbumItem } from '@/types/event';
 import { translate, useTranslation } from '@/lib/localization';
 
@@ -32,18 +33,25 @@ const AlbumImage = ({
   style: StyleProp<ImageStyle>;
   onImageError?: (postId: string) => void;
   locale: string;
-}) => (
-  <Image
-    accessibilityLabel={translate(locale, 'events.album.photo_accessibility', {
-      attendee: item.attendeeUsername,
-    })}
-    onError={() => onImageError?.(item.postId)}
-    resizeMode="cover"
-    source={{ uri: item.mediaPreviewUrl }}
-    style={[styles.image, style]}
-    testID={`event-album-image-${item.postId}`}
-  />
-);
+}) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+  return (
+    <Image
+      accessibilityLabel={translate(
+        locale,
+        'events.album.photo_accessibility',
+        {
+          attendee: item.attendeeUsername,
+        }
+      )}
+      onError={() => onImageError?.(item.postId)}
+      resizeMode="cover"
+      source={{ uri: item.mediaPreviewUrl }}
+      style={[styles.image, style]}
+      testID={`event-album-image-${item.postId}`}
+    />
+  );
+};
 
 /**
  * Paper's 226×198 + 108×95 album composition, rendered only when signed
@@ -54,6 +62,8 @@ export const EventAlbumMosaic = ({
   items,
   onImageError,
 }: EventAlbumMosaicProps) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { locale } = useTranslation();
   if (items.length === 0) return null;
 
@@ -130,53 +140,56 @@ export const EventAlbumMosaic = ({
   );
 };
 
-const styles = StyleSheet.create({
-  image: {
-    backgroundColor: mentaColors.surface,
-    borderRadius: mentaRadii.small,
-  },
-  single: {
-    aspectRatio: 342 / 198,
-    width: '100%',
-  },
-  twoUp: {
-    aspectRatio: 342 / 198,
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-    width: '100%',
-  },
-  half: {
-    flex: 1,
-    height: '100%',
-  },
-  mosaic: {
-    aspectRatio: 342 / 198,
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-    width: '100%',
-  },
-  lead: {
-    flex: 226,
-    height: '100%',
-  },
-  stack: {
-    flex: 108,
-    gap: mentaSpacing[2],
-  },
-  small: {
-    flex: 1,
-    width: '100%',
-  },
-  stackItem: { flex: 1 },
-  remaining: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.scrim,
-    borderRadius: mentaRadii.small,
-    justifyContent: 'center',
-    ...StyleSheet.absoluteFill,
-  },
-  remainingText: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    image: {
+      backgroundColor: mentaColors.surface,
+      borderRadius: mentaRadii.small,
+    },
+    single: {
+      aspectRatio: 342 / 198,
+      width: '100%',
+    },
+    twoUp: {
+      aspectRatio: 342 / 198,
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+      width: '100%',
+    },
+    half: {
+      flex: 1,
+      height: '100%',
+    },
+    mosaic: {
+      aspectRatio: 342 / 198,
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+      width: '100%',
+    },
+    lead: {
+      flex: 226,
+      height: '100%',
+    },
+    stack: {
+      flex: 108,
+      gap: mentaSpacing[2],
+    },
+    small: {
+      flex: 1,
+      width: '100%',
+    },
+    stackItem: { flex: 1 },
+    remaining: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.scrim,
+      borderRadius: mentaRadii.small,
+      justifyContent: 'center',
+      ...StyleSheet.absoluteFill,
+    },
+    remainingText: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+  });
+  return { styles };
+};

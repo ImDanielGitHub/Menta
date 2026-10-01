@@ -1,12 +1,13 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-
 import {
-  mentaColors,
+  type MentaPalette,
   mentaRadii,
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+
 import type { StreakStateV2 } from '@/types/streak-state-v2';
 import { useTheme } from '@/constants/ThemeContext';
 import { useTranslation } from '@/lib/localization';
@@ -20,6 +21,9 @@ export const StreakStatusCard: React.FC<StreakStatusCardProps> = ({
   state,
   goalDays,
 }) => {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const { t } = useTranslation();
   const nextMilestone = getNextMilestone(state.currentStreak, goalDays);
@@ -157,80 +161,83 @@ const getNextMilestone = (currentStreak: number, goalDays?: number) => {
   return next ?? currentStreak + 30;
 };
 
-const styles = StyleSheet.create({
-  section: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[4],
-    paddingVertical: mentaSpacing[5],
-  },
-  headingRow: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: mentaSpacing[4],
-    justifyContent: 'space-between',
-  },
-  currentCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  sectionTitle: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  streakValueRow: {
-    alignItems: 'baseline',
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-    marginTop: mentaSpacing[1],
-  },
-  streakValue: {
-    ...mentaTypography.display,
-    color: mentaColors.text.primary,
-    fontVariant: ['tabular-nums'],
-  },
-  streakUnit: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-  },
-  stateLabel: {
-    ...mentaTypography.bodySmallMedium,
-    flexShrink: 1,
-    maxWidth: 132,
-    textAlign: 'right',
-  },
-  metricRow: {
-    alignItems: 'stretch',
-    flexDirection: 'row',
-  },
-  metric: {
-    flex: 1,
-    gap: mentaSpacing[1],
-  },
-  metricDivider: {
-    backgroundColor: mentaColors.border,
-    marginHorizontal: mentaSpacing[4],
-    width: StyleSheet.hairlineWidth,
-  },
-  metricLabel: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-  metricValue: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.text.primary,
-    fontVariant: ['tabular-nums'],
-  },
-  progressTrack: {
-    backgroundColor: mentaColors.raised,
-    borderRadius: mentaRadii.round,
-    height: 7,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    borderRadius: mentaRadii.round,
-    height: '100%',
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    section: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[4],
+      paddingVertical: mentaSpacing[5],
+    },
+    headingRow: {
+      alignItems: 'flex-start',
+      flexDirection: 'row',
+      gap: mentaSpacing[4],
+      justifyContent: 'space-between',
+    },
+    currentCopy: {
+      flex: 1,
+      minWidth: 0,
+    },
+    sectionTitle: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    streakValueRow: {
+      alignItems: 'baseline',
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+      marginTop: mentaSpacing[1],
+    },
+    streakValue: {
+      ...mentaTypography.display,
+      color: mentaColors.text.primary,
+      fontVariant: ['tabular-nums'],
+    },
+    streakUnit: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+    },
+    stateLabel: {
+      ...mentaTypography.bodySmallMedium,
+      flexShrink: 1,
+      maxWidth: 132,
+      textAlign: 'right',
+    },
+    metricRow: {
+      alignItems: 'stretch',
+      flexDirection: 'row',
+    },
+    metric: {
+      flex: 1,
+      gap: mentaSpacing[1],
+    },
+    metricDivider: {
+      backgroundColor: mentaColors.border,
+      marginHorizontal: mentaSpacing[4],
+      width: StyleSheet.hairlineWidth,
+    },
+    metricLabel: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+    metricValue: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.text.primary,
+      fontVariant: ['tabular-nums'],
+    },
+    progressTrack: {
+      backgroundColor: mentaColors.raised,
+      borderRadius: mentaRadii.round,
+      height: 7,
+      overflow: 'hidden',
+    },
+    progressFill: {
+      borderRadius: mentaRadii.round,
+      height: '100%',
+    },
+  });
+  return { styles };
+};

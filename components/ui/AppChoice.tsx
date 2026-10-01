@@ -1,3 +1,4 @@
+import { useMentaPalette } from '@/constants/use-menta-palette';
 import React from 'react';
 import {
   Pressable,
@@ -12,7 +13,6 @@ import { CheckIcon } from '@/components/ui/icons';
 import { emitHaptic } from '@/lib/motion/haptics';
 import { useMotionPreferences } from '@/lib/motion/use-motion-preferences';
 import {
-  mentaColors,
   mentaLayout,
   mentaRadii,
   mentaSpacing,
@@ -27,14 +27,11 @@ import { useTranslation } from '@/lib/localization/use-translation';
  * with a firmer violet edge once chosen. Equipped themes supply their own
  * tint and edge through the theme's accent and focus roles.
  */
-const resolveChoicePalette = (colors: ThemeContextType['colors']) => ({
+export const resolveChoicePalette = (colors: ThemeContextType['colors']) => ({
   restFill: colors.interactive.secondary,
   restBorder: colors.border.primary,
   selectedFill: colors.accent.background,
-  selectedBorder:
-    colors.border.focus === mentaColors.action
-      ? mentaColors.actionBorder
-      : colors.border.focus,
+  selectedBorder: colors.border.focus,
   mark: colors.accent.primary,
   onMark: colors.onPrimary,
 });
@@ -106,6 +103,8 @@ export const AppTag: React.FC<{
   label: string;
   tone?: 'default' | 'share' | 'streak' | 'success';
 }> = ({ label, tone = 'default' }) => {
+  const mentaColors = useMentaPalette();
+
   const theme = useTheme();
   const toneColors = {
     default: 'rgba(255, 255, 255, 0.05)',

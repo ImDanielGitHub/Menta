@@ -1,3 +1,12 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
+
 import { useTranslation } from '@/lib/localization';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -11,14 +20,7 @@ import {
   PaperAuthNotice,
   PaperAuthTextField,
   PaperAuthTextLink,
-  paperAuthTokens,
 } from '@/components/onboarding/PaperAuthSurface';
-import {
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
 
 export interface PaperAuthResetFormProps {
   email: string;
@@ -39,6 +41,8 @@ export const PaperAuthResetForm: React.FC<PaperAuthResetFormProps> = ({
   errorMessage,
   testID = 'paper-auth-reset-form',
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <PaperAuthFrame testID={testID}>
@@ -156,6 +160,8 @@ export const PaperAuthCheckEmail: React.FC<PaperAuthCheckEmailProps> = ({
   errorMessage,
   testID = 'paper-auth-check-email',
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const cooldownActive = resendSecondsRemaining > 0;
   const resendDisabled = loading || cooldownActive;
@@ -273,74 +279,77 @@ export const PaperAuthCheckEmail: React.FC<PaperAuthCheckEmailProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  page: {
-    alignSelf: 'center',
-    flexGrow: 1,
-    gap: mentaSpacing[4],
-    maxWidth: mentaLayout.taskLane,
-    paddingTop: mentaSpacing[5],
-    width: '100%',
-  },
-  actions: {
-    gap: mentaSpacing[2],
-    marginTop: 'auto',
-    paddingTop: mentaSpacing[2],
-    width: '100%',
-  },
-  successPage: {
-    alignSelf: 'center',
-    flexGrow: 1,
-    gap: mentaSpacing[5],
-    maxWidth: mentaLayout.taskLane,
-    paddingTop: mentaSpacing[6],
-    width: '100%',
-  },
-  successHero: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[4],
-    width: '100%',
-  },
-  successCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  emailCard: {
-    backgroundColor: paperAuthTokens.paper,
-    borderRadius: mentaRadii.large,
-    gap: mentaSpacing[3],
-    padding: mentaSpacing[5],
-    width: '100%',
-  },
-  emailCardLabel: {
-    color: paperAuthTokens.mutedPaper,
-    ...mentaTypography.bodySmallMedium,
-  },
-  emailCardAddress: {
-    color: paperAuthTokens.canvas,
-    ...mentaTypography.title,
-  },
-  emailCardDetail: {
-    color: paperAuthTokens.mutedPaper,
-    ...mentaTypography.bodySmall,
-  },
-  noChangeText: {
-    color: paperAuthTokens.mutedPaper,
-    ...mentaTypography.bodySmall,
-  },
-  sendAnother: {
-    alignSelf: 'center',
-    color: paperAuthTokens.muted,
-    ...mentaTypography.bodySmallMedium,
-    textAlign: 'center',
-  },
-  sendAnotherHitArea: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 44,
-  },
-  sendAnotherDisabled: {
-    opacity: 0.5,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    page: {
+      alignSelf: 'center',
+      flexGrow: 1,
+      gap: mentaSpacing[4],
+      maxWidth: mentaLayout.taskLane,
+      paddingTop: mentaSpacing[5],
+      width: '100%',
+    },
+    actions: {
+      gap: mentaSpacing[2],
+      marginTop: 'auto',
+      paddingTop: mentaSpacing[2],
+      width: '100%',
+    },
+    successPage: {
+      alignSelf: 'center',
+      flexGrow: 1,
+      gap: mentaSpacing[5],
+      maxWidth: mentaLayout.taskLane,
+      paddingTop: mentaSpacing[6],
+      width: '100%',
+    },
+    successHero: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[4],
+      width: '100%',
+    },
+    successCopy: {
+      flex: 1,
+      minWidth: 0,
+    },
+    emailCard: {
+      backgroundColor: mentaColors.paper,
+      borderRadius: mentaRadii.large,
+      gap: mentaSpacing[3],
+      padding: mentaSpacing[5],
+      width: '100%',
+    },
+    emailCardLabel: {
+      color: mentaColors.text.mutedOnPaper,
+      ...mentaTypography.bodySmallMedium,
+    },
+    emailCardAddress: {
+      color: mentaColors.text.onPaper,
+      ...mentaTypography.title,
+    },
+    emailCardDetail: {
+      color: mentaColors.text.mutedOnPaper,
+      ...mentaTypography.bodySmall,
+    },
+    noChangeText: {
+      color: mentaColors.text.mutedOnPaper,
+      ...mentaTypography.bodySmall,
+    },
+    sendAnother: {
+      alignSelf: 'center',
+      color: mentaColors.text.secondary,
+      ...mentaTypography.bodySmallMedium,
+      textAlign: 'center',
+    },
+    sendAnotherHitArea: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 44,
+    },
+    sendAnotherDisabled: {
+      opacity: 0.5,
+    },
+  });
+  return { styles };
+};

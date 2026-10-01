@@ -49,11 +49,11 @@ export const todayEsES = {
   'today.home.momenta.accessibility_unknown':
     'Saldo de Momenta aún sin confirmar. Abre tu cartera.',
   'today.home.week.accessibility':
-    'Últimos 7 días: {count} días con prueba aprobada.',
+    'Últimos 7 días: {count} días con todas las promesas cumplidas.',
   'today.home.week.accessibility.one':
-    'Últimos 7 días: {count} día con prueba aprobada.',
+    'Últimos 7 días: {count} día con todas las promesas cumplidas.',
   'today.home.week.accessibility.other':
-    'Últimos 7 días: {count} días con prueba aprobada.',
+    'Últimos 7 días: {count} días con todas las promesas cumplidas.',
   'today.home.streaks.title': 'Tus rachas',
   'today.home.streaks.note':
     'Una racha cuenta días con prueba aprobada, no días con una promesa abierta.',

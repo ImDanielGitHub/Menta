@@ -1,4 +1,5 @@
 import type { CompleteCatalogue } from '@/lib/localization/en-NZ';
+import { mentaCheckFr } from './shared/menta-check-fr';
 import { widgetsfr } from '@/lib/localization/catalogues/shared/widgets-fr';
 import { accountabilityFr } from '@/lib/localization/catalogues/shared/accountability-fr';
 import { accountabilityFrCAOverrides } from '@/lib/localization/catalogues/fr-CA/accountability-overrides';
@@ -23,9 +24,18 @@ import { fullCommerceFrCA } from '@/lib/localization/catalogues/fr-CA/full-comme
 import { fullDomainFeedbackFrCA } from '@/lib/localization/catalogues/fr-CA/full-domain-feedback';
 import { sourceGateFrCA } from '@/lib/localization/catalogues/fr-CA/source-gate';
 import { momentaTopUpFrCA } from '@/lib/localization/catalogues/fr-CA/momenta-top-up';
+import { cameraAccessFrCA } from '@/lib/localization/catalogues/fr-CA/camera-access';
+import { proofRolesFrCA } from '@/lib/localization/catalogues/fr-CA/proof-roles';
 
 export const frCA = {
+  'settings.appearance.title': 'Apparence',
+  'settings.appearance.system': 'Système',
+  'settings.appearance.light': 'Clair',
+  'settings.appearance.dark': 'Sombre',
+  ...mentaCheckFr,
   ...momentaTopUpFrCA,
+  ...cameraAccessFrCA,
+  ...proofRolesFrCA,
   ...widgetsfr,
   ...foundationFrCA,
   ...languageFrCA,

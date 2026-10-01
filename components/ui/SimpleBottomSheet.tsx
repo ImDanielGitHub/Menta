@@ -32,6 +32,7 @@ import {
 type Props = {
   visible: boolean;
   onClose: () => void;
+  onDismiss?: () => void;
   children?: React.ReactNode;
   maxHeight?: number;
   testID?: string;
@@ -39,7 +40,7 @@ type Props = {
   surface?: ModalSurface;
   /** Regular-width iPads use a bounded task surface. Phone output is unchanged. */
   presentationRole?: 'edge' | 'bounded';
-  /** Opt-in scrollable content. Existing children remain non-scrollable by default. */
+  /** Opt-in scrollable content, or true to scroll the children. */
   scrollableBody?: React.ReactNode;
   /** Optional overflow cue shown only while more scroll content remains below. */
   scrollHint?: string;
@@ -50,6 +51,7 @@ type Props = {
 export const SimpleBottomSheet: React.FC<Props> = ({
   visible,
   onClose,
+  onDismiss,
   children,
   maxHeight,
   testID,
@@ -128,9 +130,24 @@ export const SimpleBottomSheet: React.FC<Props> = ({
     };
   }, [distance, duration, reduceMotion, translateY, visible]);
 
+  const wasVisible = useRef(visible);
+  const dismissalCallback = useRef(onDismiss);
+  dismissalCallback.current = onDismiss;
+  useEffect(() => {
+    const closing = wasVisible.current && !visible;
+    wasVisible.current = visible;
+    // React Native's native onDismiss is iOS-only. Android hides the modal
+    // with the committed visible=false render; wait until its next frame.
+    const dismissed = dismissalCallback.current;
+    if (!closing || Platform.OS === 'ios' || !dismissed) return;
+    const frame = requestAnimationFrame(dismissed);
+    return () => cancelAnimationFrame(frame);
+  }, [visible]);
+
   return (
     <Modal
       visible={visible}
+      onDismiss={onDismiss}
       transparent
       animationType={reduceMotion ? 'none' : 'fade'}
       onRequestClose={() => {
@@ -265,7 +282,7 @@ export const SimpleBottomSheet: React.FC<Props> = ({
                   showsVerticalScrollIndicator
                   style={styles.scrollableBody}
                 >
-                  {scrollableBody}
+                  {scrollableBody === true ? children : scrollableBody}
                 </ScrollView>
                 {hasMoreScrollContent ? (
                   <View

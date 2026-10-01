@@ -1,5 +1,14 @@
 /** Customer-facing copy for the Momenta wallet, shop, inventory, and Pro flows. */
 export const fullCommercePtBR = {
+  'commerce.proJourney.continueFree': 'Continuar grátis',
+  'commerce.free.receiptRetry': 'Sua promessa foi criada',
+  'commerce.free.receiptRetryDetail':
+    'Não conseguimos salvar o comprovante. Tente novamente para concluir a configuração do revisor. Isso não criará nem cobrará outra promessa.',
+  'commerce.free.pendingReviewer': 'Aguardando alguém para revisar',
+  'commerce.free.pendingDetail':
+    'Sua promessa e seu prazo já começaram. Convide alguém para revisar sua prova. Ao sair desta tela, a promessa e seu prazo continuam em andamento.',
+  'commerce.free.finishSetup': 'Concluir quem revisa',
+
   'commerce.proJourney.back': 'Voltar',
   'commerce.proJourney.title': 'Menta Pro',
   'commerce.proJourney.subtitle':
@@ -375,7 +384,7 @@ export const fullCommercePtBR = {
   'commerce.shop.state': 'Estado',
   'commerce.shop.reachStreakAuto':
     'Alcance uma sequência de {days} dias. Menta adiciona isso aos Seus itens automaticamente.',
-  'commerce.shop.appearanceWarm': '{name} dá ao Menta um visual mais quente.',
+  'commerce.shop.themeTitle': '{name} muda as cores do Menta.',
   'commerce.shop.frameTitle': '{name} enquadra sua foto de perfil.',
   'commerce.shop.oneUse': 'um uso',
   'commerce.shop.unlocks': 'Desbloqueia em sequência de {days} dias',
@@ -493,8 +502,8 @@ export const fullCommercePtBR = {
     'Adiciona 12 horas ao prazo de uma promessa ativa.',
   'commerce.shop.choosePromiseAfter':
     'Escolha a promessa ativa após a compra ou depois em Seus itens.',
-  'commerce.shop.buttonsColours':
-    'Botões, destaques e itens selecionados usam as cores quentes do Ember.',
+  'commerce.shop.themeColours':
+    'Botões, destaques e itens selecionados usam as cores de {name}.',
   'commerce.shop.frameProfile':
     'A moldura aparece onde o Menta mostra sua identidade de perfil.',
   'commerce.shop.frameDescription':
@@ -877,7 +886,7 @@ export const fullCommercePtBR = {
   'commerce.firstMiss.errorUnavailable':
     'Esta oferta do primeiro dia não está mais disponível. Você ainda pode adicionar uma prova hoje.',
   'commerce.firstMiss.bubble':
-    '{weekday} passou batido. Acontece com todo mundo.',
+    '{weekday} passou. Um dia perdido não conta a história toda.',
   'commerce.firstMiss.decisionTitle': 'Manter sua sequência de {count} dias?',
   'commerce.firstMiss.decisionBody':
     'Seu primeiro dia perdido é por nossa conta. Uma proteção de sequência grátis cobre {weekday}, e sua sequência continua em {count}.',
@@ -885,6 +894,9 @@ export const fullCommercePtBR = {
     'Seu primeiro dia perdido é por nossa conta. Uma proteção de sequência grátis cobre {weekday}.',
   'commerce.firstMiss.keep': 'Manter minha sequência grátis',
   'commerce.firstMiss.startOver': 'Recomeçar do dia 1',
+  'commerce.free.receiptReadBlocked': 'Confira sua promessa salva',
+  'commerce.free.receiptReadBlockedDetail':
+    'Não conseguimos ler a promessa salva com segurança. Tente recuperá-la novamente antes de iniciar outra promessa.',
 } as const;
 
 export type FullCommercePtBRKey = keyof typeof fullCommercePtBR;

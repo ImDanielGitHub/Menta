@@ -1,4 +1,5 @@
-export type PaywallContext = 'challenge' | 'group' | 'member' | 'general';
+export type PaywallContext =
+  'challenge' | 'group' | 'member' | 'general' | 'menta_check';
 
 export type PaywallOpenOptions = {
   context?: PaywallContext;
@@ -7,6 +8,8 @@ export type PaywallOpenOptions = {
   initialView?: 'plans' | 'active';
   /** Called only after the paywall has confirmed Pro access. */
   onProConfirmed?: () => void;
+  /** Explicit free choice; ordinary close/back must not invoke this fallback. */
+  onContinueFree?: () => void;
 };
 
 type Listener = (opts: PaywallOpenOptions & { id: string }) => void;

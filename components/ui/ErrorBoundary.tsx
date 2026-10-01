@@ -351,8 +351,8 @@ const createStyles = (
       borderRadius:
         level === 'component' ? mentaRadii.medium : mentaRadii.large,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: mentaColors.danger,
-      backgroundColor: mentaColors.dangerSoft,
+      borderColor: (theme.mentaColors ?? mentaColors).danger,
+      backgroundColor: (theme.mentaColors ?? mentaColors).dangerSoft,
     },
     // A page-level failure is a real state change, so it earns the serif
     // section heading; an inline component failure stays a utility row.

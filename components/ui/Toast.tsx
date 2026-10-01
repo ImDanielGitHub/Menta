@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -10,13 +18,6 @@ import {
 import { FullWindowOverlay } from 'react-native-screens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { useMotionPreferences } from '@/lib/motion/use-motion-preferences';
 import { addBreadcrumb, captureMessage } from '@/lib/sentry';
@@ -57,6 +58,8 @@ export const Toast: React.FC<ToastProps> = ({
   action,
   repeatCount,
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const translateY = useRef(new Animated.Value(-18)).current;
   const opacity = useRef(new Animated.Value(0)).current;
   const insets = useSafeAreaInsets();
@@ -291,6 +294,8 @@ export const toastManager = new ToastManager();
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const [toasts, setToasts] = useState<ToastProps[]>([]);
   const phoneLayout = usePhoneLayout();
 
@@ -335,72 +340,75 @@ export const showToast = {
     toastManager.show({ type: 'info', title, message, ...options }),
 };
 
-const styles = StyleSheet.create({
-  providerRoot: { flex: 1 },
-  toastOverlay: {
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    zIndex: 999999,
-    elevation: 999999,
-    paddingHorizontal: mentaLayout.screenInset,
-  },
-  container: {
-    alignSelf: 'center',
-    marginBottom: mentaSpacing[2],
-    maxWidth: mentaLayout.taskLane,
-    width: '100%',
-  },
-  card: {
-    backgroundColor: mentaColors.paper,
-    borderCurve: 'continuous',
-    borderRadius: mentaRadii.large,
-    overflow: 'hidden',
-  },
-  copy: {
-    gap: mentaSpacing[1],
-    paddingHorizontal: mentaSpacing[4],
-    paddingTop: mentaSpacing[4],
-    paddingBottom: mentaSpacing[3],
-  },
-  titleRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-  },
-  title: {
-    ...mentaTypography.title,
-    color: mentaColors.text.onPaper,
-    fontSize: 21,
-    lineHeight: 27,
-    flexShrink: 1,
-  },
-  message: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.mutedOnPaper,
-    flexShrink: 1,
-  },
-  repeat: {
-    ...mentaTypography.captionMedium,
-    color: mentaColors.text.mutedOnPaper,
-    fontVariant: ['tabular-nums'],
-  },
-  actionDivider: {
-    backgroundColor: mentaColors.borderPaper,
-    height: StyleSheet.hairlineWidth,
-    marginHorizontal: mentaSpacing[4],
-  },
-  actionRow: {
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-    minHeight: mentaLayout.minimumTouchTarget,
-    paddingHorizontal: mentaSpacing[4],
-  },
-  actionText: {
-    ...mentaTypography.captionMedium,
-    color: mentaColors.text.mutedOnPaper,
-  },
-  pressed: { opacity: 0.62 },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    providerRoot: { flex: 1 },
+    toastOverlay: {
+      bottom: 0,
+      left: 0,
+      position: 'absolute',
+      right: 0,
+      top: 0,
+      zIndex: 999999,
+      elevation: 999999,
+      paddingHorizontal: mentaLayout.screenInset,
+    },
+    container: {
+      alignSelf: 'center',
+      marginBottom: mentaSpacing[2],
+      maxWidth: mentaLayout.taskLane,
+      width: '100%',
+    },
+    card: {
+      backgroundColor: mentaColors.paper,
+      borderCurve: 'continuous',
+      borderRadius: mentaRadii.large,
+      overflow: 'hidden',
+    },
+    copy: {
+      gap: mentaSpacing[1],
+      paddingHorizontal: mentaSpacing[4],
+      paddingTop: mentaSpacing[4],
+      paddingBottom: mentaSpacing[3],
+    },
+    titleRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+    },
+    title: {
+      ...mentaTypography.title,
+      color: mentaColors.text.onPaper,
+      fontSize: 21,
+      lineHeight: 27,
+      flexShrink: 1,
+    },
+    message: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.mutedOnPaper,
+      flexShrink: 1,
+    },
+    repeat: {
+      ...mentaTypography.captionMedium,
+      color: mentaColors.text.mutedOnPaper,
+      fontVariant: ['tabular-nums'],
+    },
+    actionDivider: {
+      backgroundColor: mentaColors.borderPaper,
+      height: StyleSheet.hairlineWidth,
+      marginHorizontal: mentaSpacing[4],
+    },
+    actionRow: {
+      alignItems: 'flex-start',
+      justifyContent: 'center',
+      minHeight: mentaLayout.minimumTouchTarget,
+      paddingHorizontal: mentaSpacing[4],
+    },
+    actionText: {
+      ...mentaTypography.captionMedium,
+      color: mentaColors.text.mutedOnPaper,
+    },
+    pressed: { opacity: 0.62 },
+  });
+  return { styles };
+};

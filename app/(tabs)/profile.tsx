@@ -950,6 +950,10 @@ export default function ProfileScreen() {
             />
             <HomeWidgetEntry />
             <SettingsDirectRow
+              title={t('mentaCheck.settings.youRow')}
+              onPress={() => router.push('/menta-check')}
+            />
+            <SettingsDirectRow
               icon={<ShoppingBagIcon size={18} color={colors.text.secondary} />}
               onPress={() => router.push('/momenta')}
               showDivider={false}

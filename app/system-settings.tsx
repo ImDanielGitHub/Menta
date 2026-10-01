@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import { useTranslation } from '@/lib/localization';
 import React, { useState } from 'react';
 import { Linking, StyleSheet, Text, View } from 'react-native';
@@ -6,12 +13,7 @@ import { useRouter } from 'expo-router';
 import { AppButton, AppInlineNotice, AppScreen } from '@/components/ui';
 import { SupportPageHeader } from '@/components/support/SupportPageHeader';
 import { ExternalLinkIcon } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { backOrReplace } from '@/lib/navigation/safe-back';
 
 type HandoffNotice = {
@@ -25,6 +27,9 @@ type HandoffNotice = {
  * Menta must re-check its own permission/account state when the user returns.
  */
 export default function SystemSettingsScreen() {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const router = useRouter();
   const [notice, setNotice] = useState<HandoffNotice>(null);
@@ -99,24 +104,27 @@ export default function SystemSettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    alignSelf: 'center',
-    flexGrow: 1,
-    paddingBottom: mentaSpacing[12],
-    paddingTop: mentaSpacing[6],
-    width: '100%',
-  },
-  handoff: {
-    flex: 1,
-    gap: mentaSpacing[6],
-    justifyContent: 'center',
-    paddingBottom: mentaSpacing[12],
-  },
-  description: {
-    color: mentaColors.text.secondary,
-    maxWidth: mentaLayout.readingMeasure,
-    ...mentaTypography.lead,
-  },
-  actions: { gap: mentaSpacing[3] },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: {
+      alignSelf: 'center',
+      flexGrow: 1,
+      paddingBottom: mentaSpacing[12],
+      paddingTop: mentaSpacing[6],
+      width: '100%',
+    },
+    handoff: {
+      flex: 1,
+      gap: mentaSpacing[6],
+      justifyContent: 'center',
+      paddingBottom: mentaSpacing[12],
+    },
+    description: {
+      color: mentaColors.text.secondary,
+      maxWidth: mentaLayout.readingMeasure,
+      ...mentaTypography.lead,
+    },
+    actions: { gap: mentaSpacing[3] },
+  });
+  return { styles };
+};

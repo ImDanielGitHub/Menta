@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
@@ -15,13 +23,7 @@ import {
   useAppTextScale,
 } from '@/components/ui/AppScaledText';
 import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { useTheme } from '@/constants/ThemeContext';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import {
@@ -62,14 +64,6 @@ type TodayStateCardProps = {
   /** Menta's one-line prompt at a genuine orientation point. */
   mascotPrompt?: string | null;
   textScale?: number;
-};
-
-const HALO_COLOR: Record<TodayAccent, string> = {
-  action: mentaColors.actionSoft,
-  success: mentaColors.successSoft,
-  warning: mentaColors.warningSoft,
-  danger: mentaColors.dangerSoft,
-  muted: mentaColors.raised,
 };
 
 /**
@@ -118,6 +112,8 @@ function TodayHeroStage({
   height: number;
   mascotSize: MascotSize;
 }) {
+  const { HALO_COLOR, styles } = useMentaStyles(createPaletteStyles);
+
   const motion = useMotionPreferences();
   const scale = useSharedValue(1);
   const previousState = useRef(presentation.state);
@@ -177,6 +173,8 @@ function AccountabilityReceipt({
 }: {
   receipt: TodayPresentation['accountabilityReceipt'];
 }) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   if (!receipt) return null;
 
@@ -201,6 +199,8 @@ function TodayCountdownNote(props: {
   timeZone: string;
   dueAtIso: string | null;
 }) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const note = useTodayCountdownNote(props);
   if (!note) return null;
   return (
@@ -217,6 +217,9 @@ function TodayHero({
   primaryDisabled,
   promiseReceipt,
 }: TodayStateCardProps) {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const phoneLayout = usePhoneLayout();
   const isPassiveWait =
     presentation.primaryAction === 'wait' ||
@@ -243,7 +246,11 @@ function TodayHero({
 
   return (
     <>
-      <Text style={styles.heroDate}>{presentation.dateLabel}</Text>
+      {/* While proof is due the week row already marks today, and Paper T01
+          spends that space keeping the proof action above the tab bar. */}
+      {countdown ? null : (
+        <Text style={styles.heroDate}>{presentation.dateLabel}</Text>
+      )}
 
       {countdown ? (
         <View style={styles.heroCountdown}>
@@ -337,6 +344,8 @@ function TodayAllClearState({
   onSecondaryPress,
   primaryDisabled,
 }: TodayStateCardProps) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const phoneLayout = usePhoneLayout();
   return (
@@ -408,6 +417,8 @@ function TodayAccountabilityState({
   primaryDisabled,
   mascotPrompt,
 }: TodayStateCardProps) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { colors } = useTheme();
   const phoneLayout = usePhoneLayout();
   const isRecoveryState =
@@ -604,6 +615,8 @@ function TodayEmptyState({
   primaryDisabled,
   mascotPrompt,
 }: TodayStateCardProps) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const phoneLayout = usePhoneLayout();
   const mascotSize = phoneLayout.isShortHeight
     ? 'lg'
@@ -677,6 +690,8 @@ function TodayEmptyState({
  * the confirmed state arrives.
  */
 function TodayLoadingSkeleton() {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const phoneLayout = usePhoneLayout();
   const visualHeight = phoneLayout.isShortHeight
@@ -728,27 +743,13 @@ function TodayLoadingSkeleton() {
   );
 }
 
-const SYSTEM_TILE_TONE: Record<TodayAccent, { background: string }> = {
-  action: { background: mentaColors.actionSoft },
-  success: { background: mentaColors.successSoft },
-  warning: { background: mentaColors.warningSoft },
-  danger: { background: mentaColors.dangerSoft },
-  muted: { background: mentaColors.raised },
-};
-
-const SYSTEM_ICON_COLOR: Record<TodayAccent, string> = {
-  action: mentaColors.action,
-  success: mentaColors.success,
-  warning: mentaColors.warning,
-  danger: mentaColors.danger,
-  muted: mentaColors.text.secondary,
-};
-
 function SystemStateIcon({
   presentation,
 }: {
   presentation: TodayPresentation;
 }) {
+  const { SYSTEM_ICON_COLOR } = useMentaStyles(createPaletteStyles);
+
   const color = SYSTEM_ICON_COLOR[presentation.accent];
   switch (presentation.state) {
     case 'offline-stale':
@@ -769,6 +770,8 @@ function TodayStateCardContent({
   promiseReceipt = null,
   mascotPrompt = null,
 }: TodayStateCardProps) {
+  const { SYSTEM_TILE_TONE, styles } = useMentaStyles(createPaletteStyles);
+
   const isLoading = presentation.state === 'loading';
 
   if (presentation.state === 'all-clear') {
@@ -923,289 +926,313 @@ export function TodayStateCard(props: TodayStateCardProps): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
-  heroCountdown: {
-    marginBottom: mentaSpacing[6],
-    marginTop: mentaSpacing[5],
-  },
-  recoveryHeading: {
-    alignItems: 'center',
-    marginTop: mentaSpacing[5],
-  },
-  recoveryText: {
-    textAlign: 'center',
-  },
-  countdownNote: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.muted,
-    textAlign: 'center',
-  },
-  stateLane: {
-    alignSelf: 'center',
-    maxWidth: mentaLayout.taskLane,
-    width: '100%',
-  },
-  emptyState: {
-    gap: mentaSpacing[5],
-    justifyContent: 'center',
-    paddingVertical: mentaSpacing[4],
-  },
-  emptyMain: {
-    gap: mentaSpacing[5],
-  },
-  emptyIntro: {
-    gap: mentaSpacing[3],
-  },
-  emptyTitle: {
-    ...mentaTypography.heading,
-    color: mentaColors.text.primary,
-  },
-  emptyDetail: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-    maxWidth: mentaLayout.readingMeasure,
-  },
-  emptyMascot: {
-    alignSelf: 'center',
-  },
-  emptyVisual: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-  },
-  emptyActions: {
-    gap: mentaSpacing[2],
-  },
-  systemState: {
-    paddingVertical: mentaSpacing[3],
-  },
-  systemCard: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: mentaSpacing[4],
-  },
-  systemTile: {
-    alignItems: 'center',
-    borderRadius: mentaRadii.medium,
-    height: 48,
-    justifyContent: 'center',
-    width: 48,
-  },
-  heroDate: {
-    ...mentaTypography.bodySmallMedium,
-    color: mentaColors.text.secondary,
-    marginBottom: mentaSpacing[5],
-  },
-  heroVisual: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.surface,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: 1,
-    justifyContent: 'center',
-    overflow: 'visible',
-    position: 'relative',
-    width: '100%',
-  },
-  heroHalo: {
-    borderRadius: mentaRadii.round,
-    position: 'absolute',
-  },
-  heroMascot: {
-    flexShrink: 0,
-  },
-  heroCopyAfterStage: {
-    marginTop: mentaSpacing[5],
-  },
-  heroReceipt: {
-    marginTop: mentaSpacing[6],
-  },
-  heroCopyBlock: {
-    alignItems: 'center',
-    gap: mentaSpacing[3],
-  },
-  heroTitle: {
-    ...mentaTypography.heading,
-    color: mentaColors.text.primary,
-    textAlign: 'center',
-  },
-  heroDetail: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-    maxWidth: mentaLayout.readingMeasure,
-    textAlign: 'center',
-  },
-  heroDetailCompact: { maxWidth: '100%' },
-  heroActions: {
-    gap: mentaSpacing[2],
-    paddingTop: mentaSpacing[5],
-  },
-  accountabilityHeading: {
-    gap: mentaSpacing[3],
-  },
-  accountabilityVisual: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: mentaSpacing[4],
-    minHeight: 196,
-    overflow: 'visible',
-    width: '100%',
-  },
-  recoveryVisual: {
-    marginTop: mentaSpacing[3],
-    minHeight: 168,
-  },
-  proofDueVisual: {
-    marginTop: 0,
-    minHeight: 0,
-  },
-  accountabilityMascot: {
-    flexShrink: 0,
-  },
-  accountabilityTitle: {
-    ...mentaTypography.heading,
-    color: mentaColors.text.primary,
-  },
-  accountabilityDetail: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-    maxWidth: mentaLayout.readingMeasure,
-  },
-  accountabilityCountdown: {
-    marginTop: mentaSpacing[5],
-  },
-  proofDueHeading: {
-    marginTop: mentaSpacing[3],
-  },
-  accountabilityFacts: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    marginTop: mentaSpacing[5],
-  },
-  accountabilityFact: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[4],
-    justifyContent: 'space-between',
-    minHeight: 52,
-    paddingVertical: mentaSpacing[3],
-  },
-  accountabilityFactDivider: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  accountabilityFactLabel: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-    flex: 1,
-    minWidth: 0,
-  },
-  accountabilityFactValue: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-    flexShrink: 1,
-    fontVariant: ['tabular-nums'],
-    textAlign: 'right',
-  },
-  accountabilityNote: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-    marginTop: mentaSpacing[5],
-    maxWidth: mentaLayout.readingMeasure,
-  },
-  recoveryNote: {
-    marginTop: mentaSpacing[3],
-  },
-  accountabilityReceipt: {
-    alignItems: 'flex-start',
-    backgroundColor: mentaColors.paper,
-    borderColor: mentaColors.borderPaper,
-    borderRadius: mentaRadii.medium,
-    borderWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    marginTop: mentaSpacing[5],
-    padding: mentaSpacing[4],
-  },
-  accountabilityReceiptCopy: {
-    flex: 1,
-    gap: mentaSpacing[1],
-    minWidth: 0,
-  },
-  accountabilityReceiptTitle: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.onPaper,
-  },
-  accountabilityReceiptDetail: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.mutedOnPaper,
-  },
-  accountabilityActions: {
-    gap: mentaSpacing[2],
-    marginTop: 'auto',
-    paddingTop: mentaSpacing[8],
-  },
-  recoveryActions: {
-    marginTop: mentaSpacing[4],
-    paddingTop: 0,
-  },
-  allClearSummary: {
-    alignItems: 'flex-end',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: mentaSpacing[5],
-    marginTop: mentaSpacing[5],
-    paddingVertical: mentaSpacing[5],
-  },
-  allClearValue: {
-    ...mentaTypography.display,
-    color: mentaColors.text.primary,
-    fontSize: 72,
-    fontVariant: ['tabular-nums'],
-    lineHeight: 76,
-  },
-  allClearSummaryCopy: {
-    flex: 1,
-    flexGrow: 1,
-    gap: mentaSpacing[1],
-    minWidth: 180,
-  },
-  allClearLabel: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-  },
-  allClearReviewStatus: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-  },
-  allClearHeading: {
-    gap: mentaSpacing[3],
-    marginTop: mentaSpacing[6],
-  },
-  heroCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  title: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-  },
-  detail: {
-    ...mentaTypography.body,
-    color: mentaColors.text.secondary,
-    marginTop: mentaSpacing[2],
-  },
-  actions: {
-    gap: mentaSpacing[2],
-    marginTop: mentaSpacing[8],
-  },
-  skeletonStack: {
-    gap: mentaSpacing[5],
-  },
-  skeletonCopy: {
-    alignItems: 'center',
-    gap: mentaSpacing[3],
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const HALO_COLOR: Record<TodayAccent, string> = {
+    action: mentaColors.actionSoft,
+    success: mentaColors.successSoft,
+    warning: mentaColors.warningSoft,
+    danger: mentaColors.dangerSoft,
+    muted: mentaColors.raised,
+  };
+  const SYSTEM_TILE_TONE: Record<TodayAccent, { background: string }> = {
+    action: { background: mentaColors.actionSoft },
+    success: { background: mentaColors.successSoft },
+    warning: { background: mentaColors.warningSoft },
+    danger: { background: mentaColors.dangerSoft },
+    muted: { background: mentaColors.raised },
+  };
+  const SYSTEM_ICON_COLOR: Record<TodayAccent, string> = {
+    action: mentaColors.action,
+    success: mentaColors.success,
+    warning: mentaColors.warning,
+    danger: mentaColors.danger,
+    muted: mentaColors.text.secondary,
+  };
+  const styles = StyleSheet.create({
+    heroCountdown: {
+      marginBottom: mentaSpacing[2],
+      marginTop: mentaSpacing[5],
+    },
+    recoveryHeading: {
+      alignItems: 'center',
+      marginTop: mentaSpacing[5],
+    },
+    recoveryText: {
+      textAlign: 'center',
+    },
+    countdownNote: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.muted,
+      textAlign: 'center',
+    },
+    stateLane: {
+      alignSelf: 'center',
+      maxWidth: mentaLayout.taskLane,
+      width: '100%',
+    },
+    emptyState: {
+      gap: mentaSpacing[5],
+      justifyContent: 'center',
+      paddingVertical: mentaSpacing[4],
+    },
+    emptyMain: {
+      gap: mentaSpacing[5],
+    },
+    emptyIntro: {
+      gap: mentaSpacing[3],
+    },
+    emptyTitle: {
+      ...mentaTypography.heading,
+      color: mentaColors.text.primary,
+    },
+    emptyDetail: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+      maxWidth: mentaLayout.readingMeasure,
+    },
+    emptyMascot: {
+      alignSelf: 'center',
+    },
+    emptyVisual: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '100%',
+    },
+    emptyActions: {
+      gap: mentaSpacing[2],
+    },
+    systemState: {
+      paddingVertical: mentaSpacing[3],
+    },
+    systemCard: {
+      alignItems: 'flex-start',
+      flexDirection: 'row',
+      gap: mentaSpacing[4],
+    },
+    systemTile: {
+      alignItems: 'center',
+      borderRadius: mentaRadii.medium,
+      height: 48,
+      justifyContent: 'center',
+      width: 48,
+    },
+    heroDate: {
+      ...mentaTypography.bodySmallMedium,
+      color: mentaColors.text.secondary,
+      marginBottom: mentaSpacing[5],
+    },
+    heroVisual: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.surface,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      justifyContent: 'center',
+      overflow: 'visible',
+      position: 'relative',
+      width: '100%',
+    },
+    heroHalo: {
+      borderRadius: mentaRadii.round,
+      position: 'absolute',
+    },
+    heroMascot: {
+      flexShrink: 0,
+    },
+    heroCopyAfterStage: {
+      marginTop: mentaSpacing[5],
+    },
+    heroReceipt: {
+      marginTop: mentaSpacing[6],
+    },
+    heroCopyBlock: {
+      alignItems: 'center',
+      gap: mentaSpacing[3],
+    },
+    heroTitle: {
+      ...mentaTypography.heading,
+      color: mentaColors.text.primary,
+      textAlign: 'center',
+    },
+    heroDetail: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+      maxWidth: mentaLayout.readingMeasure,
+      textAlign: 'center',
+    },
+    heroDetailCompact: { maxWidth: '100%' },
+    heroActions: {
+      gap: mentaSpacing[2],
+      paddingTop: mentaSpacing[5],
+    },
+    accountabilityHeading: {
+      gap: mentaSpacing[3],
+    },
+    accountabilityVisual: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: mentaSpacing[4],
+      minHeight: 196,
+      overflow: 'visible',
+      width: '100%',
+    },
+    recoveryVisual: {
+      marginTop: mentaSpacing[3],
+      minHeight: 168,
+    },
+    proofDueVisual: {
+      marginTop: 0,
+      minHeight: 0,
+    },
+    accountabilityMascot: {
+      flexShrink: 0,
+    },
+    accountabilityTitle: {
+      ...mentaTypography.heading,
+      color: mentaColors.text.primary,
+    },
+    accountabilityDetail: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+      maxWidth: mentaLayout.readingMeasure,
+    },
+    accountabilityCountdown: {
+      marginTop: mentaSpacing[5],
+    },
+    proofDueHeading: {
+      marginTop: mentaSpacing[3],
+    },
+    accountabilityFacts: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      marginTop: mentaSpacing[5],
+    },
+    accountabilityFact: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[4],
+      justifyContent: 'space-between',
+      minHeight: 52,
+      paddingVertical: mentaSpacing[3],
+    },
+    accountabilityFactDivider: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+    accountabilityFactLabel: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+      flex: 1,
+      minWidth: 0,
+    },
+    accountabilityFactValue: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+      flexShrink: 1,
+      fontVariant: ['tabular-nums'],
+      textAlign: 'right',
+    },
+    accountabilityNote: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+      marginTop: mentaSpacing[5],
+      maxWidth: mentaLayout.readingMeasure,
+    },
+    recoveryNote: {
+      marginTop: mentaSpacing[3],
+    },
+    accountabilityReceipt: {
+      alignItems: 'flex-start',
+      backgroundColor: mentaColors.paper,
+      borderColor: mentaColors.borderPaper,
+      borderRadius: mentaRadii.medium,
+      borderWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      marginTop: mentaSpacing[5],
+      padding: mentaSpacing[4],
+    },
+    accountabilityReceiptCopy: {
+      flex: 1,
+      gap: mentaSpacing[1],
+      minWidth: 0,
+    },
+    accountabilityReceiptTitle: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.onPaper,
+    },
+    accountabilityReceiptDetail: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.mutedOnPaper,
+    },
+    accountabilityActions: {
+      gap: mentaSpacing[2],
+      marginTop: 'auto',
+      paddingTop: mentaSpacing[8],
+    },
+    recoveryActions: {
+      marginTop: mentaSpacing[4],
+      paddingTop: 0,
+    },
+    allClearSummary: {
+      alignItems: 'flex-end',
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: mentaSpacing[5],
+      marginTop: mentaSpacing[5],
+      paddingVertical: mentaSpacing[5],
+    },
+    allClearValue: {
+      ...mentaTypography.display,
+      color: mentaColors.text.primary,
+      fontSize: 72,
+      fontVariant: ['tabular-nums'],
+      lineHeight: 76,
+    },
+    allClearSummaryCopy: {
+      flex: 1,
+      flexGrow: 1,
+      gap: mentaSpacing[1],
+      minWidth: 180,
+    },
+    allClearLabel: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+    },
+    allClearReviewStatus: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+    },
+    allClearHeading: {
+      gap: mentaSpacing[3],
+      marginTop: mentaSpacing[6],
+    },
+    heroCopy: {
+      flex: 1,
+      minWidth: 0,
+    },
+    title: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+    },
+    detail: {
+      ...mentaTypography.body,
+      color: mentaColors.text.secondary,
+      marginTop: mentaSpacing[2],
+    },
+    actions: {
+      gap: mentaSpacing[2],
+      marginTop: mentaSpacing[8],
+    },
+    skeletonStack: {
+      gap: mentaSpacing[5],
+    },
+    skeletonCopy: {
+      alignItems: 'center',
+      gap: mentaSpacing[3],
+    },
+  });
+  return { HALO_COLOR, SYSTEM_TILE_TONE, SYSTEM_ICON_COLOR, styles };
+};

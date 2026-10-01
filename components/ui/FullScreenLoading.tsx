@@ -1,7 +1,9 @@
+import type { MentaPalette } from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Image, StyleSheet, Text, View } from 'react-native';
 import { useScreenReader } from '@/lib/accessibility';
-import { mentaColors } from '@/constants/MentaDesignSystem';
+
 import { mentaFonts } from '@/lib/menta-fonts';
 import { useTranslation } from '@/lib/localization/use-translation';
 
@@ -18,6 +20,8 @@ const LAUNCH_TIPS = [
  * violet S01/S02 composition ships with the next native splash change.
  */
 export const FullScreenLoading = ({ message }: { message?: string }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { isReduceMotionEnabled } = useScreenReader();
   const { t } = useTranslation();
   const motionDisabled =
@@ -77,46 +81,49 @@ export const FullScreenLoading = ({ message }: { message?: string }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.canvas,
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 40,
-  },
-  // Matches the expo-splash-screen imageWidth in app.json, shrinking only on
-  // windows narrower than the splash itself.
-  markShell: {
-    aspectRatio: 1,
-    maxWidth: 280,
-    width: '100%',
-  },
-  mark: {
-    height: '100%',
-    width: '100%',
-  },
-  copy: {
-    alignItems: 'center',
-    gap: 8,
-    left: 40,
-    position: 'absolute',
-    right: 40,
-    top: '64%',
-  },
-  status: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.inter.semibold,
-    fontSize: 17,
-    lineHeight: 24,
-    textAlign: 'center',
-  },
-  tip: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.regular,
-    fontSize: 16,
-    lineHeight: 23,
-    maxWidth: 320,
-    textAlign: 'center',
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    container: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.canvas,
+      flex: 1,
+      justifyContent: 'center',
+      paddingHorizontal: 40,
+    },
+    // Matches the expo-splash-screen imageWidth in app.json, shrinking only on
+    // windows narrower than the splash itself.
+    markShell: {
+      aspectRatio: 1,
+      maxWidth: 280,
+      width: '100%',
+    },
+    mark: {
+      height: '100%',
+      width: '100%',
+    },
+    copy: {
+      alignItems: 'center',
+      gap: 8,
+      left: 40,
+      position: 'absolute',
+      right: 40,
+      top: '64%',
+    },
+    status: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.inter.semibold,
+      fontSize: 17,
+      lineHeight: 24,
+      textAlign: 'center',
+    },
+    tip: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.regular,
+      fontSize: 16,
+      lineHeight: 23,
+      maxWidth: 320,
+      textAlign: 'center',
+    },
+  });
+  return { styles };
+};

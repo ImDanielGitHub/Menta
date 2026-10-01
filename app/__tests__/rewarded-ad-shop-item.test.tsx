@@ -481,8 +481,8 @@ describe('shop item purchase and sponsor reward', () => {
 
   async function openSponsorPaywall() {
     render(<ShopItemDetailsScreen />);
+    // Short on Momenta opens the shared top-up straight away.
     fireEvent.press(await screen.findByText('Get Momenta'));
-    fireEvent.press(screen.getByText('Watch an optional ad'));
     fireEvent.press(await screen.findByText('Play shop sponsor'));
   }
 
@@ -492,7 +492,7 @@ describe('shop item purchase and sponsor reward', () => {
 
     fireEvent.press(await screen.findByText('Get Momenta'));
 
-    expect(screen.queryByText('Watch an optional ad')).toBeNull();
+    expect(await screen.findByText('Shop sponsor hidden')).toBeTruthy();
     expect(mockShowRewardedAdDetailed).not.toHaveBeenCalled();
     expect(mockClaimAdReward).not.toHaveBeenCalled();
   });

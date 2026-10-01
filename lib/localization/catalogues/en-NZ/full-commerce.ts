@@ -1,5 +1,14 @@
 /** Customer-facing copy for the Momenta wallet, shop, inventory, and Pro flows. */
 export const fullCommerceEnNZ = {
+  'commerce.proJourney.continueFree': 'Continue with free',
+  'commerce.free.receiptRetry': 'Your promise was created',
+  'commerce.free.receiptRetryDetail':
+    'We couldn’t save its receipt. Retry to finish reviewer setup. This won’t create or charge for another promise.',
+  'commerce.free.pendingReviewer': 'Waiting for a reviewer',
+  'commerce.free.pendingDetail':
+    'Your promise and deadline have already started. Invite a friend to check your proof. Leaving this screen keeps the promise and its deadline running.',
+  'commerce.free.finishSetup': 'Finish reviewer setup',
+
   'commerce.powerUp.freezeLabel': 'Streak Freeze',
   'commerce.powerUp.freezeDescription':
     'Covers your next eligible missed day automatically.',
@@ -314,7 +323,7 @@ export const fullCommerceEnNZ = {
   'commerce.shop.state': 'State',
   'commerce.shop.reachStreakAuto':
     'Reach a {days}-day streak. Menta adds it to Your items automatically.',
-  'commerce.shop.appearanceWarm': '{name} gives Menta a warmer look.',
+  'commerce.shop.themeTitle': '{name} changes Menta’s colours.',
   'commerce.shop.frameTitle': '{name} frames your profile photo.',
   'commerce.shop.oneUse': 'one use',
   'commerce.shop.unlocks': 'Unlocks at a {days}-day streak',
@@ -430,8 +439,8 @@ export const fullCommerceEnNZ = {
     'Adds 12 hours to the deadline of one active promise.',
   'commerce.shop.choosePromiseAfter':
     'Choose the active promise after purchase or later from Your items.',
-  'commerce.shop.buttonsColours':
-    'Buttons, highlights and selected items use Ember’s warm colours.',
+  'commerce.shop.themeColours':
+    'Buttons, highlights and selected items use {name}’s colours.',
   'commerce.shop.frameProfile':
     'The frame appears anywhere Menta shows your profile identity.',
   'commerce.shop.frameDescription':
@@ -834,7 +843,8 @@ export const fullCommerceEnNZ = {
     'The freeze could not be confirmed. Try again.',
   'commerce.firstMiss.errorUnavailable':
     'This first-day offer is no longer available. You can still add proof today.',
-  'commerce.firstMiss.bubble': '{weekday} slipped by. It happens to everyone.',
+  'commerce.firstMiss.bubble':
+    '{weekday} slipped by. One missed day isn’t the whole story.',
   'commerce.firstMiss.decisionTitle': 'Keep your {count}-day streak?',
   'commerce.firstMiss.decisionBody':
     'Your first missed day is on us. A free Streak Freeze covers {weekday}, and your count stays at {count}.',
@@ -842,6 +852,9 @@ export const fullCommerceEnNZ = {
     'Your first missed day is on us. A free Streak Freeze covers {weekday}.',
   'commerce.firstMiss.keep': 'Keep my streak for free',
   'commerce.firstMiss.startOver': 'Start over at day 1',
+  'commerce.free.receiptReadBlocked': 'Check your saved promise',
+  'commerce.free.receiptReadBlockedDetail':
+    'We couldn’t safely read the saved promise. Retry recovery before starting another promise.',
 } as const;
 
 export type FullCommerceKey = keyof typeof fullCommerceEnNZ;

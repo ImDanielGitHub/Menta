@@ -1,6 +1,7 @@
 import React from 'react';
 import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -9,16 +10,57 @@ import {
 } from '@testing-library/react-native';
 
 import GroupsScreen from '@/app/(tabs)/groups';
-import GroupDetailScreen from '@/app/groups/[id]';
+import GroupDetailRoute from '@/app/groups/[id]';
+import { NavigationContext } from 'expo-router/react-navigation';
 import { mentaLayout } from '@/constants/MentaDesignSystem';
 import { ThemeProvider } from '@/constants/ThemeContext';
 import type { Group } from '@/store/group-store';
+import { supabase } from '@/lib/supabase';
+import {
+  buildGroupAccountabilitySnapshot,
+  type GroupAccountabilitySnapshot,
+} from '@/lib/loop/group-accountability-board';
 
 const mockRouter = {
   back: jest.fn(),
+  canGoBack: () => true,
   push: jest.fn(),
   replace: jest.fn(),
 };
+let mockFocused = true;
+const mockFocusListeners = {
+  focus: new Set<() => void>(),
+  blur: new Set<() => void>(),
+};
+const mockNavigation = {
+  isFocused: () => mockFocused,
+  addListener: (event: 'focus' | 'blur', listener: () => void) => {
+    mockFocusListeners[event].add(listener);
+    return () => mockFocusListeners[event].delete(listener);
+  },
+};
+const setRouteFocused = (focused: boolean) => {
+  mockFocused = focused;
+  mockFocusListeners[focused ? 'focus' : 'blur'].forEach(listener =>
+    listener()
+  );
+};
+const GroupDetailScreen = () => (
+  <NavigationContext.Provider value={mockNavigation as never}>
+    <GroupDetailRoute />
+  </NavigationContext.Provider>
+);
+
+// Exercise Expo Router's real focus/blur/unmount lifecycle, replacing only its
+// navigation event boundary rather than the cancellation implementation.
+jest.mock('expo-router/react-navigation', () => ({
+  ...jest.requireActual(
+    'expo-router/build/react-navigation/core/NavigationContext'
+  ),
+  ...jest.requireActual(
+    'expo-router/build/react-navigation/core/useFocusEffect'
+  ),
+}));
 const mockFetchDiscoverGroups = jest.fn(() => Promise.resolve());
 const mockFetchUserGroups = jest.fn(() => Promise.resolve());
 const mockJoinGroup = jest.fn(() => Promise.resolve());
@@ -35,6 +77,8 @@ const mockGroupStoreState = {
   userGroups: [] as string[],
 };
 const mockGroupDetailState = { loaded: false };
+let mockViewerId = 'user-1';
+let mockBoardSnapshot: GroupAccountabilitySnapshot | undefined;
 let mockGroupStatus = 'active';
 let mockGroupKind: 'saved' | 'promise' = 'saved';
 let mockGroupChallenges: Array<{
@@ -129,6 +173,23 @@ jest.mock('@/hooks/useGroupDetail', () => ({
                 has_completed_onboarding: true,
               },
             },
+            ...(mockBoardSnapshot
+              ? [
+                  {
+                    group_id: 'group-1',
+                    user_id: 'user-2',
+                    role: 'member',
+                    joined_at: '2026-08-01T00:00:00.000Z',
+                    user: {
+                      id: 'user-2',
+                      username: 'sam',
+                      display_name: 'Sam',
+                      avatar_url: null,
+                      has_completed_onboarding: true,
+                    },
+                  },
+                ]
+              : []),
           ],
           refetch: jest.fn(() => Promise.resolve()),
         }
@@ -164,9 +225,10 @@ jest.mock('@/hooks/usePromiseAccountability', () => ({
 
 jest.mock('@/hooks/useGroupAccountabilityBoard', () => ({
   useGroupAccountabilityBoard: () => ({
+    data: mockBoardSnapshot,
     error: null,
     fetchStatus: 'idle',
-    hasSnapshot: false,
+    hasSnapshot: Boolean(mockBoardSnapshot),
     isError: false,
     isInitialLoading: false,
     lastUpdatedAt: undefined,
@@ -193,7 +255,7 @@ jest.mock('@/components/ui/Toast', () => ({
 }));
 
 jest.mock('@/store/auth-store', () => ({
-  useAuthStore: () => ({ user: { id: 'user-1' } }),
+  useAuthStore: () => ({ user: { id: mockViewerId } }),
 }));
 
 jest.mock('@/store/invite-store', () => ({
@@ -217,15 +279,21 @@ jest.mock('@/store/selectors', () => ({
 }));
 
 describe('Groups production-route geometry and accessibility', () => {
+  afterEach(() => jest.restoreAllMocks());
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFocused = true;
+    mockFocusListeners.focus.clear();
+    mockFocusListeners.blur.clear();
     mockFetchDiscoverGroups.mockResolvedValue(undefined);
     mockFetchUserGroups.mockResolvedValue(undefined);
     mockGroupsListProps = null;
     mockGroupDetailState.loaded = false;
+    mockViewerId = 'user-1';
     mockGroupStatus = 'active';
     mockGroupKind = 'saved';
     mockGroupChallenges = [];
+    mockBoardSnapshot = undefined;
     mockGroupStoreState.userGroups = [];
     mockGroupStoreState.archiveFailedGroup.mockReset();
     mockGroupStoreState.archiveFailedGroup.mockResolvedValue({
@@ -516,5 +584,305 @@ describe('Groups production-route geometry and accessibility', () => {
     await waitFor(() => {
       expect(mockRouter.replace).toHaveBeenCalledWith('/(tabs)/groups');
     });
+  });
+
+  describe('rejected-proof correction handoff', () => {
+    const feedback =
+      'Action not visible\nInclude the full walk route next time.';
+    const proofRow = {
+      id: 'proof-1',
+      user_id: 'user-1',
+      challenge_id: 'promise-1',
+      status: 'rejected',
+      review_notes: feedback as string | null,
+    };
+
+    const prepareRetry = (
+      type: 'photo' | 'video' | 'text' = 'photo',
+      row = proofRow,
+      status: 'rejected' | 'pending' | 'approved' | null = 'rejected',
+      owner = 'user-1'
+    ) => {
+      mockGroupDetailState.loaded = true;
+      mockGroupStoreState.userGroups = ['group-1'];
+      mockGroupChallenges = [
+        {
+          id: 'promise-1',
+          title: 'Walk after work',
+          description: 'Share your walk.',
+          verification_type: type,
+          added_to_group_at: '2026-09-01T00:00:00Z',
+        },
+      ];
+      mockBoardSnapshot = buildGroupAccountabilitySnapshot({
+        members: [
+          { userId: 'user-1', name: 'Daniel', isCurrentUser: true },
+          { userId: 'user-2', name: 'Sam', isCurrentUser: false },
+        ],
+        submissions: status
+          ? [
+              {
+                id: 'proof-1',
+                userId: owner,
+                status,
+                mediaType: type,
+                submittedAt: '2026-10-01T10:00:00Z',
+              },
+            ]
+          : [],
+      });
+      // A database-shaped read: all predicates must match to return feedback.
+      return jest.spyOn(supabase, 'from').mockImplementation(() => {
+        const filters: Record<string, unknown> = {};
+        const query = {
+          select: () => query,
+          eq: (key: string, value: unknown) => {
+            filters[key] = value;
+            return query;
+          },
+          maybeSingle: async () => ({
+            data: Object.entries(filters).every(
+              ([key, value]) => row[key as keyof typeof row] === value
+            )
+              ? { review_notes: row.review_notes }
+              : null,
+            error: null,
+          }),
+        };
+        return query as never;
+      });
+    };
+
+    it.each([
+      ['photo', 'Add my photo'],
+      ['video', 'Add my video'],
+      ['text', 'Add proof'],
+    ] as const)(
+      'preserves full feedback and the %s retry type and label',
+      async (type, label) => {
+        prepareRetry(type);
+        render(<GroupDetailScreen />);
+        fireEvent.press(screen.getByLabelText(label));
+        await waitFor(() =>
+          expect(mockRouter.push).toHaveBeenCalledWith({
+            pathname: '/verification',
+            params: {
+              challengeId: 'promise-1',
+              groupId: 'group-1',
+              verificationType: type,
+              suggestedVerificationType: type,
+              source: 'group_detail',
+              correctionReason: feedback,
+            },
+          })
+        );
+      }
+    );
+
+    it.each([
+      ['another member', { ...proofRow, user_id: 'user-2' }],
+      ['another challenge', { ...proofRow, challenge_id: 'promise-2' }],
+      ['a replaced submission', { ...proofRow, id: 'older-proof' }],
+      ['a resolved proof', { ...proofRow, status: 'approved' }],
+      ['missing feedback', { ...proofRow, review_notes: null }],
+      ['blank feedback', { ...proofRow, review_notes: ' \n ' }],
+    ])(
+      'does not pass %s feedback from a stale retry board',
+      async (_label, row) => {
+        prepareRetry('photo', row);
+        render(<GroupDetailScreen />);
+        fireEvent.press(screen.getByLabelText('Add my photo'));
+        await waitFor(() => expect(mockRouter.push).toHaveBeenCalled());
+        expect(mockRouter.push.mock.calls[0][0].params).not.toHaveProperty(
+          'correctionReason'
+        );
+      }
+    );
+
+    it('does not reuse another member’s retry for the current user’s due proof', async () => {
+      const read = prepareRetry('photo', proofRow, 'rejected', 'user-2');
+      render(<GroupDetailScreen />);
+      fireEvent.press(screen.getByLabelText('Add my photo'));
+      await waitFor(() => expect(mockRouter.push).toHaveBeenCalled());
+      expect(read).not.toHaveBeenCalled();
+      expect(mockRouter.push.mock.calls[0][0].params).not.toHaveProperty(
+        'correctionReason'
+      );
+    });
+
+    it('preserves a reason without an optional note', async () => {
+      prepareRetry('text', {
+        ...proofRow,
+        review_notes: 'Too unclear to review',
+      });
+      render(<GroupDetailScreen />);
+      fireEvent.press(screen.getByLabelText('Add proof'));
+      await waitFor(() => expect(mockRouter.push).toHaveBeenCalled());
+      expect(mockRouter.push.mock.calls[0][0].params.correctionReason).toBe(
+        'Too unclear to review'
+      );
+    });
+
+    it('keeps the retry available when feedback cannot be read', async () => {
+      const read = prepareRetry();
+      const query = {
+        select: () => query,
+        eq: () => query,
+        maybeSingle: async () => ({
+          data: null,
+          error: { message: 'Unavailable' },
+        }),
+      };
+      read.mockImplementationOnce(() => query as never);
+      render(<GroupDetailScreen />);
+      fireEvent.press(screen.getByLabelText('Add my photo'));
+      expect(await screen.findByText('Try again')).toBeTruthy();
+      expect(mockRouter.push).not.toHaveBeenCalled();
+      fireEvent.press(screen.getByLabelText('Add my photo'));
+      await waitFor(() => expect(mockRouter.push).toHaveBeenCalled());
+      expect(mockRouter.push.mock.calls[0][0].params.correctionReason).toBe(
+        feedback
+      );
+    });
+
+    it('ignores feedback that finishes after the account changes', async () => {
+      const read = prepareRetry();
+      let finish!: (value: unknown) => void;
+      const query = {
+        select: () => query,
+        eq: () => query,
+        maybeSingle: () =>
+          new Promise(resolve => {
+            finish = resolve;
+          }),
+      };
+      read.mockImplementationOnce(() => query as never);
+      const view = render(<GroupDetailScreen />);
+      fireEvent.press(screen.getByLabelText('Add my photo'));
+      mockViewerId = 'user-2';
+      view.rerender(<GroupDetailScreen />);
+      await act(async () =>
+        finish({ data: { review_notes: feedback }, error: null })
+      );
+      expect(mockRouter.push).not.toHaveBeenCalled();
+    });
+
+    const delayFeedback = () => {
+      const read = prepareRetry();
+      const finishers: Array<(value: unknown) => void> = [];
+      read.mockImplementation(() => {
+        const query = {
+          select: () => query,
+          eq: () => query,
+          maybeSingle: () =>
+            new Promise(resolve => {
+              finishers.push(resolve);
+            }),
+        };
+        return query as never;
+      });
+      return { read, finishers };
+    };
+
+    it.each(['unmount', 'blur', 'back'] as const)(
+      'cancels a delayed retry handoff after %s',
+      async leave => {
+        const { finishers } = delayFeedback();
+        const view = render(<GroupDetailScreen />);
+        fireEvent.press(screen.getByLabelText('Add my photo'));
+        if (leave === 'unmount') view.unmount();
+        else if (leave === 'blur') act(() => setRouteFocused(false));
+        else {
+          mockRouter.back.mockImplementationOnce(() => setRouteFocused(false));
+          fireEvent.press(screen.getByLabelText('Back'));
+          expect(mockRouter.back).toHaveBeenCalledTimes(1);
+        }
+        await act(async () =>
+          finishers[0]({ data: { review_notes: feedback }, error: null })
+        );
+        expect(mockRouter.push).not.toHaveBeenCalled();
+      }
+    );
+
+    it('coalesces repeated taps while a retry read is pending', async () => {
+      const { read, finishers } = delayFeedback();
+      render(<GroupDetailScreen />);
+      fireEvent.press(screen.getByLabelText('Add my photo'));
+      fireEvent.press(screen.getByLabelText('Add my photo'));
+      expect(read).toHaveBeenCalledTimes(1);
+      await act(async () =>
+        finishers[0]({ data: { review_notes: feedback }, error: null })
+      );
+      expect(mockRouter.push).toHaveBeenCalledTimes(1);
+      fireEvent.press(screen.getByLabelText('Add my photo'));
+      expect(read).toHaveBeenCalledTimes(1);
+      expect(mockRouter.push).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not revive an old handoff after leaving and returning to the screen', async () => {
+      const { read, finishers } = delayFeedback();
+      render(<GroupDetailScreen />);
+      fireEvent.press(screen.getByLabelText('Add my photo'));
+      act(() => setRouteFocused(false));
+      act(() => setRouteFocused(true));
+      fireEvent.press(screen.getByLabelText('Add my photo'));
+      await act(async () =>
+        finishers[0]({ data: { review_notes: 'Old feedback' }, error: null })
+      );
+      expect(mockRouter.push).not.toHaveBeenCalled();
+      fireEvent.press(screen.getByLabelText('Add my photo'));
+      expect(read).toHaveBeenCalledTimes(2);
+      await act(async () =>
+        finishers[1]({ data: { review_notes: feedback }, error: null })
+      );
+      expect(mockRouter.push).toHaveBeenCalledTimes(1);
+      expect(mockRouter.push.mock.calls[0][0].params.correctionReason).toBe(
+        feedback
+      );
+    });
+
+    it.each(['challenge', 'account', 'retry submission'] as const)(
+      'invalidates the request even when its %s changes and returns to the same target',
+      async context => {
+        const { finishers } = delayFeedback();
+        const view = render(<GroupDetailScreen />);
+        fireEvent.press(screen.getByLabelText('Add my photo'));
+        const originalSnapshot = mockBoardSnapshot;
+        if (context === 'challenge')
+          mockGroupChallenges = [
+            { ...mockGroupChallenges[0], id: 'promise-2' },
+          ];
+        else if (context === 'account') mockViewerId = 'user-2';
+        else
+          mockBoardSnapshot = {
+            ...mockBoardSnapshot!,
+            members: mockBoardSnapshot!.members.map(member =>
+              member.userId === 'user-1'
+                ? { ...member, submissionId: 'proof-2' }
+                : member
+            ),
+          };
+        view.rerender(<GroupDetailScreen />);
+        mockGroupChallenges = [{ ...mockGroupChallenges[0], id: 'promise-1' }];
+        mockViewerId = 'user-1';
+        mockBoardSnapshot = originalSnapshot;
+        view.rerender(<GroupDetailScreen />);
+        await act(async () =>
+          finishers[0]({ data: { review_notes: feedback }, error: null })
+        );
+        expect(mockRouter.push).not.toHaveBeenCalled();
+      }
+    );
+
+    it.each(['pending', 'approved'] as const)(
+      'does not offer retry or read feedback for %s proof',
+      status => {
+        const read = prepareRetry('photo', proofRow, status);
+        render(<GroupDetailScreen />);
+        expect(screen.queryByLabelText('Add my photo')).toBeNull();
+        expect(read).not.toHaveBeenCalled();
+        expect(mockRouter.push).not.toHaveBeenCalled();
+      }
+    );
   });
 });

@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import { useTranslation } from '@/lib/localization';
 import React, {
   useCallback,
@@ -27,12 +34,7 @@ import {
   SkeletonLoader,
 } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { readFileBase64 } from '@/lib/filesystem';
 import { PROFILE_SAFETY_DISCLOSURE } from '@/lib/content-safety';
@@ -91,6 +93,8 @@ const photoExtension = (mimeType: string) => {
 };
 
 const ProfileSkeleton = () => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <View
@@ -125,6 +129,8 @@ const ReadOnlyDetailRow = ({
   description?: string;
   showDivider?: boolean;
 }) => {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   return (
     <View style={[styles.readOnlyRow, !showDivider && styles.lastDetailRow]}>
@@ -143,6 +149,8 @@ const ReadOnlyDetailRow = ({
 };
 
 export default function EditProfileScreen() {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -900,146 +908,149 @@ export default function EditProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screenShell: {
-    flex: 1,
-  },
-  screenContent: {
-    gap: mentaSpacing[6],
-    paddingBottom: mentaSpacing[8],
-    paddingTop: mentaSpacing[6],
-  },
-  skeleton: {
-    gap: mentaSpacing[5],
-    paddingTop: mentaSpacing[5],
-  },
-  skeletonIdentity: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[4],
-  },
-  skeletonIdentityCopy: {
-    flex: 1,
-    gap: mentaSpacing[2],
-  },
-  inlineAction: {
-    marginTop: mentaSpacing[5],
-  },
-  identitySection: {
-    gap: mentaSpacing[5],
-  },
-  identityRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[4],
-  },
-  identityCopy: {
-    flex: 1,
-    gap: mentaSpacing[1],
-  },
-  identityName: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.title,
-  },
-  identityUsername: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.caption,
-  },
-  profileActions: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: mentaSpacing[2],
-  },
-  visibilitySection: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[1],
-    paddingVertical: mentaSpacing[4],
-  },
-  sectionLabel: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.labelBold,
-  },
-  visibilityCopy: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.caption,
-  },
-  previewSection: {
-    alignItems: 'flex-start',
-    gap: mentaSpacing[3],
-  },
-  previewTitle: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.bodySmallMedium,
-  },
-  finalAvatarPreview: {
-    borderRadius: PROFILE_AVATAR_PREVIEW_SIZE / 2,
-    height: PROFILE_AVATAR_PREVIEW_SIZE,
-    overflow: 'hidden',
-    width: PROFILE_AVATAR_PREVIEW_SIZE,
-  },
-  detailsSection: {
-    gap: mentaSpacing[4],
-  },
-  readOnlyRow: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[1],
-    paddingVertical: mentaSpacing[3],
-  },
-  lastDetailRow: {
-    borderBottomWidth: 0,
-  },
-  readOnlyLabelRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  readOnlyLabel: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.labelBold,
-  },
-  readOnlyStatus: {
-    color: mentaColors.text.muted,
-    ...mentaTypography.label,
-  },
-  readOnlyValue: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.control,
-  },
-  readOnlyDescription: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.caption,
-  },
-  fixedFooter: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.surface,
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingTop: mentaSpacing[3],
-  },
-  fixedFooterLane: {
-    gap: mentaSpacing[2],
-    maxWidth: mentaLayout.taskLane,
-    width: '100%',
-  },
-  primaryAction: {
-    minHeight: 52,
-  },
-  receiptContent: {
-    gap: mentaSpacing[4],
-    paddingTop: mentaSpacing[3],
-  },
-  receiptTitle: {
-    color: mentaColors.text.primary,
-    ...mentaTypography.journeyTitle,
-  },
-  receiptDescription: {
-    color: mentaColors.text.secondary,
-    ...mentaTypography.body,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screenShell: {
+      flex: 1,
+    },
+    screenContent: {
+      gap: mentaSpacing[6],
+      paddingBottom: mentaSpacing[8],
+      paddingTop: mentaSpacing[6],
+    },
+    skeleton: {
+      gap: mentaSpacing[5],
+      paddingTop: mentaSpacing[5],
+    },
+    skeletonIdentity: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[4],
+    },
+    skeletonIdentityCopy: {
+      flex: 1,
+      gap: mentaSpacing[2],
+    },
+    inlineAction: {
+      marginTop: mentaSpacing[5],
+    },
+    identitySection: {
+      gap: mentaSpacing[5],
+    },
+    identityRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[4],
+    },
+    identityCopy: {
+      flex: 1,
+      gap: mentaSpacing[1],
+    },
+    identityName: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.title,
+    },
+    identityUsername: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.caption,
+    },
+    profileActions: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: mentaSpacing[2],
+    },
+    visibilitySection: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[1],
+      paddingVertical: mentaSpacing[4],
+    },
+    sectionLabel: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.labelBold,
+    },
+    visibilityCopy: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.caption,
+    },
+    previewSection: {
+      alignItems: 'flex-start',
+      gap: mentaSpacing[3],
+    },
+    previewTitle: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.bodySmallMedium,
+    },
+    finalAvatarPreview: {
+      borderRadius: PROFILE_AVATAR_PREVIEW_SIZE / 2,
+      height: PROFILE_AVATAR_PREVIEW_SIZE,
+      overflow: 'hidden',
+      width: PROFILE_AVATAR_PREVIEW_SIZE,
+    },
+    detailsSection: {
+      gap: mentaSpacing[4],
+    },
+    readOnlyRow: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[1],
+      paddingVertical: mentaSpacing[3],
+    },
+    lastDetailRow: {
+      borderBottomWidth: 0,
+    },
+    readOnlyLabelRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    readOnlyLabel: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.labelBold,
+    },
+    readOnlyStatus: {
+      color: mentaColors.text.muted,
+      ...mentaTypography.label,
+    },
+    readOnlyValue: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.control,
+    },
+    readOnlyDescription: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.caption,
+    },
+    fixedFooter: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.surface,
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingTop: mentaSpacing[3],
+    },
+    fixedFooterLane: {
+      gap: mentaSpacing[2],
+      maxWidth: mentaLayout.taskLane,
+      width: '100%',
+    },
+    primaryAction: {
+      minHeight: 52,
+    },
+    receiptContent: {
+      gap: mentaSpacing[4],
+      paddingTop: mentaSpacing[3],
+    },
+    receiptTitle: {
+      color: mentaColors.text.primary,
+      ...mentaTypography.journeyTitle,
+    },
+    receiptDescription: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.body,
+    },
+  });
+  return { styles };
+};

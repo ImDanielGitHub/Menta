@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -12,12 +19,7 @@ import {
 } from '@/components/ui';
 import { AppScaledText as Text } from '@/components/ui/AppScaledText';
 import { saveOnboardingDraft } from '@/lib/onboarding-draft';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import { usePaperAuthDraft } from '@/components/onboarding/PaperAuthSurface';
 import { PromiseInviteRoleHero } from '@/components/onboarding/PromiseInviteRoleHero';
 import { usePendingPromiseInvitePreview } from '@/hooks/usePendingPromiseInvitePreview';
@@ -40,6 +42,9 @@ const isAuthCancelled = (message: string) =>
   message.toLowerCase().includes('sign in was cancelled');
 
 export default function LoginScreen() {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const router = useRouter();
   const phoneLayout = usePhoneLayout();
   const { t } = useTranslation();
@@ -442,19 +447,22 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    alignSelf: 'center',
-    flexGrow: 1,
-    gap: mentaSpacing[5],
-    maxWidth: mentaLayout.phoneFrameMax,
-    paddingBottom: mentaSpacing[8],
-    paddingTop: mentaSpacing[4],
-    width: '100%',
-  },
-  intro: { gap: mentaSpacing[2], paddingTop: mentaSpacing[4] },
-  title: { color: mentaColors.text.primary, ...mentaTypography.heading },
-  body: { color: mentaColors.text.secondary, ...mentaTypography.body },
-  actions: { gap: mentaSpacing[3], marginTop: 'auto' },
-  googleProviderLabel: googleProviderLabelTypography,
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: {
+      alignSelf: 'center',
+      flexGrow: 1,
+      gap: mentaSpacing[5],
+      maxWidth: mentaLayout.phoneFrameMax,
+      paddingBottom: mentaSpacing[8],
+      paddingTop: mentaSpacing[4],
+      width: '100%',
+    },
+    intro: { gap: mentaSpacing[2], paddingTop: mentaSpacing[4] },
+    title: { color: mentaColors.text.primary, ...mentaTypography.heading },
+    body: { color: mentaColors.text.secondary, ...mentaTypography.body },
+    actions: { gap: mentaSpacing[3], marginTop: 'auto' },
+    googleProviderLabel: googleProviderLabelTypography,
+  });
+  return { styles };
+};

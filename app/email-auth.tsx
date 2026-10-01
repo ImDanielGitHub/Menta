@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import { useTranslation } from '@/lib/localization';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -11,12 +18,7 @@ import {
   AppTopBar,
 } from '@/components/ui';
 import { AppScaledText as Text } from '@/components/ui/AppScaledText';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import {
   PaperAuthLegal,
   usePaperAuthDraft,
@@ -69,6 +71,8 @@ const getFailureMessage = (
 };
 
 export default function EmailAuthScreen() {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const phoneLayout = usePhoneLayout();
   const router = useRouter();
@@ -602,44 +606,50 @@ export default function EmailAuthScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    alignSelf: 'center',
-    flexGrow: 1,
-    gap: mentaSpacing[4],
-    maxWidth: mentaLayout.phoneFrameMax,
-    paddingBottom: mentaSpacing[8],
-    paddingTop: mentaSpacing[4],
-    width: '100%',
-  },
-  intro: { gap: mentaSpacing[2], paddingTop: mentaSpacing[2] },
-  title: { color: mentaColors.text.primary, ...mentaTypography.heading },
-  body: { color: mentaColors.text.secondary, ...mentaTypography.body },
-  fields: { gap: mentaSpacing[3] },
-  passwordField: { gap: mentaSpacing[1] },
-  fieldLink: {
-    color: mentaColors.action,
-    textAlign: 'right',
-    ...mentaTypography.caption,
-  },
-  fieldHint: { color: mentaColors.text.secondary, ...mentaTypography.caption },
-  textAction: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: mentaLayout.minimumTouchTarget,
-  },
-  actions: {
-    gap: mentaSpacing[3],
-    marginTop: 'auto',
-    paddingTop: mentaSpacing[2],
-  },
-  switchCopy: {
-    color: mentaColors.text.secondary,
-    textAlign: 'center',
-    ...mentaTypography.body,
-  },
-  switchAction: {
-    color: mentaColors.action,
-    ...mentaTypography.bodySemibold,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: {
+      alignSelf: 'center',
+      flexGrow: 1,
+      gap: mentaSpacing[4],
+      maxWidth: mentaLayout.phoneFrameMax,
+      paddingBottom: mentaSpacing[8],
+      paddingTop: mentaSpacing[4],
+      width: '100%',
+    },
+    intro: { gap: mentaSpacing[2], paddingTop: mentaSpacing[2] },
+    title: { color: mentaColors.text.primary, ...mentaTypography.heading },
+    body: { color: mentaColors.text.secondary, ...mentaTypography.body },
+    fields: { gap: mentaSpacing[3] },
+    passwordField: { gap: mentaSpacing[1] },
+    fieldLink: {
+      color: mentaColors.action,
+      textAlign: 'right',
+      ...mentaTypography.caption,
+    },
+    fieldHint: {
+      color: mentaColors.text.secondary,
+      ...mentaTypography.caption,
+    },
+    textAction: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: mentaLayout.minimumTouchTarget,
+    },
+    actions: {
+      gap: mentaSpacing[3],
+      marginTop: 'auto',
+      paddingTop: mentaSpacing[2],
+    },
+    switchCopy: {
+      color: mentaColors.text.secondary,
+      textAlign: 'center',
+      ...mentaTypography.body,
+    },
+    switchAction: {
+      color: mentaColors.action,
+      ...mentaTypography.bodySemibold,
+    },
+  });
+  return { styles };
+};

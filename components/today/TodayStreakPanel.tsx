@@ -1,3 +1,10 @@
+import {
+  type MentaPalette,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
@@ -10,12 +17,7 @@ import Animated, {
 import { TodayPressable } from '@/components/today/TodayPressable';
 import { AppScaledText as Text } from '@/components/ui/AppScaledText';
 import { ChevronRightIcon, FlameIcon } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
+
 import type { ObligationProofStatus } from '@/lib/loop';
 import { MOTION_DISTANCES, MOTION_DURATIONS } from '@/lib/motion/tokens';
 import { useMotionPreferences } from '@/lib/motion/use-motion-preferences';
@@ -30,13 +32,6 @@ export type TodayStreakPanelItem = {
   proofStatus: ObligationProofStatus;
 };
 
-const STATUS_COLOR: Record<ObligationProofStatus, string> = {
-  none: mentaColors.text.secondary,
-  pending: mentaColors.text.secondary,
-  approved: mentaColors.success,
-  rejected: mentaColors.warning,
-};
-
 /**
  * Expands under the streak chip. Lists each running promise with its own
  * confirmed streak, so a combined count never hides which promise it is.
@@ -48,6 +43,9 @@ export function TodayStreakPanel({
   items: readonly TodayStreakPanelItem[];
   onOpenPromise: (challengeId: string) => void;
 }) {
+  const mentaColors = useMentaPalette();
+  const { STATUS_COLOR, styles } = useMentaStyles(createPaletteStyles);
+
   const { t } = useTranslation();
   const motion = useMotionPreferences();
   const progress = useSharedValue(motion.allowsTransform ? 0 : 1);
@@ -149,70 +147,79 @@ export function TodayStreakPanel({
   );
 }
 
-const styles = StyleSheet.create({
-  panel: {
-    alignSelf: 'stretch',
-    gap: mentaSpacing[3],
-    width: '100%',
-  },
-  header: {
-    gap: mentaSpacing[1],
-  },
-  title: {
-    ...mentaTypography.title,
-    color: mentaColors.text.primary,
-  },
-  note: {
-    ...mentaTypography.bodySmall,
-    color: mentaColors.text.secondary,
-  },
-  row: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.surface,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 72,
-    paddingHorizontal: mentaSpacing[4],
-    paddingVertical: mentaSpacing[3],
-  },
-  rowPressed: {
-    backgroundColor: mentaColors.raised,
-  },
-  streakBadge: {
-    alignItems: 'center',
-    backgroundColor: mentaColors.raised,
-    borderRadius: mentaRadii.medium,
-    flexDirection: 'row',
-    gap: mentaSpacing[1],
-    justifyContent: 'center',
-    minHeight: 40,
-    minWidth: 56,
-    paddingHorizontal: mentaSpacing[2],
-  },
-  streakValue: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-    fontVariant: ['tabular-nums'],
-  },
-  rowCopy: {
-    flex: 1,
-    gap: 2,
-    minWidth: 0,
-  },
-  rowTitle: {
-    ...mentaTypography.bodySemibold,
-    color: mentaColors.text.primary,
-  },
-  rowMeta: {
-    columnGap: mentaSpacing[3],
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  rowDetail: {
-    ...mentaTypography.caption,
-    color: mentaColors.text.secondary,
-  },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const STATUS_COLOR: Record<ObligationProofStatus, string> = {
+    none: mentaColors.text.secondary,
+    pending: mentaColors.text.secondary,
+    approved: mentaColors.success,
+    rejected: mentaColors.warning,
+  };
+  const styles = StyleSheet.create({
+    panel: {
+      alignSelf: 'stretch',
+      gap: mentaSpacing[3],
+      width: '100%',
+    },
+    header: {
+      gap: mentaSpacing[1],
+    },
+    title: {
+      ...mentaTypography.title,
+      color: mentaColors.text.primary,
+    },
+    note: {
+      ...mentaTypography.bodySmall,
+      color: mentaColors.text.secondary,
+    },
+    row: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.surface,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: 1,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 72,
+      paddingHorizontal: mentaSpacing[4],
+      paddingVertical: mentaSpacing[3],
+    },
+    rowPressed: {
+      backgroundColor: mentaColors.raised,
+    },
+    streakBadge: {
+      alignItems: 'center',
+      backgroundColor: mentaColors.raised,
+      borderRadius: mentaRadii.medium,
+      flexDirection: 'row',
+      gap: mentaSpacing[1],
+      justifyContent: 'center',
+      minHeight: 40,
+      minWidth: 56,
+      paddingHorizontal: mentaSpacing[2],
+    },
+    streakValue: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+      fontVariant: ['tabular-nums'],
+    },
+    rowCopy: {
+      flex: 1,
+      gap: 2,
+      minWidth: 0,
+    },
+    rowTitle: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+    },
+    rowMeta: {
+      columnGap: mentaSpacing[3],
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+    },
+    rowDetail: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+    },
+  });
+  return { STATUS_COLOR, styles };
+};

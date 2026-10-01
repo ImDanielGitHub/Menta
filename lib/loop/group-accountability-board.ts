@@ -4,11 +4,7 @@ import {
 } from '@/lib/localization';
 
 export type GroupBoardProofStatus =
-  | 'done'
-  | 'pending'
-  | 'retry'
-  | 'due'
-  | 'nudge';
+  'done' | 'pending' | 'retry' | 'due' | 'nudge';
 
 export type GroupBoardScreenState =
   | 'loading'
@@ -44,6 +40,7 @@ export type GroupBoardSubmissionInput = {
 };
 
 export type GroupBoardMediaProof = {
+  reviewSource?: string | null;
   id: string;
   challengeId: string;
   contributorId: string;

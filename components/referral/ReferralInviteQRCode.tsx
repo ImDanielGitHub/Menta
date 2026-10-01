@@ -1,10 +1,10 @@
+import { useMentaPalette } from '@/constants/use-menta-palette';
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { useTranslation } from '@/lib/localization';
 
 import {
-  mentaColors,
   mentaRadii,
   mentaSpacing,
   mentaTypography,
@@ -24,6 +24,8 @@ export function ReferralInviteQRCode({
   state,
   size = DEFAULT_QR_SIZE,
 }: ReferralInviteQRCodeProps) {
+  const mentaColors = useMentaPalette();
+
   const { t } = useTranslation();
   const { colors } = useTheme();
   const styles = useMemo(
@@ -71,7 +73,7 @@ export function ReferralInviteQRCode({
           textAlign: 'center',
         },
       }),
-    [colors, size]
+    [colors, size, mentaColors.paper]
   );
 
   const isReady = state === 'ready' && Boolean(link);

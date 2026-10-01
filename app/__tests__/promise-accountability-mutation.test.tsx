@@ -27,8 +27,19 @@ const mockClipboard = jest.fn();
 jest.mock('expo-clipboard', () => ({ setStringAsync: () => mockClipboard() }));
 const mockAuth = { user: { id: 'user-1' } };
 let mockCanInvite = false;
+let mockPeerRole: string | null = null;
+const mockLoadDraft = jest.fn();
+const mockClearDraft = jest.fn();
+jest.mock('@/lib/promise-creation-draft', () => ({
+  loadPromiseCreationDraft: (...args: unknown[]) => mockLoadDraft(...args),
+  clearPromiseCreationDraft: (...args: unknown[]) => mockClearDraft(...args),
+}));
 let mockViewerRole: 'owner' | 'partner' = 'partner';
-let mockParams: { challengeId: string; source?: string } = {
+let mockParams: {
+  challengeId: string;
+  source?: string;
+  requiredReviewer?: string;
+} = {
   challengeId: 'promise-1',
 };
 
@@ -61,6 +72,18 @@ jest.mock('@/hooks/usePromiseAccountability', () => ({
       },
       group: { id: 'group-1', name: 'Walk after work', kind: 'promise' },
       members: [
+        ...(mockPeerRole
+          ? [
+              {
+                id: 'peer-2',
+                name: 'Peer',
+                role: mockPeerRole,
+                participates: false,
+                proofStatus: 'none',
+                avatarUrl: null,
+              },
+            ]
+          : []),
         {
           id: 'user-1',
           name: 'Daniel',
@@ -255,6 +278,9 @@ jest.mock('@/components/ui', () => {
 describe('promise accountability mutation route', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPeerRole = null;
+    mockLoadDraft.mockReset().mockResolvedValue(null);
+    mockClearDraft.mockReset().mockResolvedValue(undefined);
     mockAuth.user = { id: 'user-1' };
     mockClipboard.mockResolvedValue(true);
     mockPrepareInvite.mockResolvedValue({
@@ -318,6 +344,47 @@ describe('promise accountability mutation route', () => {
       expect(mockTrackInvite).toHaveBeenCalledTimes(attributed ? 1 : 0);
     }
   );
+
+  it.each(['reviewer', 'partner', 'supporter'] as const)(
+    'finishes required setup only after an accepted %s',
+    async role => {
+      mockParams = { challengeId: 'promise-1', requiredReviewer: '1' };
+      mockViewerRole = 'owner';
+      mockCanInvite = true;
+      mockPeerRole = role;
+      mockLoadDraft.mockResolvedValue({
+        pendingFriendChallengeId: 'promise-1',
+      });
+      render(
+        <ThemeProvider>
+          <PromiseAccountabilityRoute />
+        </ThemeProvider>
+      );
+      if (role === 'supporter') {
+        expect(await screen.findByText('Waiting for a reviewer')).toBeTruthy();
+        expect(mockClearDraft).not.toHaveBeenCalled();
+      } else
+        await waitFor(() =>
+          expect(mockClearDraft).toHaveBeenCalledWith('user-1')
+        );
+    }
+  );
+  it('keeps another confirmed setup draft when a reviewer accepts this promise', async () => {
+    mockParams = { challengeId: 'promise-1', requiredReviewer: '1' };
+    mockViewerRole = 'owner';
+    mockCanInvite = true;
+    mockPeerRole = 'reviewer';
+    mockLoadDraft.mockResolvedValue({
+      pendingFriendChallengeId: 'other-promise',
+    });
+    render(
+      <ThemeProvider>
+        <PromiseAccountabilityRoute />
+      </ThemeProvider>
+    );
+    await waitFor(() => expect(mockLoadDraft).toHaveBeenCalledWith('user-1'));
+    expect(mockClearDraft).not.toHaveBeenCalled();
+  });
 
   it('does not attribute a returned accountability invite to a different account', async () => {
     mockCanInvite = true;

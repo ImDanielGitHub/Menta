@@ -1,3 +1,11 @@
+import {
+  type MentaPalette,
+  mentaLayout,
+  mentaRadii,
+  mentaSpacing,
+  mentaTypeScale,
+} from '@/constants/MentaDesignSystem';
+import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React, {
   useCallback,
   useEffect,
@@ -29,13 +37,7 @@ import {
   RefreshCwIcon,
   ShieldCheckIcon,
 } from '@/components/ui/icons';
-import {
-  mentaColors,
-  mentaLayout,
-  mentaRadii,
-  mentaSpacing,
-  mentaTypeScale,
-} from '@/constants/MentaDesignSystem';
+
 import { screenInsetPadding } from '@/constants/phone-layout';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { createClientEventId } from '@/lib/client-event-id';
@@ -80,6 +82,9 @@ const checkInDescription = (
 };
 
 export default function EventOrganiserReviewScreen() {
+  const mentaColors = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   const { locale, t } = useTranslation();
   const phoneLayout = usePhoneLayout();
   const router = useRouter();
@@ -730,6 +735,8 @@ export default function EventOrganiserReviewScreen() {
 }
 
 function PolicyRow({ title, detail }: { title: string; detail: string }) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   return (
     <View style={styles.policyRow}>
       <View style={styles.rowMain}>
@@ -740,277 +747,280 @@ function PolicyRow({ title, detail }: { title: string; detail: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: mentaColors.canvas },
-  content: {
-    flexGrow: 1,
-    gap: mentaSpacing[6],
-    paddingBottom: mentaSpacing[12],
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingTop: mentaSpacing[6],
-  },
-  topBar: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: mentaLayout.trailingActionLane,
-  },
-  iconButton: {
-    alignItems: 'center',
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.round,
-    borderWidth: StyleSheet.hairlineWidth,
-    height: mentaLayout.trailingActionLane,
-    justifyContent: 'center',
-    width: mentaLayout.trailingActionLane,
-  },
-  topLabel: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.semibold,
-    ...mentaTypeScale.bodySmall,
-  },
-  trailingLane: { width: mentaLayout.trailingActionLane },
-  intro: { gap: mentaSpacing[2] },
-  title: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.newsreader.medium,
-    ...mentaTypeScale.heading,
-  },
-  subtitle: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.regular,
-    ...mentaTypeScale.body,
-  },
-  eventTitle: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.inter.semibold,
-    ...mentaTypeScale.bodySmall,
-  },
-  loadingState: {
-    alignItems: 'flex-start',
-    gap: mentaSpacing[3],
-    paddingTop: mentaSpacing[12],
-  },
-  stateSurface: {
-    alignItems: 'flex-start',
-    backgroundColor: mentaColors.surface,
-    borderColor: mentaColors.border,
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[3],
-    padding: mentaSpacing[5],
-  },
-  stateCanvas: {
-    alignItems: 'flex-start',
-    gap: mentaSpacing[3],
-  },
-  missingState: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: mentaLayout.screenInset,
-    paddingVertical: mentaSpacing[10],
-  },
-  errorSurface: {
-    backgroundColor: mentaColors.dangerSoft,
-    borderColor: mentaColors.danger,
-  },
-  stateTitle: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.newsreader.medium,
-    ...mentaTypeScale.title,
-  },
-  stateBody: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.regular,
-    ...mentaTypeScale.bodySmall,
-  },
-  queue: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  queueRow: {
-    alignItems: 'center',
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    minHeight: 78,
-    paddingVertical: mentaSpacing[3],
-  },
-  queueRowStacked: {
-    alignItems: 'flex-start',
-    flexWrap: 'wrap',
-  },
-  queueRowSelected: {
-    backgroundColor: mentaColors.actionSoft,
-    marginHorizontal: -mentaSpacing[2],
-    paddingHorizontal: mentaSpacing[2],
-  },
-  rowIcon: {
-    alignItems: 'center',
-    flexShrink: 0,
-    height: 24,
-    justifyContent: 'center',
-    width: 24,
-  },
-  rowMain: { flex: 1, gap: 2 },
-  rowTitle: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.inter.medium,
-    ...mentaTypeScale.bodySmall,
-  },
-  rowBody: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.regular,
-    ...mentaTypeScale.caption,
-  },
-  caption: {
-    color: mentaColors.text.muted,
-    fontFamily: mentaFonts.inter.regular,
-    ...mentaTypeScale.caption,
-  },
-  rowStatus: { alignItems: 'flex-end', flexShrink: 0, gap: 2, width: 72 },
-  rowStatusStacked: {
-    alignItems: 'flex-start',
-    paddingLeft: mentaLayout.iconLane + mentaSpacing[3],
-    width: '100%',
-  },
-  rowStatusCopy: {
-    fontFamily: mentaFonts.inter.medium,
-    textAlign: 'right',
-    ...mentaTypeScale.caption,
-  },
-  rowStatusSelected: { color: mentaColors.action },
-  rowStatusPending: { color: mentaColors.warning },
-  rowTime: {
-    color: mentaColors.text.muted,
-    fontFamily: mentaFonts.inter.regular,
-    textAlign: 'right',
-    ...mentaTypeScale.caption,
-  },
-  decisionSurface: {
-    backgroundColor: mentaColors.surface,
-    borderColor: mentaColors.actionBorder,
-    borderRadius: mentaRadii.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[3],
-    padding: mentaSpacing[5],
-  },
-  evidencePreview: {
-    aspectRatio: 4 / 3,
-    backgroundColor: mentaColors.raised,
-    borderRadius: mentaRadii.medium,
-    maxHeight: 440,
-    width: '100%',
-  },
-  previewBlocked: {
-    backgroundColor: `${mentaColors.danger}16`,
-    borderColor: mentaColors.danger,
-    borderRadius: mentaRadii.medium,
-    borderWidth: StyleSheet.hairlineWidth,
-    gap: mentaSpacing[1],
-    padding: mentaSpacing[3],
-  },
-  previewLoading: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: mentaSpacing[2],
-  },
-  decisionTitle: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.newsreader.medium,
-    ...mentaTypeScale.title,
-  },
-  decisionBody: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.regular,
-    ...mentaTypeScale.bodySmall,
-  },
-  decisionActions: { gap: mentaSpacing[2] },
-  receiptNotice: {
-    alignItems: 'flex-start',
-    backgroundColor: `${mentaColors.warning}16`,
-    borderColor: mentaColors.warning,
-    borderRadius: mentaRadii.medium,
-    borderWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    padding: mentaSpacing[4],
-  },
-  failedNotice: {
-    alignItems: 'flex-start',
-    backgroundColor: `${mentaColors.danger}16`,
-    borderColor: mentaColors.danger,
-    borderRadius: mentaRadii.medium,
-    borderWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    padding: mentaSpacing[4],
-  },
-  confirmedNotice: {
-    alignItems: 'flex-start',
-    backgroundColor: `${mentaColors.success}16`,
-    borderColor: mentaColors.success,
-    borderRadius: mentaRadii.medium,
-    borderWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: mentaSpacing[3],
-    padding: mentaSpacing[4],
-  },
-  noticeCopyWrap: { flex: 1, gap: 2 },
-  noticeTitle: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.inter.semibold,
-    ...mentaTypeScale.bodySmall,
-  },
-  noticeBody: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.regular,
-    ...mentaTypeScale.caption,
-  },
-  windowNotice: {
-    backgroundColor: `${mentaColors.warning}16`,
-    borderColor: mentaColors.warning,
-    borderRadius: mentaRadii.medium,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: mentaSpacing[3],
-  },
-  windowNoticeCopy: {
-    color: mentaColors.text.secondary,
-    fontFamily: mentaFonts.inter.regular,
-    ...mentaTypeScale.caption,
-  },
-  policyTrigger: {
-    alignItems: 'flex-start',
-    alignSelf: 'flex-start',
-    minHeight: mentaLayout.minimumTouchTarget,
-    justifyContent: 'center',
-  },
-  policyTriggerCopy: {
-    color: mentaColors.action,
-    fontFamily: mentaFonts.inter.medium,
-    ...mentaTypeScale.bodySmall,
-  },
-  policySection: {
-    gap: mentaSpacing[3],
-  },
-  policyHeading: {
-    color: mentaColors.text.primary,
-    fontFamily: mentaFonts.inter.semibold,
-    ...mentaTypeScale.title,
-  },
-  policyRows: {
-    borderTopColor: mentaColors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  policyRow: {
-    borderBottomColor: mentaColors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    justifyContent: 'center',
-    minHeight: 58,
-    paddingVertical: mentaSpacing[2],
-  },
-  pressed: { opacity: 0.72 },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    screen: { flex: 1, backgroundColor: mentaColors.canvas },
+    content: {
+      flexGrow: 1,
+      gap: mentaSpacing[6],
+      paddingBottom: mentaSpacing[12],
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingTop: mentaSpacing[6],
+    },
+    topBar: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      minHeight: mentaLayout.trailingActionLane,
+    },
+    iconButton: {
+      alignItems: 'center',
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.round,
+      borderWidth: StyleSheet.hairlineWidth,
+      height: mentaLayout.trailingActionLane,
+      justifyContent: 'center',
+      width: mentaLayout.trailingActionLane,
+    },
+    topLabel: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.semibold,
+      ...mentaTypeScale.bodySmall,
+    },
+    trailingLane: { width: mentaLayout.trailingActionLane },
+    intro: { gap: mentaSpacing[2] },
+    title: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.newsreader.medium,
+      ...mentaTypeScale.heading,
+    },
+    subtitle: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.regular,
+      ...mentaTypeScale.body,
+    },
+    eventTitle: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.inter.semibold,
+      ...mentaTypeScale.bodySmall,
+    },
+    loadingState: {
+      alignItems: 'flex-start',
+      gap: mentaSpacing[3],
+      paddingTop: mentaSpacing[12],
+    },
+    stateSurface: {
+      alignItems: 'flex-start',
+      backgroundColor: mentaColors.surface,
+      borderColor: mentaColors.border,
+      borderRadius: mentaRadii.large,
+      borderWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[3],
+      padding: mentaSpacing[5],
+    },
+    stateCanvas: {
+      alignItems: 'flex-start',
+      gap: mentaSpacing[3],
+    },
+    missingState: {
+      flex: 1,
+      justifyContent: 'center',
+      paddingHorizontal: mentaLayout.screenInset,
+      paddingVertical: mentaSpacing[10],
+    },
+    errorSurface: {
+      backgroundColor: mentaColors.dangerSoft,
+      borderColor: mentaColors.danger,
+    },
+    stateTitle: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.newsreader.medium,
+      ...mentaTypeScale.title,
+    },
+    stateBody: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.regular,
+      ...mentaTypeScale.bodySmall,
+    },
+    queue: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+    },
+    queueRow: {
+      alignItems: 'center',
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      minHeight: 78,
+      paddingVertical: mentaSpacing[3],
+    },
+    queueRowStacked: {
+      alignItems: 'flex-start',
+      flexWrap: 'wrap',
+    },
+    queueRowSelected: {
+      backgroundColor: mentaColors.actionSoft,
+      marginHorizontal: -mentaSpacing[2],
+      paddingHorizontal: mentaSpacing[2],
+    },
+    rowIcon: {
+      alignItems: 'center',
+      flexShrink: 0,
+      height: 24,
+      justifyContent: 'center',
+      width: 24,
+    },
+    rowMain: { flex: 1, gap: 2 },
+    rowTitle: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.inter.medium,
+      ...mentaTypeScale.bodySmall,
+    },
+    rowBody: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.regular,
+      ...mentaTypeScale.caption,
+    },
+    caption: {
+      color: mentaColors.text.muted,
+      fontFamily: mentaFonts.inter.regular,
+      ...mentaTypeScale.caption,
+    },
+    rowStatus: { alignItems: 'flex-end', flexShrink: 0, gap: 2, width: 72 },
+    rowStatusStacked: {
+      alignItems: 'flex-start',
+      paddingLeft: mentaLayout.iconLane + mentaSpacing[3],
+      width: '100%',
+    },
+    rowStatusCopy: {
+      fontFamily: mentaFonts.inter.medium,
+      textAlign: 'right',
+      ...mentaTypeScale.caption,
+    },
+    rowStatusSelected: { color: mentaColors.action },
+    rowStatusPending: { color: mentaColors.warning },
+    rowTime: {
+      color: mentaColors.text.muted,
+      fontFamily: mentaFonts.inter.regular,
+      textAlign: 'right',
+      ...mentaTypeScale.caption,
+    },
+    decisionSurface: {
+      backgroundColor: mentaColors.surface,
+      borderColor: mentaColors.actionBorder,
+      borderRadius: mentaRadii.large,
+      borderWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[3],
+      padding: mentaSpacing[5],
+    },
+    evidencePreview: {
+      aspectRatio: 4 / 3,
+      backgroundColor: mentaColors.raised,
+      borderRadius: mentaRadii.medium,
+      maxHeight: 440,
+      width: '100%',
+    },
+    previewBlocked: {
+      backgroundColor: `${mentaColors.danger}16`,
+      borderColor: mentaColors.danger,
+      borderRadius: mentaRadii.medium,
+      borderWidth: StyleSheet.hairlineWidth,
+      gap: mentaSpacing[1],
+      padding: mentaSpacing[3],
+    },
+    previewLoading: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[2],
+    },
+    decisionTitle: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.newsreader.medium,
+      ...mentaTypeScale.title,
+    },
+    decisionBody: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.regular,
+      ...mentaTypeScale.bodySmall,
+    },
+    decisionActions: { gap: mentaSpacing[2] },
+    receiptNotice: {
+      alignItems: 'flex-start',
+      backgroundColor: `${mentaColors.warning}16`,
+      borderColor: mentaColors.warning,
+      borderRadius: mentaRadii.medium,
+      borderWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      padding: mentaSpacing[4],
+    },
+    failedNotice: {
+      alignItems: 'flex-start',
+      backgroundColor: `${mentaColors.danger}16`,
+      borderColor: mentaColors.danger,
+      borderRadius: mentaRadii.medium,
+      borderWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      padding: mentaSpacing[4],
+    },
+    confirmedNotice: {
+      alignItems: 'flex-start',
+      backgroundColor: `${mentaColors.success}16`,
+      borderColor: mentaColors.success,
+      borderRadius: mentaRadii.medium,
+      borderWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      gap: mentaSpacing[3],
+      padding: mentaSpacing[4],
+    },
+    noticeCopyWrap: { flex: 1, gap: 2 },
+    noticeTitle: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.inter.semibold,
+      ...mentaTypeScale.bodySmall,
+    },
+    noticeBody: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.regular,
+      ...mentaTypeScale.caption,
+    },
+    windowNotice: {
+      backgroundColor: `${mentaColors.warning}16`,
+      borderColor: mentaColors.warning,
+      borderRadius: mentaRadii.medium,
+      borderWidth: StyleSheet.hairlineWidth,
+      padding: mentaSpacing[3],
+    },
+    windowNoticeCopy: {
+      color: mentaColors.text.secondary,
+      fontFamily: mentaFonts.inter.regular,
+      ...mentaTypeScale.caption,
+    },
+    policyTrigger: {
+      alignItems: 'flex-start',
+      alignSelf: 'flex-start',
+      minHeight: mentaLayout.minimumTouchTarget,
+      justifyContent: 'center',
+    },
+    policyTriggerCopy: {
+      color: mentaColors.action,
+      fontFamily: mentaFonts.inter.medium,
+      ...mentaTypeScale.bodySmall,
+    },
+    policySection: {
+      gap: mentaSpacing[3],
+    },
+    policyHeading: {
+      color: mentaColors.text.primary,
+      fontFamily: mentaFonts.inter.semibold,
+      ...mentaTypeScale.title,
+    },
+    policyRows: {
+      borderTopColor: mentaColors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+    },
+    policyRow: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      justifyContent: 'center',
+      minHeight: 58,
+      paddingVertical: mentaSpacing[2],
+    },
+    pressed: { opacity: 0.72 },
+  });
+  return { styles };
+};

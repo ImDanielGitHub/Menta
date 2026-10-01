@@ -19,8 +19,15 @@ import { fullGroupsEnNZ } from '@/lib/localization/catalogues/en-NZ/full-groups'
 import { fullDomainFeedbackEnNZ } from '@/lib/localization/catalogues/en-NZ/full-domain-feedback';
 import { sourceGateEnNZ } from '@/lib/localization/catalogues/en-NZ/source-gate';
 import { momentaTopUpEnNZ } from '@/lib/localization/catalogues/en-NZ/momenta-top-up';
+import { cameraAccessEnNZ } from '@/lib/localization/catalogues/en-NZ/camera-access';
+import { proofRolesEnNZ } from '@/lib/localization/catalogues/en-NZ/proof-roles';
+import { mentaCheckEnNZ } from '@/lib/localization/catalogues/en-NZ/menta-check';
 
 export const enNZ = {
+  'settings.appearance.title': 'Appearance',
+  'settings.appearance.system': 'System',
+  'settings.appearance.light': 'Light',
+  'settings.appearance.dark': 'Dark',
   ...widgetsEnNZ,
   'commerce.proJourney.back': 'Back',
   'commerce.proJourney.title': 'Menta Pro',
@@ -113,6 +120,9 @@ export const enNZ = {
   ...fullTodayProofEnNZ,
   ...fullCommerceEnNZ,
   ...momentaTopUpEnNZ,
+  ...cameraAccessEnNZ,
+  ...proofRolesEnNZ,
+  ...mentaCheckEnNZ,
   ...fullGroupsEnNZ,
   ...fullDomainFeedbackEnNZ,
   ...sourceGateEnNZ,

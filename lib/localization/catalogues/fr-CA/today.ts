@@ -51,11 +51,11 @@ export const todayFrCA = {
   'today.home.momenta.accessibility_unknown':
     'Solde Momenta pas encore confirmé. Ouvre votre portefeuille.',
   'today.home.week.accessibility':
-    '7 derniers jours : {count} jours avec une preuve approuvée.',
+    '7 derniers jours : {count} jours où chaque promesse a été tenue.',
   'today.home.week.accessibility.one':
-    '7 derniers jours : {count} jour avec une preuve approuvée.',
+    '7 derniers jours : {count} jour où chaque promesse a été tenue.',
   'today.home.week.accessibility.other':
-    '7 derniers jours : {count} jours avec une preuve approuvée.',
+    '7 derniers jours : {count} jours où chaque promesse a été tenue.',
   'today.home.streaks.title': 'Vos séries',
   'today.home.streaks.note':
     'Une série compte les jours avec une preuve approuvée, pas les jours où une promesse était ouverte.',

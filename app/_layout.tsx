@@ -1612,7 +1612,7 @@ function NativeRootLayoutContent() {
           !recoveryConfinementDestination
         }
       />
-      <StatusBar style="light" />
+      <StatusBar style={theme.isDark ? 'light' : 'dark'} />
     </ErrorBoundary>
   );
 }

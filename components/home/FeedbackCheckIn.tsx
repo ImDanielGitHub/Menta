@@ -1,3 +1,9 @@
+import {
+  type MentaPalette,
+  mentaSpacing,
+  mentaTypography,
+} from '@/constants/MentaDesignSystem';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React, { useEffect } from 'react';
 import {
   InteractionManager,
@@ -11,11 +17,6 @@ import {
 import { AppButton } from '@/components/ui/AppButton';
 import { MentaMascot } from '@/components/ui/MentaMascot';
 import { ModalCard } from '@/components/ui/modal/ModalCard';
-import {
-  mentaColors,
-  mentaSpacing,
-  mentaTypography,
-} from '@/constants/MentaDesignSystem';
 
 /** Close our sheet before handing off to StoreKit or the feedback form. */
 export function FeedbackCheckIn({
@@ -29,6 +30,8 @@ export function FeedbackCheckIn({
   onClose: () => void;
   onDismiss: () => void;
 }) {
+  const { styles } = useMentaStyles(createPaletteStyles);
+
   useEffect(() => {
     // React Native only provides Modal.onDismiss on iOS. On Android wait for
     // the committed closed state and interactions before continuing.
@@ -47,7 +50,11 @@ export function FeedbackCheckIn({
       testID="feedback-check-in"
     >
       <ScrollView contentContainerStyle={styles.content} bounces={false}>
-        <MentaMascot state="welcome-back" size="xl" style={styles.mascot} />
+        <MentaMascot
+          state="feedback-listening"
+          size="xl"
+          style={styles.mascot}
+        />
         <Text accessibilityRole="header" style={styles.heading}>
           Are you enjoying Menta?
         </Text>
@@ -80,18 +87,21 @@ export function FeedbackCheckIn({
   );
 }
 
-const styles = StyleSheet.create({
-  content: { gap: mentaSpacing[4], padding: mentaSpacing[6] },
-  mascot: { alignSelf: 'center' },
-  heading: {
-    ...mentaTypography.heading,
-    color: mentaColors.text.primary,
-    textAlign: 'center',
-  },
-  body: {
-    ...mentaTypography.lead,
-    color: mentaColors.text.secondary,
-    textAlign: 'center',
-  },
-  actions: { gap: mentaSpacing[3], paddingTop: mentaSpacing[2] },
-});
+const createPaletteStyles = (mentaColors: MentaPalette) => {
+  const styles = StyleSheet.create({
+    content: { gap: mentaSpacing[4], padding: mentaSpacing[6] },
+    mascot: { alignSelf: 'center' },
+    heading: {
+      ...mentaTypography.heading,
+      color: mentaColors.text.primary,
+      textAlign: 'center',
+    },
+    body: {
+      ...mentaTypography.lead,
+      color: mentaColors.text.secondary,
+      textAlign: 'center',
+    },
+    actions: { gap: mentaSpacing[3], paddingTop: mentaSpacing[2] },
+  });
+  return { styles };
+};

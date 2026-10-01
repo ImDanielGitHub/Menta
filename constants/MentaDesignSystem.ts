@@ -17,6 +17,9 @@ export const mentaColors = {
   skeletonHighlight: '#292A2A',
   scrim: 'rgba(8, 9, 9, 0.82)',
   paper: '#F8F7F1',
+  artefactSurface: '#F8F7F1',
+  disabledFill: '#181919',
+  disabledText: '#85847F',
   paperPressed: '#EDEBE3',
   text: {
     primary: '#F8F7F1',
@@ -38,6 +41,49 @@ export const mentaColors = {
   dangerSoft: 'rgba(255, 107, 122, 0.15)',
   info: '#8FCBFF',
 } as const;
+
+/** Semantic appearance roles; light uses the approved Soft Lavender palette. */
+export type MentaPalette = {
+  [K in keyof typeof mentaColors]: K extends 'text'
+    ? { [T in keyof typeof mentaColors.text]: string }
+    : string;
+};
+
+export const mentaLightColors: MentaPalette = {
+  ...mentaColors,
+  canvas: '#F5F3FA',
+  surface: '#FFFFFF',
+  paper: '#FFFFFF',
+  paperPressed: '#E9E1F5',
+  disabledFill: '#E9E5EF',
+  disabledText: '#686171',
+  artefactSurface: '#FFFFFF',
+  borderPaper: '#DDD7E8',
+  raised: '#FFFFFF',
+  border: '#DDD7E8',
+  warningBorder: '#C7AA68',
+  skeleton: '#E9E5EF',
+  skeletonHighlight: '#F5F3FA',
+  scrim: 'rgba(25, 21, 32, 0.42)',
+  text: {
+    primary: '#282331',
+    secondary: '#625B6D',
+    muted: '#625B6D',
+    onPaper: '#282331',
+    mutedOnPaper: '#625B6D',
+  },
+  action: '#7044AE',
+  actionPressed: '#5D3695',
+  actionSoft: '#E9E1F5',
+  actionBorder: 'rgba(112, 68, 174, 0.4)',
+  success: '#216C49',
+  successSoft: 'rgba(33, 108, 73, 0.09)',
+  warning: '#805A0E',
+  warningSoft: 'rgba(128, 90, 14, 0.09)',
+  danger: '#B52E45',
+  dangerSoft: 'rgba(181, 46, 69, 0.08)',
+  info: '#286A9C',
+};
 
 /**
  * The filled primary action sits on a short hard ledge, as in the Paper
