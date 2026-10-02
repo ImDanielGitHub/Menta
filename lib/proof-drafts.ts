@@ -65,6 +65,8 @@ export type ProofDraft = {
    * enter the foreground retry queue or reach the server without consent.
    */
   sendRequestedAt: string | null;
+  /** New receipt tracking only; absent on legacy receipts already counted. */
+  analyticsTrackingVersion?: 1;
 };
 
 export type CreateProofDraftInput = {
@@ -221,6 +223,9 @@ const parseProofDraft = (value: unknown): ProofDraft | null => {
   }
 
   return {
+    ...(value.analyticsTrackingVersion === 1
+      ? { analyticsTrackingVersion: 1 as const }
+      : {}),
     clientEventId: value.clientEventId,
     userId: value.userId,
     challengeId: value.challengeId,

@@ -18,6 +18,10 @@ reminders and the activity inbox. It also includes the current free-plan
 paywall, trial-credit reconciliation, proof media reuse and deletion recovery fixes. Source inclusion does not establish that every
 feature has been tested on a device in this edition.
 
+The tracking update uses confirmed receipts and local deduplication across normal
+retries and recovery. Proof content and receipt identifiers are not added to the
+`Proof Submitted` event properties. This does not establish provider delivery.
+
 ## What is different here
 
 The public app has its own example bundle identifiers, no Apple signing team
