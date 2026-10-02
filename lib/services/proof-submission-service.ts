@@ -1,4 +1,5 @@
 import { AppState } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { extractTrustedSupabaseStorageObject } from '@/lib/image-service';
 import {
@@ -810,6 +811,70 @@ const releaseConfirmedLocalMedia = async (
   }
 };
 
+const proofAnalyticsInFlight = new Map<string, Promise<void>>();
+// Retain dispatches whose marker could not be saved, until a later retry
+// persists them. Never turn a storage failure into a duplicate in this process.
+const proofAnalyticsPendingPersistence = new Set<string>();
+
+const recordConfirmedProofAnalytics = (
+  draft: ProofDraft,
+  payload: RpcSubmitProofPayload,
+  status: ProofReceiptStatus
+): Promise<void> => {
+  const receiptStatus = getProofReceiptAnalyticsStatus(status);
+  const submissionId = payload.submissionId;
+  if (!receiptStatus || !submissionId) return Promise.resolve();
+  const key = `menta.analytics.proof-submitted.v1:${draft.userId}:${submissionId}`;
+  const existing = proofAnalyticsInFlight.get(key);
+  if (existing) return existing;
+
+  const task = (async () => {
+    if (await AsyncStorage.getItem(key)) return;
+    const { data, error } = await supabase.auth.getSession();
+    // Never attribute a former account's receipt to a newly signed-in account.
+    if (error || data.session?.user.id !== draft.userId) return;
+    if (!proofAnalyticsPendingPersistence.has(key)) {
+      trackProductEvent('Proof Submitted', {
+        day_status:
+          payload.dayStatus === 'pending_review' ||
+          payload.dayStatus === 'already_applied' ||
+          payload.dayStatus === 'done' ||
+          payload.dayStatus === 'freeze_used' ||
+          payload.dayStatus === 'missed'
+            ? payload.dayStatus
+            : 'unknown',
+        is_correction:
+          typeof payload.isCorrection === 'boolean'
+            ? payload.isCorrection
+            : 'unknown',
+        proof_type: draft.proofType,
+        receipt_status: receiptStatus,
+        review_mode:
+          typeof payload.allowSelfReview === 'boolean'
+            ? payload.allowSelfReview
+              ? 'self'
+              : 'peer'
+            : 'unknown',
+        streak_length_bucket:
+          typeof payload.newStreak === 'number'
+            ? getStreakLengthBucket(payload.newStreak)
+            : 'unknown',
+      });
+      proofAnalyticsPendingPersistence.add(key);
+    }
+    // Separate from the mutable proof draft: analytics must never race a
+    // product-state write. This records dispatch, not confirmed delivery.
+    await AsyncStorage.setItem(key, '1');
+    proofAnalyticsPendingPersistence.delete(key);
+  })()
+    .catch(() => {
+      // Analytics/persistence failures cannot invalidate a confirmed proof.
+    })
+    .finally(() => proofAnalyticsInFlight.delete(key));
+  proofAnalyticsInFlight.set(key, task);
+  return task;
+};
+
 const finalizeSuccessfulSubmission = async (
   draft: ProofDraft,
   payload: RpcSubmitProofPayload & { success: true }
@@ -819,6 +884,7 @@ const finalizeSuccessfulSubmission = async (
   const receiptStatus = payload.submissionId ? mappedReceipt : 'unknown-result';
   let updated = await updateProofDraft(draft.clientEventId, {
     status: receiptStatus,
+    analyticsTrackingVersion: 1,
     submissionId: payload.submissionId ?? null,
     serverStatus,
     allowSelfReview:
@@ -851,6 +917,9 @@ const finalizeSuccessfulSubmission = async (
       .then(module => module.notifyWidgetProofChanged())
       .catch(() => undefined);
   }
+
+  // Do not make the saved receipt wait for analytics or a session refresh.
+  void recordConfirmedProofAnalytics(updated, payload, receiptStatus);
 
   return {
     ...payload,
@@ -1067,17 +1136,6 @@ export const submitChallengeProof = async ({
       payload
     );
     const result = await finalizeSuccessfulSubmission(draft, reconciledPayload);
-    const receiptStatus = getProofReceiptAnalyticsStatus(result.receiptStatus);
-    if (receiptStatus) {
-      trackProductEvent('Proof Submitted', {
-        day_status: payload.dayStatus,
-        is_correction: payload.isCorrection,
-        proof_type: draft.proofType,
-        receipt_status: receiptStatus,
-        review_mode: payload.allowSelfReview ? 'self' : 'peer',
-        streak_length_bucket: getStreakLengthBucket(payload.newStreak),
-      });
-    }
     return result;
   } catch (error) {
     if (error instanceof ProofSubmissionError) {
@@ -1146,6 +1204,19 @@ export const resumeProofSubmission = async (
     draft.status === 'pending-review' ||
     draft.status === 'correction-requested'
   ) {
+    // Legacy terminal receipts may already have emitted without a marker.
+    // Only retry analytics for receipts finalized by this tracking version.
+    if (draft.analyticsTrackingVersion === 1) {
+      void recordConfirmedProofAnalytics(
+        draft,
+        {
+          success: true,
+          submissionId: draft.submissionId ?? undefined,
+          allowSelfReview: draft.allowSelfReview,
+        },
+        draft.status
+      );
+    }
     return {
       success: true,
       submissionId: draft.submissionId ?? undefined,

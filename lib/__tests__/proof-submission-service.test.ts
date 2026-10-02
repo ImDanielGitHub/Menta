@@ -5,6 +5,7 @@ import {
   updateProofDraft,
 } from '@/lib/proof-drafts';
 import { getQueuedProofUpload } from '@/lib/proof-upload-queue';
+import { trackProductEvent } from '@/lib/posthog';
 import { supabase } from '@/lib/supabase';
 import { StreakManager } from '@/lib/streak-manager';
 import {
@@ -24,6 +25,8 @@ jest.mock('@/lib/streak-manager', () => ({
     checkMilestone: jest.fn(),
   },
 }));
+
+jest.mock('@/lib/posthog', () => ({ trackProductEvent: jest.fn() }));
 
 jest.mock('@/lib/services/proof-media-service', () => ({
   uploadDurableProofMedia: jest.fn(),
@@ -965,6 +968,350 @@ describe('proof-submission-service', () => {
     expect(mockUploadDurableProofMedia).not.toHaveBeenCalled();
     expect(mockSupabase.rpc).not.toHaveBeenCalled();
     expect(mockSupabase.storage.from).not.toHaveBeenCalled();
+  });
+
+  it('records a reconciled sent proof even when no new submit RPC is needed', async () => {
+    const clientEventId = '71717171-7171-4171-8171-717171717171';
+    const submissionId = '72727272-7272-4272-8272-727272727272';
+    await createProofDraft({
+      userId: 'user-1',
+      challengeId: 'challenge-1',
+      clientEventId,
+      proofType: 'text',
+      proofValue: 'Finished my practice session.',
+      clientTimeZone: 'Pacific/Auckland',
+    });
+    await updateProofDraft(clientEventId, {
+      status: 'sent',
+      submissionId,
+      serverStatus: 'sent',
+      allowSelfReview: true,
+      sendRequestedAt: new Date().toISOString(),
+    });
+    (mockSupabase.from as jest.Mock).mockReturnValue({
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      maybeSingle: jest.fn().mockResolvedValue({
+        error: null,
+        data: {
+          id: submissionId,
+          challenge_id: 'challenge-1',
+          client_event_id: clientEventId,
+          media_type: 'text',
+          media_url: null,
+          submission_text: 'Finished my practice session.',
+          status: 'approved',
+        },
+      }),
+    });
+    const result = await resumeProofSubmission(clientEventId);
+    expect(result.receiptStatus).toBe('accepted');
+    expect(mockProofRpc).not.toHaveBeenCalled();
+    expect(trackProductEvent).toHaveBeenCalledWith('Proof Submitted', {
+      proof_type: 'text',
+      receipt_status: 'accepted',
+      review_mode: 'self',
+      day_status: 'unknown',
+      is_correction: 'unknown',
+      streak_length_bucket: 'unknown',
+    });
+  });
+
+  it('does not count the same confirmed proof twice after a repeated submit', async () => {
+    const clientEventId = '73737373-7373-4373-8373-737373737373';
+    mockProofRpc.mockResolvedValue({
+      error: null,
+      data: buildSuccessfulRpcPayload({
+        submissionId: '74747474-7474-4474-8474-747474747474',
+        clientEventId,
+        mediaType: 'text',
+        submissionText: 'Finished my practice session.',
+      }),
+    });
+    const input = {
+      userId: 'user-1',
+      challengeId: 'challenge-1',
+      clientEventId,
+      proofType: 'text' as const,
+      proofValue: 'Finished my practice session.',
+    };
+    await submitChallengeProof(input);
+    await submitChallengeProof(input);
+    expect(
+      (trackProductEvent as jest.Mock).mock.calls.filter(
+        ([event]) => event === 'Proof Submitted'
+      )
+    ).toHaveLength(1);
+  });
+
+  describe('confirmed receipt analytics', () => {
+    const clientEventId = '81818181-8181-4181-8181-818181818181';
+    const submissionId = '82828282-8282-4282-8282-828282828282';
+    const input = {
+      userId: 'user-1',
+      challengeId: 'challenge-1',
+      clientEventId,
+      proofType: 'text' as const,
+      proofValue: 'Private proof text must not enter analytics.',
+      clientTimeZone: 'Pacific/Auckland',
+    };
+    const flushAnalytics = () => new Promise(resolve => setTimeout(resolve, 0));
+    const events = () =>
+      (trackProductEvent as jest.Mock).mock.calls.filter(
+        ([event]) => event === 'Proof Submitted'
+      );
+
+    beforeEach(() => {
+      mockProofRpc.mockResolvedValue({
+        error: null,
+        data: buildSuccessfulRpcPayload({
+          submissionId,
+          clientEventId,
+          mediaType: 'text',
+          submissionText: input.proofValue,
+        }),
+      });
+    });
+
+    it('deduplicates a confirmed receipt after the service is reloaded', async () => {
+      await submitChallengeProof(input);
+      await flushAnalytics();
+      await jest.isolateModulesAsync(async () => {
+        const reloaded =
+          await import('@/lib/services/proof-submission-service');
+        await reloaded.submitChallengeProof(input);
+      });
+      await flushAnalytics();
+      expect(events()).toHaveLength(1);
+    });
+
+    it('deduplicates concurrent confirmation of the same receipt', async () => {
+      await Promise.all([
+        submitChallengeProof(input),
+        submitChallengeProof(input),
+      ]);
+      await flushAnalytics();
+      expect(events()).toHaveLength(1);
+    });
+
+    it('counts a new correction receipt separately from retries of the original', async () => {
+      await submitChallengeProof(input);
+      await flushAnalytics();
+      const correctionInput = {
+        ...input,
+        clientEventId: '83838383-8383-4383-8383-838383838383',
+      };
+      mockProofRpc.mockResolvedValue({
+        error: null,
+        data: buildSuccessfulRpcPayload({
+          submissionId: '84848484-8484-4484-8484-848484848484',
+          clientEventId: correctionInput.clientEventId,
+          mediaType: 'text',
+          submissionText: input.proofValue,
+          replacesSubmissionId: submissionId,
+        }),
+      });
+      await submitChallengeProof(correctionInput);
+      await flushAnalytics();
+      await submitChallengeProof(correctionInput);
+      await flushAnalytics();
+      expect(events()).toHaveLength(2);
+      expect(events()[1][1].is_correction).toBe(true);
+    });
+
+    it('records only bounded receipt metadata, without proof content or identifiers', async () => {
+      await submitChallengeProof(input);
+      await flushAnalytics();
+      expect(events()).toEqual([
+        [
+          'Proof Submitted',
+          {
+            day_status: 'pending_review',
+            is_correction: false,
+            proof_type: 'text',
+            receipt_status: 'pending_review',
+            review_mode: 'peer',
+            streak_length_bucket: '1_2',
+          },
+        ],
+      ]);
+    });
+
+    it('does not count a response whose authoritative receipt cannot be matched', async () => {
+      (mockSupabase.from as jest.Mock).mockImplementation((table: string) => ({
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        maybeSingle: jest.fn().mockResolvedValue({
+          error: null,
+          data:
+            table === 'challenge_participants'
+              ? {
+                  status: 'active',
+                  challenges: { id: 'challenge-1', status: 'active' },
+                }
+              : null,
+        }),
+      }));
+      await expect(submitChallengeProof(input)).rejects.toMatchObject({
+        code: 'RECEIPT_RECONCILIATION_REQUIRED',
+      });
+      await flushAnalytics();
+      expect(events()).toHaveLength(0);
+    });
+
+    it('keeps the receipt successful when analytics storage cannot be read', async () => {
+      const original = (
+        AsyncStorage.getItem as jest.Mock
+      ).getMockImplementation()!;
+      const spy = jest
+        .spyOn(AsyncStorage, 'getItem')
+        .mockImplementation(key =>
+          key.startsWith('menta.analytics.')
+            ? Promise.reject(new Error('Storage unavailable'))
+            : original(key)
+        );
+      try {
+        expect((await submitChallengeProof(input)).receiptStatus).toBe(
+          'pending-review'
+        );
+        await flushAnalytics();
+        expect(events()).toHaveLength(0);
+      } finally {
+        spy.mockImplementation(original);
+      }
+    });
+
+    it('does not backfill marker-less legacy terminal receipts', async () => {
+      await createProofDraft(input);
+      await updateProofDraft(clientEventId, {
+        status: 'accepted',
+        submissionId,
+        serverStatus: 'approved',
+        allowSelfReview: true,
+      });
+      expect((await resumeProofSubmission(clientEventId)).receiptStatus).toBe(
+        'accepted'
+      );
+      await flushAnalytics();
+      expect(events()).toHaveLength(0);
+      expect(mockProofRpc).not.toHaveBeenCalled();
+    });
+
+    it('recovers analytics on terminal resume after a transient storage read failure', async () => {
+      const original = (
+        AsyncStorage.getItem as jest.Mock
+      ).getMockImplementation()!;
+      const spy = jest
+        .spyOn(AsyncStorage, 'getItem')
+        .mockImplementation(key =>
+          key.startsWith('menta.analytics.')
+            ? Promise.reject(new Error('Storage unavailable'))
+            : original(key)
+        );
+      try {
+        await submitChallengeProof(input);
+        await flushAnalytics();
+        expect(events()).toHaveLength(0);
+      } finally {
+        spy.mockImplementation(original);
+      }
+      mockProofRpc.mockClear();
+      expect((await resumeProofSubmission(clientEventId)).receiptStatus).toBe(
+        'pending-review'
+      );
+      await flushAnalytics();
+      expect(events()).toHaveLength(1);
+      expect(mockProofRpc).not.toHaveBeenCalled();
+      await resumeProofSubmission(clientEventId);
+      await flushAnalytics();
+      expect(events()).toHaveLength(1);
+    });
+
+    it('does not make a saved receipt wait for analytics storage', async () => {
+      const original = (
+        AsyncStorage.getItem as jest.Mock
+      ).getMockImplementation()!;
+      let release!: (value: null) => void;
+      const pending = new Promise<null>(resolve => {
+        release = resolve;
+      });
+      const spy = jest
+        .spyOn(AsyncStorage, 'getItem')
+        .mockImplementation(key =>
+          key.startsWith('menta.analytics.') ? pending : original(key)
+        );
+      try {
+        expect((await submitChallengeProof(input)).receiptStatus).toBe(
+          'pending-review'
+        );
+        expect(events()).toHaveLength(0);
+        release(null);
+        await flushAnalytics();
+        expect(events()).toHaveLength(1);
+      } finally {
+        release(null);
+        spy.mockImplementation(original);
+      }
+    });
+
+    it('does not attribute a recovered receipt to a different signed-in account', async () => {
+      await createProofDraft(input);
+      await updateProofDraft(clientEventId, {
+        status: 'sent',
+        submissionId,
+        serverStatus: 'sent',
+        allowSelfReview: true,
+      });
+      (mockSupabase.auth.getSession as jest.Mock).mockResolvedValue({
+        data: { session: { user: { id: 'user-2' } } },
+        error: null,
+      });
+      (mockSupabase.from as jest.Mock).mockReturnValue({
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        maybeSingle: jest.fn().mockResolvedValue({
+          error: null,
+          data: {
+            id: submissionId,
+            challenge_id: input.challengeId,
+            client_event_id: clientEventId,
+            media_type: 'text',
+            media_url: null,
+            submission_text: input.proofValue,
+            status: 'approved',
+          },
+        }),
+      });
+      expect((await resumeProofSubmission(clientEventId)).receiptStatus).toBe(
+        'accepted'
+      );
+      await flushAnalytics();
+      expect(events()).toHaveLength(0);
+    });
+
+    it('does not dispatch twice in one process when the durable marker write fails', async () => {
+      const original = (
+        AsyncStorage.setItem as jest.Mock
+      ).getMockImplementation()!;
+      const spy = jest
+        .spyOn(AsyncStorage, 'setItem')
+        .mockImplementation((key, value) =>
+          key.startsWith('menta.analytics.')
+            ? Promise.reject(new Error('Storage unavailable'))
+            : original(key, value)
+        );
+      try {
+        expect((await submitChallengeProof(input)).receiptStatus).toBe(
+          'pending-review'
+        );
+        await flushAnalytics();
+        await submitChallengeProof(input);
+        await flushAnalytics();
+        expect(events()).toHaveLength(1);
+      } finally {
+        spy.mockImplementation(original);
+      }
+    });
   });
 
   it('reuses the same client event id across resume retries', async () => {

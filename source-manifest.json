@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "119563680ea6051f00f99c1d24a1dab56456c515",
+  "sourceCommit": "bd9570e35311301e5a3580f300dfd70a0c4a56a4",
   "sourceVersion": "1.9.7",
   "exportPolicyVersion": 1,
   "sourceFiles": [
@@ -3780,8 +3780,8 @@
     },
     {
       "path": "lib/__tests__/proof-submission-service.test.ts",
-      "sha256": "0b9a1a88a3fd4682a71f9efda7a4895331dedfafeebf163a7d9f37f66fd99e8a",
-      "publicSha256": "0b9a1a88a3fd4682a71f9efda7a4895331dedfafeebf163a7d9f37f66fd99e8a"
+      "sha256": "227af1b277055bfa37cb3ab2a20c54046222da6bf089c6643f91ed5892135f5e",
+      "publicSha256": "227af1b277055bfa37cb3ab2a20c54046222da6bf089c6643f91ed5892135f5e"
     },
     {
       "path": "lib/__tests__/proof-upload-queue.test.ts",
@@ -6200,8 +6200,8 @@
     },
     {
       "path": "lib/product-analytics.ts",
-      "sha256": "cc9ba6d1c683f790f0aafacdcc66b25e9014a22c661f80de712f176d2fd15edd",
-      "publicSha256": "cc9ba6d1c683f790f0aafacdcc66b25e9014a22c661f80de712f176d2fd15edd"
+      "sha256": "2c4777e6b54bcdfee84ba54a9f126840c718d127fc164a89f88d149fc9f29f2d",
+      "publicSha256": "2c4777e6b54bcdfee84ba54a9f126840c718d127fc164a89f88d149fc9f29f2d"
     },
     {
       "path": "lib/product-config.ts",
@@ -6355,8 +6355,8 @@
     },
     {
       "path": "lib/proof-drafts.ts",
-      "sha256": "3ae65881fd38120ed59122286497f6d5358a9534fae868a02e1dc07521f09887",
-      "publicSha256": "3ae65881fd38120ed59122286497f6d5358a9534fae868a02e1dc07521f09887"
+      "sha256": "5d201fc80c98b2a9cef03d3bde9a4274d627f7f3bd240224f0d77667fda06699",
+      "publicSha256": "5d201fc80c98b2a9cef03d3bde9a4274d627f7f3bd240224f0d77667fda06699"
     },
     {
       "path": "lib/proof-types.ts",
@@ -6455,8 +6455,8 @@
     },
     {
       "path": "lib/services/proof-submission-service.ts",
-      "sha256": "78603fcdaed0d0799f0b2814ebd8c0e15b52e6cd033b4ccc6e76125adb51f492",
-      "publicSha256": "78603fcdaed0d0799f0b2814ebd8c0e15b52e6cd033b4ccc6e76125adb51f492"
+      "sha256": "93f1e5da767dc2ee6aecca0c1afd10ef6b507327f6afb5ac7cb8a92203e1321f",
+      "publicSha256": "93f1e5da767dc2ee6aecca0c1afd10ef6b507327f6afb5ac7cb8a92203e1321f"
     },
     {
       "path": "lib/services/reporting.ts",

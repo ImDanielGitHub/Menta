@@ -380,12 +380,17 @@ export type AnalyticsEventProperties = {
   };
   'Proof Submitted': {
     day_status:
-      'pending_review' | 'already_applied' | 'done' | 'freeze_used' | 'missed';
-    is_correction: boolean;
+      | 'pending_review'
+      | 'already_applied'
+      | 'done'
+      | 'freeze_used'
+      | 'missed'
+      | 'unknown';
+    is_correction: boolean | 'unknown';
     proof_type: ProofMediaType;
     receipt_status: 'accepted' | 'pending_review' | 'correction_requested';
-    review_mode: 'self' | 'peer';
-    streak_length_bucket: StreakLengthBucket;
+    review_mode: 'self' | 'peer' | 'unknown';
+    streak_length_bucket: StreakLengthBucket | 'unknown';
   };
   'Proof Submission Outcome': {
     is_correction: boolean;
