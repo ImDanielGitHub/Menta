@@ -168,6 +168,7 @@ export default function GroupDetailScreen() {
     group,
     members,
     challenges,
+    privateAccessConfirmed,
     isInitialLoading,
     isError,
     isPaused,
@@ -176,7 +177,6 @@ export default function GroupDetailScreen() {
     lastUpdatedAt,
     refetch,
   } = useGroupDetailData(groupId);
-  const userGroups = useGroupStore(state => state.userGroups);
   const joinGroup = useGroupStore(state => state.joinGroup);
   const leaveGroup = useGroupStore(state => state.leaveGroup);
   const deleteGroup = useGroupStore(state => state.deleteGroup);
@@ -199,7 +199,8 @@ export default function GroupDetailScreen() {
     challenges.map(challenge => challenge.id)
   );
   const promiseAccountability = usePromiseAccountability(
-    group?.kind === 'promise' ? challenges[0]?.id : null
+    group?.kind === 'promise' ? challenges[0]?.id : null,
+    groupId
   );
   const promiseRole = promiseAccountability.data?.members.find(
     member => member.id === user?.id
@@ -222,9 +223,7 @@ export default function GroupDetailScreen() {
   );
 
   const membership = sortedMembers.find(member => member.user_id === user?.id);
-  const isMember = Boolean(
-    groupId && (userGroups.includes(groupId) || membership)
-  );
+  const isMember = privateAccessConfirmed;
   const isOwner = Boolean(group && user?.id === group.owner_id);
   const canManage =
     isOwner || membership?.role === 'admin' || membership?.role === 'moderator';
@@ -331,6 +330,14 @@ export default function GroupDetailScreen() {
   const boardIsPaused =
     isPaused ||
     (boardNeedsLiveRead && accountabilityBoard.fetchStatus === 'paused');
+  const accessDenied =
+    [
+      errorKind,
+      getGroupDetailErrorKind(accountabilityBoard.error),
+      getGroupDetailErrorKind(promiseAccountability.error),
+    ].some(kind => kind === 'permission' || kind === 'not-found') ||
+    (boardNeedsLiveRead &&
+      (accountabilityBoard.accessDenied || promiseAccountability.accessDenied));
   const boardState = selectGroupBoardState({
     hasGroup: Boolean(group),
     groupStatus: group?.status,
@@ -818,7 +825,13 @@ export default function GroupDetailScreen() {
     );
   }
 
-  if (!group) {
+  if (
+    !group ||
+    accessDenied ||
+    (!privateAccessConfirmed &&
+      group.privacy !== 'public' &&
+      group.privacy !== 'discoverable')
+  ) {
     return (
       <AppScreen
         lane="working"
@@ -981,7 +994,7 @@ export default function GroupDetailScreen() {
                 groupName={group.name}
                 groupDescription={group.description}
                 roleLabel={isMember ? memberRoleLabel : undefined}
-                snapshot={accountabilityBoard.data}
+                snapshot={accountabilityBoard.data ?? undefined}
                 currentUserId={user?.id}
                 promiseTitle={firstSharedChallenge?.title}
                 promiseDescription={firstSharedChallenge?.description}

@@ -8,10 +8,10 @@ export const downloadAvailableOtaUpdate =
     if (__DEV__ || !Updates.isEnabled) return 'unavailable';
 
     const check = await Updates.checkForUpdateAsync();
-    if (!check.isAvailable) return 'current';
+    if (!check.isAvailable && !check.isRollBackToEmbedded) return 'current';
 
     const fetched = await Updates.fetchUpdateAsync();
-    return fetched.isNew ? 'ready' : 'current';
+    return fetched.isNew || fetched.isRollBackToEmbedded ? 'ready' : 'current';
   };
 
 export const restartIntoDownloadedOta = async (): Promise<void> => {

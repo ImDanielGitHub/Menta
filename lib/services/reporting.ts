@@ -1,3 +1,4 @@
+import { getReportReceiptCopy } from '@/lib/services/reporting-copy';
 import { supabase } from '@/lib/supabase';
 
 export type ReportTargetType = 'verification' | 'group' | 'challenge' | 'user';
@@ -165,7 +166,7 @@ const parseReportResponse = (
     return reportFailure(
       'result-unknown',
       'MALFORMED_REPORT_RECEIPT',
-      'Menta could not verify the report receipt. Retry with the same saved report.'
+      getReportReceiptCopy('unverified')
     );
   }
 
@@ -176,7 +177,7 @@ const parseReportResponse = (
       success: false,
       outcome: 'not-sent',
       code,
-      message: message ?? 'Menta did not send this report.',
+      message: message ?? getReportReceiptCopy('not_sent'),
     };
   }
 
@@ -194,7 +195,7 @@ const parseReportResponse = (
     return reportFailure(
       'result-unknown',
       'MALFORMED_REPORT_RECEIPT',
-      'Menta could not verify the report receipt. Retry with the same saved report.'
+      getReportReceiptCopy('unverified')
     );
   }
 
@@ -219,14 +220,14 @@ const submitContentReport = async (
     return reportFailure(
       'not-sent',
       'AUTH_REQUIRED',
-      'Sign in again before sending this report.'
+      getReportReceiptCopy('sign_in')
     );
   }
   if (preflightUserId !== input.expectedReporterId) {
     return reportFailure(
       'not-sent',
       'ACCOUNT_CHANGED',
-      'The signed-in account changed before this report was sent.'
+      getReportReceiptCopy('account_changed')
     );
   }
 
@@ -244,7 +245,7 @@ const submitContentReport = async (
     return reportFailure(
       'result-unknown',
       'REPORT_RESPONSE_UNAVAILABLE',
-      'Menta could not confirm the server response. Retry with the same saved report.'
+      getReportReceiptCopy('unverified')
     );
   }
 
@@ -254,8 +255,7 @@ const submitContentReport = async (
           ? 'not-sent'
           : 'result-unknown',
         response.error.code ?? 'REPORT_RESPONSE_UNAVAILABLE',
-        response.error.message ??
-          'Menta could not confirm the server response. Retry with the same saved report.'
+        getReportReceiptCopy('unverified')
       )
     : parseReportResponse(response.data, input);
 
@@ -265,7 +265,7 @@ const submitContentReport = async (
       return reportFailure(
         'result-unknown',
         'ACCOUNT_CHANGED_AFTER_SEND',
-        'The account changed while Menta was confirming this report. Sign in to the original account and retry the saved report.'
+        getReportReceiptCopy('account_changed_after_send')
       );
     }
     return parsed;

@@ -6,6 +6,7 @@ const mockUseQuery = jest.fn();
 
 jest.mock('@tanstack/react-query', () => ({
   useQuery: (options: unknown) => mockUseQuery(options),
+  useQueryClient: () => ({ setQueryData: jest.fn() }),
 }));
 
 jest.mock('@/store/auth-store', () => ({
@@ -96,3 +97,32 @@ describe('useGroupDetailData public access boundary', () => {
     expect(privateReads.every(({ enabled }) => enabled === false)).toBe(true);
   });
 });
+
+it.each(['permission', 'revoked', 'missing'])(
+  'withholds cached private content after %s access results',
+  failure => {
+    mockUseQuery.mockImplementation(({ queryKey }: { queryKey: unknown[] }) => {
+      const tail = queryKey.at(-1);
+      if (tail === 'self-access')
+        return failure === 'permission'
+          ? { ...queryResult(true), isError: true, error: { code: '42501' } }
+          : queryResult(false);
+      if (tail === 'members')
+        return queryResult([{ user_id: 'private-member' }]);
+      if (tail === 'challenges')
+        return queryResult([{ id: 'private-promise', title: 'Private title' }]);
+      return failure === 'missing'
+        ? {
+            ...queryResult({ id: 'private-group', privacy: 'private' }),
+            isError: true,
+            error: { code: 'PGRST116' },
+          }
+        : queryResult({ id: 'private-group', privacy: 'private' });
+    });
+    const { result } = renderHook(() => useGroupDetailData('private-group'));
+    expect(result.current.group).toBeNull();
+    expect(result.current.members).toEqual([]);
+    expect(result.current.challenges).toEqual([]);
+    expect(result.current.privateAccessConfirmed).toBe(false);
+  }
+);

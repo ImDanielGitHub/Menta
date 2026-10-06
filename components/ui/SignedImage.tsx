@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Image as RNImage, Platform } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Image as ExpoImage, ImageProps as ExpoImageProps } from 'expo-image';
 import {
   ImageService,
@@ -47,7 +47,7 @@ const SignedImageComponent = ({
   fallbackText,
   lazy = false,
   showSkeleton: _showSkeleton = true,
-  cachePolicy = 'memory-disk',
+  cachePolicy = 'memory',
   alt,
   onLoadStateChange,
   contentFit = 'cover',
@@ -232,45 +232,21 @@ const SignedImageComponent = ({
   return (
     <View style={[style, styles.frame]}>
       {signedUrl ? (
-        Platform.OS === 'android' ? (
-          <RNImage
-            accessibilityLabel={resolvedAlt}
-            onError={event => handleImageError(event.nativeEvent.error)}
-            onLoad={handleImageReady}
-            onLoadStart={() => {
-              if (displayedRef.current) return;
-              setLoading(true);
-              notifyLoadState('loading');
-            }}
-            resizeMode={
-              contentFit === 'contain'
-                ? 'contain'
-                : contentFit === 'fill'
-                  ? 'stretch'
-                  : contentFit === 'cover'
-                    ? 'cover'
-                    : 'center'
-            }
-            source={{ uri: signedUrl }}
-            style={StyleSheet.absoluteFill}
-          />
-        ) : (
-          <ExpoImage
-            {...expoProps}
-            alt={resolvedAlt}
-            cachePolicy={cachePolicy}
-            contentFit={contentFit}
-            onError={event => handleImageError(event.error)}
-            onDisplay={handleImageReady}
-            onLoadStart={() => {
-              if (displayedRef.current) return;
-              setLoading(true);
-              notifyLoadState('loading');
-            }}
-            source={{ uri: signedUrl }}
-            style={StyleSheet.absoluteFill}
-          />
-        )
+        <ExpoImage
+          {...expoProps}
+          alt={resolvedAlt}
+          cachePolicy={cachePolicy}
+          contentFit={contentFit}
+          onError={event => handleImageError(event.error)}
+          onDisplay={handleImageReady}
+          onLoadStart={() => {
+            if (displayedRef.current) return;
+            setLoading(true);
+            notifyLoadState('loading');
+          }}
+          source={{ uri: signedUrl }}
+          style={StyleSheet.absoluteFill}
+        />
       ) : null}
       {loading && (
         <ImagePlaceholder label={t('shared.accessibility.loadingImage')} />

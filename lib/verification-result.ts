@@ -1,4 +1,5 @@
-export type VerificationStatus = 'approved' | 'pending' | 'rejected' | 'unknown';
+export type VerificationStatus =
+  'approved' | 'pending' | 'rejected' | 'unknown';
 
 type VerificationPayload = {
   status?: string | null;
@@ -9,7 +10,9 @@ type VerificationPayload = {
   } | null;
 };
 
-export const getVerificationOutcome = (payload: VerificationPayload): {
+export const getVerificationOutcome = (
+  payload: VerificationPayload
+): {
   status: VerificationStatus;
   isSolo: boolean;
 } => {
@@ -23,8 +26,8 @@ export const getVerificationOutcome = (payload: VerificationPayload): {
 
   const isSolo = Boolean(
     payload?.allowSelfReview ??
-      payload?.data?.allowSelfReview ??
-      status === 'approved',
+    payload?.data?.allowSelfReview ??
+    status === 'approved'
   );
 
   return { status, isSolo };

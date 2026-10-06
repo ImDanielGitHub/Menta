@@ -7,13 +7,13 @@ import {
 import { useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
 import {
-  Image,
   type ImageStyle,
   StyleSheet,
   type StyleProp,
   Text,
   View,
 } from 'react-native';
+import { Image as ExpoImage } from 'expo-image';
 
 import type { EventAlbumItem } from '@/types/event';
 import { translate, useTranslation } from '@/lib/localization';
@@ -36,7 +36,7 @@ const AlbumImage = ({
 }) => {
   const { styles } = useMentaStyles(createPaletteStyles);
   return (
-    <Image
+    <ExpoImage
       accessibilityLabel={translate(
         locale,
         'events.album.photo_accessibility',
@@ -44,8 +44,9 @@ const AlbumImage = ({
           attendee: item.attendeeUsername,
         }
       )}
+      cachePolicy="memory"
+      contentFit="cover"
       onError={() => onImageError?.(item.postId)}
-      resizeMode="cover"
       source={{ uri: item.mediaPreviewUrl }}
       style={[styles.image, style]}
       testID={`event-album-image-${item.postId}`}

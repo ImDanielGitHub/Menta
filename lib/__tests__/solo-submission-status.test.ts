@@ -92,6 +92,6 @@ describe('solo submission status helpers', () => {
     expect(getSoloTodayAction('none')).toBe('submit');
     expect(getSoloTodayAction('pending')).toBe('view-details');
     expect(getSoloTodayAction('approved')).toBe('view-details');
-    expect(getSoloTodayAction('rejected')).toBe('view-details');
+    expect(getSoloTodayAction('rejected')).toBe('submit');
   });
 });

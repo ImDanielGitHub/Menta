@@ -77,7 +77,7 @@ export const todayStatesEnNZ = {
   'today.state.pending.named_title': '{promise} is waiting for review.',
   'today.state.pending.title': 'Your proof is waiting for review.',
   'today.state.pending.detail':
-    'It reached Menta. The result will appear here.',
+    'A reviewer still needs to accept it. Today does not count until they do. You do not need to send it again.',
   'today.state.pending.action': 'View proof',
   'today.state.correction.title': 'Your proof needs one change.',
   'today.state.correction.detail':
@@ -87,7 +87,13 @@ export const todayStatesEnNZ = {
   'today.state.review.named_title': '{name} sent proof.',
   'today.state.review.title': 'A proof needs your review.',
   'today.state.review.detail':
+    'Check the proof, then approve it or ask for one clear correction. Each confirmed review adds {reward} Momenta, up to {dailyLimit} a day.',
+  'today.state.review.detail_note':
+    'Read the note, then approve it or ask for one clear correction. Each confirmed review adds {reward} Momenta, up to {dailyLimit} a day.',
+  'today.state.review.detail_photo':
     'Check the photo, then approve it or ask for one clear correction. Each confirmed review adds {reward} Momenta, up to {dailyLimit} a day.',
+  'today.state.review.detail_video':
+    'Watch the video, then approve it or ask for one clear correction. Each confirmed review adds {reward} Momenta, up to {dailyLimit} a day.',
   'today.state.review.action': 'Review proof',
   'today.state.review.see_group': 'See group',
   'today.state.review.open_queue': 'Open queue',

@@ -114,6 +114,8 @@ export const fullGroupsEnNZ = {
     'Menta cannot connect this group without the confirmed first promise. Your group draft is still here. Return to Today and try again.',
   'groups.create.name_short_detail': 'Use at least three characters.',
   'groups.create.default_description': 'A group for your first promise.',
+  'groups.create.shared_description':
+    'A {count}-day group for shared promises.',
   'groups.create.cost_unknown_title': 'Could not confirm the group cost',
   'groups.create.cost_unknown_detail':
     'Menta did not create the group or spend Momenta. Check your connection and try again.',
@@ -758,6 +760,12 @@ export const fullGroupsEnNZ = {
   'groups.redirect.one_moment': 'One moment',
   'groups.redirect.checking': 'Menta is checking the invite code.',
   'groups.redirect.enter_group_code': 'Enter group code',
+  'groups.redirect.needs_promise_code': 'Promise invite needs a code',
+  'groups.redirect.needs_promise_code_subtitle':
+    'This link was for a promise, but it did not include a working invite code.',
+  'groups.redirect.missing_promise_code': 'Missing promise code',
+  'groups.redirect.missing_promise_code_detail':
+    'Ask the sender for a new invitation. Entering a group code will not open this promise.',
   'groups.redirect.without_invite': 'Continue without invite',
   'groups.redirect.referral_title': 'Invite',
   'groups.redirect.referral_missing_title': 'Referral link needs a code',
@@ -867,6 +875,7 @@ export const fullGroupsEnNZ = {
   'groups.share.back_you': 'Back to You',
   'groups.share.invite_someone': 'Invite someone',
   'groups.share.invite_someone_title': 'Invite someone to Menta',
+  'groups.share.referral_title_named': 'Join {name} on Menta',
   'groups.share.preparing': 'Preparing your invite',
   'groups.share.choose_where': 'Choose where to share',
   'groups.share.ready_after_return': 'Ready to share again',
@@ -912,7 +921,7 @@ export const fullGroupsEnNZ = {
   'groups.share.opening_action': 'Opening share sheet…',
   'groups.share.share_again': 'Share again',
   'groups.share.message':
-    'Join me on Menta. Use this link, then create your first promise to complete the referral.\n\n{link}',
+    'Join me on Menta. Use this link, then create your first promise.\n\n{link}',
   'groups.join.clipboard_empty': 'Clipboard empty',
   'groups.join.clipboard_empty_detail':
     'Copy an invite code, then come back and paste it here.',
@@ -973,8 +982,12 @@ export const fullGroupsEnNZ = {
   'groups.source.date.range': '{start} to {end}',
   'groups.source.date.starts': 'Starts {date}',
   'groups.source.date.ends': 'Ends {date}',
+  'groups.source.date.archived': 'Archived {date}',
+  'groups.source.date.archived_unknown': 'Archived group',
   'groups.source.member.fallback': 'Member',
   'groups.source.group.fallback': 'Group',
+  'groups.source.activity.joined': '{memberName} joined {groupName}',
+  'groups.source.activity.left': '{memberName} left {groupName}',
   'groups.source.member.count': '{count} members',
   'groups.source.member.count.one': '{count} member',
   'groups.source.member.count.other': '{count} members',
@@ -1179,6 +1192,8 @@ export const fullGroupsEnNZ = {
     'Menta could not update this role.',
   'groups.source.accountability.member.choose_role':
     'Choose one role in this promise.',
+  'groups.source.accountability.member.partner_requires_acceptance':
+    'Becoming a Partner needs their acceptance and cannot be changed here. Their current role stays in place.',
   'groups.source.accountability.member.remove_action':
     'Remove from this promise',
   'groups.source.accountability.member.remove_question': 'Remove {name}?',
@@ -1246,8 +1261,11 @@ export const fullGroupsEnNZ = {
   'groups.source.accountability.invite.private_note':
     'Your promise remains private until an invitation is accepted.',
   'groups.source.accountability.share.title': 'Join {promise}',
+  'groups.source.accountability.share.title_unnamed': 'Join this promise',
   'groups.source.accountability.share.message':
     'Join me on “{promise}” in Menta. I’m inviting you to {invitation}.\n\n{shareUrl}\nInvite code: {code}',
+  'groups.source.accountability.share.message_unnamed':
+    'Join this promise on Menta. I’m inviting you to {invitation}.\n\n{shareUrl}\nInvite code: {code}',
   'groups.source.accountability.share.still_ready_title':
     'Invitation still ready',
   'groups.source.accountability.share.still_ready_detail':

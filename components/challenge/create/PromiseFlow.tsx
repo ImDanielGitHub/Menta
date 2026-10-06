@@ -1266,7 +1266,7 @@ const createPaletteStyles = (mentaColors: MentaPalette) => {
     },
     segmentSelected: {
       borderColor: mentaColors.action,
-      backgroundColor: '#231B33',
+      backgroundColor: mentaColors.actionSoft,
     },
     segmentText: {
       color: mentaColors.text.secondary,

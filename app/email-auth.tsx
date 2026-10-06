@@ -25,6 +25,10 @@ import {
 } from '@/components/onboarding/PaperAuthSurface';
 import { useAuthStore } from '@/store/auth-store';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
+import {
+  getEmailAuthDuplicateCopy,
+  isDuplicateAccountError,
+} from '@/lib/auth/email-auth-copy';
 import { MINIMUM_NEW_PASSWORD_LENGTH } from '@/lib/auth/password-policy';
 import { useEmailConfirmationStore } from '@/store/email-confirmation-store';
 import { usePendingPromiseInvitePreview } from '@/hooks/usePendingPromiseInvitePreview';
@@ -34,6 +38,7 @@ import {
   accountabilityInviteRoleCopy,
 } from '@/lib/promises/accountability';
 import { trackProductEvent } from '@/lib/posthog';
+import { stagePasswordResetPrefill } from '@/lib/auth/password-reset-prefill';
 
 type EmailAuthMode = 'login' | 'signup';
 type FieldErrors = Partial<
@@ -49,16 +54,15 @@ const getParam = (value?: string | string[]) =>
 const normalizeEmail = (value: string) => value.trim().toLowerCase();
 const isValidEmail = (value: string) => /\S+@\S+\.\S+/.test(value.trim());
 const isValidName = (value: string) => /^[a-zA-Z0-9_]+$/.test(value);
-const isDuplicateAccountError = (message: string) =>
-  /already|exists|registered/i.test(message);
-
 const getFailureMessage = (
   error: unknown,
   mode: EmailAuthMode,
   t: ReturnType<typeof useTranslation>['t']
 ) => {
   const message = error instanceof Error ? error.message : '';
-  if (isDuplicateAccountError(message)) return message;
+  if (isDuplicateAccountError(message)) {
+    return getEmailAuthDuplicateCopy(t);
+  }
   if (/network|offline|internet|connection|timed out/i.test(message)) {
     return t('fullAuth.email_auth.offline_reconnect');
   }
@@ -108,6 +112,7 @@ export default function EmailAuthScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<FieldErrors>({});
   const [serverError, setServerError] = useState('');
+  const [duplicateEmail, setDuplicateEmail] = useState(false);
   const submissionLockRef = useRef(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -115,6 +120,7 @@ export default function EmailAuthScreen() {
     setMode(requestedMode);
     setErrors({});
     setServerError('');
+    setDuplicateEmail(false);
   }, [requestedMode]);
 
   useEffect(() => {
@@ -181,6 +187,7 @@ export default function EmailAuthScreen() {
       delete next[field];
       return next;
     });
+    if (field === 'email') setDuplicateEmail(false);
     if (serverError) setServerError('');
   };
 
@@ -342,11 +349,13 @@ export default function EmailAuthScreen() {
         method: 'password',
         outcome: 'failed',
       });
+      const providerMessage = error instanceof Error ? error.message : '';
       const message = getFailureMessage(error, mode, t);
-      if (mode === 'signup' && isDuplicateAccountError(message)) {
+      if (mode === 'signup' && isDuplicateAccountError(providerMessage)) {
+        setDuplicateEmail(true);
         setErrors(current => ({
           ...current,
-          email: 'This email already has a Menta account.',
+          email: getEmailAuthDuplicateCopy(t),
         }));
       } else {
         setServerError(message);
@@ -371,12 +380,11 @@ export default function EmailAuthScreen() {
 
   const isAuthPending = isLoading || isSubmitting;
 
-  const duplicateEmail = Boolean(errors.email?.includes('already'));
-
   const switchMode = () => {
     setMode(current => (current === 'login' ? 'signup' : 'login'));
     setErrors({});
     setServerError('');
+    setDuplicateEmail(false);
   };
 
   return (
@@ -527,7 +535,9 @@ export default function EmailAuthScreen() {
                 const normalisedEmail = normalizeEmail(email);
                 router.push({
                   pathname: '/forgot-password',
-                  params: normalisedEmail ? { email: normalisedEmail } : {},
+                  params: normalisedEmail
+                    ? { prefill: stagePasswordResetPrefill(normalisedEmail) }
+                    : {},
                 });
               }}
               style={styles.textAction}

@@ -50,4 +50,24 @@ export const groupsHomeEnNZ = {
   'groupsHome.groupAction.empty_title': 'No reviews waiting',
   'groupsHome.groupAction.empty_detail':
     'No one is waiting for your review right now.',
+  'groupsHome.adminNotice.ownerOnlyTitle': 'Owner only',
+  'groupsHome.adminNotice.ownerOnlyDetail':
+    'Only the owner can save these group settings.',
+  'groupsHome.adminNotice.nameRequiredTitle': 'Name required',
+  'groupsHome.adminNotice.nameRequiredDetail':
+    'Give this group a name before saving.',
+  'groupsHome.adminNotice.saveUnconfirmedTitle': 'Save not confirmed',
+  'groupsHome.adminNotice.saveUnconfirmedDetail':
+    'Menta could not confirm whether the settings were saved. Your edits are still here. Check the group before trying again.',
+  'groupsHome.adminNotice.savedTitle': 'Changes saved',
+  'groupsHome.adminNotice.savedDetail': 'Group settings are up to date.',
+  'groupsHome.adminNotice.saveFailedTitle': "Changes weren't saved",
+  'groupsHome.adminNotice.saveFailedDetail':
+    'Check your connection and try again. Your edits are still here.',
+  'groupsHome.adminNotice.leaveUnknownTitle': 'Leave result unknown',
+  'groupsHome.adminNotice.leaveFailedTitle': 'No group change',
+  'groupsHome.adminNotice.deleteUnconfirmedTitle': 'Delete not confirmed',
+  'groupsHome.adminNotice.deleteUnconfirmedDetail':
+    'Menta could not confirm whether the group was deleted. Return to Groups and check before trying again.',
+  'groupsHome.adminNotice.deleteFailedTitle': 'Group not deleted',
 } as const;

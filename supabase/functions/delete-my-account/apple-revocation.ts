@@ -16,8 +16,7 @@ export type AccountDeletionRequest = {
 };
 
 export type AppleProviderState =
-  | { linked: false }
-  | { linked: true; subject: string | null };
+  { linked: false } | { linked: true; subject: string | null };
 
 export type AppleRevocationConfig = {
   clientId: string;
@@ -43,8 +42,7 @@ export class AppleRevocationError extends Error {
 }
 
 type ParseDeletionRequestResult =
-  | { ok: true; request: AccountDeletionRequest }
-  | { ok: false };
+  { ok: true; request: AccountDeletionRequest } | { ok: false };
 
 type AppleTokenResponse = {
   access_token?: unknown;

@@ -222,6 +222,8 @@ export const fullCommerceEsES = {
   'commerce.wallet.adjustmentDescription': 'Ajuste de saldo',
   'commerce.wallet.activityDescription': 'Actividad de Momenta',
   'commerce.wallet.promiseCreated': 'Promesa creada',
+  'commerce.wallet.promiseJoined': 'Te uniste a la promesa: {title}',
+  'commerce.wallet.promiseJoinedUnknown': 'Te uniste a una promesa',
   'commerce.wallet.groupCreated': 'Grupo creado',
   'commerce.shop.title': 'Tienda',
   'commerce.shop.intro':

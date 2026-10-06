@@ -30,12 +30,12 @@ describe('Today dashboard localisation', () => {
   );
 
   it('uses the locale plural rule for streak days', () => {
-    expect(
-      translate('de-DE', 'today.progress.streak_days', { count: 1 })
-    ).toBe('1 Tag');
-    expect(
-      translate('de-DE', 'today.progress.streak_days', { count: 2 })
-    ).toBe('2 Tage');
+    expect(translate('de-DE', 'today.progress.streak_days', { count: 1 })).toBe(
+      '1 Tag'
+    );
+    expect(translate('de-DE', 'today.progress.streak_days', { count: 2 })).toBe(
+      '2 Tage'
+    );
   });
 
   it('keeps regional action wording distinct', () => {

@@ -12,7 +12,7 @@ import { Stack, useRouter } from 'expo-router';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppInlineNotice } from '@/components/ui/AppFeedback';
 import { AppScreen, AppTopBar } from '@/components/ui/AppShell';
-
+import { getAdTrackingSkipCopy } from '@/lib/ads/ad-tracking-copy';
 import {
   getMetaAdsTrackingStatus,
   requestMetaAdsTrackingPermission,
@@ -116,7 +116,7 @@ export default function AdTrackingPermissionScreen() {
                 fullWidth
                 size="large"
                 testID="ad-tracking-education-not-now"
-                title={t('shared.adTracking.notNow')}
+                title={getAdTrackingSkipCopy(t)}
                 variant="ghost"
                 onPress={close}
               />

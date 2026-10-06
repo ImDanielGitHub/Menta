@@ -342,6 +342,10 @@ export const fullAuthAccountFrFR = {
     "Rien ne change tant que vous n'avez pas choisi une photo.",
   'fullAuth.edit_profile.photo_not_changed_photoerror':
     'Photo non modifiée. {photoError}',
+  'fullAuth.edit_profile.photo_too_large':
+    'Choisissez une photo de moins de 5 Mo.',
+  'fullAuth.edit_profile.photo_type_rejected':
+    'Choisissez une image JPEG, PNG ou WebP pour votre photo de profil.',
   'fullAuth.edit_profile.photo_visibility': 'Visibilité de la photo',
   'fullAuth.edit_profile.photo_will_be_removed': 'La photo sera supprimée',
   'fullAuth.edit_profile.profile_unavailable': 'Profil indisponible',
@@ -742,6 +746,8 @@ export const fullAuthAccountFrFR = {
   'fullAuth.onboarding.every_day': 'Tous les jours',
   'fullAuth.onboarding.every_day_2': '· Tous les jours ·',
   'fullAuth.promise.frequency.once_a_week': 'Une fois par semaine',
+  'fullAuth.promise.frequency.three_times_a_week': 'Trois fois par semaine',
+  'fullAuth.promise.frequency.custom': 'Planning personnalisé',
   'fullAuth.onboarding.first_promise': 'Première promesse',
   'fullAuth.onboarding.first_promise_firstpromisecost_momenta_after_cre':
     'Première promesse, {firstPromiseCost} Momenta. Après création, {welcomeBonus} Momenta de bienvenue pour des choix ultérieurs.',
@@ -1440,6 +1446,10 @@ export const fullAuthAccountFrFR = {
     'Dites-nous ce qui fonctionne, ce qui ne fonctionne pas ou ce qui rendrait Menta meilleur.',
   'fullAuth.residual.report.feedback_heading': 'Que devrions-nous savoir?',
   'fullAuth.residual.report.feedback_label': 'Commentaires',
+  'fullAuth.residual.report.feedback_privacy':
+    'Vos commentaires et toute capture d’écran choisie vont en privé à l’équipe Menta.',
+  'fullAuth.residual.report.feedback_send_helper':
+    'Envoyez lorsque vous êtes prêt. Vous pouvez revenir et tout modifier.',
   'fullAuth.residual.report.feedback_title': 'Commentaires sur Menta',
   'fullAuth.residual.report.form_label': 'ce formulaire',
   'fullAuth.residual.report.included_feedback': 'Inclus avec les commentaires',

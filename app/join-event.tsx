@@ -17,7 +17,7 @@ import {
   SkeletonLoader,
 } from '@/components/ui';
 import { AppScaledText as Text } from '@/components/ui/AppScaledText';
-
+import { describeJoinEventSkipAction } from '@/lib/events/join-event-copy';
 import { isValidEventId } from '@/lib/events/links';
 import { useTranslation } from '@/lib/localization';
 import {
@@ -346,7 +346,13 @@ export default function JoinEventRoute() {
                 testID="join-event-continue"
               />
               <AppButton
-                title={t('groups.source.accountability.common.not_now')}
+                title={describeJoinEventSkipAction(
+                  {
+                    signedIn: Boolean(user?.id),
+                    onboardingComplete: hasCompletedOnboarding,
+                  },
+                  t
+                )}
                 onPress={dismiss}
                 fullWidth
                 variant="ghost"

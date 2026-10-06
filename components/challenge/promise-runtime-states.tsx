@@ -993,7 +993,7 @@ export const PromiseActiveState = ({
   return (
     <FamilyFrame testID="promise-active" contentGap={16}>
       <FamilyHeading
-        cue="Personal promise"
+        cue={t('todayProof.promise.personal_cue')}
         title={promiseTitle}
         onBack={onBack}
       />
@@ -1094,10 +1094,12 @@ export const PromiseWaitingReviewState = ({
   return (
     <FamilyFrame testID="promise-waiting-review" contentGap={14}>
       <FamilyHeading
-        cue="Waiting for review"
+        cue={t('todayProof.promise.waiting_review')}
         title={
           resolvedReviewer
-            ? `${resolvedReviewer} has your proof.`
+            ? t('todayProof.promise.reviewer_has_proof', {
+                name: resolvedReviewer,
+              })
             : t('todayProof.residual.your_proof_is_waiting_for_a_reviewer')
         }
         description={sentLabel}
@@ -1121,7 +1123,7 @@ export const PromiseWaitingReviewState = ({
           title={t('todayProof.residual.proof_details_are_unavailable')}
           description={
             evidenceUnavailableMessage ||
-            'Menta confirmed a pending review, but the submitted proof could not be loaded.'
+            t('todayProof.promise.waiting_unavailable')
           }
           tone="warning"
           testID="waiting-proof-unavailable"
@@ -1142,7 +1144,7 @@ export const PromiseWaitingReviewState = ({
         <AppFieldRow
           title={t('todayProof.residual.who_reviews')}
           icon={<UsersIcon size={18} color={mentaColors.text.secondary} />}
-          value={reviewerName?.trim() || 'Checking'}
+          value={reviewerName?.trim() || t('todayProof.residual.checking')}
           onPress={onPeople}
           showDivider={false}
         />
@@ -1496,7 +1498,11 @@ export const PromiseProofDetailState = ({
   return (
     <FamilyFrame testID="promise-proof-detail" contentGap={18}>
       <FamilyHeading
-        cue={proof.state === 'approved' ? 'Proof accepted' : undefined}
+        cue={
+          proof.state === 'approved'
+            ? t('todayProof.source.lifecycle.accepted')
+            : undefined
+        }
         title={t('todayProof.residual.proof_receipt')}
         description={proof.submittedLabel}
         onBack={onBack}
@@ -1559,15 +1565,21 @@ export const PromiseCompleteState = ({
   return (
     <FamilyFrame testID="promise-complete">
       <FamilyHeading
-        cue="Promise complete"
-        title={`${record.approvedDays} of ${record.totalDays} days were approved.`}
+        cue={t('todayProof.promise.complete')}
+        title={t('todayProof.promise.complete_title', {
+          approved: record.approvedDays,
+          total: record.totalDays,
+        })}
         description={`${record.visibility}. ${record.reviewerSummary}.`}
         onBack={onBack}
       />
       <MutationRecoveryNotice notice={mutationNotice} />
       <View
         accessible
-        accessibilityLabel={`${record.approvedDays} of ${record.totalDays} days approved`}
+        accessibilityLabel={t('todayProof.promise.complete_tally', {
+          approved: record.approvedDays,
+          total: record.totalDays,
+        })}
         style={styles.completionTally}
         testID="promise-completion-tally"
       >

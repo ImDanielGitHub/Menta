@@ -45,6 +45,7 @@ type Props = {
   /** The paywall's ad outcome (receipt or one plain notice), shown under the options. */
   feedback?: React.ReactNode;
   onGoPro: () => void;
+  onOpenWallet?: () => void;
   onCheckProof?: () => void;
   onClose: () => void;
 };
@@ -78,6 +79,7 @@ export function MomentaTopUp({
   credited,
   feedback,
   onGoPro,
+  onOpenWallet,
   onCheckProof,
   onClose,
 }: Props) {
@@ -377,6 +379,15 @@ export function MomentaTopUp({
             fullWidth
             testID="momenta-top-up-primary"
           />
+          {onOpenWallet && !enough && !adLoading ? (
+            <AppButton
+              title={t('commerce.wallet.buyPack')}
+              onPress={onOpenWallet}
+              variant="ghost"
+              fullWidth
+              testID="momenta-top-up-wallet"
+            />
+          ) : null}
           {!enough ? (
             <View style={styles.links}>
               <Pressable
@@ -468,6 +479,7 @@ type GuideProps = {
   onNext: () => void;
   onGetMomenta: () => void;
   onGoPro: () => void;
+  onOpenWallet?: () => void;
   onClose: () => void;
 };
 
@@ -664,7 +676,7 @@ const createPaletteStyles = (mentaColors: MentaPalette) => {
       justifyContent: 'flex-end',
     },
     sheet: {
-      backgroundColor: '#121313',
+      backgroundColor: mentaColors.surface,
       borderTopLeftRadius: SHEET_RADIUS,
       borderTopRightRadius: SHEET_RADIUS,
       borderTopWidth: StyleSheet.hairlineWidth,

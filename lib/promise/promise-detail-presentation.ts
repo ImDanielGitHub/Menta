@@ -52,24 +52,42 @@ export const isPromiseTermComplete = (input: {
   input.challengeStatus === 'completed' ||
   input.challengeStatus === 'expired';
 
+const frequencyCopy = (
+  key:
+    | 'fullAuth.onboarding.every_day'
+    | 'fullAuth.promise.frequency.once_a_week'
+    | 'fullAuth.promise.frequency.three_times_a_week'
+    | 'fullAuth.promise.frequency.custom',
+  localise?: (key: TranslationKey) => string
+): string => (localise ? localise(key) : translate('en-NZ', key));
+
 export const formatPromiseFrequency = (
   value: string | null | undefined,
   localise?: (key: TranslationKey) => string
 ): string => {
   const normalized = value?.trim().toLocaleLowerCase('en-NZ');
   if (!normalized || normalized === 'daily' || normalized === 'every day') {
-    return localise
-      ? localise('fullAuth.onboarding.every_day')
-      : translate('en-NZ', 'fullAuth.onboarding.every_day');
+    return frequencyCopy('fullAuth.onboarding.every_day', localise);
   }
-  if (normalized === 'weekly' || normalized === 'once a week') {
-    return localise
-      ? localise('fullAuth.promise.frequency.once_a_week')
-      : translate('en-NZ', 'fullAuth.promise.frequency.once_a_week');
+  if (
+    normalized === 'weekly' ||
+    normalized === 'once a week' ||
+    normalized === 'every week'
+  ) {
+    return frequencyCopy('fullAuth.promise.frequency.once_a_week', localise);
+  }
+  if (
+    normalized === 'three_times_weekly' ||
+    normalized === 'three times weekly' ||
+    normalized === 'three times a week'
+  ) {
+    return frequencyCopy(
+      'fullAuth.promise.frequency.three_times_a_week',
+      localise
+    );
   }
 
-  const words = normalized.replace(/[_-]+/g, ' ');
-  return `${words.charAt(0).toLocaleUpperCase('en-NZ')}${words.slice(1)}`;
+  return frequencyCopy('fullAuth.promise.frequency.custom', localise);
 };
 
 /**

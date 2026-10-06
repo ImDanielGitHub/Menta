@@ -51,23 +51,26 @@ serve(async (req: Request) => {
 
     const isCreator = challenge.creator_id === context.user.id;
 
-    if (challenge.allow_self_review) {
-      const { data: promiseContainer, error: promiseContainerError } =
-        await context.userClient
-          .from('team_challenges')
-          .select('group_id, teams!inner(kind, owner_id)')
-          .eq('challenge_id', challengeId)
-          .eq('teams.kind', 'promise')
-          .eq('teams.owner_id', context.user.id)
-          .limit(1)
-          .maybeSingle();
+    const { data: promiseContainer, error: promiseContainerError } =
+      await context.userClient
+        .from('team_challenges')
+        .select('group_id, teams!inner(kind, owner_id)')
+        .eq('challenge_id', challengeId)
+        .eq('teams.kind', 'promise')
+        .limit(1)
+        .maybeSingle();
 
-      if (promiseContainerError || !promiseContainer || !isCreator) {
-        return jsonResponse(
-          { error: 'Solo challenges do not support invites' },
-          400
-        );
-      }
+    if (promiseContainerError) {
+      return jsonResponse({ error: 'Failed to verify invite authority' }, 500);
+    }
+    if (promiseContainer && !isCreator) {
+      return jsonResponse({ error: 'Forbidden' }, 403);
+    }
+    if (challenge.allow_self_review && (!promiseContainer || !isCreator)) {
+      return jsonResponse(
+        { error: 'Solo challenges do not support invites' },
+        400
+      );
     }
 
     if (!isCreator) {

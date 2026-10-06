@@ -14,9 +14,7 @@ export type ChallengeJoinTarget = {
 };
 
 export type ChallengeJoinEligibilityCode =
-  | 'ELIGIBLE'
-  | 'INSUFFICIENT_BALANCE'
-  | 'ALREADY_JOINED';
+  'ELIGIBLE' | 'INSUFFICIENT_BALANCE' | 'ALREADY_JOINED';
 
 export type ChallengeJoinFailureCode =
   | 'AUTH_REQUIRED'
@@ -38,9 +36,7 @@ export type ChallengeJoinFailureCode =
   | 'JOIN_FAILED';
 
 export type ChallengeJoinOperation =
-  | 'CHALLENGE_JOIN_QUOTE'
-  | 'CHALLENGE_JOIN'
-  | 'CHALLENGE_JOIN_STATUS';
+  'CHALLENGE_JOIN_QUOTE' | 'CHALLENGE_JOIN' | 'CHALLENGE_JOIN_STATUS';
 
 export type ChallengeJoinQuote = {
   source: 'server';

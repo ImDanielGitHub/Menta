@@ -252,8 +252,15 @@ export const ImageService = {
         uploadData = file; // Already a Blob
       }
     } else {
-      // React Native platform - use proven GitHub issue fix pattern
+      // React Native uploads use only the bytes after a base64 data-URL header.
       if (typeof file === 'string') {
+        if (/^data:/i.test(file)) {
+          const dataUrl = /^data:[^,]*;base64,([A-Za-z0-9+/]*={0,2})$/i.exec(
+            file
+          );
+          if (!dataUrl) throw new Error('Invalid base64 data URL');
+          file = dataUrl[1];
+        }
         imageDebugLog(
           `📤 Converting base64 to ArrayBuffer (${Platform.OS})...`
         );
@@ -319,7 +326,6 @@ export const ImageService = {
               errorType: error.constructor.name,
               platform: Platform.OS,
               base64Length: file.length,
-              base64Sample: file.substring(0, 100),
             }
           );
           throw new Error(

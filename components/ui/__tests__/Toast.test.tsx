@@ -1,6 +1,9 @@
 import React from 'react';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
+import { addBreadcrumb, captureMessage } from '@/lib/sentry';
+import { showToast } from '@/components/ui/Toast';
+
 import { Toast } from '@/components/ui/Toast';
 
 jest.mock('react-native-safe-area-context', () => ({
@@ -57,4 +60,20 @@ describe('Toast', () => {
     );
     await waitFor(() => expect(onDismiss).toHaveBeenCalledWith('toast-2'));
   });
+});
+
+it('keeps user-visible error content out of initial and repeated telemetry', () => {
+  const secretText = 'Private promise proof and invite code ABC123';
+  jest.mocked(addBreadcrumb).mockClear();
+  jest.mocked(captureMessage).mockClear();
+  showToast.error(secretText, 'private/path/file.jpg');
+  showToast.error(secretText, 'private/path/file.jpg');
+  showToast.error(secretText, 'private/path/file.jpg');
+  const captured = JSON.stringify([
+    jest.mocked(addBreadcrumb).mock.calls,
+    jest.mocked(captureMessage).mock.calls,
+  ]);
+  expect(captured).not.toContain(secretText);
+  expect(captured).not.toContain('private/path/file.jpg');
+  expect(captured).toContain('ui_error_toast');
 });

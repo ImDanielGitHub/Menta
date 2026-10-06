@@ -14,9 +14,6 @@ import { useTranslation } from '@/lib/localization';
 import { mentaFonts } from '@/lib/menta-fonts';
 import { useReferralStore } from '@/store/referral-store';
 
-const CARD_INK = '#12081F';
-const CARD_INK_SOFT = '#2A1A4A';
-
 /**
  * Paper 19 / Y01: the Menta referral sits right under your name. The reward
  * line appears only while the server says rewards are active and uncapped.
@@ -25,7 +22,7 @@ export function ProfileInviteCard({ onInvite }: { onInvite: () => void }) {
   const { styles } = useMentaStyles(createPaletteStyles);
 
   const { t } = useTranslation();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const getProgramme = useReferralStore(
     state => state.getReferralProgramStatus
   );
@@ -71,27 +68,42 @@ export function ProfileInviteCard({ onInvite }: { onInvite: () => void }) {
       style={({ pressed }) => [
         styles.card,
         { backgroundColor: colors.accent.primary },
-        pressed ? styles.pressed : null,
+        pressed && isDark ? styles.pressed : null,
       ]}
       testID="profile-invite-card"
     >
-      <View style={styles.wash} />
-      <View style={styles.copy}>
-        <Text style={styles.title}>
-          {t('fullAuth.tabs_profile.invite_title')}
-        </Text>
-        <Text style={styles.body}>{body}</Text>
-        <View style={styles.action}>
-          <Text style={styles.actionText}>
-            {t('fullAuth.tabs_profile.invite_action')}
-          </Text>
-        </View>
-      </View>
-      <MentaMascot
-        size="xl"
-        state="referral-invitation"
-        style={styles.mascot}
-      />
+      {({ pressed }) => (
+        <>
+          <View
+            testID="profile-invite-wash"
+            style={[styles.wash, { opacity: isDark ? 0.18 : 0.06 }]}
+          />
+          <View style={styles.copy}>
+            <Text style={[styles.title, { color: colors.onPrimary }]}>
+              {t('fullAuth.tabs_profile.invite_title')}
+            </Text>
+            <Text style={[styles.body, { color: colors.onPrimary }]}>
+              {body}
+            </Text>
+            <View
+              style={[
+                styles.action,
+                pressed && !isDark ? styles.actionPressed : null,
+              ]}
+              testID="profile-invite-action"
+            >
+              <Text style={styles.actionText}>
+                {t('fullAuth.tabs_profile.invite_action')}
+              </Text>
+            </View>
+          </View>
+          <MentaMascot
+            size="xl"
+            state="referral-invitation"
+            style={styles.mascot}
+          />
+        </>
+      )}
     </Pressable>
   );
 }
@@ -108,11 +120,10 @@ const createPaletteStyles = (mentaColors: MentaPalette) => {
     },
     // A soft lift toward the top-left, in place of a gradient dependency.
     wash: {
-      backgroundColor: '#FFFFFF',
+      backgroundColor: mentaColors.paper,
       borderRadius: mentaRadii.round,
       height: 260,
       left: -90,
-      opacity: 0.18,
       position: 'absolute',
       top: -140,
       width: 260,
@@ -127,29 +138,30 @@ const createPaletteStyles = (mentaColors: MentaPalette) => {
       zIndex: 1,
     },
     title: {
-      color: CARD_INK,
       fontFamily: mentaFonts.newsreader.semibold,
       fontSize: 26,
       letterSpacing: -0.5,
       lineHeight: 30,
     },
     body: {
-      color: CARD_INK_SOFT,
       fontFamily: mentaFonts.inter.regular,
       fontSize: 15,
       lineHeight: 21,
     },
     action: {
       alignSelf: 'flex-start',
-      backgroundColor: CARD_INK,
+      backgroundColor: mentaColors.text.onPaper,
       borderRadius: 14,
       marginTop: mentaSpacing[2],
       minHeight: 44,
       justifyContent: 'center',
       paddingHorizontal: mentaSpacing[4],
     },
+    actionPressed: {
+      backgroundColor: mentaColors.actionPressed,
+    },
     actionText: {
-      color: mentaColors.text.primary,
+      color: mentaColors.paper,
       fontFamily: mentaFonts.inter.semibold,
       fontSize: 15,
     },

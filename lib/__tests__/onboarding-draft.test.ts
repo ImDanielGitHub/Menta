@@ -560,3 +560,22 @@ describe('onboarding draft', () => {
     expect(await AsyncStorage.getItem(LEGACY_V2_KEY)).toBeNull();
   });
 });
+
+it('migrates a v1 check-in draft without discarding its promise', async () => {
+  await AsyncStorage.clear();
+  await AsyncStorage.setItem(
+    LEGACY_V1_KEY,
+    JSON.stringify({
+      version: 1,
+      promise: 'Walk after dinner',
+      proofType: 'check_in',
+      updatedAt: '2026-08-01T10:00:00.000Z',
+    })
+  );
+  await expect(loadOnboardingDraft()).resolves.toMatchObject({
+    version: 3,
+    promise: 'Walk after dinner',
+    proofType: 'note',
+  });
+  expect(await AsyncStorage.getItem(ONBOARDING_DRAFT_KEY)).not.toBeNull();
+});

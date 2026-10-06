@@ -99,8 +99,7 @@ describe('protected-route-store', () => {
     const { result } = renderHook(() => useProtectedRouteStore());
 
     let freshRoute:
-      | ReturnType<typeof result.current.getFreshPendingRoute>
-      | undefined;
+      ReturnType<typeof result.current.getFreshPendingRoute> | undefined;
     act(() => {
       freshRoute = result.current.getFreshPendingRoute();
     });

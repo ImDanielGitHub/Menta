@@ -11,10 +11,7 @@ export type ProofRecoveryPaperId =
   | 'STREAK-05';
 
 export type ProofRecoveryAuthority =
-  | 'local-input'
-  | 'local-proof'
-  | 'server-receipt'
-  | 'server-derived';
+  'local-input' | 'local-proof' | 'server-receipt' | 'server-derived';
 
 export type ProofRecoveryAction = {
   id: string;

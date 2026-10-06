@@ -36,9 +36,7 @@ export type GuestGroupInvitePreview = {
 };
 
 export type GroupInvitePreviewFailureCode =
-  | 'AUTH_REQUIRED'
-  | 'AUTH_SESSION_REVOKED'
-  | 'INVALID_CODE';
+  'AUTH_REQUIRED' | 'AUTH_SESSION_REVOKED' | 'INVALID_CODE';
 
 const INVITE_CODE_PATTERN = /^[A-HJ-NP-Z2-9]{6,32}$/;
 const PREVIEW_INVITE_CODE_PATTERN = /^[A-Z0-9]{4,32}$/;

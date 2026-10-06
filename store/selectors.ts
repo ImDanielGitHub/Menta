@@ -18,7 +18,7 @@ import { useMomentaStore } from './momenta-store';
  */
 export const useAuthState = () =>
   useAuthStore(
-    useShallow((state) => ({
+    useShallow(state => ({
       user: state.user,
       isLoading: state.isLoading,
       isAuthenticated: state.isAuthenticated,
@@ -30,7 +30,7 @@ export const useAuthState = () =>
  */
 export const useAuthStatus = () =>
   useAuthStore(
-    useShallow((state) => ({
+    useShallow(state => ({
       isAuthenticated: state.isAuthenticated,
       isInitialized: state.isInitialized,
       hasCompletedOnboarding: state.hasCompletedOnboarding,
@@ -42,7 +42,7 @@ export const useAuthStatus = () =>
  */
 export const useUserIdentity = () =>
   useAuthStore(
-    useShallow((state) => ({
+    useShallow(state => ({
       user: state.user,
       isAuthenticated: state.isAuthenticated,
     }))
@@ -57,7 +57,7 @@ export const useUserIdentity = () =>
  */
 export const useGroupsState = () =>
   useGroupStore(
-    useShallow((state) => ({
+    useShallow(state => ({
       groups: state.groups,
       isLoading: state.isLoading,
     }))
@@ -68,7 +68,7 @@ export const useGroupsState = () =>
  */
 export const useUserGroupsState = () =>
   useGroupStore(
-    useShallow((state) => ({
+    useShallow(state => ({
       groups: state.groups,
       userGroups: state.userGroups,
       isLoading: state.isLoading,
@@ -80,7 +80,7 @@ export const useUserGroupsState = () =>
  */
 export const useDiscoverGroupsState = () =>
   useGroupStore(
-    useShallow((state) => ({
+    useShallow(state => ({
       discoverGroups: state.discoverGroups,
       isLoading: state.isLoading,
     }))
@@ -91,7 +91,7 @@ export const useDiscoverGroupsState = () =>
  */
 export const useGroupActions = () =>
   useGroupStore(
-    useShallow((state) => ({
+    useShallow(state => ({
       fetchGroups: state.fetchGroups,
       fetchUserGroups: state.fetchUserGroups,
       fetchDiscoverGroups: state.fetchDiscoverGroups,
@@ -112,7 +112,7 @@ export const useGroupActions = () =>
  */
 export const useMomentaBalance = () =>
   useMomentaStore(
-    useShallow((state) => ({
+    useShallow(state => ({
       balance: state.balance,
       isLoading: state.isLoading,
     }))
@@ -123,7 +123,7 @@ export const useMomentaBalance = () =>
  */
 export const useShopState = () =>
   useMomentaStore(
-    useShallow((state) => ({
+    useShallow(state => ({
       shopItems: state.shopItems,
       ownedItems: state.ownedItems,
       isLoading: state.isLoading,
@@ -135,7 +135,7 @@ export const useShopState = () =>
  */
 export const useMomentaActions = () =>
   useMomentaStore(
-    useShallow((state) => ({
+    useShallow(state => ({
       fetchBalance: state.fetchBalance,
       addMomenta: state.addMomenta,
       spendMomenta: state.spendMomenta,
@@ -151,29 +151,30 @@ export const useMomentaActions = () =>
  * Select only the current user (most common use case)
  * Only re-renders when user object reference changes
  */
-export const useUser = () => useAuthStore((state) => state.user);
+export const useUser = () => useAuthStore(state => state.user);
 
 /**
  * Select only authentication status
  */
-export const useIsAuthenticated = () => useAuthStore((state) => state.isAuthenticated);
+export const useIsAuthenticated = () =>
+  useAuthStore(state => state.isAuthenticated);
 
 /**
  * Select only groups array
  */
-export const useGroups = () => useGroupStore((state) => state.groups);
+export const useGroups = () => useGroupStore(state => state.groups);
 
 /**
  * Select only user groups array
  */
-export const useUserGroupIds = () => useGroupStore((state) => state.userGroups);
+export const useUserGroupIds = () => useGroupStore(state => state.userGroups);
 
 /**
  * Select only momenta balance
  */
-export const useBalance = () => useMomentaStore((state) => state.balance);
+export const useBalance = () => useMomentaStore(state => state.balance);
 
 /**
  * Select only shop items
  */
-export const useShopItems = () => useMomentaStore((state) => state.shopItems);
+export const useShopItems = () => useMomentaStore(state => state.shopItems);

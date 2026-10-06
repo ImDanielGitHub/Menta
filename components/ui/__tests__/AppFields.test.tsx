@@ -392,3 +392,29 @@ describe('AppFields', () => {
     expect(focusNext).toHaveBeenCalledTimes(1);
   });
 });
+
+it('preserves code-entry constraints and Return submission on iOS', () => {
+  const submit = jest.fn();
+  const { getByTestId } = render(
+    <TestWrapper>
+      <AppTextField
+        testID="constrained-code"
+        value=""
+        maxLength={512}
+        autoCorrect={false}
+        spellCheck={false}
+        textContentType="oneTimeCode"
+        returnKeyType="done"
+        onSubmitEditing={submit}
+      />
+    </TestWrapper>
+  );
+  const input = getByTestId('constrained-code');
+  expect(input).toHaveProp('maxLength', 512);
+  expect(input).toHaveProp('autoCorrect', false);
+  expect(input).toHaveProp('spellCheck', false);
+  expect(input).toHaveProp('textContentType', 'oneTimeCode');
+  expect(input).toHaveProp('returnKeyType', 'done');
+  fireEvent(input, 'submitEditing');
+  expect(submit).toHaveBeenCalledTimes(1);
+});

@@ -4,7 +4,7 @@
  * Integration assumptions (Wave 2 Today worker):
  * - Build `DailyLoopServerFacts` from challenge/group store reads:
  *   `getTodaysSubmissionStatus` / `getComprehensiveSubmissionStatus`,
- *   `getTodaysSubmissions`, `getPendingReviewsForUser`, `getGroupRiskData`.
+ *   `getPendingReviewsForUser`, `getGroupRiskData`.
  * - Never map a boolean `hasSubmittedToday` alone; use granular
  *   none|pending|approved|rejected so pending/rejected never read as done.
  * - Feed local proof queue/draft overlays into `DailyLoopLocalOverlay`.

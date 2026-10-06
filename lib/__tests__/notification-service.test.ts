@@ -83,7 +83,7 @@ describe('notification service', () => {
       status: 'granted',
     } as Notifications.NotificationPermissionsStatus);
     mockNotifications.getExpoPushTokenAsync.mockResolvedValue({
-      data: 'ExponentPushToken[test-token]',
+      data: 'offline-only-ios-push-placeholder',
     } as Notifications.ExpoPushToken);
     mockNotifications.getAllScheduledNotificationsAsync.mockResolvedValue([]);
 
@@ -228,7 +228,7 @@ describe('notification service', () => {
     expect(upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         user_id: 'user-1',
-        expo_push_token: 'ExponentPushToken[test-token]',
+        expo_push_token: 'offline-only-ios-push-placeholder',
         push_app_build: 128,
         push_platform: 'ios',
         timezone: 'Pacific/Auckland',
@@ -244,12 +244,12 @@ describe('notification service', () => {
 
     await notificationService.updateUserPushToken(
       'user-1',
-      'ExponentPushToken[android-token]'
+      'offline-only-android-push-placeholder'
     );
 
     expect(upsert).toHaveBeenCalledWith(
       expect.objectContaining({
-        expo_push_token: 'ExponentPushToken[android-token]',
+        expo_push_token: 'offline-only-android-push-placeholder',
         push_platform: 'android',
         user_id: 'user-1',
       }),

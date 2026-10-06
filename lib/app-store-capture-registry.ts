@@ -13,12 +13,7 @@ export const APP_STORE_CAPTURE_DEVICE = {
 } as const;
 
 export type AppStoreCaptureCandidateId =
-  | 'ASC-01'
-  | 'ASC-02'
-  | 'ASC-03'
-  | 'ASC-04'
-  | 'ASC-05'
-  | 'ASC-06';
+  'ASC-01' | 'ASC-02' | 'ASC-03' | 'ASC-04' | 'ASC-05' | 'ASC-06';
 
 export type AppStoreCaptureCandidate = {
   id: AppStoreCaptureCandidateId;

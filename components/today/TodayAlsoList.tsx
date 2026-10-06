@@ -7,14 +7,17 @@ import {
 } from '@/constants/MentaDesignSystem';
 import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 
+import { TodayCardIcon } from '@/components/today/today-card-icon';
 import { TodayPressable } from '@/components/today/TodayPressable';
-import { AppScaledText as Text } from '@/components/ui/AppScaledText';
+import {
+  AppScaledText as Text,
+  useAppTextScale,
+} from '@/components/ui/AppScaledText';
 import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import {
   CameraIcon,
-  CheckIcon,
   ChevronRightIcon,
   ClockIcon,
   EditIcon,
@@ -24,7 +27,10 @@ import {
   VideoIcon,
 } from '@/components/ui/icons';
 
-import { useLargeTypeLineLimit } from '@/lib/accessibility';
+import {
+  allowsLargeTypeWrap,
+  useLargeTypeLineLimit,
+} from '@/lib/accessibility';
 
 export type TodayAlsoItemKind =
   | 'review'
@@ -68,7 +74,7 @@ function LeadingTile({ item }: { item: TodayAlsoItem }) {
     case 'proof-approved':
       return (
         <View style={[styles.tile, styles.tileSuccess]}>
-          <CheckIcon color={mentaColors.success} size={ICON_SIZE} />
+          <TodayCardIcon kind="approved" color={mentaColors.success} />
         </View>
       );
     case 'proof-pending':
@@ -98,9 +104,58 @@ function LeadingTile({ item }: { item: TodayAlsoItem }) {
   }
 }
 
+/** Proof history stays navigable without looking like another action card. */
+function ProofActivityRow({ item }: { item: TodayAlsoItem }) {
+  const palette = useMentaPalette();
+  const { styles } = useMentaStyles(createPaletteStyles);
+  const { width, fontScale } = useWindowDimensions();
+  const textScale = useAppTextScale() ?? fontScale;
+  const stacked = width < 390 || allowsLargeTypeWrap(textScale);
+  const approved = item.kind === 'proof-approved';
+  const status = item.statusLabel ? (
+    <Text
+      style={[
+        styles.proofStatus,
+        { color: approved ? palette.success : palette.text.secondary },
+      ]}
+    >
+      {item.statusLabel}
+    </Text>
+  ) : null;
+
+  return (
+    <TodayPressable
+      accessibilityLabel={item.accessibilityLabel}
+      onPress={item.onPress}
+      pressedStyle={styles.proofPressed}
+      style={styles.proofRow}
+      testID={`today-also-${item.key}`}
+    >
+      <View accessible={false} style={styles.proofIcon}>
+        {approved ? (
+          <TodayCardIcon kind="approved" color={palette.success} />
+        ) : (
+          <ClockIcon color={palette.text.secondary} size={28} />
+        )}
+      </View>
+      <View style={styles.proofCopy}>
+        <View style={styles.proofHeading}>
+          <Text style={styles.proofTitle}>{item.title}</Text>
+          {!stacked ? status : null}
+        </View>
+        <Text style={styles.detail}>{item.detail}</Text>
+        {stacked ? status : null}
+      </View>
+      <View accessible={false} style={styles.proofChevron}>
+        <ChevronRightIcon color={palette.text.secondary} size={18} />
+      </View>
+    </TodayPressable>
+  );
+}
+
 /**
- * Everything else that needs the person today, after the hero action. Each
- * row is a tactile card in the onboarding choice-row language.
+ * Supporting actions and proof history after the hero action. Action cards
+ * keep their emphasis; approved/pending proof uses quieter activity rows.
  */
 export function TodayAlsoList({
   heading,
@@ -120,39 +175,43 @@ export function TodayAlsoList({
       <Text accessibilityRole="header" style={styles.heading}>
         {heading}
       </Text>
-      {items.map(item => (
-        <TodayPressable
-          accessibilityLabel={item.accessibilityLabel}
-          key={item.key}
-          onPress={item.onPress}
-          pressedStyle={styles.rowPressed}
-          style={styles.row}
-          testID={`today-also-${item.key}`}
-        >
-          <LeadingTile item={item} />
-          <View style={styles.copy}>
-            <Text numberOfLines={titleLines} style={styles.title}>
-              {item.title}
-            </Text>
-            <Text numberOfLines={detailLines} style={styles.detail}>
-              {item.detail}
-            </Text>
-            {item.statusLabel ? (
-              <Text
-                style={[
-                  styles.status,
-                  STATUS_COLOR[item.kind]
-                    ? { color: STATUS_COLOR[item.kind] }
-                    : null,
-                ]}
-              >
-                {item.statusLabel}
+      {items.map(item =>
+        item.kind === 'proof-approved' || item.kind === 'proof-pending' ? (
+          <ProofActivityRow item={item} key={item.key} />
+        ) : (
+          <TodayPressable
+            accessibilityLabel={item.accessibilityLabel}
+            key={item.key}
+            onPress={item.onPress}
+            pressedStyle={styles.rowPressed}
+            style={styles.row}
+            testID={`today-also-${item.key}`}
+          >
+            <LeadingTile item={item} />
+            <View style={styles.copy}>
+              <Text numberOfLines={titleLines} style={styles.title}>
+                {item.title}
               </Text>
-            ) : null}
-          </View>
-          <ChevronRightIcon color={mentaColors.text.secondary} size={18} />
-        </TodayPressable>
-      ))}
+              <Text numberOfLines={detailLines} style={styles.detail}>
+                {item.detail}
+              </Text>
+              {item.statusLabel ? (
+                <Text
+                  style={[
+                    styles.status,
+                    STATUS_COLOR[item.kind]
+                      ? { color: STATUS_COLOR[item.kind] }
+                      : null,
+                  ]}
+                >
+                  {item.statusLabel}
+                </Text>
+              ) : null}
+            </View>
+            <ChevronRightIcon color={mentaColors.text.secondary} size={18} />
+          </TodayPressable>
+        )
+      )}
     </View>
   );
 }
@@ -228,6 +287,54 @@ const createPaletteStyles = (mentaColors: MentaPalette) => {
       minHeight: 80,
       paddingHorizontal: mentaSpacing[4],
       paddingVertical: mentaSpacing[4],
+    },
+    proofRow: {
+      alignItems: 'center',
+      backgroundColor: 'transparent',
+      borderWidth: 0,
+      flexDirection: 'row',
+      gap: mentaSpacing[4],
+      minHeight: 100,
+      paddingTop: mentaSpacing[5],
+      marginBottom: mentaSpacing[5],
+    },
+    proofPressed: {
+      backgroundColor: mentaColors.raised,
+    },
+    proofIcon: {
+      alignSelf: 'flex-start',
+      paddingTop: mentaSpacing[1],
+      width: 28,
+    },
+    proofCopy: {
+      borderBottomColor: mentaColors.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      flex: 1,
+      gap: mentaSpacing[4],
+      minWidth: 0,
+      paddingBottom: mentaSpacing[6],
+    },
+    proofHeading: {
+      alignItems: 'baseline',
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: mentaSpacing[3],
+    },
+    proofTitle: {
+      ...mentaTypography.bodySemibold,
+      color: mentaColors.text.primary,
+      flexBasis: '50%',
+      flexGrow: 1,
+      flexShrink: 1,
+    },
+    proofStatus: {
+      ...mentaTypography.captionMedium,
+      flexShrink: 1,
+      maxWidth: '100%',
+    },
+    proofChevron: {
+      flexShrink: 0,
+      paddingBottom: mentaSpacing[6],
     },
     rowSkeleton: {
       gap: mentaSpacing[4],

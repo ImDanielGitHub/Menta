@@ -14,9 +14,14 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 const mockBoolFlags: Record<string, boolean> = {
   ads_enabled: true,
+  revenuecat_enabled: true,
   safe_mode: false,
 };
 let mockPaywallAllowed = true;
+const mockRouterPush = jest.fn();
+jest.mock('expo-router', () => ({
+  router: { push: (...args: unknown[]) => mockRouterPush(...args) },
+}));
 
 jest.mock('@/lib/paywall/use-paywall-allowed', () => ({
   usePaywallAllowed: () => mockPaywallAllowed,
@@ -103,6 +108,7 @@ describe('PaywallModal', () => {
     jest.clearAllMocks();
     mockPaywallAllowed = true;
     mockBoolFlags.ads_enabled = true;
+    mockBoolFlags.revenuecat_enabled = true;
     mockBoolFlags.safe_mode = false;
     const revenueCat = jest.requireMock('@/lib/paywall/revenuecat') as {
       REVENUECAT_SUPPORTED: boolean;
@@ -1031,6 +1037,61 @@ describe('PaywallModal', () => {
     expect(onBuyPro).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
 
+    fireEvent.press(screen.getByText('Start using Pro'));
+    expect(onBuyPro).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['safe_mode', 'revenuecat_enabled'])(
+    'visibly disables restore when %s turns commerce off',
+    flag => {
+      mockBoolFlags[flag] = flag === 'safe_mode';
+      const { restorePurchases, RevenueCatAPI } = jest.requireMock(
+        '@/lib/paywall/revenuecat'
+      );
+      render(<PaywallModal visible onClose={jest.fn()} />, {
+        wrapper: Wrapper,
+      });
+      const restore = screen.getByTestId('pro-journey-restore');
+      expect(restore).toBeDisabled();
+      fireEvent.press(restore);
+      expect(restorePurchases).not.toHaveBeenCalled();
+      expect(RevenueCatAPI.getOfferings).not.toHaveBeenCalled();
+    }
+  );
+
+  it('opens wallet packs from the insufficient-Momenta surface', () => {
+    const onClose = jest.fn();
+    render(
+      <PaywallModal
+        visible
+        variant="insufficient"
+        onClose={onClose}
+        shortfall={20}
+      />,
+      { wrapper: Wrapper }
+    );
+    fireEvent.press(screen.getByTestId('momenta-top-up-wallet'));
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(mockRouterPush).toHaveBeenCalledWith('/momenta');
+  });
+
+  it('exposes the restored receipt and continuation from a compact quota paywall', async () => {
+    const { restorePurchases } = jest.requireMock('@/lib/paywall/revenuecat');
+    restorePurchases.mockResolvedValueOnce({ success: true });
+    const onClose = jest.fn();
+    const onBuyPro = jest.fn();
+    render(
+      <PaywallModal
+        visible
+        variant="quota"
+        onClose={onClose}
+        onBuyPro={onBuyPro}
+      />,
+      { wrapper: Wrapper }
+    );
+    fireEvent.press(screen.getByRole('button', { name: 'Restore purchases' }));
+    expect(await screen.findByText('Menta Pro is active again')).toBeTruthy();
     fireEvent.press(screen.getByText('Start using Pro'));
     expect(onBuyPro).toHaveBeenCalledTimes(1);
     expect(onClose).toHaveBeenCalledTimes(1);

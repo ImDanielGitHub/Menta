@@ -26,4 +26,16 @@ export const authLoginEsMX = {
   'auth.login.action.apple': 'Iniciar sesión con Apple',
   'auth.login.action.google': 'Iniciar sesión con Google',
   'auth.login.action.replay_intro': 'Ver cómo funciona Menta',
+  'auth.login.required.join_promise_title':
+    'Inicia sesión para unirte a esta promesa',
+  'auth.login.required.join_promise_detail':
+    'Tu invitación se guarda en tu cuenta. Todavía no te uniste.',
+  'auth.login.required.create_promise_title':
+    'Inicia sesión para crear una promesa',
+  'auth.login.required.create_promise_detail':
+    'Tu borrador permanece en este teléfono hasta que inicies sesión.',
+  'auth.login.required.open_promise_title':
+    'Inicia sesión para abrir esta promesa',
+  'auth.login.required.open_promise_detail':
+    'Menta abre esta promesa en tu cuenta.',
 } as const satisfies Pick<EnglishCatalogue, AuthLoginKey>;

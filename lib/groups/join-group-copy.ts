@@ -63,6 +63,35 @@ export function describeJoinGroupPreviewSpend(
     : translate('en-NZ', 'groups.join.preview_unchanged');
 }
 
+/** Last line before Join group: guest preview vs confirmed spend. */
+export function describeJoinGroupConfirmSpend(
+  cost: number | null,
+  signedIn: boolean,
+  translateCopy?: TranslateCopy
+): string {
+  if (!signedIn) {
+    return translateCopy
+      ? translateCopy('groups.join.preview_unchanged')
+      : translate('en-NZ', 'groups.join.preview_unchanged');
+  }
+
+  if (cost === 0) {
+    return translateCopy
+      ? translateCopy('groups.join.preview_free')
+      : translate('en-NZ', 'groups.join.preview_free');
+  }
+
+  if (typeof cost === 'number' && cost > 0) {
+    return translateCopy
+      ? translateCopy('groups.join.preview_paid', { cost })
+      : translate('en-NZ', 'groups.join.preview_paid', { cost });
+  }
+
+  return translateCopy
+    ? translateCopy('groups.join.preview_unknown')
+    : translate('en-NZ', 'groups.join.preview_unknown');
+}
+
 export function formatJoinGroupSpend(
   cost: number,
   translateCopy?: TranslateCopy

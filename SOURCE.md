@@ -6,12 +6,12 @@ with your own Supabase backend and provider accounts.
 
 ## Current source
 
-The app source is updated to version **1.9.7**.
+The app source is updated to version **1.9.9**.
 `source-manifest.json` records the exact upstream commit and a SHA-256 hash for
 each selected file before public configuration changes. Each `publicSha256`
 records its actual public bytes; `npm run check:public` verifies those hashes.
 
-This updates the previous public 1.9.6 snapshot. It includes the newer onboarding,
+This updates the previous public 1.9.7 snapshot. It includes the newer onboarding,
 Today and You screens, Pro journey, Momenta top-ups, shop, invitations, widget
 support, icon and language fixes, light/dark appearance, Menta Check, smart
 reminders and the activity inbox. It also includes the current free-plan
@@ -21,6 +21,11 @@ feature has been tested on a device in this edition.
 The tracking update uses confirmed receipts and local deduplication across normal
 retries and recovery. Proof content and receipt identifiers are not added to the
 `Proof Submitted` event properties. This does not establish provider delivery.
+
+The 1.9.9 sync adds localized receipts and actions, media consent, proof and
+sign-in recovery, startup and appearance fixes, and group access and subscription
+authority hardening. New forward migrations contain schema and authorization
+changes only; they do not apply to a hosted backend automatically.
 
 ## What is different here
 

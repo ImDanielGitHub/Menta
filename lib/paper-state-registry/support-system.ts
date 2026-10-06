@@ -39,11 +39,7 @@ export type SupportSystemPaperState = {
     | 'account-loading';
   /** The source that must exist before a production route can show this state. */
   authority:
-    | 'local-proof'
-    | 'network'
-    | 'server-role'
-    | 'server-issue'
-    | 'route';
+    'local-proof' | 'network' | 'server-role' | 'server-issue' | 'route';
   /**
    * Gallery-only states are deterministic presentation references, never
    * production fallbacks for an unavailable role, queue, issue, or decision.

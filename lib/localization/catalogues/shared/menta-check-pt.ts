@@ -18,23 +18,42 @@ export const mentaCheckPt = {
     'Também pode adicionar uma pessoa de confiança quando quiser.',
   'mentaCheck.option.passNote':
     'O Menta Check está incluído no Pro. Sem Pro, custa {cost} Momenta por semana para esta promessa. Pode parar quando quiser.',
-  'mentaCheck.consent.bubble':
-    'Antes de verificar qualquer coisa, veja o que vou receber.',
-  'mentaCheck.consent.photoTitle': 'A tua fotografia, vídeo e nota',
-  'mentaCheck.consent.photoBody':
-    'Juntamente com a sua promessa e o que a prova deve mostrar.',
-  'mentaCheck.consent.timeTitle': 'Quando enviou a prova',
-  'mentaCheck.consent.timeBody':
-    'E o dia a que a prova diz respeito. Não enviamos os metadados da sua localização.',
-  'mentaCheck.consent.neverTitle': 'Sem dados da conta ou dos seus amigos',
-  'mentaCheck.consent.neverBody':
-    'As verificações são eliminadas após 90 dias.',
-  'mentaCheck.consent.disclosure':
-    'Com a tua autorização, a OpenRouter e os seus fornecedores de IA processam a tua prova, nota e regra, incluindo o conteúdo visível e o som dos vídeos. Não enviamos dados da conta nem metadados de localização. Podes desativar isto no Menta Check.',
-  'mentaCheck.consent.policyLink': 'Como tratamos as suas provas',
-  'mentaCheck.consent.accept':
-    'Permitir que a Menta verifique as minhas provas',
-  'mentaCheck.consent.decline': 'Escolher outra pessoa',
+  'mentaCheck.consent.bubble': 'Permissão para verificações com IA',
+  'mentaCheck.consent.media':
+    'Se concordares, a Menta enviará as tuas fotografias, vídeos curtos com som e notas a um fornecedor externo.',
+  'mentaCheck.consent.purpose':
+    'A tua promessa, a regra de comprovação e a hora de envio também são enviadas para que o fornecedor possa verificar se a comprovação corresponde à tua regra.',
+  'mentaCheck.consent.scope':
+    'Esta permissão abrange as comprovações que ainda aguardam uma verificação com IA e as futuras comprovações que enviares com as verificações com IA ativadas.',
+  'mentaCheck.consent.exclusions':
+    'Não adicionamos os dados da tua conta nem dos teus amigos.',
+  'mentaCheck.consent.withdrawal':
+    'Podes retirar a permissão nas definições do Menta Check.',
+  'mentaCheck.consent.accept': 'Permitir verificações com IA',
+  'mentaCheck.consent.decline': 'Agora não',
+  'mentaCheck.permission.loading': 'A verificar a tua permissão…',
+  'mentaCheck.permission.loadError':
+    'A Menta não conseguiu carregar a tua permissão. Tenta novamente.',
+  'mentaCheck.permission.retry': 'Tentar novamente',
+  'mentaCheck.permission.bubble': 'A tua permissão para verificações com IA.',
+  'mentaCheck.permission.needsReview': 'A permissão precisa de revisão',
+  'mentaCheck.permission.reviewBody':
+    'Revê o que é enviado antes de permitires verificações com IA.',
+  'mentaCheck.permission.unchanged':
+    'As tuas definições de revisão atuais mantêm-se iguais.',
+  'mentaCheck.permission.unchangedUntilChoice':
+    'As tuas definições de revisão atuais mantêm-se iguais até decidires alterá-las.',
+  'mentaCheck.permission.review': 'Rever permissão',
+  'mentaCheck.permission.allowed': 'Permissão concedida',
+  'mentaCheck.permission.scope':
+    'Abrange as comprovações que aguardam uma verificação com IA e as futuras comprovações que enviares com as verificações com IA ativadas.',
+  'mentaCheck.permission.media':
+    'Fotografias, vídeos curtos com som e notas são enviados a um fornecedor externo, com a tua promessa, a regra de comprovação e a hora de envio.',
+  'mentaCheck.permission.withdrawal':
+    'Retira a permissão para deixar de enviar comprovações para novas verificações com IA. As comprovações já enviadas não podem ser recuperadas.',
+  'mentaCheck.permission.withdraw': 'Retirar permissão',
+  'mentaCheck.permission.return':
+    'Podes voltar aqui quando quiseres alterar a tua permissão.',
   'mentaCheck.receipt.bubble':
     'Guardado! Envie uma foto quando terminar e eu verifico.',
   'mentaCheck.receipt.checkedBy': 'Menta',

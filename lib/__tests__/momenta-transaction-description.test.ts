@@ -56,15 +56,27 @@ describe('Momenta history descriptions', () => {
         description: 'Group creation',
       })
     ).toBe('Group created');
+    expect(
+      describeMomentaTransaction({
+        transaction_type: 'spent',
+        description: 'Challenge join: Morning run',
+      })
+    ).toBe('Joined promise: Morning run');
+    expect(
+      describeMomentaTransaction({
+        transaction_type: 'spent',
+        description: 'Challenge join: ',
+      })
+    ).toBe('Joined a promise');
   });
 
   it('falls back to the movement kind when a row has no description', () => {
     expect(
       describeMomentaTransaction({ transaction_type: 'bonus', description: '' })
     ).toBe('Momenta bonus');
-    expect(
-      describeMomentaTransaction({ transaction_type: 'spent' })
-    ).toBe('Momenta spent');
+    expect(describeMomentaTransaction({ transaction_type: 'spent' })).toBe(
+      'Momenta spent'
+    );
     expect(describeMomentaTransaction({})).toBe('Momenta activity');
   });
 

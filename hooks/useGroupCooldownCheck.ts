@@ -38,6 +38,7 @@ const buildCooldownNotice = (
     message: t('groups.create.cooldown_active', {
       group: groupName,
       hours: hoursRemaining,
+      count: hoursRemaining,
     }),
     groupName: result.groupName,
     hoursRemaining,

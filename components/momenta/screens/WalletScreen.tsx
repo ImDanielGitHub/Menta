@@ -216,6 +216,7 @@ export default function WalletScreen() {
   const adReward = useAdRewardAmount();
   const { enabled: adsEnabled } = useOperationalFlag('ads_enabled');
   const { enabled: safeMode } = useOperationalFlag('safe_mode');
+  const { enabled: revenueCatFlag } = useOperationalFlag('revenuecat_enabled');
   const canWatchSponsors =
     adsEnabled && !safeMode && areVerifiedAdRewardsEnabled();
   const approvedCreditSkus = getApprovedCreditSkus();
@@ -248,6 +249,8 @@ export default function WalletScreen() {
 
   const canBuyCredits =
     REVENUECAT_SUPPORTED &&
+    revenueCatFlag &&
+    !safeMode &&
     (approvedCreditSkuSet.has('credits_large') ||
       approvedCreditSkuSet.has('com.anekedigitalapps.lockedin.credits_large'));
 

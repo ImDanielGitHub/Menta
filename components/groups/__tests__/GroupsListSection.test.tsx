@@ -8,6 +8,10 @@ import { getThemeAppearance } from '@/lib/shop/catalogSupport';
 import { getGroupImagePreset } from '@/lib/groups/group-image-presets';
 import type { Group } from '@/store/group-store';
 
+jest.mock('@/lib/supabase', () => ({
+  SUPABASE_URL: 'https://test.supabase.co',
+}));
+
 const group = (overrides: Partial<Group> = {}): Group => ({
   id: 'group-1',
   name: 'Morning crew',
@@ -104,15 +108,32 @@ describe('GroupsListSection Paper states', () => {
   it('shows a saved group image and keeps the generic mark as the fallback', () => {
     renderSection({
       myGroups: [
-        group({ image_url: 'https://cdn.example.com/morning-crew.jpg' }),
+        group({
+          image_url:
+            'https://test.supabase.co/storage/v1/object/sign/group-images/owner/group.jpg?token=test',
+        }),
       ],
     });
 
     expect(
       screen.getByTestId('group-image', { includeHiddenElements: true })
     ).toHaveProp('source', {
-      uri: 'https://cdn.example.com/morning-crew.jpg',
+      uri: 'https://test.supabase.co/storage/v1/object/sign/group-images/owner/group.jpg?token=test',
     });
+  });
+
+  it.each([
+    'https://attacker.example/pixel',
+    'http://test.supabase.co/storage/v1/object/public/group-images/x.jpg',
+    'https://test.supabase.co.attacker.example/storage/v1/object/public/group-images/x.jpg',
+    'https://test.supabase.co/storage/v1/object/public/profile-pictures/x.jpg',
+    'file:///private/photo.jpg',
+    'https://attacker.example@evil.example/storage/v1/object/public/group-images/x.jpg',
+  ])('does not request an untrusted group image %s', uri => {
+    renderSection({ myGroups: [group({ image_url: uri })] });
+    expect(
+      screen.queryByTestId('group-image', { includeHiddenElements: true })
+    ).toBeNull();
   });
 
   it('resolves a bundled preset token without a remote image request', () => {

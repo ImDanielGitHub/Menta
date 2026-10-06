@@ -30,8 +30,7 @@ type ServiceClient = Awaited<
 >['serviceClient'];
 
 type StorageOperationResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; message: string };
+  { ok: true; data: T } | { ok: false; message: string };
 
 type StorageListEntry = {
   name: string;

@@ -1,7 +1,4 @@
-import {
-  getRegisteredCatalogueLocales,
-  translate,
-} from '@/lib/localization';
+import { getRegisteredCatalogueLocales, translate } from '@/lib/localization';
 
 describe('notification localisation', () => {
   it('registers the first regional catalogue family', () => {
@@ -23,7 +20,9 @@ describe('notification localisation', () => {
       expect(translate(locale, 'notifications.education.title')).not.toBe(
         translate('en-NZ', 'notifications.education.title')
       );
-      expect(translate(locale, 'notifications.notice.settings_failed.body')).not.toBe(
+      expect(
+        translate(locale, 'notifications.notice.settings_failed.body')
+      ).not.toBe(
         translate('en-NZ', 'notifications.notice.settings_failed.body')
       );
     }
@@ -36,7 +35,9 @@ describe('notification localisation', () => {
     expect(translate('es-MX', 'notifications.action.open_settings')).toContain(
       'configuración'
     );
-    expect(translate('pt-BR', 'notifications.phone.title')).toContain('celular');
+    expect(translate('pt-BR', 'notifications.phone.title')).toContain(
+      'celular'
+    );
     expect(translate('pt-PT', 'notifications.phone.title')).toContain(
       'telemóvel'
     );

@@ -112,6 +112,8 @@ export const fullGroupsPtPT = {
     'A Menta não pode conectar este grupo sem a primeira promessa confirmada. O seu rascunho de grupo ainda está aqui. Volte para Hoje e tente novamente.',
   'groups.create.name_short_detail': 'Use ao menos três caracteres.',
   'groups.create.default_description': 'Um grupo para a sua primeira promessa.',
+  'groups.create.shared_description':
+    'Um grupo de {count} dias para promessas partilhadas.',
   'groups.create.cost_unknown_title':
     'Não foi possível confirmar o custo do grupo',
   'groups.create.cost_unknown_detail':
@@ -747,6 +749,13 @@ export const fullGroupsPtPT = {
   'groups.redirect.one_moment': 'Um momento',
   'groups.redirect.checking': 'A Menta está a verificar o código do convite.',
   'groups.redirect.enter_group_code': 'Introduza o código do grupo',
+  'groups.redirect.needs_promise_code':
+    'O convite da promessa precisa de um código',
+  'groups.redirect.needs_promise_code_subtitle':
+    'Esta ligação era de uma promessa, mas não tinha um código de convite válido.',
+  'groups.redirect.missing_promise_code': 'Código da promessa em falta',
+  'groups.redirect.missing_promise_code_detail':
+    'Peça um novo convite a quem enviou. Um código de grupo não abre esta promessa.',
   'groups.redirect.without_invite': 'Continuar sem convite',
   'groups.redirect.referral_title': 'Convite',
   'groups.redirect.referral_missing_title':
@@ -856,6 +865,7 @@ export const fullGroupsPtPT = {
   'groups.share.invite_someone': 'Convidar alguém',
   'groups.share.invite_someone_title': 'Convidar alguém para a Menta',
   'groups.share.preparing': 'A preparar o seu convite',
+  'groups.share.referral_title_named': 'Junte-se a {name} no Menta',
   'groups.share.choose_where': 'Escolha onde partilhar',
   'groups.share.ready_after_return': 'Pronto para partilhar novamente',
   'groups.share.reward_confirmed': '{amount} Momenta adicionados',

@@ -1,13 +1,8 @@
 import React, { memo } from 'react';
 import { Feather, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
-import type { ComponentProps } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 
 type IconFamily = 'feather' | 'material' | 'ionicons';
-
-type FeatherProps = ComponentProps<typeof Feather>;
-type MaterialProps = ComponentProps<typeof MaterialCommunityIcons>;
-type IoniconsProps = ComponentProps<typeof Ionicons>;
 
 type IconProps = {
   color?: string;
@@ -17,10 +12,14 @@ type IconProps = {
   [key: string]: unknown;
 };
 
-const familyComponentMap: Record<IconFamily, any> = {
-  feather: Feather,
-  material: MaterialCommunityIcons,
-  ionicons: Ionicons,
+// Glyph names are validated against the selected family's map before render.
+type IconBase = React.ComponentType<IconProps & { name: string }> & {
+  glyphMap: Record<string, number>;
+};
+const familyComponentMap: Record<IconFamily, IconBase> = {
+  feather: Feather as unknown as IconBase,
+  material: MaterialCommunityIcons as unknown as IconBase,
+  ionicons: Ionicons as unknown as IconBase,
 };
 
 const normalizeSpec = (family: IconFamily, name: string) => {
@@ -30,7 +29,13 @@ const normalizeSpec = (family: IconFamily, name: string) => {
     return { family, name };
   }
   if (__DEV__) {
-    console.warn('[icons] Missing glyph "' + name + '" in family ' + family + ', falling back to circle.');
+    console.warn(
+      '[icons] Missing glyph "' +
+        name +
+        '" in family ' +
+        family +
+        ', falling back to circle.'
+    );
   }
   return { family: 'feather' as IconFamily, name: 'circle' };
 };
@@ -38,13 +43,19 @@ const normalizeSpec = (family: IconFamily, name: string) => {
 const createIcon = (family: IconFamily, name: string) => {
   const spec = normalizeSpec(family, name);
   const Base = familyComponentMap[spec.family];
-  const IconComponent = ({ color = 'currentColor', size = 24, style, strokeWidth, ...rest }: IconProps) => (
+  const IconComponent = ({
+    color = 'currentColor',
+    size = 24,
+    style,
+    strokeWidth,
+    ...rest
+  }: IconProps) => (
     <Base
-      name={spec.name as any}
+      name={spec.name}
       color={color}
       size={size}
-      style={style as any}
-      strokeWidth={strokeWidth as any}
+      style={style}
+      strokeWidth={strokeWidth}
       {...rest}
     />
   );

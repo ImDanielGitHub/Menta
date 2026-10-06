@@ -117,7 +117,8 @@ export const notificationsDeDE = {
   'notifications.onboarding.permission_off.title': 'Kein Problem.',
   'notifications.onboarding.permission_off.body':
     'Menta funktioniert auch ohne Mitteilungen. Du kannst Erinnerungen später in den Einstellungen aktivieren.',
-  'notifications.onboarding.permission_off.action': 'Weiter',
+  'notifications.onboarding.permission_off.action':
+    'Ohne Erinnerungen fortfahren',
   'notifications.onboarding.permission_off.settings': 'Einstellungen öffnen',
   'notifications.onboarding.granted.title': 'Alles bereit.',
   'notifications.onboarding.granted.body':

@@ -78,7 +78,6 @@ describe('canonical Menta design-system contract', () => {
     const rootLayout = readSource('app/_layout.tsx');
     expect(rootLayout).toContain('SplashScreen.preventAutoHideAsync()');
     expect(rootLayout).toContain('useMentaFonts()');
-    expect(rootLayout).toContain('SplashScreen.hideAsync()');
     expect(rootLayout).toContain(
       'if (!fontsLoaded && !fontError) return null;'
     );

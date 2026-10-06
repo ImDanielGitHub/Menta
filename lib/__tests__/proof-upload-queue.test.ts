@@ -131,4 +131,34 @@ describe('proof-upload-queue', () => {
     await dequeueProofUpload(draft.clientEventId);
     expect(await getQueuedProofUpload(draft.clientEventId)).toBeNull();
   });
+  it('preserves uploads enqueued concurrently', async () => {
+    const inputs = ['proof-a', 'proof-b'].map(clientEventId => ({
+      clientEventId,
+      userId: 'user-1',
+      challengeId: clientEventId,
+      attemptCount: 0,
+      lastError: null,
+    }));
+    await Promise.all(inputs.map(enqueueProofUpload));
+    expect(
+      (await loadProofUploadQueue()).map(item => item.clientEventId).sort()
+    ).toEqual(['proof-a', 'proof-b']);
+  });
+
+  it('preserves a new upload when another finishes at the same time', async () => {
+    const input = {
+      userId: 'user-1',
+      challengeId: 'promise-a',
+      attemptCount: 0,
+      lastError: null,
+    };
+    await enqueueProofUpload({ ...input, clientEventId: 'proof-a' });
+    await Promise.all([
+      dequeueProofUpload('proof-a'),
+      enqueueProofUpload({ ...input, clientEventId: 'proof-b' }),
+    ]);
+    expect(
+      (await loadProofUploadQueue()).map(item => item.clientEventId)
+    ).toEqual(['proof-b']);
+  });
 });

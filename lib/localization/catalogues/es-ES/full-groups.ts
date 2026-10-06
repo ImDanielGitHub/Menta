@@ -123,6 +123,8 @@ export const fullGroupsEsES = {
     'Menta no puede vincular este grupo sin la primera promesa confirmada. El borrador de tu grupo sigue aquí. Vuelve a Hoy e inténtalo de nuevo.',
   'groups.create.name_short_detail': 'Usa al menos tres caracteres.',
   'groups.create.default_description': 'Un grupo para tu primera promesa.',
+  'groups.create.shared_description':
+    'Un grupo de {count} días para promesas compartidas.',
   'groups.create.cost_unknown_title':
     'No se pudo confirmar el coste del grupo.',
   'groups.create.cost_unknown_detail':
@@ -783,6 +785,13 @@ export const fullGroupsEsES = {
   'groups.redirect.one_moment': 'Un momento',
   'groups.redirect.checking': 'Menta está comprobando el código de invitación.',
   'groups.redirect.enter_group_code': 'Introduce el código del grupo',
+  'groups.redirect.needs_promise_code':
+    'La invitación a la promesa necesita un código',
+  'groups.redirect.needs_promise_code_subtitle':
+    'Este enlace era para una promesa, pero no incluía un código de invitación válido.',
+  'groups.redirect.missing_promise_code': 'Falta el código de la promesa',
+  'groups.redirect.missing_promise_code_detail':
+    'Pide a quien te invitó un enlace nuevo. Un código de grupo no abre esta promesa.',
   'groups.redirect.without_invite': 'Continuar sin invitación',
   'groups.redirect.referral_title': 'Invitar',
   'groups.redirect.referral_missing_title':
@@ -892,6 +901,7 @@ export const fullGroupsEsES = {
   'groups.share.back_you': 'Volver a Perfil',
   'groups.share.invite_someone': 'Invitar a alguien',
   'groups.share.invite_someone_title': 'Invitar a alguien a Menta',
+  'groups.share.referral_title_named': 'Únete a {name} en Menta',
   'groups.share.preparing': 'Preparando tu invitación',
   'groups.share.choose_where': 'Elige dónde compartir',
   'groups.share.ready_after_return': 'Listo para volver a compartir',
@@ -1020,7 +1030,11 @@ export const fullGroupsEsES = {
   'groups.source.date.range': '{start} a {end}',
   'groups.source.date.starts': 'Empieza el {date}',
   'groups.source.date.ends': 'Termina el {date}',
+  'groups.source.date.archived': 'Archivado el {date}',
+  'groups.source.date.archived_unknown': 'Grupo archivado',
   'groups.source.group.fallback': 'Grupo',
+  'groups.source.activity.joined': '{memberName} se unió a {groupName}',
+  'groups.source.activity.left': '{memberName} salió de {groupName}',
   'groups.source.member.count': '{count} miembros',
   'groups.source.member.count.one': '{count} miembro',
   'groups.source.member.count.other': '{count} miembros',

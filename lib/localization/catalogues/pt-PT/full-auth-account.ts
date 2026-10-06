@@ -339,6 +339,10 @@ export const fullAuthAccountPtPT = {
     'Nada muda até escolher uma.',
   'fullAuth.edit_profile.photo_not_changed_photoerror':
     'Fotografia não alterada. {photoError}',
+  'fullAuth.edit_profile.photo_too_large':
+    'Escolha uma fotografia com menos de 5 MB.',
+  'fullAuth.edit_profile.photo_type_rejected':
+    'Escolha uma imagem JPEG, PNG ou WebP para a sua fotografia de perfil.',
   'fullAuth.edit_profile.photo_visibility': 'Visibilidade da fotografia',
   'fullAuth.edit_profile.photo_will_be_removed': 'A fotografia será removida',
   'fullAuth.edit_profile.profile_unavailable': 'Perfil indisponível',
@@ -737,6 +741,8 @@ export const fullAuthAccountPtPT = {
   'fullAuth.onboarding.every_day': 'Diariamente',
   'fullAuth.onboarding.every_day_2': '· Diariamente ·',
   'fullAuth.promise.frequency.once_a_week': 'Uma vez por semana',
+  'fullAuth.promise.frequency.three_times_a_week': 'Três vezes por semana',
+  'fullAuth.promise.frequency.custom': 'Horário personalizado',
   'fullAuth.onboarding.first_promise': 'Primeira promessa',
   'fullAuth.onboarding.first_promise_firstpromisecost_momenta_after_cre':
     'Primeira promessa, {firstPromiseCost} Momenta. Depois de criar, {welcomeBonus} Momenta dão as boas-vindas para escolhas posteriores.',

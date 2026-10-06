@@ -41,8 +41,9 @@ export const sourceGatePtPT = {
     'A Menta não conseguiu verificar o recibo da recompensa. Atualize a sua carteira antes de ver outro patrocinador.',
   'sourceGate.momenta.rewardAccountChanged':
     'A conta mudou antes de a recompensa ser confirmada.',
-  'sourceGate.momenta.loginRequired': 'É necessário iniciar sessão',
-  'sourceGate.momenta.loginRequiredDetail': 'Inicie sessão para continuar.',
+  'sourceGate.momenta.loginRequired': 'Inicie sessão para gastar Momenta.',
+  'sourceGate.momenta.loginRequiredDetail':
+    'Este gasto não foi efectuado. Inicie sessão e tente novamente.',
   'sourceGate.momenta.transactionFailed': 'A transação falhou',
   'sourceGate.momenta.transactionFailedDetail':
     'Tente novamente dentro de instantes.',
@@ -66,5 +67,5 @@ export const sourceGatePtPT = {
   'sourceGate.legacyUpdate.storeHint': 'Abre a Menta na App Store',
   'sourceGate.legacyUpdate.updateAction': 'Atualizar a Menta',
   'sourceGate.legacyUpdate.helpAction': 'Obter ajuda',
-  'sourceGate.legacyUpdate.notNowAction': 'Agora não',
+  'sourceGate.legacyUpdate.notNowAction': 'Manter esta versão',
 } as const;

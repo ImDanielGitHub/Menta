@@ -1,3 +1,4 @@
+import { normalizeGroupReadError } from '@/lib/groups/group-access-boundary';
 import { buildInviteShareUrl } from '@/lib/invite-links';
 import {
   translate,
@@ -294,6 +295,16 @@ export const accountabilityInviteAcceptLabel = (
   localise: PromiseAccountabilityTranslator = defaultTranslate
 ): string => accountabilityInviteRoleCopy(role, localise).action;
 
+export const resolveAccountabilityShareTitle = (
+  challengeTitle: string,
+  localise: PromiseAccountabilityTranslator = defaultTranslate
+): string => {
+  const title = challengeTitle.trim();
+  return title
+    ? localise('groups.source.accountability.share.title', { promise: title })
+    : localise('groups.source.accountability.share.title_unnamed');
+};
+
 export const buildPromiseAccountabilityShareMessage = ({
   challengeTitle,
   code,
@@ -307,9 +318,17 @@ export const buildPromiseAccountabilityShareMessage = ({
   shareUrl: string;
   localise?: PromiseAccountabilityTranslator;
 }): string => {
+  const title = challengeTitle.trim();
   const roleCopy = accountabilityRoleCopy(role, localise);
+  if (!title) {
+    return localise('groups.source.accountability.share.message_unnamed', {
+      invitation: roleCopy.invitation,
+      shareUrl,
+      code,
+    });
+  }
   return localise('groups.source.accountability.share.message', {
-    promise: challengeTitle,
+    promise: title,
     invitation: roleCopy.invitation,
     shareUrl,
     code,
@@ -459,14 +478,17 @@ export const fetchPromiseAccountability = async (
   // into this route. Refresh once for an auth response, then make one bounded
   // retry with the new session. Reusing the same rejected token would leave
   // the destination looking like an endless loader.
-  if (response.error && isAuthExpiryError(response.error)) {
+  if (
+    response.error &&
+    isAuthExpiryError(normalizeGroupReadError(response.error, response.status))
+  ) {
     const { error: refreshError } = await supabase.auth.refreshSession();
     if (!refreshError) response = await readSummary();
   }
   const { data, error } = response;
   if (error) {
     throw createAccountabilityRequestError(
-      error,
+      normalizeGroupReadError(error, response.status),
       localise('groups.source.accountability.error.people_load')
     );
   }

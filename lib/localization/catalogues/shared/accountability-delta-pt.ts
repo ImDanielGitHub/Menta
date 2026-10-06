@@ -298,6 +298,8 @@ export const accountabilityDeltaPt = {
     'A Menta não conseguiu atualizar este papel.',
   'groups.source.accountability.member.choose_role':
     'Escolha um papel nesta promessa.',
+  'groups.source.accountability.member.partner_requires_acceptance':
+    'Fazer juntos exige a aceitação da pessoa e não pode ser alterado aqui. O papel atual permanece.',
   'groups.source.accountability.member.remove_action': 'Remover desta promessa',
   'groups.source.accountability.member.remove_question': 'Remover {name}?',
   'groups.source.accountability.member.remove_confirm': 'Remover pessoa',
@@ -367,8 +369,12 @@ export const accountabilityDeltaPt = {
   'groups.source.accountability.invite.private_note':
     'A sua promessa continuará privada até um convite ser aceito.',
   'groups.source.accountability.share.title': 'Participar de {promise}',
+  'groups.source.accountability.share.title_unnamed':
+    'Participar desta promessa',
   'groups.source.accountability.share.message':
     'Participe comigo de “{promise}” na Menta. Quero convidar você para {invitation}.\n\n{shareUrl}\nCódigo do convite: {code}',
+  'groups.source.accountability.share.message_unnamed':
+    'Participe desta promessa na Menta. Quero convidar você para {invitation}.\n\n{shareUrl}\nCódigo do convite: {code}',
   'groups.source.accountability.share.still_ready_title':
     'O convite continua pronto',
   'groups.source.accountability.share.still_ready_detail':

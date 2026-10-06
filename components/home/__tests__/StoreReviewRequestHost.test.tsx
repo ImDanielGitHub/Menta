@@ -209,7 +209,7 @@ describe('StoreReviewRequestHost', () => {
     mockInvitationGate = 'complete';
     const screen = render(<StoreReviewRequestHost ready />);
     await settle();
-    expect(screen.getByText('Are you enjoying Menta?')).toBeTruthy();
+    expect(screen.getByText('How is Menta going?')).toBeTruthy();
     expect(mockRequestReview).not.toHaveBeenCalled();
     expect(mockTrack).toHaveBeenCalledWith('Feedback Journey', {
       action: 'shown',
@@ -222,13 +222,13 @@ describe('StoreReviewRequestHost', () => {
     const screen = render(<StoreReviewRequestHost ready />);
     await settle();
     expect(mockRecoverActivation).toHaveBeenCalledWith('review-user');
-    expect(screen.getByText('Are you enjoying Menta?')).toBeTruthy();
+    expect(screen.getByText('How is Menta going?')).toBeTruthy();
     expect(mockAcknowledgeInvitation).not.toHaveBeenCalled();
     expect(mockTrack).not.toHaveBeenCalledWith(
       'Accountability Invite Journey',
       expect.anything()
     );
-    fireEvent.press(screen.getByText('Yes, I am'));
+    fireEvent.press(screen.getByText("Yes, it's working for me"));
     await act(async () => mockDismiss());
     expect(mockRequestReview).toHaveBeenCalledWith(
       expect.any(Number),
@@ -242,7 +242,7 @@ describe('StoreReviewRequestHost', () => {
     mockRecoverActivation.mockResolvedValue(null);
     const screen = render(<StoreReviewRequestHost ready />);
     await settle();
-    expect(screen.queryByText('Are you enjoying Menta?')).toBeNull();
+    expect(screen.queryByText('How is Menta going?')).toBeNull();
     expect(mockRequestReview).toHaveBeenCalledWith(
       expect.any(Number),
       undefined,
@@ -262,7 +262,7 @@ describe('StoreReviewRequestHost', () => {
     await settle();
     mockInvitationGate = 'pending';
     await act(async () => resolveActivation('2026-09-13T00:00:00Z'));
-    expect(screen.queryByText('Are you enjoying Menta?')).toBeNull();
+    expect(screen.queryByText('How is Menta going?')).toBeNull();
     expect(mockRequestReview).not.toHaveBeenCalled();
     expect(mockAcknowledgeInvitation).not.toHaveBeenCalled();
   });
@@ -271,7 +271,7 @@ describe('StoreReviewRequestHost', () => {
     mockInvitationGate = 'complete';
     const screen = render(<StoreReviewRequestHost ready />);
     await settle();
-    fireEvent.press(screen.getByText('Yes, I am'));
+    fireEvent.press(screen.getByText("Yes, it's working for me"));
     expect(mockRequestReview).not.toHaveBeenCalled();
     await act(async () => {
       mockDismiss();
@@ -314,7 +314,7 @@ describe('StoreReviewRequestHost', () => {
     mockInvitationGate = 'complete';
     const screen = render(<StoreReviewRequestHost ready />);
     await settle();
-    fireEvent.press(screen.getByText('Yes, I am'));
+    fireEvent.press(screen.getByText("Yes, it's working for me"));
     await act(async () => {});
     expect(mockRequestReview).toHaveBeenCalledTimes(1);
     expect(mockRouter.push).not.toHaveBeenCalled();
@@ -331,7 +331,7 @@ describe('StoreReviewRequestHost', () => {
     screen.unmount();
     const next = render(<StoreReviewRequestHost ready />);
     await settle();
-    expect(next.queryByText('Are you enjoying Menta?')).toBeNull();
+    expect(next.queryByText('How is Menta going?')).toBeNull();
     // A later independent three-accepted-proof opportunity is preserved.
     expect(mockRequestReview).toHaveBeenCalledWith(
       expect.any(Number),
@@ -345,20 +345,20 @@ describe('StoreReviewRequestHost', () => {
     const screen = render(<StoreReviewRequestHost ready />);
     await settle();
     screen.rerender(<StoreReviewRequestHost ready={false} />);
-    expect(screen.queryByText('Are you enjoying Menta?')).toBeNull();
+    expect(screen.queryByText('How is Menta going?')).toBeNull();
     expect(mockStorage.has('@menta/feedback-check-in:v1:review-user')).toBe(
       false
     );
     screen.rerender(<StoreReviewRequestHost ready />);
     await settle();
-    expect(screen.getByText('Are you enjoying Menta?')).toBeTruthy();
+    expect(screen.getByText('How is Menta going?')).toBeTruthy();
   });
 
   it('cancels a pending positive handoff if the account changes before modal dismissal', async () => {
     mockInvitationGate = 'complete';
     const screen = render(<StoreReviewRequestHost ready />);
     await settle();
-    fireEvent.press(screen.getByText('Yes, I am'));
+    fireEvent.press(screen.getByText("Yes, it's working for me"));
     mockAuthState.user = { id: 'different-user' };
     await act(async () => mockDismiss());
     expect(mockRequestReview).not.toHaveBeenCalled();
@@ -377,7 +377,7 @@ describe('StoreReviewRequestHost', () => {
     await settle();
     mockInvitationGate = 'pending';
     await act(async () => resolveActivation('2026-09-13T00:00:00Z'));
-    expect(screen.queryByText('Are you enjoying Menta?')).toBeNull();
+    expect(screen.queryByText('How is Menta going?')).toBeNull();
     expect(mockRequestReview).not.toHaveBeenCalled();
   });
 
@@ -388,7 +388,7 @@ describe('StoreReviewRequestHost', () => {
       .mockRejectedValueOnce(new Error('unavailable'));
     const screen = render(<StoreReviewRequestHost ready />);
     await settle();
-    expect(screen.queryByText('Are you enjoying Menta?')).toBeNull();
+    expect(screen.queryByText('How is Menta going?')).toBeNull();
     expect(mockCapture).toHaveBeenCalledWith(
       'feedback_check_in_failed',
       'warning',
@@ -408,7 +408,7 @@ describe('StoreReviewRequestHost', () => {
     screen.rerender(<StoreReviewRequestHost ready={false} />);
     screen.rerender(<StoreReviewRequestHost ready />);
     await settle();
-    expect(screen.queryByText('Are you enjoying Menta?')).toBeNull();
+    expect(screen.queryByText('How is Menta going?')).toBeNull();
     expect(mockCapture).toHaveBeenCalledWith(
       'feedback_check_in_failed',
       'warning',
@@ -425,9 +425,9 @@ describe('StoreReviewRequestHost', () => {
     });
     const screen = render(<StoreReviewRequestHost ready />);
     await settle();
-    fireEvent.press(screen.getByText('Yes, I am'));
+    fireEvent.press(screen.getByText("Yes, it's working for me"));
     await act(async () => mockDismiss());
-    expect(screen.queryByText('Are you enjoying Menta?')).toBeNull();
+    expect(screen.queryByText('How is Menta going?')).toBeNull();
     expect(mockRouter.push).not.toHaveBeenCalled();
     expect(mockCapture).toHaveBeenCalled();
   });

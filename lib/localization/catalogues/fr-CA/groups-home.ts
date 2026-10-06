@@ -56,4 +56,25 @@ export const groupsHomeFrCA = {
   'groupsHome.groupAction.empty_title': 'Aucune vérification en attente',
   'groupsHome.groupAction.empty_detail':
     'Personne n’attend votre vérification pour le moment.',
+  'groupsHome.adminNotice.ownerOnlyTitle': 'Propriétaire seulement',
+  'groupsHome.adminNotice.ownerOnlyDetail':
+    'Seul le propriétaire peut enregistrer ces paramètres du groupe.',
+  'groupsHome.adminNotice.nameRequiredTitle': 'Nom requis',
+  'groupsHome.adminNotice.nameRequiredDetail':
+    'Donnez un nom à ce groupe avant d’enregistrer.',
+  'groupsHome.adminNotice.saveUnconfirmedTitle': 'Enregistrement non confirmé',
+  'groupsHome.adminNotice.saveUnconfirmedDetail':
+    'Menta n’a pas pu confirmer si les paramètres ont été enregistrés. Vos modifications sont encore ici. Vérifiez le groupe avant de réessayer.',
+  'groupsHome.adminNotice.savedTitle': 'Modifications enregistrées',
+  'groupsHome.adminNotice.savedDetail': 'Les paramètres du groupe sont à jour.',
+  'groupsHome.adminNotice.saveFailedTitle':
+    'Les modifications n’ont pas été enregistrées',
+  'groupsHome.adminNotice.saveFailedDetail':
+    'Vérifiez votre connexion et réessayez. Vos modifications sont encore ici.',
+  'groupsHome.adminNotice.leaveUnknownTitle': 'Départ non confirmé',
+  'groupsHome.adminNotice.leaveFailedTitle': 'Aucun changement de groupe',
+  'groupsHome.adminNotice.deleteUnconfirmedTitle': 'Suppression non confirmée',
+  'groupsHome.adminNotice.deleteUnconfirmedDetail':
+    'Menta n’a pas pu confirmer si le groupe a été supprimé. Retournez à Groupes et vérifiez avant de réessayer.',
+  'groupsHome.adminNotice.deleteFailedTitle': 'Groupe non supprimé',
 } as const satisfies Pick<EnglishCatalogue, GroupsHomeKey>;

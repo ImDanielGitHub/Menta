@@ -422,7 +422,9 @@ export default function CameraFix({
 
     // Pause preview to stabilise native module before we unmount (crash-prevention)
     try {
-      cameraRef.current?.pausePreview();
+      void Promise.resolve(cameraRef.current?.pausePreview()).catch(() => {
+        // Teardown can reject asynchronously; scanning remains best-effort.
+      });
     } catch {
       // Unsupported on some platforms, but safe to ignore.
     }

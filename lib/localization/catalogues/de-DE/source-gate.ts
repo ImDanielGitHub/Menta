@@ -41,8 +41,9 @@ export const sourceGateDeDE = {
     'Menta konnte den Belohnungsbeleg nicht überprüfen. Aktualisiere deine Wallet, bevor du einen weiteren Sponsor ansiehst.',
   'sourceGate.momenta.rewardAccountChanged':
     'Das Konto wurde geändert, bevor die Belohnung bestätigt wurde.',
-  'sourceGate.momenta.loginRequired': 'Anmeldung erforderlich',
-  'sourceGate.momenta.loginRequiredDetail': 'Melde dich an, um fortzufahren.',
+  'sourceGate.momenta.loginRequired': 'Melde dich an, um Momenta auszugeben.',
+  'sourceGate.momenta.loginRequiredDetail':
+    'Diese Ausgabe wurde nicht ausgeführt. Melde dich an und versuche es erneut.',
   'sourceGate.momenta.transactionFailed': 'Transaktion fehlgeschlagen',
   'sourceGate.momenta.transactionFailedDetail':
     'Versuche es gleich noch einmal.',
@@ -62,5 +63,5 @@ export const sourceGateDeDE = {
   'sourceGate.legacyUpdate.storeHint': 'Öffnet Menta im App Store',
   'sourceGate.legacyUpdate.updateAction': 'Menta aktualisieren',
   'sourceGate.legacyUpdate.helpAction': 'Hilfe erhalten',
-  'sourceGate.legacyUpdate.notNowAction': 'Nicht jetzt',
+  'sourceGate.legacyUpdate.notNowAction': 'Diese Version behalten',
 } as const;

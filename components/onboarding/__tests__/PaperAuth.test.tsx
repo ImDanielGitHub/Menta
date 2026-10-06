@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -14,6 +15,8 @@ import { PaperOAuthCancelled } from '../PaperAuthSurface';
 import { AppTextScaleProvider } from '@/components/ui/AppScaledText';
 import { mentaLayout } from '@/constants/MentaDesignSystem';
 import { resolvePhoneLayout } from '@/constants/phone-layout';
+import { useLocaleStore } from '@/store/locale-store';
+import { translate } from '@/lib/localization';
 
 let mockPhoneLayout = resolvePhoneLayout({
   width: 390,
@@ -100,6 +103,7 @@ const ResponsivePhoneWrapper: React.FC<{ children: React.ReactNode }> = ({
 
 describe('Paper auth surfaces', () => {
   beforeEach(() => {
+    useLocaleStore.setState({ preference: 'en-NZ' });
     mockPhoneLayout = resolvePhoneLayout({
       width: 390,
       height: 844,
@@ -466,44 +470,138 @@ describe('Paper auth surfaces', () => {
     });
   });
 
-  it('keeps duplicate-account failure inline and disables the Paper CTA until corrected', async () => {
-    const onSubmit = jest.fn(async () => {
-      throw new Error('User already registered');
-    });
+  it.each(['en-NZ', 'de-DE'] as const)(
+    'blocks duplicate-email resubmission in %s until the email changes',
+    async locale => {
+      await act(async () => {
+        useLocaleStore.setState({ preference: locale });
+      });
+      const onSubmit = jest.fn(async () => {
+        throw new Error('User already registered');
+      });
 
-    render(
+      render(
+        <PaperAuthForm
+          mode="signup"
+          onSubmit={onSubmit}
+          testID="auth-signup"
+        />,
+        { wrapper: Wrapper }
+      );
+
+      fireEvent.changeText(
+        screen.getByTestId('auth-signup-name-input'),
+        'Daniel'
+      );
+      fireEvent.changeText(
+        screen.getByTestId('auth-signup-email-input'),
+        'daniel@example.com'
+      );
+      fireEvent.changeText(
+        screen.getByTestId('auth-signup-password-input'),
+        'secret123'
+      );
+      fireEvent.changeText(
+        screen.getByTestId('auth-signup-confirm-password-input'),
+        'secret123'
+      );
+      fireEvent.press(screen.getByTestId('auth-signup-submit'));
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            translate(locale, 'fullAuth.residual.paper_auth.duplicate_email')
+          )
+        ).toBeTruthy();
+        expect(
+          screen.getByTestId('auth-signup-submit').props.accessibilityState
+            .disabled
+        ).toBe(true);
+      });
+      fireEvent.press(screen.getByTestId('auth-signup-submit'));
+      expect(onSubmit).toHaveBeenCalledTimes(1);
+      fireEvent.changeText(
+        screen.getByTestId('auth-signup-email-input'),
+        'new@example.com'
+      );
+      fireEvent.press(screen.getByTestId('auth-signup-submit'));
+      await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(2));
+    }
+  );
+
+  it.each(['en-NZ', 'de-DE'] as const)(
+    'blocks duplicate-email button and keyboard retries in %s until the address changes',
+    async locale => {
+      useLocaleStore.setState({ preference: locale });
+      const onSubmit = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('User already registered'))
+        .mockResolvedValue(undefined);
+      render(
+        <PaperAuthForm
+          mode="signup"
+          onSubmit={onSubmit}
+          testID="auth-signup"
+        />,
+        { wrapper: Wrapper }
+      );
+      const field = (name: string) =>
+        screen.getByTestId(`auth-signup-${name}-input`);
+      fireEvent.changeText(field('name'), 'Daniel');
+      fireEvent.changeText(field('email'), 'daniel@example.com');
+      fireEvent.changeText(field('password'), 'secret123');
+      fireEvent.changeText(field('confirm-password'), 'secret123');
+      fireEvent.press(screen.getByTestId('auth-signup-submit'));
+      await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+      await waitFor(() =>
+        expect(screen.getByTestId('auth-signup-submit')).toBeDisabled()
+      );
+      await act(async () => {
+        fireEvent(field('confirm-password'), 'submitEditing');
+      });
+      expect(onSubmit).toHaveBeenCalledTimes(1);
+      fireEvent.changeText(field('name'), 'Daniel2');
+      fireEvent.changeText(field('email'), ' DANIEL@example.com ');
+      expect(screen.getByTestId('auth-signup-submit')).toBeDisabled();
+      await act(async () => {
+        fireEvent(field('confirm-password'), 'submitEditing');
+      });
+      expect(onSubmit).toHaveBeenCalledTimes(1);
+      fireEvent.changeText(field('email'), 'other@example.com');
+      expect(screen.getByTestId('auth-signup-submit')).toBeEnabled();
+      fireEvent.press(screen.getByTestId('auth-signup-submit'));
+      await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(2));
+      expect(onSubmit).toHaveBeenLastCalledWith(
+        expect.objectContaining({ email: 'other@example.com' })
+      );
+    }
+  );
+
+  it('clears duplicate-email state when switching to sign in', async () => {
+    const onSubmit = jest
+      .fn()
+      .mockRejectedValueOnce(new Error('User already registered'))
+      .mockResolvedValue(undefined);
+    const form = render(
       <PaperAuthForm mode="signup" onSubmit={onSubmit} testID="auth-signup" />,
       { wrapper: Wrapper }
     );
-
-    fireEvent.changeText(
-      screen.getByTestId('auth-signup-name-input'),
-      'Daniel'
-    );
-    fireEvent.changeText(
-      screen.getByTestId('auth-signup-email-input'),
-      'daniel@example.com'
-    );
-    fireEvent.changeText(
-      screen.getByTestId('auth-signup-password-input'),
-      'secret123'
-    );
-    fireEvent.changeText(
-      screen.getByTestId('auth-signup-confirm-password-input'),
-      'secret123'
-    );
+    const field = (name: string) =>
+      screen.getByTestId(`auth-signup-${name}-input`);
+    fireEvent.changeText(field('name'), 'Daniel');
+    fireEvent.changeText(field('email'), 'daniel@example.com');
+    fireEvent.changeText(field('password'), 'secret123');
+    fireEvent.changeText(field('confirm-password'), 'secret123');
     fireEvent.press(screen.getByTestId('auth-signup-submit'));
-
-    await waitFor(() => {
-      expect(
-        screen.getByText('This email already has a Menta account.')
-      ).toBeTruthy();
-      expect(
-        screen.getByText(
-          'Your promise is still here. Fix the highlighted field or sign in instead.'
-        )
-      ).toBeTruthy();
-    });
+    await waitFor(() =>
+      expect(screen.getByTestId('auth-signup-submit')).toBeDisabled()
+    );
+    form.rerender(
+      <PaperAuthForm mode="login" onSubmit={onSubmit} testID="auth-signup" />
+    );
+    expect(screen.getByTestId('auth-signup-submit')).toBeEnabled();
+    fireEvent.press(screen.getByTestId('auth-signup-submit'));
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(2));
   });
 
   it('keeps a valid email submission single-flight and names the busy account state', () => {

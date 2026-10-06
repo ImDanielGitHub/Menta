@@ -163,6 +163,8 @@ describe('event invite entry route', () => {
       )
     ).toBeTruthy();
     expect(screen.queryByText(CAPABILITY)).toBeNull();
+    expect(screen.getByText('Keep browsing')).toBeTruthy();
+    expect(screen.queryByText('Not now')).toBeNull();
 
     fireEvent.press(screen.getByTestId('join-event-continue'));
     expect(mockRouter.replace).toHaveBeenCalledWith('/login');
@@ -204,7 +206,9 @@ describe('event invite entry route', () => {
     mockHasCompletedOnboarding = true;
     render(<JoinEventRoute />);
 
-    fireEvent.press(await screen.findByTestId('join-event-not-now'));
+    expect(await screen.findByText('Browse events')).toBeTruthy();
+    expect(screen.queryByText('Not now')).toBeNull();
+    fireEvent.press(screen.getByTestId('join-event-not-now'));
     expect(mockDismiss).toHaveBeenCalledWith({
       pendingRoute,
       eventId: EVENT_ID,

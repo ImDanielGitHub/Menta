@@ -63,6 +63,7 @@ jest.mock('@/components/paywall/PaywallModal', () => {
     onClose,
     onWatchAd,
     visible,
+    variant,
   }: {
     onBuyPro?: () => void;
     onClose: () => void;
@@ -72,6 +73,7 @@ jest.mock('@/components/paywall/PaywallModal', () => {
       reason?: string;
     }>;
     visible: boolean;
+    variant?: string;
   }) => {
     const [outcome, setOutcome] = ReactModule.useState('not-started');
 
@@ -79,6 +81,11 @@ jest.mock('@/components/paywall/PaywallModal', () => {
 
     return (
       <View>
+        <Text>
+          {variant === 'insufficient'
+            ? 'Funding options'
+            : 'Subscription options'}
+        </Text>
         <Text>{onWatchAd ? 'Sponsor reward available' : 'Sponsor hidden'}</Text>
         {onWatchAd ? (
           <Pressable
@@ -121,6 +128,11 @@ describe('PaywallHost', () => {
       type: 'test-ad-unit',
     });
     mockClaimAdReward.mockResolvedValue({ earned: true, amount: 10 });
+  });
+
+  it('uses the funding surface for a known Momenta shortfall', async () => {
+    render(<PaywallHost />);
+    expect(await screen.findByText('Funding options')).toBeTruthy();
   });
 
   it.each([

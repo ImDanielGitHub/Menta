@@ -28,6 +28,7 @@ export const navigationFrCA = {
   'navigation.personal.active': '{count} promesses actives',
   'navigation.personal.active.one': '{count} promesse active',
   'navigation.personal.active.other': '{count} promesses actives',
+  'navigation.personal.streak_label': 'Plus longue série active',
   'navigation.personal.longest': '{active} · Plus longue série active : {days}',
   'navigation.notifications.accessibility': 'Paramètres des notifications',
   'navigation.notifications.hint':

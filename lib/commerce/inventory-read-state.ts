@@ -3,11 +3,7 @@
  * could not be read. The latter must never be presented as a confirmed zero.
  */
 export type InventoryReadState =
-  | 'loading'
-  | 'unavailable'
-  | 'empty'
-  | 'filtered-empty'
-  | 'ready';
+  'loading' | 'unavailable' | 'empty' | 'filtered-empty' | 'ready';
 
 export function isCurrentInventoryAccount(
   requestedUserId: string | null,

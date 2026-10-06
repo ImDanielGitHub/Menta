@@ -31,7 +31,7 @@ import {
   transferEventCapability,
 } from '@/lib/events/protected-auth-handoff';
 import { useEventCapabilityHydration } from '@/lib/events/use-event-capability-hydration';
-import { isEventCheckInWindowClosed } from '@/lib/events/check-in-window';
+import { getEventCheckInRejectedCopy } from '@/lib/events/check-in-window';
 import { emitEventCheckInReceiptHaptic } from '@/lib/motion/event-receipt-haptics';
 import { useAuthStore } from '@/store/auth-store';
 import { useEventStore } from '@/store/event-store';
@@ -357,18 +357,12 @@ export default function EventCheckInScreen() {
 
   const unknownResult = checkInReceipt?.outcome === 'unknown_result';
   const failedCheckIn = checkInReceipt?.outcome === 'failed' && !sessionExpired;
-  const rejectedCheckInCopy = isEventCheckInWindowClosed(checkInReceipt?.code)
-    ? {
-        title: t('events.check_in.closed_title'),
-        description: t('events.check_in.closed_body'),
-      }
-    : {
-        title: t('events.check_in.rejected_title'),
-        description: t('events.check_in.rejected_body', {
-          reason:
-            checkInReceipt?.message ?? t('events.check_in.rejected_reason'),
-        }),
-      };
+  const rejectedCheckInCopy = getEventCheckInRejectedCopy({
+    code: checkInReceipt?.code,
+    message: checkInReceipt?.message,
+    locale,
+    occurrenceState: activeSummary?.occurrenceState,
+  });
   const requiresSignIn = !user || sessionExpired;
   const connectionUnconfirmed =
     unknownResult && checkInReceipt?.code === 'FUNCTION_TRANSPORT_FAILED';

@@ -21,12 +21,12 @@ describe('primary navigation localisation', () => {
   });
 
   it('keeps personal promise counts grammatical', () => {
-    expect(
-      translate('fr-FR', 'navigation.personal.active', { count: 1 })
-    ).toBe('1 promesse active');
-    expect(
-      translate('fr-FR', 'navigation.personal.active', { count: 2 })
-    ).toBe('2 promesses actives');
+    expect(translate('fr-FR', 'navigation.personal.active', { count: 1 })).toBe(
+      '1 promesse active'
+    );
+    expect(translate('fr-FR', 'navigation.personal.active', { count: 2 })).toBe(
+      '2 promesses actives'
+    );
   });
 
   it('uses the local settings term', () => {

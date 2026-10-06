@@ -32,6 +32,7 @@ import { ProfileInviteCard } from '@/components/profile/ProfileInviteCard';
 import { ProfileMonthGrid } from '@/components/profile/ProfileMonthGrid';
 import { ProfileStatTrio } from '@/components/profile/ProfileStatTrio';
 import { readProfileMonth, type ProfileMonth } from '@/lib/profile/month';
+import { getProfileIdentityMeta } from '@/lib/profile/identity-copy';
 import { ProfileProSection } from '@/components/profile/ProfileProSection';
 import { AppInlineNotice } from '@/components/ui/AppFeedback';
 import { AppButton } from '@/components/ui/AppButton';
@@ -308,7 +309,14 @@ export default function ProfileScreen() {
   const [followThroughDays, setFollowThroughDays] = useState<
     ProfileFollowThroughDay[]
   >([]);
-  const [month, setMonth] = useState<ProfileMonth | null>(null);
+  const [monthSnapshot, setMonthSnapshot] = useState<{
+    ownerId: string;
+    month: ProfileMonth | null;
+  } | null>(null);
+  const month =
+    monthSnapshot && monthSnapshot.ownerId === user?.id
+      ? monthSnapshot.month
+      : null;
   const [profileNotice, setProfileNotice] = useState<ProfileNotice>(null);
   const profileRequestRef = useRef(0);
   const proRequestRef = useRef(0);
@@ -457,7 +465,7 @@ export default function ProfileScreen() {
           setFollowThroughDays(rhythmResult.value);
         }
         if (monthResult.status === 'fulfilled') {
-          setMonth(monthResult.value);
+          setMonthSnapshot({ ownerId: accountId, month: monthResult.value });
         }
 
         if (profileResult.status === 'rejected') {
@@ -822,7 +830,13 @@ export default function ProfileScreen() {
               >
                 {memberSince
                   ? t('fullAuth.tabs_profile.since', { month: memberSince })
-                  : `@${username}`}
+                  : proStatus === 'checking' || proStatus === 'unavailable'
+                    ? `@${username}`
+                    : getProfileIdentityMeta(
+                        username,
+                        proStatus === 'active',
+                        t
+                      )}
               </Text>
             </View>
 

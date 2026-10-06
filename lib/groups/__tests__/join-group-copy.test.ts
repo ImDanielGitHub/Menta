@@ -1,4 +1,5 @@
 import {
+  describeJoinGroupConfirmSpend,
   describeJoinGroupCostNotice,
   describeJoinGroupPreviewSpend,
   formatJoinGroupSpend,
@@ -61,5 +62,38 @@ describe('join group cost copy', () => {
         isPro: false,
       })
     ).toEqual({ kind: 'free' });
+  });
+});
+
+describe('join group confirm helper', () => {
+  it('teaches guests that previewing has not joined them', () => {
+    expect(describeJoinGroupConfirmSpend(50, false)).toContain(
+      'Joining adds you to this group'
+    );
+    expect(describeJoinGroupConfirmSpend(50, false)).toContain(
+      'Previewing it has not changed anything'
+    );
+  });
+
+  it('names a signed-in first join as free instead of a 0 Momenta charge', () => {
+    const copy = describeJoinGroupConfirmSpend(0, true);
+
+    expect(copy).toContain('first join is free');
+    expect(copy.toLowerCase()).not.toMatch(/costs 0|0 momenta/);
+  });
+
+  it('names a later join as a Momenta spend after the group accepts', () => {
+    expect(describeJoinGroupConfirmSpend(50, true)).toContain(
+      'Joining spends 50 Momenta'
+    );
+    expect(describeJoinGroupConfirmSpend(50, true)).toContain(
+      'code is used only after the group accepts you'
+    );
+  });
+
+  it('does not invent a price when the signed-in quote is missing', () => {
+    expect(describeJoinGroupConfirmSpend(null, true)).toContain(
+      'If joining costs Momenta, you will see the amount'
+    );
   });
 });

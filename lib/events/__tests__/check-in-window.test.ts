@@ -35,10 +35,10 @@ describe('event check-in window copy', () => {
   it('does not treat a bad code as a closed window', () => {
     expect(isEventCheckInWindowClosed('TOKEN_UNAVAILABLE')).toBe(false);
     expect(
-      getEventCheckInRejectedCopy(
-        'TOKEN_UNAVAILABLE',
-        'This check-in token is expired or invalid.'
-      )
+      getEventCheckInRejectedCopy({
+        code: 'TOKEN_UNAVAILABLE',
+        message: 'This check-in token is expired or invalid.',
+      })
     ).toEqual({
       title: 'QR not accepted',
       description:
@@ -47,13 +47,39 @@ describe('event check-in window copy', () => {
   });
 
   it('explains CHECKIN_UNAVAILABLE as the window, not a bad QR', () => {
-    const copy = getEventCheckInRejectedCopy('CHECKIN_UNAVAILABLE');
     expect(isEventCheckInWindowClosed('CHECKIN_UNAVAILABLE')).toBe(true);
-    expect(copy.title).toBe('Check-in is not open yet');
-    expect(copy.description).toContain(
-      'Check-in opens 30 minutes before the event'
-    );
-    expect(copy.description).toContain('Nothing changed');
+    expect(
+      getEventCheckInRejectedCopy({
+        code: 'CHECKIN_UNAVAILABLE',
+        occurrenceState: 'scheduled',
+      })
+    ).toEqual({
+      title: 'Check-in is not open yet',
+      description:
+        'Check-in opens 30 minutes before the event and stays open until it ends. Nothing changed. Come back in that window with the organiser code.',
+    });
+  });
+
+  it('names a closed window after the event ends instead of asking people to come back', () => {
+    expect(
+      getEventCheckInRejectedCopy({
+        code: 'CHECKIN_UNAVAILABLE',
+        occurrenceState: 'ended',
+      })
+    ).toEqual({
+      title: 'Check-in has closed',
+      description:
+        'Check-in stays open until the event ends. This event has ended, so attendance cannot be confirmed here. Nothing changed.',
+    });
+    expect(
+      getEventCheckInRejectedCopy({
+        code: 'CHECKIN_UNAVAILABLE',
+        occurrenceState: 'cancelled',
+      }).description
+    ).toContain('no longer happening');
+    expect(
+      getEventCheckInRejectedCopy({ code: 'CHECKIN_UNAVAILABLE' }).title
+    ).toBe('Check-in is not open');
   });
 
   it('matches the authoring SQL window that attendees now read', () => {

@@ -83,7 +83,7 @@ export const todayStatesFrFR = {
   'today.state.pending.named_title': '{promise} attend une validation.',
   'today.state.pending.title': 'Votre preuve attend une validation.',
   'today.state.pending.detail':
-    'Elle est arrivée dans Menta. Le résultat apparaîtra ici.',
+    'Une personne doit encore l’accepter. Aujourd’hui ne compte qu’après. Vous n’avez pas besoin de la renvoyer.',
   'today.state.pending.action': 'Voir la preuve',
   'today.state.correction.title': 'Votre preuve demande une modification.',
   'today.state.correction.detail':
@@ -93,7 +93,13 @@ export const todayStatesFrFR = {
   'today.state.review.named_title': '{name} a envoyé une preuve.',
   'today.state.review.title': 'Une preuve attend votre validation.',
   'today.state.review.detail':
+    'Vérifiez la preuve. Validez-la ou demandez une seule modification claire. Chaque validation confirmée ajoute {reward} Momenta, dans la limite de {dailyLimit} par jour.',
+  'today.state.review.detail_note':
+    'Lisez la note. Validez-la ou demandez une seule modification claire. Chaque validation confirmée ajoute {reward} Momenta, dans la limite de {dailyLimit} par jour.',
+  'today.state.review.detail_photo':
     'Vérifiez la photo. Validez-la ou demandez une seule modification claire. Chaque validation confirmée ajoute {reward} Momenta, dans la limite de {dailyLimit} par jour.',
+  'today.state.review.detail_video':
+    'Regardez la vidéo. Validez-la ou demandez une seule modification claire. Chaque validation confirmée ajoute {reward} Momenta, dans la limite de {dailyLimit} par jour.',
   'today.state.review.action': 'Vérifier la preuve',
   'today.state.review.see_group': 'Voir le groupe',
   'today.state.review.open_queue': 'Ouvrir la liste',

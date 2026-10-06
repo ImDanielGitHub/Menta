@@ -4,6 +4,7 @@ import { AppState } from 'react-native';
 import { logError, addBreadcrumb } from './sentry';
 import { isNetworkStateOnline } from './network-state';
 import { translate } from '@/lib/localization';
+import { isAuthTransportError } from '@/lib/auth/transport-error';
 
 export interface NetworkState {
   isConnected: boolean | null;
@@ -153,6 +154,10 @@ export const useNetworkState = () => {
 export const handleNetworkError = (error: unknown): string => {
   if (!networkManager.isOnline()) {
     return translate('en-NZ', 'domain.network.no_connection');
+  }
+
+  if (isAuthTransportError(error)) {
+    return translate('en-NZ', 'domain.network.error');
   }
 
   const record =

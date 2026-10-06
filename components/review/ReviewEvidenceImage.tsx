@@ -24,11 +24,10 @@ import {
 } from '@/lib/image-service';
 import { STORAGE_BUCKETS } from '@/lib/supabase';
 import { useTranslation } from '@/lib/localization';
+import { getReviewEvidenceImageAlt } from '@/lib/review/review-evidence-copy';
 
 export type ReviewEvidenceAvailability =
-  | 'loading'
-  | 'available'
-  | 'unavailable';
+  'loading' | 'available' | 'unavailable';
 
 const resolveBucket = (name: string): StorageBucket => {
   const entry = (
@@ -189,8 +188,8 @@ export const ReviewEvidenceImage = ({
     <View style={styles.media}>
       {resolvedUri ? (
         <ExpoImage
-          alt="Proof submitted for review"
-          cachePolicy="memory-disk"
+          alt={getReviewEvidenceImageAlt(t)}
+          cachePolicy="memory"
           contentFit="cover"
           onDisplay={() => updateStatus('available')}
           onError={() => updateStatus('unavailable')}

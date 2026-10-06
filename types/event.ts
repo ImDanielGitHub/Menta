@@ -287,11 +287,7 @@ export type EventPostDeletionResult = {
 };
 
 export type EventPostQueueStatus =
-  | 'saved_local'
-  | 'uploading'
-  | 'pending_review'
-  | 'failed'
-  | 'unknown_result';
+  'saved_local' | 'uploading' | 'pending_review' | 'failed' | 'unknown_result';
 
 export type EventUploadQueueItem = {
   userId: string;

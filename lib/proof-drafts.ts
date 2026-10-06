@@ -253,25 +253,90 @@ const parseProofDraft = (value: unknown): ProofDraft | null => {
   };
 };
 
-export const loadProofDrafts = async (): Promise<ProofDraft[]> => {
+const readProofDrafts = async (strict = false): Promise<ProofDraft[]> => {
   const raw = await AsyncStorage.getItem(PROOF_DRAFTS_STORAGE_KEY);
   if (!raw) return [];
 
   try {
     const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
+    if (!Array.isArray(parsed)) {
+      if (strict) throw new Error('Stored proof drafts are unreadable.');
+      return [];
+    }
+    if (strict && parsed.some(value => !parseProofDraft(value))) {
+      throw new Error('Stored proof drafts are unreadable.');
+    }
     return parsed
       .map(parseProofDraft)
       .filter((draft): draft is ProofDraft => draft !== null);
-  } catch {
+  } catch (error) {
+    if (strict) throw error;
     console.warn('[ProofDrafts] Failed to parse stored drafts; resetting.');
     return [];
   }
 };
 
-const persistProofDrafts = async (drafts: ProofDraft[]): Promise<void> => {
-  await AsyncStorage.setItem(PROOF_DRAFTS_STORAGE_KEY, JSON.stringify(drafts));
+export const loadProofDrafts = (): Promise<ProofDraft[]> => readProofDrafts();
+
+export type ProofDraftWriteGuard = (existing: ProofDraft | null) => boolean;
+let mutationTail: Promise<unknown> = Promise.resolve();
+// A rejected native storage write may have committed. Never infer non-adoption
+// from rejection, even if a subsequent read appears empty.
+const uncertainMedia = new Set<string>();
+const serializeMutation = <T>(operation: () => Promise<T>): Promise<T> => {
+  const result = mutationTail.then(operation);
+  mutationTail = result.catch(() => undefined);
+  return result;
 };
+
+const persistProofDrafts = async (drafts: ProofDraft[]): Promise<void> => {
+  try {
+    await AsyncStorage.setItem(
+      PROOF_DRAFTS_STORAGE_KEY,
+      JSON.stringify(drafts)
+    );
+  } catch (error) {
+    for (const draft of drafts) {
+      if (draft.localMediaUri) uncertainMedia.add(draft.localMediaUri);
+    }
+    throw error;
+  }
+};
+
+const assertWriteAllowed = (
+  existing: ProofDraft | null,
+  guard?: ProofDraftWriteGuard
+): void => {
+  if (guard && !guard(existing)) {
+    throw new Error('This proof capture is no longer current.');
+  }
+};
+
+/** Called only with the exact fresh URI returned to an attempt, never a retry.
+ * The queue waits for every draft writer and holds the reference check through
+ * synchronous deletion. Failed reads/deletes and uncertain writes retain media.
+ */
+export const releaseUnreferencedProofMedia = (
+  uri: string,
+  release: (uri: string) => void
+): Promise<boolean> =>
+  serializeMutation(async () => {
+    try {
+      if (uncertainMedia.has(uri)) return false;
+      const drafts = await readProofDrafts(true);
+      if (
+        drafts.some(
+          draft => draft.localMediaUri === uri || draft.proofValue === uri
+        )
+      ) {
+        return false;
+      }
+      release(uri);
+      return true;
+    } catch {
+      return false;
+    }
+  });
 
 export const getProofDraft = async (
   clientEventId: string
@@ -307,24 +372,38 @@ export const listResumableProofDrafts = async (): Promise<ProofDraft[]> => {
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 };
 
-export const saveProofDraft = async (
-  draft: ProofDraft
+const saveDraftInTransaction = async (
+  draft: ProofDraft,
+  guard?: ProofDraftWriteGuard
 ): Promise<ProofDraft> => {
-  const drafts = await loadProofDrafts();
+  const drafts = await readProofDrafts(true);
   const index = drafts.findIndex(
     existing => existing.clientEventId === draft.clientEventId
   );
-  if (index >= 0) {
-    drafts[index] = draft;
-  } else {
-    drafts.push(draft);
+  const existing = index >= 0 ? drafts[index] : null;
+  if (
+    existing &&
+    (existing.userId !== draft.userId ||
+      existing.challengeId !== draft.challengeId)
+  ) {
+    throw new Error('This proof belongs to a different account or promise.');
   }
+  if (index >= 0) drafts[index] = draft;
+  else drafts.push(draft);
+  assertWriteAllowed(existing, guard);
   await persistProofDrafts(drafts);
   return draft;
 };
 
+export const saveProofDraft = (
+  draft: ProofDraft,
+  guard?: ProofDraftWriteGuard
+): Promise<ProofDraft> =>
+  serializeMutation(() => saveDraftInTransaction(draft, guard));
+
 export const createProofDraft = async (
-  input: CreateProofDraftInput
+  input: CreateProofDraftInput,
+  guard?: ProofDraftWriteGuard
 ): Promise<ProofDraft> => {
   const now = new Date().toISOString();
   const proofType = input.proofType;
@@ -363,37 +442,42 @@ export const createProofDraft = async (
     sendRequestedAt: null,
   };
 
-  return saveProofDraft(draft);
+  return saveProofDraft(draft, guard);
 };
 
-export const updateProofDraft = async (
+export const updateProofDraft = (
   clientEventId: string,
   patch: Partial<
     Omit<ProofDraft, 'clientEventId' | 'userId' | 'challengeId' | 'createdAt'>
-  >
-): Promise<ProofDraft> => {
-  const existing = await getProofDraft(clientEventId);
-  if (!existing) {
-    throw new Error(`Proof draft not found: ${clientEventId}`);
-  }
+  >,
+  guard?: ProofDraftWriteGuard
+): Promise<ProofDraft> =>
+  serializeMutation(async () => {
+    const drafts = await readProofDrafts(true);
+    const index = drafts.findIndex(
+      draft => draft.clientEventId === clientEventId
+    );
+    const existing = drafts[index];
+    if (!existing) throw new Error(`Proof draft not found: ${clientEventId}`);
+    const updated: ProofDraft = {
+      ...existing,
+      ...patch,
+      clientEventId: existing.clientEventId,
+      userId: existing.userId,
+      challengeId: existing.challengeId,
+      createdAt: existing.createdAt,
+      updatedAt: new Date().toISOString(),
+    };
+    drafts[index] = updated;
+    assertWriteAllowed(existing, guard);
+    await persistProofDrafts(drafts);
+    return updated;
+  });
 
-  const updated: ProofDraft = {
-    ...existing,
-    ...patch,
-    clientEventId: existing.clientEventId,
-    userId: existing.userId,
-    challengeId: existing.challengeId,
-    createdAt: existing.createdAt,
-    updatedAt: new Date().toISOString(),
-  };
-
-  return saveProofDraft(updated);
-};
-
-export const removeProofDraft = async (
-  clientEventId: string
-): Promise<void> => {
-  const drafts = await loadProofDrafts();
-  const next = drafts.filter(draft => draft.clientEventId !== clientEventId);
-  await persistProofDrafts(next);
-};
+export const removeProofDraft = (clientEventId: string): Promise<void> =>
+  serializeMutation(async () => {
+    const drafts = await readProofDrafts(true);
+    await persistProofDrafts(
+      drafts.filter(draft => draft.clientEventId !== clientEventId)
+    );
+  });

@@ -31,6 +31,7 @@ import {
   type LegalAcceptanceStatus,
   type LegalAcceptanceSurface,
 } from '@/lib/legal-acceptance';
+import { getLegalAcceptedTitleCopy } from '@/lib/legal/accepted-copy';
 import { networkManager } from '@/lib/network';
 import { useAuthStore } from '@/store/auth-store';
 
@@ -262,7 +263,7 @@ export default function LegalAcceptanceScreen() {
               testID="legal-acceptance-title"
             >
               {status?.accepted ? (
-                'Your agreements are up to date'
+                getLegalAcceptedTitleCopy(t)
               ) : surface === 'material_update' ? (
                 acceptanceTitle
               ) : surface === 'settings' ? (

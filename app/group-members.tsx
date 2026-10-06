@@ -227,7 +227,7 @@ export default function GroupMembersScreen() {
                   member.userId === user?.id
                     ? undefined
                     : t('groups.admin.open_member_actions', {
-                        member: getMemberName(member),
+                        member: getMemberName(member, t),
                       })
                 }
                 busy={actionLoading === member.userId}
@@ -289,7 +289,7 @@ export default function GroupMembersScreen() {
           selectedMember ? (
             <View style={styles.sheetCopy}>
               <Text style={styles.sheetTitle}>
-                {getMemberName(selectedMember)}
+                {getMemberName(selectedMember, t)}
               </Text>
               <Text style={styles.sheetDetail}>
                 {t('groups.admin.current_role', {
@@ -314,8 +314,8 @@ export default function GroupMembersScreen() {
                         reportKind: 'user',
                         source: 'group_member_profile',
                         userId: member.userId,
-                        userLabel: getMemberName(member),
-                        contextLabel: getMemberName(member),
+                        userLabel: getMemberName(member, t),
+                        contextLabel: getMemberName(member, t),
                         ...(id ? { groupId: id } : {}),
                       },
                     });
@@ -385,10 +385,10 @@ export default function GroupMembersScreen() {
               <Text style={styles.sheetDetail}>
                 {pendingAction.type === 'promote'
                   ? t('groups.admin.promote_detail', {
-                      member: getMemberName(pendingAction.member),
+                      member: getMemberName(pendingAction.member, t),
                     })
                   : t('groups.admin.demote_detail', {
-                      member: getMemberName(pendingAction.member),
+                      member: getMemberName(pendingAction.member, t),
                     })}
               </Text>
             </View>
@@ -413,10 +413,10 @@ export default function GroupMembersScreen() {
         <DestructiveSheet
           confirmLabel={t('groups.admin.remove_member')}
           description={t('groups.admin.remove_warning', {
-            member: getMemberName(pendingAction.member),
+            member: getMemberName(pendingAction.member, t),
           })}
           loading={actionLoading === pendingAction.member.userId}
-          nameToType={getMemberName(pendingAction.member)}
+          nameToType={getMemberName(pendingAction.member, t)}
           onClose={() => !actionLoading && setPendingAction(null)}
           onConfirm={() => completeAction(pendingAction)}
           title={t('groups.admin.remove_question')}

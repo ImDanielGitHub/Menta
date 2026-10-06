@@ -6,6 +6,7 @@
 import { showToast } from '@/components/ui/Toast';
 import { emitHaptic } from '@/lib/motion/haptics';
 import { translate } from '@/lib/localization';
+import { getPromiseStateErrorCopy } from '@/lib/errors/promise-state-copy';
 
 export enum ErrorType {
   NETWORK = 'network',
@@ -263,7 +264,7 @@ class ErrorHandler {
         return translate('en-NZ', 'domain.error.database');
 
       case ErrorType.CHALLENGE_STATE:
-        return translate('en-NZ', 'domain.error.challenge');
+        return getPromiseStateErrorCopy().body;
 
       case ErrorType.GROUP:
         return translate('en-NZ', 'domain.error.group');
@@ -451,7 +452,7 @@ class ErrorHandler {
       case ErrorType.DATABASE:
         return translate('en-NZ', 'domain.error.title.database');
       case ErrorType.CHALLENGE_STATE:
-        return translate('en-NZ', 'domain.error.title.challenge');
+        return getPromiseStateErrorCopy().title;
       case ErrorType.GROUP:
         return translate('en-NZ', 'domain.error.title.group');
       case ErrorType.UNKNOWN:

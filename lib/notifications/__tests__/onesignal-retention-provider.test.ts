@@ -3,7 +3,6 @@ import { Linking } from 'react-native';
 import {
   isValidOneSignalAppId,
   OneSignalRetentionNotificationProvider,
-  ONESIGNAL_OWNED_IN_APP_TRIGGER_NAMES,
 } from '@/lib/notifications/onesignal-retention-provider';
 
 const APP_ID = '11111111-2222-4333-8444-555555555555';
@@ -31,6 +30,7 @@ const makeSdk = () => {
       addEventListener: jest.fn((event: string, listener: ClickListener) => {
         if (event === 'click') notificationClick = listener;
       }),
+      requestPermission: jest.fn().mockResolvedValue(true),
     },
     InAppMessages: {
       addEventListener: jest.fn((event: string, listener: ClickListener) => {
@@ -95,6 +95,8 @@ describe('OneSignal retention provider', () => {
     expect(loadSdk).toHaveBeenCalledTimes(1);
     expect(sdk.initialize).toHaveBeenCalledWith(APP_ID);
     expect(sdk.initialize).toHaveBeenCalledTimes(1);
+    expect(sdk.logout).toHaveBeenCalledTimes(1);
+    expect(sdk.login).not.toHaveBeenCalled();
     expect(sdk.Notifications.addEventListener).toHaveBeenCalledTimes(2);
     expect(sdk.InAppMessages.addEventListener).toHaveBeenCalledTimes(3);
     expect(sdk.User.pushSubscription.addEventListener).toHaveBeenCalledTimes(1);
@@ -201,7 +203,7 @@ describe('OneSignal retention provider', () => {
     }
   });
 
-  it('binds identity, sends bounded state, and cleans up owned state', async () => {
+  it('keeps the installation anonymous while preserving permission handling', async () => {
     const { sdk } = makeSdk();
     const provider = new OneSignalRetentionNotificationProvider({
       appId: APP_ID,
@@ -212,40 +214,40 @@ describe('OneSignal retention provider', () => {
     });
 
     await provider.bindExternalUser('user-1');
-    await provider.recordEvent('proof_submitted', { source: 'today' });
-    await provider.syncInAppTriggers({
-      app_surface: 'today',
-      has_active_promise: 'true',
-    });
-    await provider.syncAudienceTags({ marketing_email_opt_in: true });
-    await provider.syncEmailSubscription('person@example.com', true);
-    await provider.syncEmailSubscription('person@example.com', false);
+    await expect(
+      provider.recordEvent('proof_submitted', { source: 'today' })
+    ).rejects.toThrow('account-scoped data sharing is disabled');
+    await expect(
+      provider.syncInAppTriggers({
+        app_surface: 'today',
+        has_active_promise: 'true',
+      })
+    ).rejects.toThrow('account-scoped data sharing is disabled');
+    await expect(
+      provider.syncAudienceTags({ marketing_email_opt_in: true })
+    ).rejects.toThrow('account-scoped data sharing is disabled');
+    await expect(
+      provider.syncEmailSubscription('person@example.com', true)
+    ).rejects.toThrow('account-scoped data sharing is disabled');
+    await expect(
+      provider.removeInAppTriggers(['notification_prompt_context'])
+    ).rejects.toThrow('account-scoped data sharing is disabled');
+    await expect(provider.requestPushPermission(true)).resolves.toBe(true);
     await provider.unbindExternalUser();
 
-    expect(sdk.login).toHaveBeenCalledWith('user-1');
-    expect(sdk.User.trackEvent).toHaveBeenCalledWith('proof_submitted', {
-      source: 'today',
-    });
-    expect(sdk.InAppMessages.addTriggers).toHaveBeenCalledWith({
-      app_surface: 'today',
-      has_active_promise: 'true',
-    });
-    expect(sdk.InAppMessages.removeTriggers).toHaveBeenCalledWith(
-      ONESIGNAL_OWNED_IN_APP_TRIGGER_NAMES
-    );
-    expect(sdk.User.addTags).toHaveBeenCalledWith({
-      marketing_email_opt_in: 'true',
-    });
-    expect(sdk.User.addEmail).toHaveBeenCalledWith('person@example.com');
-    expect(sdk.User.removeEmail).toHaveBeenCalledWith('person@example.com');
-    expect(sdk.logout).toHaveBeenCalledTimes(1);
+    expect(sdk.login).not.toHaveBeenCalled();
+    expect(sdk.User.trackEvent).not.toHaveBeenCalled();
+    expect(sdk.InAppMessages.addTriggers).not.toHaveBeenCalled();
+    expect(sdk.InAppMessages.removeTriggers).not.toHaveBeenCalled();
+    expect(sdk.User.addTags).not.toHaveBeenCalled();
+    expect(sdk.User.addEmail).not.toHaveBeenCalled();
+    expect(sdk.User.removeEmail).not.toHaveBeenCalled();
+    expect(sdk.Notifications.requestPermission).toHaveBeenCalledWith(true);
+    expect(sdk.logout).toHaveBeenCalledTimes(3);
   });
 
-  it('logs out even when owned trigger cleanup fails', async () => {
+  it('logs out without mutating provider triggers', async () => {
     const { sdk } = makeSdk();
-    sdk.InAppMessages.removeTriggers.mockImplementation(() => {
-      throw new Error('local trigger cleanup failed');
-    });
     const provider = new OneSignalRetentionNotificationProvider({
       appId: APP_ID,
       loadSdk: jest.fn().mockResolvedValue(sdk as never),
@@ -257,6 +259,7 @@ describe('OneSignal retention provider', () => {
     await provider.initialize();
     await expect(provider.unbindExternalUser()).resolves.toBeUndefined();
 
-    expect(sdk.logout).toHaveBeenCalledTimes(1);
+    expect(sdk.logout).toHaveBeenCalledTimes(2);
+    expect(sdk.InAppMessages.removeTriggers).not.toHaveBeenCalled();
   });
 });

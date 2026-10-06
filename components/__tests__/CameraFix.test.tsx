@@ -74,6 +74,29 @@ describe('CameraFix', () => {
     jest.useRealTimers();
   });
 
+  it('consumes a rejected pausePreview promise without losing the scanned code', async () => {
+    jest.useFakeTimers();
+    mockUseCameraPermissions.mockReturnValue([
+      { granted: true, canAskAgain: true },
+      jest.fn(),
+    ]);
+    mockPausePreview.mockRejectedValueOnce(new Error('preview is closing'));
+    const handlers = renderScanner();
+    await act(async () => {
+      jest.advanceTimersByTime(100);
+    });
+    const result = { data: 'invite-token', type: 'qr' };
+    await act(async () => {
+      fireEvent(
+        screen.getByTestId('invite-scanner-camera'),
+        'barcodeScanned',
+        result
+      );
+      await Promise.resolve();
+    });
+    expect(handlers.onBarCodeScanned).toHaveBeenCalledWith(result);
+  });
+
   it('keeps loading camera access recoverable inside the scanner modal', () => {
     const { onClose } = renderScanner();
 

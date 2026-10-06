@@ -24,6 +24,7 @@ export const navigationEnNZ = {
   'navigation.personal.active': '{count} active promises',
   'navigation.personal.active.one': '{count} active promise',
   'navigation.personal.active.other': '{count} active promises',
+  'navigation.personal.streak_label': 'Longest active streak',
   'navigation.personal.longest': '{active} · Longest active streak: {days}',
   'navigation.notifications.accessibility': 'Notification settings',
   'navigation.notifications.hint':

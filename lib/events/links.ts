@@ -1,8 +1,7 @@
 import { PRIMARY_INVITE_HOST } from '@/lib/invite-links';
 
 export type EventLinkCapability =
-  | { kind: 'share'; token: string }
-  | { kind: 'invite'; token: string };
+  { kind: 'share'; token: string } | { kind: 'invite'; token: string };
 
 export type ParsedEventLink = {
   eventId: string;

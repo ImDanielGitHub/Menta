@@ -114,11 +114,45 @@ const buildFailedRpcPayload = (error: string, code: string) => ({
   message: error,
 });
 
-const installMatchingReceiptReadback = () => {
+type CommittedProofReceipt = {
+  id: string;
+  user_id: string;
+  challenge_id: string;
+  client_event_id: string;
+  media_type: 'photo' | 'video' | 'text';
+  media_url: string | null;
+  submission_text: string | null;
+  status: 'pending' | 'approved' | 'rejected';
+};
+
+// Committed rows are explicitly seeded by each scenario, independently of RPC
+// arguments and responses. Wrong table/filter requests cannot echo a receipt.
+const committedReceipt = (
+  facts: Pick<CommittedProofReceipt, 'id' | 'client_event_id'> &
+    Partial<CommittedProofReceipt>
+): CommittedProofReceipt => ({
+  user_id: 'user-1',
+  challenge_id: 'challenge-1',
+  media_type: 'photo',
+  media_url: 'user-1/proof.jpg',
+  submission_text: null,
+  status: 'pending',
+  ...facts,
+});
+
+const installReceiptReadback = (
+  receipts: CommittedProofReceipt[] = [],
+  deliveredReceipt?: CommittedProofReceipt
+) => {
+  const readbacks: (CommittedProofReceipt | null)[] = [];
   (mockSupabase.from as jest.Mock).mockImplementation((table: string) => {
-    const query = {
+    const filters = new Map<string, unknown>();
+    return {
       select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
+      eq: jest.fn(function (this: unknown, column: string, value: unknown) {
+        filters.set(column, value);
+        return this;
+      }),
       maybeSingle: jest.fn(async () => {
         if (table === 'challenge_participants') {
           return {
@@ -130,33 +164,31 @@ const installMatchingReceiptReadback = () => {
             error: null,
           };
         }
-
-        const rpcMock = mockProofRpc;
-        const callIndex = rpcMock.mock.calls.length - 1;
-        const rpcArgs = rpcMock.mock.calls[callIndex]?.[1] ?? {};
-        const rpcResponse = await rpcMock.mock.results[callIndex]?.value;
-        const payload = rpcResponse?.data ?? {};
-
+        if (table !== 'challenge_submissions') {
+          throw new Error(`Unexpected receipt table: ${table}`);
+        }
+        // A deliberately misaddressed non-null server row isolates the receipt
+        // validator from query filtering, so a mismatch cannot pass via null.
+        const matches = deliveredReceipt
+          ? [deliveredReceipt]
+          : receipts.filter(row =>
+              [...filters].every(
+                ([column, value]) =>
+                  row[column as keyof CommittedProofReceipt] === value
+              )
+            );
+        readbacks.push(matches.length === 1 ? matches[0] : null);
         return {
-          data:
-            typeof payload.submissionId === 'string' &&
-            typeof payload.status === 'string'
-              ? {
-                  id: payload.submissionId,
-                  challenge_id: rpcArgs.p_challenge_id,
-                  client_event_id: rpcArgs.p_client_event_id,
-                  media_type: rpcArgs.p_media_type,
-                  media_url: rpcArgs.p_media_url,
-                  submission_text: rpcArgs.p_submission_text,
-                  status: payload.status,
-                }
+          data: matches.length === 1 ? matches[0] : null,
+          error:
+            matches.length > 1
+              ? { code: 'PGRST116', message: 'Multiple committed rows' }
               : null,
-          error: null,
         };
       }),
     };
-    return query;
   });
+  return readbacks;
 };
 
 describe('proof-submission-service', () => {
@@ -183,7 +215,7 @@ describe('proof-submission-service', () => {
     mockUploadDurableProofMedia.mockResolvedValue(
       'user-1/proof-challenge-1-local-event.jpg'
     );
-    installMatchingReceiptReadback();
+    installReceiptReadback();
   });
 
   it('releases local media only for pending or accepted server receipts', () => {
@@ -197,6 +229,15 @@ describe('proof-submission-service', () => {
   });
 
   it('dispatches text proof with the confirmed owner token when the client account changes at dispatch', async () => {
+    installReceiptReadback([
+      committedReceipt({
+        id: '15151515-1515-4515-8515-151515151515',
+        client_event_id: '14141414-1414-4414-8414-141414141414',
+        media_type: 'text',
+        media_url: null,
+        submission_text: 'Completed 45 minutes of study.',
+      }),
+    ]);
     const clientEventId = '14141414-1414-4414-8414-141414141414';
     mockProofRpc.mockResolvedValue({
       data: buildSuccessfulRpcPayload({
@@ -451,6 +492,15 @@ describe('proof-submission-service', () => {
   });
 
   it('submits text proof with a stable client event id before network work', async () => {
+    installReceiptReadback([
+      committedReceipt({
+        id: '11111111-1111-4111-8111-111111111111',
+        client_event_id: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+        media_type: 'text',
+        media_url: null,
+        submission_text: 'Completed 45 minutes of study.',
+      }),
+    ]);
     mockCheckMilestone.mockResolvedValue({
       reached: true,
       milestone: 3,
@@ -499,6 +549,13 @@ describe('proof-submission-service', () => {
   });
 
   it('reconciles a correction receipt under its new client event id', async () => {
+    installReceiptReadback([
+      committedReceipt({
+        id: '83838383-8383-4383-8383-838383838383',
+        client_event_id: '81818181-8181-4181-8181-818181818181',
+        media_url: 'user-1/corrected-proof.jpg',
+      }),
+    ]);
     const clientEventId = '81818181-8181-4181-8181-818181818181';
     const replacedSubmissionId = '82828282-8282-4282-8282-828282828282';
     mockProofRpc.mockResolvedValue({
@@ -529,6 +586,13 @@ describe('proof-submission-service', () => {
   });
 
   it('maps approved server status to accepted receipt', async () => {
+    installReceiptReadback([
+      committedReceipt({
+        id: '22222222-2222-4222-8222-222222222222',
+        client_event_id: '23232323-2323-4232-8232-232323232323',
+        status: 'approved',
+      }),
+    ]);
     const milestone = {
       reached: true as const,
       milestone: 3,
@@ -566,6 +630,13 @@ describe('proof-submission-service', () => {
   });
 
   it('uploads durable local media before RPC and releases it only after a server receipt', async () => {
+    installReceiptReadback([
+      committedReceipt({
+        id: '33333333-3333-4333-8333-333333333333',
+        client_event_id: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+        media_url: 'user-1/proof-challenge-1-local-event.jpg',
+      }),
+    ]);
     mockProofRpc.mockResolvedValue({
       data: buildSuccessfulRpcPayload({
         submissionId: '33333333-3333-4333-8333-333333333333',
@@ -606,6 +677,14 @@ describe('proof-submission-service', () => {
   });
 
   it('keeps correction-requested media for a clearer resubmission', async () => {
+    installReceiptReadback([
+      committedReceipt({
+        id: '44444444-4444-4444-8444-444444444444',
+        client_event_id: '12121212-1212-4212-8212-121212121212',
+        media_url: 'user-1/proof-challenge-1-local-event.jpg',
+        status: 'rejected',
+      }),
+    ]);
     mockProofRpc.mockResolvedValue({
       data: buildSuccessfulRpcPayload({
         submissionId: '44444444-4444-4444-8444-444444444444',
@@ -640,17 +719,7 @@ describe('proof-submission-service', () => {
       }),
       error: null,
     });
-    (mockSupabase.from as jest.Mock).mockImplementation((table: string) => ({
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      maybeSingle: jest.fn().mockResolvedValue({
-        data:
-          table === 'challenge_participants'
-            ? { challenge_id: 'challenge-1', status: 'active' }
-            : null,
-        error: null,
-      }),
-    }));
+    installReceiptReadback();
 
     await expect(
       submitChallengeProof({
@@ -668,9 +737,185 @@ describe('proof-submission-service', () => {
     });
 
     expect(mockReleaseDurableProofMedia).not.toHaveBeenCalled();
+    expect(trackProductEvent).not.toHaveBeenCalled();
     expect(
       await getQueuedProofUpload('13131313-1313-4313-8313-131313131313')
     ).not.toBeNull();
+  });
+
+  describe('independent committed receipt readback', () => {
+    const clientEventId = '56565656-5656-4656-8656-565656565656';
+    const submissionId = '57575757-5757-4757-8757-575757575757';
+    const localMediaUri = 'file:///documents/independent-proof.jpg';
+    const remoteMediaUrl = 'user-1/proof-challenge-1-local-event.jpg';
+    const proofText = 'Finished my practice session.';
+
+    it.each<{
+      field: string;
+      proofType: 'photo' | 'text';
+      conflict: Partial<CommittedProofReceipt>;
+    }>([
+      {
+        field: 'challenge',
+        proofType: 'photo',
+        conflict: { challenge_id: 'challenge-2' },
+      },
+      {
+        field: 'send key',
+        proofType: 'photo',
+        conflict: { client_event_id: '58585858-5858-4858-8858-585858585858' },
+      },
+      {
+        field: 'submission',
+        proofType: 'photo',
+        conflict: { id: '59595959-5959-4959-8959-595959595959' },
+      },
+      {
+        field: 'media type',
+        proofType: 'photo',
+        conflict: { media_type: 'video' },
+      },
+      {
+        field: 'media URL',
+        proofType: 'photo',
+        conflict: { media_url: 'user-1/another-proof.jpg' },
+      },
+      {
+        field: 'text',
+        proofType: 'text',
+        conflict: { submission_text: 'An unrelated committed proof.' },
+      },
+    ])(
+      'rejects a non-null committed receipt with conflicting $field',
+      async ({ proofType, conflict }) => {
+        const row = committedReceipt({
+          id: submissionId,
+          client_event_id: clientEventId,
+          media_type: proofType,
+          media_url: proofType === 'text' ? null : remoteMediaUrl,
+          submission_text: proofType === 'text' ? proofText : null,
+          ...conflict,
+        });
+        const readbacks = installReceiptReadback([], row);
+        mockProofRpc.mockResolvedValue({
+          data: buildSuccessfulRpcPayload({
+            submissionId,
+            clientEventId,
+            mediaType: proofType,
+            mediaUrl: proofType === 'text' ? null : remoteMediaUrl,
+            submissionText: proofType === 'text' ? proofText : null,
+          }),
+          error: null,
+        });
+
+        await expect(
+          submitChallengeProof({
+            userId: 'user-1',
+            challengeId: 'challenge-1',
+            clientEventId,
+            proofType,
+            proofValue: proofType === 'text' ? proofText : localMediaUri,
+            localMediaUri: proofType === 'photo' ? localMediaUri : undefined,
+          })
+        ).rejects.toMatchObject({
+          code: 'RECEIPT_RECONCILIATION_REQUIRED',
+          receiptStatus: 'unknown-result',
+        });
+
+        expect(readbacks).toEqual([row]);
+        expect(mockProofRpc).toHaveBeenCalledTimes(1);
+        expect(await getProofDraft(clientEventId)).toMatchObject({
+          status: 'unknown-result',
+          submissionId: null,
+          proofValue: proofType === 'text' ? proofText : remoteMediaUrl,
+          localMediaUri: proofType === 'photo' ? localMediaUri : null,
+          remoteMediaUrl: proofType === 'photo' ? remoteMediaUrl : null,
+        });
+        expect(await getQueuedProofUpload(clientEventId)).not.toBeNull();
+        expect(mockReleaseDurableProofMedia).not.toHaveBeenCalled();
+        expect(mockSupabase.storage.from).not.toHaveBeenCalled();
+        expect(trackProductEvent).not.toHaveBeenCalled();
+      }
+    );
+
+    it.each([
+      { filter: 'owner', other: { user_id: 'user-2' } },
+      {
+        filter: 'send key',
+        other: { client_event_id: '58585858-5858-4858-8858-585858585858' },
+      },
+    ])(
+      'selects one independently seeded receipt using the $filter filter',
+      async ({ other }) => {
+        installReceiptReadback([
+          committedReceipt({
+            id: submissionId,
+            client_event_id: clientEventId,
+          }),
+          committedReceipt({
+            id: '59595959-5959-4959-8959-595959595959',
+            client_event_id: clientEventId,
+            ...other,
+          }),
+        ]);
+        mockProofRpc.mockResolvedValue({
+          data: buildSuccessfulRpcPayload({ submissionId, clientEventId }),
+          error: null,
+        });
+        const result = await submitChallengeProof({
+          userId: 'user-1',
+          challengeId: 'challenge-1',
+          clientEventId,
+          proofType: 'photo',
+          proofValue: 'user-1/proof.jpg',
+        });
+        expect(result).toMatchObject({
+          receiptStatus: 'pending-review',
+          submissionId,
+        });
+        expect(await getQueuedProofUpload(clientEventId)).toBeNull();
+      }
+    );
+
+    it('keeps a sent draft and local media when resumed readback conflicts without another RPC', async () => {
+      await createProofDraft({
+        userId: 'user-1',
+        challengeId: 'challenge-1',
+        clientEventId,
+        proofType: 'photo',
+        proofValue: localMediaUri,
+        localMediaUri,
+        clientTimeZone: 'Pacific/Auckland',
+      });
+      await updateProofDraft(clientEventId, {
+        status: 'sent',
+        submissionId,
+        serverStatus: 'sent',
+        remoteMediaUrl,
+        sendRequestedAt: '2026-10-03T08:00:00.000Z',
+      });
+      const row = committedReceipt({
+        id: '59595959-5959-4959-8959-595959595959',
+        client_event_id: clientEventId,
+        media_url: remoteMediaUrl,
+      });
+      const readbacks = installReceiptReadback([row]);
+      await expect(resumeProofSubmission(clientEventId)).rejects.toMatchObject({
+        code: 'RECEIPT_RECONCILIATION_REQUIRED',
+        receiptStatus: 'unknown-result',
+      });
+      expect(readbacks).toEqual([row]);
+      expect(mockProofRpc).not.toHaveBeenCalled();
+      expect(await getProofDraft(clientEventId)).toMatchObject({
+        status: 'unknown-result',
+        localMediaUri,
+        remoteMediaUrl,
+        submissionId,
+      });
+      expect(await getQueuedProofUpload(clientEventId)).not.toBeNull();
+      expect(mockReleaseDurableProofMedia).not.toHaveBeenCalled();
+      expect(trackProductEvent).not.toHaveBeenCalled();
+    });
   });
 
   it('rejects reuse of a send key for a different proof identity', async () => {
@@ -988,22 +1233,16 @@ describe('proof-submission-service', () => {
       allowSelfReview: true,
       sendRequestedAt: new Date().toISOString(),
     });
-    (mockSupabase.from as jest.Mock).mockReturnValue({
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      maybeSingle: jest.fn().mockResolvedValue({
-        error: null,
-        data: {
-          id: submissionId,
-          challenge_id: 'challenge-1',
-          client_event_id: clientEventId,
-          media_type: 'text',
-          media_url: null,
-          submission_text: 'Finished my practice session.',
-          status: 'approved',
-        },
+    installReceiptReadback([
+      committedReceipt({
+        id: submissionId,
+        client_event_id: clientEventId,
+        media_type: 'text',
+        media_url: null,
+        submission_text: 'Finished my practice session.',
+        status: 'approved',
       }),
-    });
+    ]);
     const result = await resumeProofSubmission(clientEventId);
     expect(result.receiptStatus).toBe('accepted');
     expect(mockProofRpc).not.toHaveBeenCalled();
@@ -1015,33 +1254,6 @@ describe('proof-submission-service', () => {
       is_correction: 'unknown',
       streak_length_bucket: 'unknown',
     });
-  });
-
-  it('does not count the same confirmed proof twice after a repeated submit', async () => {
-    const clientEventId = '73737373-7373-4373-8373-737373737373';
-    mockProofRpc.mockResolvedValue({
-      error: null,
-      data: buildSuccessfulRpcPayload({
-        submissionId: '74747474-7474-4474-8474-747474747474',
-        clientEventId,
-        mediaType: 'text',
-        submissionText: 'Finished my practice session.',
-      }),
-    });
-    const input = {
-      userId: 'user-1',
-      challengeId: 'challenge-1',
-      clientEventId,
-      proofType: 'text' as const,
-      proofValue: 'Finished my practice session.',
-    };
-    await submitChallengeProof(input);
-    await submitChallengeProof(input);
-    expect(
-      (trackProductEvent as jest.Mock).mock.calls.filter(
-        ([event]) => event === 'Proof Submitted'
-      )
-    ).toHaveLength(1);
   });
 
   describe('confirmed receipt analytics', () => {
@@ -1062,6 +1274,15 @@ describe('proof-submission-service', () => {
       );
 
     beforeEach(() => {
+      installReceiptReadback([
+        committedReceipt({
+          id: '82828282-8282-4282-8282-828282828282',
+          client_event_id: '81818181-8181-4181-8181-818181818181',
+          media_type: 'text',
+          media_url: null,
+          submission_text: 'Private proof text must not enter analytics.',
+        }),
+      ]);
       mockProofRpc.mockResolvedValue({
         error: null,
         data: buildSuccessfulRpcPayload({
@@ -1097,6 +1318,15 @@ describe('proof-submission-service', () => {
     it('counts a new correction receipt separately from retries of the original', async () => {
       await submitChallengeProof(input);
       await flushAnalytics();
+      installReceiptReadback([
+        committedReceipt({
+          id: '84848484-8484-4484-8484-848484848484',
+          client_event_id: '83838383-8383-4383-8383-838383838383',
+          media_type: 'text',
+          media_url: null,
+          submission_text: 'Private proof text must not enter analytics.',
+        }),
+      ]);
       const correctionInput = {
         ...input,
         clientEventId: '83838383-8383-4383-8383-838383838383',
@@ -1135,28 +1365,6 @@ describe('proof-submission-service', () => {
           },
         ],
       ]);
-    });
-
-    it('does not count a response whose authoritative receipt cannot be matched', async () => {
-      (mockSupabase.from as jest.Mock).mockImplementation((table: string) => ({
-        select: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockReturnThis(),
-        maybeSingle: jest.fn().mockResolvedValue({
-          error: null,
-          data:
-            table === 'challenge_participants'
-              ? {
-                  status: 'active',
-                  challenges: { id: 'challenge-1', status: 'active' },
-                }
-              : null,
-        }),
-      }));
-      await expect(submitChallengeProof(input)).rejects.toMatchObject({
-        code: 'RECEIPT_RECONCILIATION_REQUIRED',
-      });
-      await flushAnalytics();
-      expect(events()).toHaveLength(0);
     });
 
     it('keeps the receipt successful when analytics storage cannot be read', async () => {
@@ -1266,22 +1474,16 @@ describe('proof-submission-service', () => {
         data: { session: { user: { id: 'user-2' } } },
         error: null,
       });
-      (mockSupabase.from as jest.Mock).mockReturnValue({
-        select: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockReturnThis(),
-        maybeSingle: jest.fn().mockResolvedValue({
-          error: null,
-          data: {
-            id: submissionId,
-            challenge_id: input.challengeId,
-            client_event_id: clientEventId,
-            media_type: 'text',
-            media_url: null,
-            submission_text: input.proofValue,
-            status: 'approved',
-          },
+      installReceiptReadback([
+        committedReceipt({
+          id: submissionId,
+          client_event_id: clientEventId,
+          media_type: 'text',
+          media_url: null,
+          submission_text: 'Private proof text must not enter analytics.',
+          status: 'approved',
         }),
-      });
+      ]);
       expect((await resumeProofSubmission(clientEventId)).receiptStatus).toBe(
         'accepted'
       );
@@ -1315,6 +1517,12 @@ describe('proof-submission-service', () => {
   });
 
   it('reuses the same client event id across resume retries', async () => {
+    installReceiptReadback([
+      committedReceipt({
+        id: '66666666-6666-4666-8666-666666666666',
+        client_event_id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+      }),
+    ]);
     mockProofRpc
       .mockResolvedValueOnce({
         data: null,

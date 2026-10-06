@@ -19,9 +19,7 @@ export type PendingInviteOpenAction =
   | { kind: 'quiet' };
 
 export type PendingInviteNoPendingAction =
-  | 'manual_entry'
-  | 'feedback'
-  | 'quiet';
+  'manual_entry' | 'feedback' | 'quiet';
 
 export const resolvePendingInviteOpenAction = ({
   pendingInvite,

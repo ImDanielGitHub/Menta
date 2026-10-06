@@ -72,13 +72,32 @@ describe('FirstMissRecovery', () => {
 
     expect(await screen.findByText('Keep your 12-day streak?')).toBeTruthy();
     expect(
+      screen.getByText('Missed Wednesday? You can still keep your streak.')
+    ).toBeTruthy();
+    expect(
       screen.getByText(
-        'Wednesday slipped by. One missed day isn’t the whole story.'
+        'Use your free Streak Freeze to cover Wednesday and keep your 12-day streak.'
       )
     ).toBeTruthy();
-    expect(screen.getByText('Keep my streak for free')).toBeTruthy();
+    expect(screen.getByText('Use my free freeze')).toBeTruthy();
     expect(screen.getByText('Start over at day 1')).toBeTruthy();
     expect(onVisibilityChange).toHaveBeenLastCalledWith(true);
+  });
+
+  it('explains the free freeze when there is no previous streak count', async () => {
+    mockReadOffer.mockResolvedValueOnce({ ...offer, previousStreak: 0 });
+    render(
+      <FirstMissRecovery
+        ready
+        onRecovered={jest.fn()}
+        onVisibilityChange={jest.fn()}
+      />
+    );
+
+    expect(
+      await screen.findByText('Use your free Streak Freeze to cover Wednesday.')
+    ).toBeTruthy();
+    expect(screen.getByText('Use my free freeze')).toBeTruthy();
   });
 
   it.each([
@@ -103,7 +122,7 @@ describe('FirstMissRecovery', () => {
       await waitFor(() =>
         expect(screen.queryByTestId('first-miss-recovery')).toBeNull()
       );
-      expect(screen.queryByText('Keep my streak for free')).toBeNull();
+      expect(screen.queryByText('Use my free freeze')).toBeNull();
     }
   );
 
@@ -127,7 +146,7 @@ describe('FirstMissRecovery', () => {
         await act(async () => {
           await Promise.resolve();
         });
-        expect(screen.getByText('Keep my streak for free')).toBeTruthy();
+        expect(screen.getByText('Use my free freeze')).toBeTruthy();
         if (dismissed) fireEvent.press(screen.getByText('Start over at day 1'));
         act(() => jest.advanceTimersByTime(60_001));
         expect(screen.queryByTestId('first-miss-recovery')).toBeNull();
@@ -168,7 +187,7 @@ describe('FirstMissRecovery', () => {
       />
     );
 
-    fireEvent.press(await screen.findByText('Keep my streak for free'));
+    fireEvent.press(await screen.findByText('Use my free freeze'));
 
     await waitFor(() =>
       expect(screen.getByText('Your missed day is covered.')).toBeTruthy()

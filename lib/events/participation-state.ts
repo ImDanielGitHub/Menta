@@ -14,10 +14,7 @@ export type EventParticipationFact =
   | 'unavailable';
 
 export type EventProofReceiptStage =
-  | 'approved'
-  | 'pending_review'
-  | 'rejected'
-  | 'unexpected_post_status';
+  'approved' | 'pending_review' | 'rejected' | 'unexpected_post_status';
 
 export const eventProofStageForPostStatus = (
   status: EventPostStatus

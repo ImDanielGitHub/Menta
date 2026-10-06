@@ -216,6 +216,13 @@ jest.mock('@/lib/motion/haptics', () => ({
     mockEmitConfirmedOutcome(...args),
 }));
 
+jest.mock('@/lib/services/notification-service', () => ({
+  notificationService: {
+    getUserPreferences: jest.fn(async () => ({ challenge_reminders: true })),
+    updateUserPreferences: jest.fn(async () => undefined),
+  },
+}));
+
 jest.mock('@/components/paywall/PaywallModal', () => {
   const mockModule = (() => {
     const { Pressable, Text } = jest.requireActual('react-native');
@@ -384,6 +391,98 @@ describe('CreateChallengeScreen confirmed receipt navigation', () => {
   afterEach(() => {
     jest.restoreAllMocks();
     restoreStorageImplementations();
+  });
+
+  it('replaces a restored group audience when Just me is chosen', async () => {
+    delete mockRouteParams.templateId;
+    mockLoadPromiseCreationDraft.mockResolvedValue({
+      ownerUserId: 'user-1',
+      currentStep: 2,
+      stepId: 'who',
+      reviewer: { kind: 'group', groupId: 'group-a', name: 'Original group' },
+      groupId: 'group-a',
+      title: 'Private morning walk',
+      description: '',
+      proofType: 'photo',
+      proofDescription: 'Show the walk outside',
+      submissionText: '',
+      duration: 14,
+      difficulty: 'medium',
+      unknownCreateResultAt: null,
+      todayReadbackRequestedAt: null,
+    });
+    render(<CreateChallengeScreen />);
+    await waitFor(() =>
+      expect(screen.getByTestId('create-promise-primary-who')).toBeEnabled()
+    );
+    fireEvent.press(screen.getByRole('radio', { name: /^Just me for now/ }));
+    fireEvent.press(screen.getByTestId('create-promise-primary-who'));
+    fireEvent.press(screen.getByTestId('create-promise-primary-length'));
+    fireEvent.press(screen.getByTestId('create-promise-primary-review'));
+    await waitFor(() =>
+      expect(mockCreateChallengeWithPayment).toHaveBeenCalledWith(
+        expect.objectContaining({ groupId: undefined, allowSelfReview: true })
+      )
+    );
+  });
+
+  it('does not transplant a private draft into an explicit group create route', async () => {
+    delete mockRouteParams.templateId;
+    Object.assign(mockRouteParams, { mode: 'group', groupId: 'group-b' });
+    mockLoadPromiseCreationDraft.mockResolvedValue({
+      ownerUserId: 'user-1',
+      currentStep: 0,
+      groupId: null,
+      reviewer: { kind: 'self' },
+      title: 'Private medical promise',
+      description: 'Only for myself',
+      proofType: 'photo',
+      proofDescription: 'Private proof instructions',
+      submissionText: '',
+      duration: 14,
+      difficulty: 'medium',
+      unknownCreateResultAt: null,
+      todayReadbackRequestedAt: null,
+    });
+    render(<CreateChallengeScreen />);
+    await waitFor(() =>
+      expect(screen.getByTestId('create-promise-primary-name')).not.toHaveProp(
+        'loading',
+        true
+      )
+    );
+    expect(screen.getByTestId('create-promise-name-input').props.value).toBe(
+      ''
+    );
+    expect(mockCreateChallengeWithPayment).not.toHaveBeenCalled();
+  });
+
+  it('recovers an uncertain draft in its original audience instead of the incoming group', async () => {
+    delete mockRouteParams.templateId;
+    Object.assign(mockRouteParams, { mode: 'group', groupId: 'group-b' });
+    mockLoadPromiseCreationDraft.mockResolvedValue({
+      ownerUserId: 'user-1',
+      currentStep: 0,
+      groupId: null,
+      reviewer: { kind: 'self' },
+      title: 'Private morning walk',
+      description: '',
+      proofType: 'photo',
+      proofDescription: 'Private proof instructions',
+      submissionText: '',
+      duration: 14,
+      difficulty: 'medium',
+      unknownCreateResultAt: '2026-10-01T10:00:00.000Z',
+      todayReadbackRequestedAt: null,
+    });
+    render(<CreateChallengeScreen />);
+    await waitFor(() =>
+      expect(mockRouter.replace).toHaveBeenCalledWith({
+        pathname: '/create-challenge',
+        params: { mode: 'solo' },
+      })
+    );
+    expect(mockCreateChallengeWithPayment).not.toHaveBeenCalled();
   });
 
   it('primes the group promise query before opening the created group', async () => {

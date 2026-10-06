@@ -30,6 +30,7 @@ import { notificationService } from '@/lib/services/notification-service';
 import { retentionNotificationClient } from '@/lib/notifications/retention-notification-client';
 import { trackProductEvent } from '@/lib/posthog';
 import { useTranslation } from '@/lib/localization';
+import { getNotificationPermissionOffCopy } from '@/lib/notifications/permission-off-copy';
 import {
   accountabilityInviteRoleCopy,
   type PromiseAccountabilityRole,
@@ -71,6 +72,7 @@ export const NotificationPrivacyOnboarding = ({
   const { styles } = useMentaStyles(createPaletteStyles);
 
   const { t } = useTranslation();
+  const permissionOffCopy = getNotificationPermissionOffCopy(t);
   const [screenState, setScreenState] = useState<ScreenState>('checking');
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<{
@@ -623,7 +625,7 @@ export const NotificationPrivacyOnboarding = ({
         <PreAuthPermissionContent
           description={
             preAuthState === 'permission-off'
-              ? t('notifications.onboarding.permission_off.body')
+              ? permissionOffCopy.body
               : preAuthState === 'granted'
                 ? t('notifications.onboarding.granted.body')
                 : t('notifications.onboarding.body')
@@ -635,15 +637,15 @@ export const NotificationPrivacyOnboarding = ({
           state={preAuthState}
           title={
             preAuthState === 'permission-off'
-              ? t('notifications.onboarding.permission_off.title')
+              ? permissionOffCopy.title
               : preAuthState === 'granted'
                 ? t('notifications.onboarding.granted.title')
                 : t('notifications.onboarding.title')
           }
           turnOnLabel={t('notifications.onboarding.action.turn_on')}
           notNowLabel={t('notifications.onboarding.action.not_now')}
-          continueLabel={t('notifications.onboarding.permission_off.action')}
-          settingsLabel={t('notifications.onboarding.permission_off.settings')}
+          continueLabel={permissionOffCopy.action}
+          settingsLabel={permissionOffCopy.settings}
           grantedContinueLabel={t('notifications.onboarding.granted.action')}
           busy={busy}
         />

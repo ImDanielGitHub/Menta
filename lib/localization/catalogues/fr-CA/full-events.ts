@@ -221,6 +221,14 @@ export const fullEventsFrCA = {
   'events.check_in.closed_title': 'L’enregistrement n’est pas encore ouvert',
   'events.check_in.closed_body':
     'L’enregistrement s’ouvre 30 minutes avant l’événement et reste ouvert jusqu’à la fin. Aucun changement. Revenez pendant cette période avec le code d’organisateur.',
+  'events.check_in.ended_title': 'L’enregistrement est fermé',
+  'events.check_in.ended_body':
+    'L’enregistrement reste ouvert jusqu’à la fin de l’événement. Cet événement est terminé, donc la présence ne peut pas être confirmée ici. Rien n’a changé.',
+  'events.check_in.cancelled_body':
+    'Cet événement n’a plus lieu. La présence ne peut pas être confirmée ici. Rien n’a changé.',
+  'events.check_in.unavailable_title': 'L’enregistrement n’est pas ouvert',
+  'events.check_in.window_unavailable_body':
+    'L’enregistrement s’ouvre 30 minutes avant l’événement et reste ouvert jusqu’à la fin. Aucun changement. Utilisez le code d’organisateur pendant cette période.',
   'events.check_in.rejected_title': 'QR non accepté',
   'events.check_in.rejected_reason': 'Ce code n’a pas été accepté.',
   'events.check_in.rejected_body':
@@ -596,4 +604,8 @@ export const fullEventsFrCA = {
   'events.recap.share_line.approved': '{count} photos approuvées',
   'events.recap.share_title': 'Récapitulatif de {event}',
   'events.recap.completed': 'Événement terminé',
+  'events.action.transport_unknown':
+    'L’action sur l’événement a peut-être abouti. Reconnectez-vous et vérifiez son état avant de réessayer.',
+  'events.action.malformed_unknown':
+    'Menta n’a pas pu lire le résultat. Vérifiez ce qui a changé avant de réessayer.',
 } as const;

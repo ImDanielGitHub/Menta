@@ -54,4 +54,25 @@ export const groupsHomePtBR = {
   'groupsHome.groupAction.open_action': 'Abrir',
   'groupsHome.groupAction.empty_title': 'Nenhuma análise pendente',
   'groupsHome.groupAction.empty_detail': 'Ninguém aguarda sua análise agora.',
+  'groupsHome.adminNotice.ownerOnlyTitle': 'Só a pessoa dona',
+  'groupsHome.adminNotice.ownerOnlyDetail':
+    'Só a pessoa dona pode salvar estas configurações do grupo.',
+  'groupsHome.adminNotice.nameRequiredTitle': 'Nome obrigatório',
+  'groupsHome.adminNotice.nameRequiredDetail':
+    'Dê um nome a este grupo antes de salvar.',
+  'groupsHome.adminNotice.saveUnconfirmedTitle': 'Salvamento não confirmado',
+  'groupsHome.adminNotice.saveUnconfirmedDetail':
+    'A Menta não pôde confirmar se as configurações foram salvas. Suas edições ainda estão aqui. Confira o grupo antes de tentar de novo.',
+  'groupsHome.adminNotice.savedTitle': 'Alterações salvas',
+  'groupsHome.adminNotice.savedDetail':
+    'As configurações do grupo estão atualizadas.',
+  'groupsHome.adminNotice.saveFailedTitle': 'As alterações não foram salvas',
+  'groupsHome.adminNotice.saveFailedDetail':
+    'Verifique sua conexão e tente de novo. Suas edições ainda estão aqui.',
+  'groupsHome.adminNotice.leaveUnknownTitle': 'Saída não confirmada',
+  'groupsHome.adminNotice.leaveFailedTitle': 'O grupo não mudou',
+  'groupsHome.adminNotice.deleteUnconfirmedTitle': 'Exclusão não confirmada',
+  'groupsHome.adminNotice.deleteUnconfirmedDetail':
+    'A Menta não pôde confirmar se o grupo foi excluído. Volte a Grupos e confira antes de tentar de novo.',
+  'groupsHome.adminNotice.deleteFailedTitle': 'Grupo não excluído',
 } as const satisfies Pick<EnglishCatalogue, GroupsHomeKey>;

@@ -32,6 +32,7 @@ import {
   type PromiseAccountabilityInvitePreview,
 } from '@/lib/promises/accountability';
 import { normalizeInviteCode } from '@/lib/invite-links';
+import { describeJoinPromiseSkipAction } from '@/lib/promises/join-promise-copy';
 import { useAuthStore } from '@/store/auth-store';
 import { useInviteStore } from '@/store/invite-store';
 import { trackProductEvent } from '@/lib/posthog';
@@ -199,11 +200,13 @@ export default function JoinPromiseRoute() {
             />
             {errorKind === 'terminal' ? (
               <AppButton
-                title={
-                  user?.id
-                    ? t('groups.source.accountability.join_promise.back_today')
-                    : t('groups.source.accountability.common.keep_browsing')
-                }
+                title={describeJoinPromiseSkipAction(
+                  {
+                    signedIn: Boolean(user?.id),
+                    onboardingComplete: hasCompletedOnboarding,
+                  },
+                  t
+                )}
                 onPress={close}
                 fullWidth
                 variant="secondary"
@@ -297,10 +300,17 @@ export default function JoinPromiseRoute() {
                 testID="join-promise-continue"
               />
               <AppButton
-                title={t('groups.source.accountability.common.not_now')}
+                title={describeJoinPromiseSkipAction(
+                  {
+                    signedIn: Boolean(user?.id),
+                    onboardingComplete: hasCompletedOnboarding,
+                  },
+                  t
+                )}
                 onPress={close}
                 fullWidth
                 variant="ghost"
+                testID="join-promise-not-now"
               />
             </View>
           </View>

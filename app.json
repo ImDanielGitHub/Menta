@@ -2,8 +2,8 @@
   "expo": {
     "name": "Menta",
     "slug": "menta-community",
-    "version": "1.9.7",
-    "runtimeVersion": "1.9.7",
+    "version": "1.9.9",
+    "runtimeVersion": "1.9.9",
     "orientation": "portrait",
     "icon": "./assets/images/AppIcons/appstore.png",
     "backgroundColor": "#080909",
@@ -169,6 +169,26 @@
           "dark": {
             "backgroundColor": "#080909",
             "image": "./assets/images/menta-splash-welcome.png"
+          },
+          "ios": {
+            "image": "./assets/images/menta-launch-face.png",
+            "enableFullScreenImage_legacy": true,
+            "resizeMode": "cover",
+            "backgroundColor": "#080909",
+            "dark": {
+              "image": "./assets/images/menta-launch-face.png",
+              "backgroundColor": "#080909"
+            }
+          },
+          "android": {
+            "image": "./assets/images/menta-splash-welcome.png",
+            "backgroundColor": "#080909",
+            "resizeMode": "contain",
+            "imageWidth": 280,
+            "dark": {
+              "image": "./assets/images/menta-splash-welcome.png",
+              "backgroundColor": "#080909"
+            }
           }
         }
       ],

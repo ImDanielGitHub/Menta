@@ -83,7 +83,7 @@ export const todayStatesEsES = {
   'today.state.pending.named_title': '{promise} espera revisión.',
   'today.state.pending.title': 'Tu prueba espera revisión.',
   'today.state.pending.detail':
-    'Ha llegado a Menta. El resultado aparecerá aquí.',
+    'Una persona aún debe aceptarla. Hoy no cuenta hasta que lo haga. No hace falta enviarla otra vez.',
   'today.state.pending.action': 'Ver prueba',
   'today.state.correction.title': 'Tu prueba necesita un cambio.',
   'today.state.correction.detail':
@@ -93,7 +93,13 @@ export const todayStatesEsES = {
   'today.state.review.named_title': '{name} ha enviado una prueba.',
   'today.state.review.title': 'Hay una prueba pendiente de tu revisión.',
   'today.state.review.detail':
+    'Comprueba la prueba. Apruébala o pide un único cambio claro. Cada revisión confirmada añade {reward} Momenta, hasta {dailyLimit} al día.',
+  'today.state.review.detail_note':
+    'Lee la nota. Apruébala o pide un único cambio claro. Cada revisión confirmada añade {reward} Momenta, hasta {dailyLimit} al día.',
+  'today.state.review.detail_photo':
     'Comprueba la foto. Apruébala o pide un único cambio claro. Cada revisión confirmada añade {reward} Momenta, hasta {dailyLimit} al día.',
+  'today.state.review.detail_video':
+    'Mira el vídeo. Apruébalo o pide un único cambio claro. Cada revisión confirmada añade {reward} Momenta, hasta {dailyLimit} al día.',
   'today.state.review.action': 'Revisar prueba',
   'today.state.review.see_group': 'Ver grupo',
   'today.state.review.open_queue': 'Abrir lista de revisión',

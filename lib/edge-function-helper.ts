@@ -4,14 +4,12 @@ import { translate } from '@/lib/localization';
 
 const EDGE_TOAST_ERROR = 'error' as const;
 
-const edgeFunctionDebugLog = (..._args: unknown[]) => {};
-
 /**
  * Centralized edge function caller with error handling
  * Wraps all supabase.functions.invoke calls with consistent error handling
  */
 export async function callEdgeFunction<
-  TRequest = Record<string, any>,
+  TRequest = Record<string, unknown>,
   TResponse = unknown,
 >(
   functionName: string,
@@ -24,8 +22,6 @@ export async function callEdgeFunction<
   const { showUserError = true, userErrorMessage } = options || {};
 
   try {
-    edgeFunctionDebugLog(`📞 Calling edge function: ${functionName}`);
-
     // Attach current user's access token explicitly to avoid missing-sub / missing Authorization issues
     const { data: sessionData } = await supabase.auth.getSession();
     const accessToken = sessionData?.session?.access_token;
@@ -33,7 +29,9 @@ export async function callEdgeFunction<
     const { data, error } = await supabase.functions.invoke<TResponse>(
       functionName,
       {
-        body: body as any, // Type assertion to satisfy Supabase's flexible typing
+        body: body as NonNullable<
+          Parameters<typeof supabase.functions.invoke>[1]
+        >['body'],
         headers: accessToken
           ? { Authorization: `Bearer ${accessToken}` }
           : undefined,
@@ -53,12 +51,16 @@ export async function callEdgeFunction<
       throw noDataError;
     }
 
-    edgeFunctionDebugLog(
-      `✅ Edge function ${functionName} completed successfully`
-    );
     return data;
-  } catch (err: any) {
-    const errorMessage = err.message || `Failed to call ${functionName}`;
+  } catch (err: unknown) {
+    const message =
+      err && typeof err === 'object' && 'message' in err
+        ? err.message
+        : undefined;
+    const errorMessage =
+      typeof message === 'string' && message
+        ? message
+        : `Failed to call ${functionName}`;
     console.error(`🔥 Edge function ${functionName} failed:`, err);
 
     // Show user-friendly error if requested
@@ -86,7 +88,7 @@ export async function callEdgeFunction<
  * Wrapper for maintenance/admin functions with specific error handling
  */
 export async function callMaintenanceFunction<
-  TRequest = Record<string, any>,
+  TRequest = Record<string, unknown>,
   TResponse = unknown,
 >(functionName: string, body?: TRequest): Promise<TResponse> {
   return callEdgeFunction(functionName, body, {
@@ -99,7 +101,7 @@ export async function callMaintenanceFunction<
  * Wrapper for user-facing functions with friendly error messages
  */
 export async function callUserFunction<
-  TRequest = Record<string, any>,
+  TRequest = Record<string, unknown>,
   TResponse = unknown,
 >(
   functionName: string,

@@ -46,6 +46,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { trackMetaAdsInviteFriend } from '@/lib/meta-ads';
 import { trackProductOperation } from '@/lib/posthog';
 import { useTranslation } from '@/lib/localization';
+import { buildReferralShareCopy } from '@/lib/referrals/share-copy';
 import { addBreadcrumb } from '@/lib/sentry';
 
 type InviteState =
@@ -346,8 +347,7 @@ export default function ShareInviteScreen() {
     setState('handoff');
     try {
       const result = await Share.share({
-        title: t('groups.share.invite_someone_title'),
-        message: t('groups.share.message', { link: activeLink }),
+        ...buildReferralShareCopy(activeLink, user?.username, t),
         url: activeLink,
       });
       // Share APIs can only tell Menta the handoff returned. They do not prove
@@ -390,7 +390,7 @@ export default function ShareInviteScreen() {
         setState('unavailable');
       }
     }
-  }, [getActiveLink, link, state, t]);
+  }, [getActiveLink, link, state, t, user?.username]);
 
   const handleCopy = useCallback(async () => {
     if (state === 'preparing' || state === 'handoff') return;

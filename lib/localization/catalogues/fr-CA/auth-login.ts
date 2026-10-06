@@ -26,4 +26,16 @@ export const authLoginFrCA = {
   'auth.login.action.apple': 'Se connecter avec Apple',
   'auth.login.action.google': 'Se connecter avec Google',
   'auth.login.action.replay_intro': 'Voir comment fonctionne Menta',
+  'auth.login.required.join_promise_title':
+    'Connectez-vous pour rejoindre cette promesse',
+  'auth.login.required.join_promise_detail':
+    'Votre invitation reste liée à votre compte. Rien n’est encore rejoint.',
+  'auth.login.required.create_promise_title':
+    'Connectez-vous pour créer une promesse',
+  'auth.login.required.create_promise_detail':
+    'Votre brouillon reste sur ce téléphone jusqu’à votre connexion.',
+  'auth.login.required.open_promise_title':
+    'Connectez-vous pour ouvrir cette promesse',
+  'auth.login.required.open_promise_detail':
+    'Menta ouvre cette promesse sous votre compte.',
 } as const satisfies Pick<EnglishCatalogue, AuthLoginKey>;

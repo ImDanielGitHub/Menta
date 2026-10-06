@@ -25,7 +25,7 @@ export const fullDomainFeedbackPtPT = {
   'domain.error.database':
     'Problema de sincronização de dados. Por favor, tente novamente em alguns instantes.',
   'domain.error.challenge':
-    'Erro de estado de desafio. Atualize e tente novamente.',
+    'A Menta não conseguiu atualizar esta promessa. Tente novamente.',
   'domain.error.group': 'Falha na ação do grupo. Por favor, tente novamente.',
   'domain.error.unknown': 'Algo deu errado. Por favor, tente novamente.',
   'domain.error.title.network': 'Erro de ligação',
@@ -37,7 +37,7 @@ export const fullDomainFeedbackPtPT = {
   'domain.error.title.submission': 'Falha no envio',
   'domain.error.title.review': 'Erro de análise',
   'domain.error.title.database': 'Erro de sincronização',
-  'domain.error.title.challenge': 'Erro de desafio',
+  'domain.error.title.challenge': 'Esta promessa não pôde ser atualizada',
   'domain.error.title.group': 'Erro de grupo',
   'domain.error.title.unknown': 'Erro',
   'domain.error.connection_tips': 'Dicas de ligação',
@@ -519,4 +519,11 @@ export const fullDomainFeedbackPtPT = {
   'domain.notifications.members': 'Membros',
   'domain.notifications.review': 'análise',
   'domain.notifications.reviews': 'análises',
+  'domain.feedback.checkin.a11y': 'Como está o Menta para ti?',
+  'domain.feedback.checkin.heading': 'Como está o Menta para ti?',
+  'domain.feedback.checkin.body':
+    'Diz-nos o que funciona para ti, ou o que poderia ficar mais claro.',
+  'domain.feedback.checkin.working': 'Sim, está a funcionar para mim',
+  'domain.feedback.checkin.better': 'Algo poderia estar melhor',
+  'domain.feedback.checkin.not_now': 'Agora não',
 } as const;

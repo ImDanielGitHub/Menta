@@ -5,13 +5,18 @@ import {
   mentaSpacing,
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
-import { useMentaPalette, useMentaStyles } from '@/constants/use-menta-palette';
+import { useMentaStyles } from '@/constants/use-menta-palette';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 
+import { TodayCardIcon } from '@/components/today/today-card-icon';
 import { TodayPressable } from '@/components/today/TodayPressable';
-import { ChevronRightIcon, TargetIcon } from '@/components/ui/icons';
-import { AppScaledText as Text } from '@/components/ui/AppScaledText';
+import { ArrowRightIcon } from '@/components/ui/icons';
+import {
+  AppScaledText as Text,
+  useAppTextScale,
+} from '@/components/ui/AppScaledText';
+import { allowsLargeTypeWrap } from '@/lib/accessibility';
 
 import { useTheme } from '@/constants/ThemeContext';
 import {
@@ -53,37 +58,66 @@ export const PersonalPromisesShortcut = ({
   onPress,
   textScale,
 }: PersonalPromisesShortcutProps) => {
-  const mentaColors = useMentaPalette();
   const { styles } = useMentaStyles(createPaletteStyles);
 
   const { t } = useTranslation();
   const detail = buildDetail(activeCount, bestCurrentStreak, t);
   const { colors } = useTheme();
+  const { width, fontScale } = useWindowDimensions();
+  const inheritedTextScale = useAppTextScale();
+  const relaxedTitle =
+    width < 390 ||
+    allowsLargeTypeWrap(textScale ?? inheritedTextScale ?? fontScale);
+  const hasStreak =
+    activeCount !== null &&
+    activeCount > 0 &&
+    bestCurrentStreak !== null &&
+    bestCurrentStreak > 0;
+  const countDetail = buildDetail(activeCount, null, t);
 
   return (
     <TodayPressable
       accessibilityLabel={t('navigation.personal.accessibility', { detail })}
       onPress={onPress}
       pressedStyle={styles.rowPressed}
-      style={styles.row}
+      style={[styles.row, { backgroundColor: colors.accent.background }]}
       testID="today-personal-promises"
     >
-      <View style={styles.tile}>
-        <TargetIcon
+      <View style={styles.header}>
+        <Text
+          style={[styles.title, !relaxedTitle && styles.compactTitle]}
+          textScale={textScale}
+        >
+          {t('navigation.personal.title')}
+        </Text>
+        <TodayCardIcon
           color={colors.accent.primary}
-          size={20}
+          kind="personal"
+          size={44}
           testID="today-personal-promises-icon"
         />
       </View>
-      <View style={styles.copy}>
-        <Text style={styles.title} textScale={textScale}>
-          {t('navigation.personal.title')}
-        </Text>
-        <Text style={styles.detail} textScale={textScale}>
-          {detail}
-        </Text>
+      <View style={styles.summary}>
+        <View style={styles.summaryCopy}>
+          <Text style={styles.detail} textScale={textScale}>
+            {countDetail}
+          </Text>
+          {hasStreak ? (
+            <View style={styles.streak}>
+              <Text
+                style={[styles.streakValue, { color: colors.accent.primary }]}
+                textScale={textScale}
+              >
+                {t('today.progress.streak_days', { count: bestCurrentStreak })}
+              </Text>
+              <Text style={styles.streakLabel} textScale={textScale}>
+                {t('navigation.personal.streak_label')}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+        <ArrowRightIcon color={colors.accent.primary} size={20} />
       </View>
-      <ChevronRightIcon color={mentaColors.text.secondary} size={18} />
     </TodayPressable>
   );
 };
@@ -91,44 +125,59 @@ export const PersonalPromisesShortcut = ({
 const createPaletteStyles = (mentaColors: MentaPalette) => {
   const styles = StyleSheet.create({
     row: {
-      alignItems: 'center',
       alignSelf: 'center',
-      backgroundColor: mentaColors.surface,
-      borderColor: mentaColors.border,
       borderRadius: mentaRadii.large,
-      borderWidth: 1,
-      flexDirection: 'row',
-      gap: mentaSpacing[4],
+      gap: mentaSpacing[6],
       maxWidth: mentaLayout.taskLane,
-      minHeight: 76,
-      paddingHorizontal: mentaSpacing[4],
-      paddingVertical: mentaSpacing[3],
+      minHeight: 160,
+      padding: mentaSpacing[5],
       width: '100%',
     },
-    tile: {
+    header: {
       alignItems: 'center',
-      backgroundColor: mentaColors.actionSoft,
-      borderRadius: mentaRadii.medium,
-      height: 44,
-      justifyContent: 'center',
-      width: 44,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: mentaSpacing[6],
+    },
+    summary: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: mentaSpacing[4],
+    },
+    summaryCopy: {
+      flex: 1,
+      gap: mentaSpacing[2],
+      minWidth: 0,
+    },
+    streak: {
+      alignItems: 'baseline',
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      columnGap: mentaSpacing[3],
+      rowGap: mentaSpacing[1],
+    },
+    streakValue: {
+      ...mentaTypography.title,
+    },
+    streakLabel: {
+      ...mentaTypography.caption,
+      color: mentaColors.text.secondary,
+      flexShrink: 1,
     },
     rowPressed: {
       backgroundColor: mentaColors.raised,
-      borderColor: mentaColors.actionBorder,
-    },
-    copy: {
-      flex: 1,
-      minWidth: 0,
     },
     title: {
-      ...mentaTypography.bodySemibold,
+      ...mentaTypography.title,
       color: mentaColors.text.primary,
+      flex: 1,
+    },
+    compactTitle: {
+      maxWidth: '55%',
     },
     detail: {
       ...mentaTypography.caption,
       color: mentaColors.text.secondary,
-      marginTop: 2,
     },
   });
   return { styles };

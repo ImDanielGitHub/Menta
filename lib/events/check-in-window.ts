@@ -1,4 +1,5 @@
 import { translate } from '@/lib/localization';
+import type { EventOccurrenceState } from '@/types/event';
 
 /**
  * Attendee check-in copy. Publishing sets check-in to open 30 minutes before
@@ -29,23 +30,56 @@ export function isEventCheckInWindowClosed(code?: string | null): boolean {
   return (code ?? '').trim().toUpperCase() === 'CHECKIN_UNAVAILABLE';
 }
 
-export function getEventCheckInRejectedCopy(
-  code?: string | null,
-  message?: string | null
-): { title: string; description: string } {
+export function getEventCheckInRejectedCopy({
+  code,
+  message,
+  locale = 'en-NZ',
+  occurrenceState,
+}: {
+  code?: string | null;
+  message?: string | null;
+  locale?: string | null;
+  occurrenceState?: EventOccurrenceState | null;
+} = {}): { title: string; description: string } {
+  const resolvedLocale = locale ?? 'en-NZ';
+
   if (isEventCheckInWindowClosed(code)) {
+    if (occurrenceState === 'ended') {
+      return {
+        title: translate(resolvedLocale, 'events.check_in.ended_title'),
+        description: translate(resolvedLocale, 'events.check_in.ended_body'),
+      };
+    }
+    if (occurrenceState === 'cancelled') {
+      return {
+        title: translate(resolvedLocale, 'events.check_in.ended_title'),
+        description: translate(
+          resolvedLocale,
+          'events.check_in.cancelled_body'
+        ),
+      };
+    }
+    if (occurrenceState === 'scheduled') {
+      return {
+        title: translate(resolvedLocale, 'events.check_in.closed_title'),
+        description: translate(resolvedLocale, 'events.check_in.closed_body'),
+      };
+    }
     return {
-      title: translate('en-NZ', 'events.check_in.closed_title'),
-      description: translate('en-NZ', 'events.check_in.closed_body'),
+      title: translate(resolvedLocale, 'events.check_in.unavailable_title'),
+      description: translate(
+        resolvedLocale,
+        'events.check_in.window_unavailable_body'
+      ),
     };
   }
 
   const reason =
     (message ?? '').trim() ||
-    translate('en-NZ', 'events.check_in.rejected_reason');
+    translate(resolvedLocale, 'events.check_in.rejected_reason');
   return {
-    title: translate('en-NZ', 'events.check_in.rejected_title'),
-    description: translate('en-NZ', 'events.check_in.rejected_body', {
+    title: translate(resolvedLocale, 'events.check_in.rejected_title'),
+    description: translate(resolvedLocale, 'events.check_in.rejected_body', {
       reason,
     }),
   };

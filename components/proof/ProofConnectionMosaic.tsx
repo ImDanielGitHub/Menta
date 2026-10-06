@@ -227,7 +227,7 @@ const ProofVideoThumbnail = ({
     }
 
     void resolveProofVideoUri(item.mediaUrl)
-      .then(uri => player.replaceAsync({ uri, useCaching: true }))
+      .then(uri => player.replaceAsync({ uri, useCaching: false }))
       .then(() =>
         player.generateThumbnailsAsync(0.1, {
           maxHeight: 480,
@@ -269,6 +269,7 @@ const ProofVideoThumbnail = ({
     <ExpoImage
       accessibilityIgnoresInvertColors
       accessibilityLabel={`image: ${mediaAccessibilityLabel(item, localise)}`}
+      cachePolicy="memory"
       contentFit="cover"
       placeholderContentFit="cover"
       recyclingKey={item.id}

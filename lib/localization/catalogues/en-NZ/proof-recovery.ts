@@ -25,8 +25,7 @@ export const proofRecoveryEnNZ = {
   'proofRecovery.queued.more_waiting': '+{count} more waiting to send',
   'proofRecovery.queued.more_waiting.one': '+{count} more waiting to send',
   'proofRecovery.queued.more_waiting.other': '+{count} more waiting to send',
-  'proofRecovery.queued.retry_accessibility':
-    'Try sending saved proof again',
+  'proofRecovery.queued.retry_accessibility': 'Try sending saved proof again',
   'proofRecovery.queued.sending': 'Sending again…',
   'proofRecovery.queued.retry': 'Try sending again',
   'proofRecovery.queued.checking': 'Checking saved proof…',

@@ -125,8 +125,9 @@ export const readTodayAccountability = async (
     return { rows: records(current.data), source: 'v2' };
   }
 
-  // Any v2 failure removes accountability claims but must not remove the
-  // established Today snapshot. The legacy read can still fail normally.
+  // Compatibility fallback is only safe when the versioned RPC is absent.
+  // Permission, transport, and query errors must remain visible failures.
+  if (!isMissingAccountabilityRpcError(current.error)) throw current.error;
   const legacy = await rpc('get_today_obligations', {
     p_timezone: timezone,
   });

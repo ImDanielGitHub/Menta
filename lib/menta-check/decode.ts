@@ -186,6 +186,32 @@ const decodeHistory = (row: Row): MentaHistoryItem | null => {
   };
 };
 
+/** Decode the authenticated v2 readback RPC, never a legacy receipt. */
+export function decodeMentaMediaPermission(
+  value: unknown
+): 'allowed' | 'needs-review' | 'unavailable' {
+  if (!isRow(value) || value.success !== true) return 'unavailable';
+  if (
+    value.consented === false &&
+    value.policy_version === null &&
+    value.acknowledgement_id === null &&
+    value.acknowledged_at === null
+  )
+    return 'needs-review';
+  if (
+    value.consented !== true ||
+    value.policy_version !== 2 ||
+    typeof value.acknowledgement_id !== 'string' ||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      value.acknowledgement_id
+    ) ||
+    typeof value.acknowledged_at !== 'string' ||
+    !Number.isFinite(Date.parse(value.acknowledged_at))
+  )
+    return 'unavailable';
+  return 'allowed';
+}
+
 export function decodeMentaOverview(value: unknown): MentaCheckOverview | null {
   if (!isRow(value) || value.success !== true) return null;
   const stats = isRow(value.stats) ? value.stats : {};

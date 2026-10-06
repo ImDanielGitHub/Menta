@@ -4,10 +4,7 @@ import { translate } from '@/lib/localization/translate';
 export const ECONOMY_CURRENCY_NAME = 'Momenta';
 
 export type EconomyAction =
-  | 'create_challenge'
-  | 'create_group'
-  | 'join_group'
-  | 'join_challenge';
+  'create_challenge' | 'create_group' | 'join_group' | 'join_challenge';
 
 export type StreakUnlockKind = 'frame' | 'theme' | 'freeze';
 

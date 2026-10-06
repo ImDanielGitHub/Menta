@@ -13,9 +13,7 @@ export type CreateEntrySource =
   | 'groups_tab';
 
 export type CreationIntent =
-  | 'create_group'
-  | 'create_group_challenge'
-  | 'create_solo_challenge';
+  'create_group' | 'create_group_challenge' | 'create_solo_challenge';
 
 type RouterLike = {
   push: (href: Href) => void;

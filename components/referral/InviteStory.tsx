@@ -17,7 +17,6 @@ import { useTranslation } from '@/lib/localization';
 import { mentaFonts } from '@/lib/menta-fonts';
 
 const CARD_INK = '#12081F';
-const CARD_INK_SOFT = '#2A1A4A';
 
 /** Paper 19 / I01 + I03: the invite as a pass someone would want to open. */
 export function InvitePassCard({
@@ -31,7 +30,7 @@ export function InvitePassCard({
 }) {
   const { styles } = useMentaStyles(createPaletteStyles);
 
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   return (
     <View
       accessible
@@ -39,13 +38,18 @@ export function InvitePassCard({
       style={[styles.pass, { backgroundColor: colors.accent.primary }]}
       testID="invite-pass-card"
     >
-      <View style={styles.passWash} />
-      <Text style={styles.passTitle}>{title}</Text>
+      <View style={[styles.passWash, { opacity: isDark ? 0.18 : 0.06 }]} />
+      <Text style={[styles.passTitle, { color: colors.onPrimary }]}>
+        {title}
+      </Text>
       <View style={styles.passFrom}>
         <View style={styles.passInitial}>
           <Text style={styles.passInitialText}>{initial}</Text>
         </View>
-        <Text numberOfLines={1} style={styles.passFromText}>
+        <Text
+          numberOfLines={1}
+          style={[styles.passFromText, { color: colors.onPrimary }]}
+        >
           {fromLine}
         </Text>
       </View>
@@ -166,7 +170,6 @@ const createPaletteStyles = (mentaColors: MentaPalette) => {
       width: 300,
     },
     passTitle: {
-      color: CARD_INK,
       fontFamily: mentaFonts.newsreader.semibold,
       fontSize: 34,
       letterSpacing: -0.7,
@@ -193,7 +196,6 @@ const createPaletteStyles = (mentaColors: MentaPalette) => {
       fontSize: 16,
     },
     passFromText: {
-      color: CARD_INK_SOFT,
       flexShrink: 1,
       fontFamily: mentaFonts.inter.medium,
       fontSize: 15,
@@ -229,7 +231,7 @@ const createPaletteStyles = (mentaColors: MentaPalette) => {
     },
     listText: {
       ...mentaTypography.lead,
-      color: '#D9D8D1',
+      color: mentaColors.text.primary,
       flex: 1,
     },
     listTextPending: {

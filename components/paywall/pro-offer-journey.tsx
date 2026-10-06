@@ -55,6 +55,7 @@ type Props = {
   onRetry: () => void;
   onRestore: () => void;
   restoring: boolean;
+  restoreDisabled?: boolean;
   legalLinks: React.ReactNode;
 };
 
@@ -72,6 +73,7 @@ export function ProOfferJourney({
   onRetry,
   onRestore,
   restoring,
+  restoreDisabled = false,
   legalLinks,
 }: Props) {
   const mentaColors = useMentaPalette();
@@ -200,7 +202,7 @@ export function ProOfferJourney({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t('commerce.proJourney.restore')}
-          disabled={restoring}
+          disabled={restoring || restoreDisabled}
           hitSlop={10}
           onPress={onRestore}
           style={({ pressed }) => pressed && styles.pressed}

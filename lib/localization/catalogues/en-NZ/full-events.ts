@@ -204,6 +204,14 @@ export const fullEventsEnNZ = {
   'events.check_in.closed_title': 'Check-in is not open yet',
   'events.check_in.closed_body':
     'Check-in opens 30 minutes before the event and stays open until it ends. Nothing changed. Come back in that window with the organiser code.',
+  'events.check_in.ended_title': 'Check-in has closed',
+  'events.check_in.ended_body':
+    'Check-in stays open until the event ends. This event has ended, so attendance cannot be confirmed here. Nothing changed.',
+  'events.check_in.cancelled_body':
+    'This event is no longer happening. Attendance cannot be confirmed here. Nothing changed.',
+  'events.check_in.unavailable_title': 'Check-in is not open',
+  'events.check_in.window_unavailable_body':
+    'Check-in opens 30 minutes before the event and stays open until it ends. Nothing changed. Use the organiser code in that window.',
   'events.check_in.rejected_title': 'QR not accepted',
   'events.check_in.rejected_reason': 'This code was not accepted.',
   'events.check_in.rejected_body':
@@ -556,4 +564,8 @@ export const fullEventsEnNZ = {
   'events.recap.share_line.approved': '{count} photos approved',
   'events.recap.share_title': '{event} recap',
   'events.recap.completed': 'Event completed',
+  'events.action.transport_unknown':
+    'The event action may have gone through. Reconnect and check its status before trying again.',
+  'events.action.malformed_unknown':
+    'Menta could not read the result. Check what changed before trying again.',
 } as const;

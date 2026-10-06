@@ -132,6 +132,15 @@ import {
   resolvePromiseDetailBranch,
   shouldShowSoloActivePromise,
 } from '@/lib/promise/promise-detail-presentation';
+import {
+  getPromiseActiveSheetCopy,
+  getPromiseCompleteCopy,
+  getPromiseProgressLabel,
+  getPromiseRecoveryCopy,
+  getPromiseReviewModelCopy,
+  getPromiseStatusNote,
+  getPromiseVisibilityLabel,
+} from '@/lib/promise/promise-detail-copy';
 import { backOrReplace } from '@/lib/navigation/safe-back';
 import { useOnboardingCompletionStore } from '@/lib/navigation/onboarding-completion';
 import {
@@ -1582,14 +1591,14 @@ export default function ChallengeDetailScreen() {
     if (submissionState.shouldShowPending) {
       return {
         title: t('todayProof.streak.status_waiting'),
-        note: 'Your proof has been sent. No need to submit twice.',
+        note: getPromiseStatusNote('pending', t),
         status: t('todayProof.residual.waiting'),
       };
     }
     if (submissionState.shouldShowApproved) {
       return {
         title: t('todayProof.promise.done_today'),
-        note: 'Today is logged. If someone needs review, that is the next useful action.',
+        note: getPromiseStatusNote('approved', t),
         status: t('todayProof.proof.done'),
       };
     }
@@ -1603,20 +1612,20 @@ export default function ChallengeDetailScreen() {
     if (streakState?.atRisk && isUserParticipant) {
       return {
         title: t('todayProof.promise.checkin_needed'),
-        note: 'Submit one clear proof before the day closes.',
+        note: getPromiseStatusNote('at-risk', t),
         status: t('todayProof.residual.due'),
       };
     }
     if (isUserParticipant) {
       return {
         title: t('todayProof.promise.proof_due'),
-        note: 'Do the action, then send one clear proof.',
+        note: getPromiseStatusNote('due', t),
         status: t('todayProof.residual.due'),
       };
     }
     return {
       title: t('todayProof.promise.join_to_start'),
-      note: 'Join first, then submit proof with everyone else.',
+      note: getPromiseStatusNote('join', t),
       status: t('todayProof.residual.open'),
     };
   }, [
@@ -1649,13 +1658,16 @@ export default function ChallengeDetailScreen() {
   const reviewModelCopy =
     challenge?.reviewMode === 'menta'
       ? t('mentaCheck.receipt.checkedBy')
-      : challenge?.allowSelfReview
-        ? 'Self-review'
-        : challenge?.expectations?.requiresPeerReview
-          ? `${challenge.expectations.reviewersRequired || 1} peer review${
-              (challenge.expectations.reviewersRequired || 1) === 1 ? '' : 's'
-            }`
-          : 'No peer review';
+      : getPromiseReviewModelCopy(
+          {
+            isSolo: Boolean(challenge?.allowSelfReview),
+            requiresPeerReview: Boolean(
+              challenge?.expectations?.requiresPeerReview
+            ),
+            reviewersRequired: challenge?.expectations?.reviewersRequired || 1,
+          },
+          t
+        );
   const proofMethodCopy =
     challenge?.verificationType === 'text'
       ? t('todayProof.promise.text_proof')
@@ -1763,11 +1775,15 @@ export default function ChallengeDetailScreen() {
   const completedDays =
     completionData?.completed_days || userChallenge?.currentStreak || 0;
   const totalDays = completionData?.total_days || challenge?.duration || 30;
-  const recoveryCopy = submissionState.shouldShowRejected
-    ? 'A retry does not reset the whole promise. Send proof that clearly shows the completed action.'
-    : streakState?.atRisk && !streakState.hasSubmittedToday
-      ? 'Today still counts. No outcome changes until proof is resolved.'
-      : null;
+  const recoveryCopy = getPromiseRecoveryCopy(
+    {
+      rejected: submissionState.shouldShowRejected,
+      atRiskWithoutToday: Boolean(
+        streakState?.atRisk && !streakState.hasSubmittedToday
+      ),
+    },
+    t
+  );
   const showBrokenRecovery = Boolean(
     streakState?.latestOutcome?.outcome === 'missed' &&
     isUserParticipant &&
@@ -2003,7 +2019,7 @@ export default function ChallengeDetailScreen() {
     refreshErrorBanner &&
     (refreshErrorBanner.includes('your proof') ||
       refreshErrorBanner.includes('promise proof') ||
-      refreshErrorBanner === 'Unable to refresh promise details.')
+      refreshErrorBanner === t('todayProof.promise.refresh_failed'))
       ? refreshErrorBanner
       : null;
   const otherMemberVerifications = groupVerifications.filter(
@@ -2320,7 +2336,9 @@ export default function ChallengeDetailScreen() {
           }}
         />
         <PromiseHistoryState
-          durationLabel={`${challenge.duration || 30}-day promise`}
+          durationLabel={t('todayProof.promise.duration_days', {
+            days: challenge.duration || 30,
+          })}
           promiseTitle={challenge.title}
           entries={paperHistoryEntries}
           loading={isDetailLoading}
@@ -2349,7 +2367,7 @@ export default function ChallengeDetailScreen() {
           proofType={proofMethodCopy}
           proofDescription={
             challenge.verificationDescription ||
-            'Show the completed action clearly enough for the named reviewer.'
+            t('todayProof.promise.proof_rule_detail')
           }
           rows={paperRuleRows}
           promiseSummary={challenge.title}
@@ -2381,11 +2399,13 @@ export default function ChallengeDetailScreen() {
             }}
           />
           <PromiseHistoryState
-            durationLabel={`${challenge.duration || 30}-day promise`}
+            durationLabel={t('todayProof.promise.duration_days', {
+              days: challenge.duration || 30,
+            })}
             promiseTitle={challenge.title}
             entries={paperHistoryEntries}
             loading={isDetailLoading}
-            staleMessage="That proof is not available in this promise."
+            staleMessage={t('todayProof.promise.proof_unavailable')}
             onOpenProof={proof => {
               setSelectedPaperProofId(proof.id);
               setPaperDetailView('proof');
@@ -2453,7 +2473,7 @@ export default function ChallengeDetailScreen() {
           proofTitle={
             latestProof
               ? verificationMediaLabel(latestProof, t)
-              : 'Proof submitted'
+              : t('todayProof.promise.proof_submitted')
           }
           submittedLabel={
             latestProof
@@ -2488,6 +2508,17 @@ export default function ChallengeDetailScreen() {
         .length
     );
 
+    const completeCopy = getPromiseCompleteCopy(
+      {
+        title: challenge.title,
+        approvedDays,
+        totalDays,
+        isSolo: isSoloPromise,
+        groupName: group?.name,
+      },
+      t
+    );
+
     return (
       <>
         <Stack.Screen
@@ -2498,19 +2529,19 @@ export default function ChallengeDetailScreen() {
             source: 'server-readback',
             approvedDays,
             totalDays,
-            visibility: isSoloPromise
-              ? 'Private'
-              : group?.name || 'Group promise',
+            visibility: completeCopy.visibility,
             reviewerSummary:
               challenge.reviewMode === 'menta'
                 ? t('mentaCheck.group.checkedByMentaShort')
-                : challenge.allowSelfReview
-                  ? 'you reviewed your own proof'
-                  : 'the promise group reviewed proof',
+                : t(
+                    challenge.allowSelfReview
+                      ? 'todayProof.promise.reviewed_own'
+                      : 'todayProof.promise.reviewed_group'
+                  ),
           }}
           onShareResult={() => {
             void Share.share({
-              message: `${challenge.title}: ${approvedDays} of ${totalDays} days approved on Menta.`,
+              message: completeCopy.shareMessage,
             }).catch(error => {
               console.warn('Could not open result share sheet:', error);
             });
@@ -2541,20 +2572,22 @@ export default function ChallengeDetailScreen() {
   ) {
     const totalDays = completionData?.total_days ?? challenge.duration ?? 30;
     const approvedDays = completionData?.completed_days;
-    const progressLabel =
-      typeof approvedDays === 'number'
-        ? `${approvedDays} of ${totalDays} approved`
-        : `${totalDays}-day promise`;
+    const progressLabel = getPromiseProgressLabel(
+      {
+        approvedDays:
+          typeof approvedDays === 'number' ? approvedDays : undefined,
+        totalDays,
+      },
+      t
+    );
     const protectedOutcome =
       streakState?.latestOutcome?.outcome === 'protected';
     const presentation = (() => {
       switch (promiseDetailBranch) {
         case 'queued':
           return {
-            dueLabel: 'Proof saved on this device',
+            ...getPromiseActiveSheetCopy('queued', {}, t),
             statusTone: 'action' as const,
-            prompt:
-              'Menta has not confirmed delivery yet. Open the saved proof before adding another one.',
             primaryLabel: t('todayProof.residual.open_proof_recovery'),
             onPrimary: handleSubmitProof,
             notice: {
@@ -2567,41 +2600,36 @@ export default function ChallengeDetailScreen() {
           };
         case 'correction':
           return {
-            dueLabel: 'One change needed',
+            ...getPromiseActiveSheetCopy(
+              'correction',
+              { correctionPrompt: recoveryCopy },
+              t
+            ),
             statusTone: 'danger' as const,
-            prompt:
-              recoveryCopy ||
-              'The reviewer asked for clearer proof. The earlier attempt stays in proof history.',
             primaryLabel: t('todayProof.promise.send_clearer'),
             onPrimary: handleSubmitProof,
             notice: null,
           };
         case 'approved':
           return {
-            dueLabel: 'Done today',
+            ...getPromiseActiveSheetCopy('approved', {}, t),
             statusTone: 'success' as const,
-            prompt:
-              'Today’s proof is approved. The next due day will appear when the schedule advances.',
             primaryLabel: t('todayProof.residual.view_proof_history'),
             onPrimary: () => setPaperDetailView('history'),
             notice: null,
           };
         case 'recovery':
           return {
-            dueLabel: 'A missed day is in your history',
+            ...getPromiseActiveSheetCopy('recovery', {}, t),
             statusTone: 'danger' as const,
-            prompt:
-              'The previous run ended, but you can start again with today’s next proof.',
             primaryLabel: t('todayProof.residual.start_today_s_proof'),
             onPrimary: handleStartReturnProof,
             notice: null,
           };
         case 'unknown':
           return {
-            dueLabel: 'Proof status unavailable',
+            ...getPromiseActiveSheetCopy('unknown', {}, t),
             statusTone: 'warning' as const,
-            prompt:
-              'Sending is paused until Menta confirms whether proof already exists for today.',
             primaryLabel: t('todayProof.residual.check_again'),
             onPrimary: onRefresh,
             notice: {
@@ -2615,11 +2643,8 @@ export default function ChallengeDetailScreen() {
         case 'active':
         default:
           return {
-            dueLabel: protectedOutcome
-              ? 'Streak protected · Proof due today'
-              : 'Proof due today',
+            ...getPromiseActiveSheetCopy('active', { protectedOutcome }, t),
             statusTone: 'warning' as const,
-            prompt: 'Add today’s proof when you’ve done what you promised.',
             primaryLabel: t('todayProof.streak.add_proof'),
             onPrimary: handleSubmitProof,
             notice: protectedOutcome
@@ -2654,7 +2679,10 @@ export default function ChallengeDetailScreen() {
             t
           )}
           proofLabel={proofMethodCopy}
-          visibilityLabel="Private"
+          visibilityLabel={getPromiseVisibilityLabel(
+            { isSolo: isSoloPromise, groupName: group?.name },
+            t
+          )}
           week={proofWeek}
           onAddProof={presentation.onPrimary}
           onProofHistory={() => setPaperDetailView('history')}
@@ -2947,8 +2975,8 @@ export default function ChallengeDetailScreen() {
               mode="full"
               title={t('todayProof.promise.your_proof')}
               verifications={verifications}
-              emptyTitle="No proof from you yet"
-              emptyText="Submit today's proof and your log starts here."
+              emptyTitle={t('todayProof.promise.no_proof_you')}
+              emptyText={t('todayProof.promise.your_log_starts')}
               loading={isDetailLoading}
               staleMessage={proofHistoryStaleMessage}
             />
@@ -2957,8 +2985,8 @@ export default function ChallengeDetailScreen() {
                 mode="full"
                 title={t('todayProof.promise.other_proof')}
                 verifications={otherMemberVerifications}
-                emptyTitle="No proof from other members yet"
-                emptyText="Their approved and pending check-ins will appear here."
+                emptyTitle={t('todayProof.promise.no_other_proof')}
+                emptyText={t('todayProof.promise.other_proof_detail')}
                 loading={isDetailLoading}
               />
             ) : null}

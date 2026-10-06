@@ -329,9 +329,13 @@ export const buildInviteShareMessage = ({
 }): string => {
   const normalizedCode = normalizeInviteCode(code);
   const shareUrl = buildInviteShareUrl(kind, normalizedCode);
-  const noun = kind === 'challenge' ? 'challenge' : 'group';
+  const trimmedTitle = title.trim();
+  const subject = kind === 'challenge' ? 'promise' : 'group';
+  const headline = trimmedTitle
+    ? `Join "${trimmedTitle}" on ${appName}.`
+    : `Join this ${subject} on ${appName}.`;
 
-  return `Join "${title}" ${noun} on ${appName}.\nInvite code: ${normalizedCode}\n${shareUrl}`;
+  return `${headline}\nInvite code: ${normalizedCode}\n${shareUrl}`;
 };
 
 export const buildReferralShareUrl = (

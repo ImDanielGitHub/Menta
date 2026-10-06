@@ -125,6 +125,8 @@ export const fullGroupsDeDE = {
   'groups.create.name_short_detail': 'Verwende mindestens drei Zeichen.',
   'groups.create.default_description':
     'Eine Gruppe für dein erstes Versprechen.',
+  'groups.create.shared_description':
+    'Eine {count}-tägige Gruppe für gemeinsame Versprechen.',
   'groups.create.cost_unknown_title':
     'Gruppenkosten konnten nicht bestätigt werden',
   'groups.create.cost_unknown_detail':
@@ -802,6 +804,13 @@ export const fullGroupsDeDE = {
   'groups.redirect.one_moment': 'Einen Moment',
   'groups.redirect.checking': 'Menta prüft den Einladungscode.',
   'groups.redirect.enter_group_code': 'Gruppencode eingeben',
+  'groups.redirect.needs_promise_code':
+    'Versprechen-Einladung braucht einen Code',
+  'groups.redirect.needs_promise_code_subtitle':
+    'Dieser Link war für ein Versprechen, enthielt aber keinen gültigen Einladungscode.',
+  'groups.redirect.missing_promise_code': 'Versprechencode fehlt',
+  'groups.redirect.missing_promise_code_detail':
+    'Bitte die Person um eine neue Einladung. Ein Gruppencode öffnet dieses Versprechen nicht.',
   'groups.redirect.without_invite': 'Ohne Einladung fortfahren',
   'groups.redirect.referral_title': 'Einladung',
   'groups.redirect.referral_missing_title':
@@ -922,6 +931,7 @@ export const fullGroupsDeDE = {
   'groups.share.back_you': 'Zurück zu dir',
   'groups.share.invite_someone': 'Jemanden einladen',
   'groups.share.invite_someone_title': 'Jemanden zu Menta einladen',
+  'groups.share.referral_title_named': 'Mach mit {name} bei Menta',
   'groups.share.preparing': 'Deine Einladung wird vorbereitet',
   'groups.share.choose_where': 'Wähle, wo du teilen möchtest',
   'groups.share.ready_after_return': 'Bereit zum erneuten Teilen',
@@ -968,7 +978,7 @@ export const fullGroupsDeDE = {
   'groups.share.opening_action': 'Einladung wird geteilt…',
   'groups.share.share_again': 'Erneut teilen',
   'groups.share.message':
-    'Mach mit bei Menta. Benutze diesen Link und erstelle dann dein erstes Versprechen, um die Empfehlung abzuschließen.\n\n{link}',
+    'Mach mit bei Menta. Benutze diesen Link und erstelle dann dein erstes Versprechen.\n\n{link}',
   'groups.join.clipboard_empty': 'Zwischenablage leer',
   'groups.join.clipboard_empty_detail':
     'Kopiere einen Einladungscode, kehre zurück und füge ihn hier ein.',
@@ -1032,8 +1042,12 @@ export const fullGroupsDeDE = {
   'groups.source.date.range': '{start} bis {end}',
   'groups.source.date.starts': 'Beginnt am {date}',
   'groups.source.date.ends': 'Endet am {date}',
+  'groups.source.date.archived': 'Archiviert am {date}',
+  'groups.source.date.archived_unknown': 'Archivierte Gruppe',
   'groups.source.member.fallback': 'Mitglied',
   'groups.source.group.fallback': 'Gruppe',
+  'groups.source.activity.joined': '{memberName} ist {groupName} beigetreten',
+  'groups.source.activity.left': '{memberName} hat {groupName} verlassen',
   'groups.source.member.count': '{count} Mitglieder',
   'groups.source.member.count.one': '{count} Mitglied',
   'groups.source.member.count.other': '{count} Mitglieder',
@@ -1251,6 +1265,8 @@ export const fullGroupsDeDE = {
     'Menta konnte diese Rolle nicht aktualisieren.',
   'groups.source.accountability.member.choose_role':
     'Wähle eine Rolle in diesem Versprechen.',
+  'groups.source.accountability.member.partner_requires_acceptance':
+    'Gemeinsam umzusetzen erfordert die Zustimmung dieser Person und kann hier nicht eingestellt werden. Die bisherige Rolle bleibt bestehen.',
   'groups.source.accountability.member.remove_action':
     'Aus diesem Versprechen entfernen',
   'groups.source.accountability.member.remove_question': '{name} entfernen?',
@@ -1323,8 +1339,12 @@ export const fullGroupsDeDE = {
   'groups.source.accountability.invite.private_note':
     'Dein Versprechen bleibt privat, bis eine Einladung angenommen wird.',
   'groups.source.accountability.share.title': '{promise} beitreten',
+  'groups.source.accountability.share.title_unnamed':
+    'Diesem Versprechen beitreten',
   'groups.source.accountability.share.message':
     'Mach bei „{promise}“ in Menta mit. Ich lade dich dazu ein, {invitation}.\n\n{shareUrl}\nEinladungscode: {code}',
+  'groups.source.accountability.share.message_unnamed':
+    'Mach bei diesem Versprechen in Menta mit. Ich lade dich dazu ein, {invitation}.\n\n{shareUrl}\nEinladungscode: {code}',
   'groups.source.accountability.share.still_ready_title':
     'Einladung weiterhin bereit',
   'groups.source.accountability.share.still_ready_detail':

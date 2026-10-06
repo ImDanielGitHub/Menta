@@ -85,7 +85,7 @@ export const todayStatesDeDE = {
   'today.state.pending.named_title': '{promise} wartet auf Prüfung.',
   'today.state.pending.title': 'Dein Nachweis wartet auf Prüfung.',
   'today.state.pending.detail':
-    'Er ist bei Menta angekommen. Das Ergebnis erscheint hier.',
+    'Eine prüfende Person muss ihn noch annehmen. Heute zählt erst danach. Du musst ihn nicht noch einmal senden.',
   'today.state.pending.action': 'Nachweis ansehen',
   'today.state.correction.title': 'Dein Nachweis braucht eine Änderung.',
   'today.state.correction.detail':
@@ -95,7 +95,13 @@ export const todayStatesDeDE = {
   'today.state.review.named_title': '{name} hat einen Nachweis gesendet.',
   'today.state.review.title': 'Ein Nachweis muss von dir geprüft werden.',
   'today.state.review.detail':
+    'Prüfe den Nachweis. Bestätige ihn oder bitte um eine klare Änderung. Jede bestätigte Prüfung bringt {reward} Momenta, bis zu {dailyLimit} pro Tag.',
+  'today.state.review.detail_note':
+    'Lies die Notiz. Bestätige sie oder bitte um eine klare Änderung. Jede bestätigte Prüfung bringt {reward} Momenta, bis zu {dailyLimit} pro Tag.',
+  'today.state.review.detail_photo':
     'Prüfe das Foto. Bestätige es oder bitte um eine klare Änderung. Jede bestätigte Prüfung bringt {reward} Momenta, bis zu {dailyLimit} pro Tag.',
+  'today.state.review.detail_video':
+    'Sieh dir das Video an. Bestätige es oder bitte um eine klare Änderung. Jede bestätigte Prüfung bringt {reward} Momenta, bis zu {dailyLimit} pro Tag.',
   'today.state.review.action': 'Nachweis prüfen',
   'today.state.review.see_group': 'Gruppe ansehen',
   'today.state.review.open_queue': 'Prüfliste öffnen',

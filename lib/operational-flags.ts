@@ -11,6 +11,7 @@ import Constants from 'expo-constants';
 export const OPERATIONAL_FLAG_DEFAULTS = {
   group_notifications_enabled: true,
   ads_enabled: true,
+  revenuecat_enabled: true,
   safe_mode: false,
   disable_google_login: false,
   disable_apple_login: false,
@@ -21,6 +22,7 @@ export type OperationalFlagKey = keyof typeof OPERATIONAL_FLAG_DEFAULTS;
 const ENV_KEYS: Record<OperationalFlagKey, string> = {
   group_notifications_enabled: 'EXPO_PUBLIC_GROUP_NOTIFICATIONS_ENABLED',
   ads_enabled: 'EXPO_PUBLIC_ADS_ENABLED',
+  revenuecat_enabled: 'EXPO_PUBLIC_REVENUECAT_ENABLED',
   safe_mode: 'EXPO_PUBLIC_SAFE_MODE',
   disable_google_login: 'EXPO_PUBLIC_DISABLE_GOOGLE_LOGIN',
   disable_apple_login: 'EXPO_PUBLIC_DISABLE_APPLE_LOGIN',
@@ -43,6 +45,8 @@ const readEnvironmentOverride = (key: OperationalFlagKey): unknown => {
   switch (ENV_KEYS[key]) {
     case 'EXPO_PUBLIC_GROUP_NOTIFICATIONS_ENABLED':
       return process.env.EXPO_PUBLIC_GROUP_NOTIFICATIONS_ENABLED;
+    case 'EXPO_PUBLIC_REVENUECAT_ENABLED':
+      return process.env.EXPO_PUBLIC_REVENUECAT_ENABLED;
     case 'EXPO_PUBLIC_ADS_ENABLED':
       return process.env.EXPO_PUBLIC_ADS_ENABLED;
     case 'EXPO_PUBLIC_SAFE_MODE':

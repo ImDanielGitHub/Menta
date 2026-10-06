@@ -22,4 +22,13 @@ export const authLoginEnNZ = {
   'auth.login.action.apple': 'Sign in with Apple',
   'auth.login.action.google': 'Sign in with Google',
   'auth.login.action.replay_intro': 'See how Menta works',
+  'auth.login.required.join_promise_title': 'Sign in to join this promise',
+  'auth.login.required.join_promise_detail':
+    'Your invitation stays with your account. Nothing is joined yet.',
+  'auth.login.required.create_promise_title': 'Sign in to create a promise',
+  'auth.login.required.create_promise_detail':
+    'Your draft stays on this phone until you sign in.',
+  'auth.login.required.open_promise_title': 'Sign in to open this promise',
+  'auth.login.required.open_promise_detail':
+    'Menta opens this promise under your account.',
 } as const;

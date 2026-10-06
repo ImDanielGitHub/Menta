@@ -25,11 +25,7 @@ export type TodayFamilyPaperId =
   | 'STREAK-03';
 
 export type TodayFamilyTone =
-  | 'action'
-  | 'warning'
-  | 'success'
-  | 'danger'
-  | 'neutral';
+  'action' | 'warning' | 'success' | 'danger' | 'neutral';
 
 export type TodayFamilyAction = {
   id: string;
@@ -198,7 +194,7 @@ export const TODAY_FAMILY_PAPER_STATES: readonly TodayFamilyState[] = [
     paperNodeId: 'CD-0',
     overline: '1 PROOF TO REVIEW',
     title: 'Mia walked for 20 minutes.',
-    detail: 'Check the photo, then approve it or ask for one clear correction.',
+    detail: 'Check the proof, then approve it or ask for one clear correction.',
     tone: 'action',
     mascot: 'today-review-wait',
     facts: [],

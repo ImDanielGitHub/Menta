@@ -224,7 +224,7 @@ describe('ShareInviteScreen', () => {
     expect(Share.share).toHaveBeenCalledWith(
       expect.objectContaining({
         message:
-          'Join me on Menta. Use this link, then create your first promise to complete the referral.\n\nhttps://menta.quest/invite?ref=ACTIVE',
+          'Join me on Menta. Use this link, then create your first promise.\n\nhttps://menta.quest/invite?ref=ACTIVE',
         url: 'https://menta.quest/invite?ref=ACTIVE',
       })
     );

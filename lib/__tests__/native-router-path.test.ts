@@ -259,3 +259,18 @@ describe('normalizeNativeIntentPath', () => {
     expect(normalizeNativeIntentPath('menta:///auth-required')).toBe(null);
   });
 });
+
+it.each([
+  'menta://verification',
+  'lockedin://verification',
+  'lockedinprod://verification',
+  'https://menta.quest/verification',
+  '/verification',
+])('strips untrusted proof authority from %s', prefix => {
+  const normalized = normalizeNativeIntentPath(
+    `${prefix}?challengeId=challenge-a&groupId=group-a&verificationType=text&clientEventId=another-account-draft&correctionReason=Impersonated+feedback&source=recovery_quest`
+  );
+  expect(normalized).toBe(
+    '/verification?challengeId=challenge-a&groupId=group-a&verificationType=text'
+  );
+});

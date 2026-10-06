@@ -20,23 +20,43 @@ export const mentaCheckFr = {
     'Vous pourrez aussi ajouter un proche à tout moment.',
   'mentaCheck.option.passNote':
     'Menta Check est inclus dans Pro. Sans Pro, cette promesse coûte {cost} Momenta par semaine. Vous pouvez arrêter à tout moment.',
-  'mentaCheck.consent.bubble':
-    'Avant de regarder quoi que ce soit, voici ce que je verrai.',
-  'mentaCheck.consent.photoTitle': 'Votre photo, vidéo et note',
-  'mentaCheck.consent.photoBody':
-    'Avec votre promesse et ce que la preuve doit montrer.',
-  'mentaCheck.consent.timeTitle': 'Quand vous avez envoyé votre preuve',
-  'mentaCheck.consent.timeBody':
-    'Ainsi que le jour concerné. Nous n’envoyons pas vos données de localisation.',
-  'mentaCheck.consent.neverTitle':
-    'Aucune information sur votre compte ou vos proches',
-  'mentaCheck.consent.neverBody':
-    'Les vérifications sont supprimées après 90 jours.',
-  'mentaCheck.consent.disclosure':
-    'Avec votre accord, OpenRouter et ses fournisseurs d’IA traitent votre preuve, votre note et votre règle, y compris les images et le son des vidéos. Nous n’envoyons ni vos informations de compte ni vos métadonnées de localisation. Vous pouvez désactiver cela dans Menta Check.',
-  'mentaCheck.consent.policyLink': 'Comment nous traitons vos preuves',
-  'mentaCheck.consent.accept': 'Autoriser Menta à vérifier mes preuves',
-  'mentaCheck.consent.decline': 'Choisir quelqu’un d’autre',
+  'mentaCheck.consent.bubble': 'Autorisation pour les vérifications par IA',
+  'mentaCheck.consent.media':
+    'Si tu acceptes, Menta enverra tes photos, courtes vidéos avec du son et notes à un prestataire tiers.',
+  'mentaCheck.consent.purpose':
+    'Ta promesse, ta règle de preuve et l’heure d’envoi sont aussi transmises pour que le prestataire puisse vérifier si ta preuve respecte ta règle.',
+  'mentaCheck.consent.scope':
+    'Cette autorisation couvre tes preuves qui attendent encore une vérification par IA et les futures preuves que tu enverras avec les vérifications par IA activées.',
+  'mentaCheck.consent.exclusions':
+    'Nous n’ajoutons pas les informations de ton compte ni de tes amis.',
+  'mentaCheck.consent.withdrawal':
+    'Tu peux retirer ton autorisation dans les réglages de Menta Check.',
+  'mentaCheck.consent.accept': 'Autoriser les vérifications par IA',
+  'mentaCheck.consent.decline': 'Pas maintenant',
+  'mentaCheck.permission.loading': 'Vérification de ton autorisation…',
+  'mentaCheck.permission.loadError':
+    'Menta n’a pas pu charger ton autorisation. Réessaie.',
+  'mentaCheck.permission.retry': 'Réessayer',
+  'mentaCheck.permission.bubble':
+    'Ton autorisation pour les vérifications par IA.',
+  'mentaCheck.permission.needsReview': 'Autorisation à revoir',
+  'mentaCheck.permission.reviewBody':
+    'Vérifie ce qui est envoyé avant d’autoriser les vérifications par IA.',
+  'mentaCheck.permission.unchanged':
+    'Tes réglages de vérification actuels restent inchangés.',
+  'mentaCheck.permission.unchangedUntilChoice':
+    'Tes réglages de vérification actuels restent inchangés jusqu’à ce que tu décides de les modifier.',
+  'mentaCheck.permission.review': 'Revoir l’autorisation',
+  'mentaCheck.permission.allowed': 'Autorisation accordée',
+  'mentaCheck.permission.scope':
+    'Couvre les preuves qui attendent une vérification par IA et les futures preuves que tu enverras avec les vérifications par IA activées.',
+  'mentaCheck.permission.media':
+    'Les photos, courtes vidéos avec du son et notes sont envoyées à un prestataire tiers, avec ta promesse, ta règle de preuve et l’heure d’envoi.',
+  'mentaCheck.permission.withdrawal':
+    'Retire l’autorisation pour ne plus envoyer de preuves pour de nouvelles vérifications par IA. Les preuves déjà envoyées ne peuvent pas être récupérées.',
+  'mentaCheck.permission.withdraw': 'Retirer l’autorisation',
+  'mentaCheck.permission.return':
+    'Tu peux revenir ici quand tu veux modifier ton autorisation.',
   'mentaCheck.receipt.bubble':
     'C’est enregistré ! Envoyez une photo une fois terminé, je regarderai.',
   'mentaCheck.receipt.checkedBy': 'Menta',

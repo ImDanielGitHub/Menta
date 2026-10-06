@@ -1,8 +1,13 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { act } from '@testing-library/react-native';
 import { useAuthStore } from '../auth-store';
 import { supabase } from '@/lib/supabase';
 import { getMyProfile } from '@/lib/profile-api';
 import { useEmailConfirmationStore } from '@/store/email-confirmation-store';
+import { ensurePrivateImageCachesCleared } from '@/lib/account-session-lifecycle';
+import { clearPrivateVideoCache } from '@/lib/auth/clear-private-video-cache';
+import { clearVideoCacheAsync, getCurrentVideoCacheSize } from 'expo-video';
+import { OAuthService } from '@/lib/oauth';
 
 // Kept apart from auth-store.test.ts because the auth listener registers once
 // per module, and this launch case needs it to deliver INITIAL_SESSION.
@@ -61,6 +66,7 @@ jest.mock('@/lib/oauth', () => ({
 }));
 
 jest.mock('@/lib/account-session-lifecycle', () => ({
+  ensurePrivateImageCachesCleared: jest.fn().mockResolvedValue(undefined),
   clearAccountScopedState: jest.fn().mockResolvedValue(undefined),
 }));
 
@@ -140,6 +146,52 @@ const mockGetMyProfile = getMyProfile as jest.MockedFunction<
   typeof getMyProfile
 >;
 
+it('recognises an existing Google account when the installed video cache directory has never been created', async () => {
+  await AsyncStorage.clear();
+  useAuthStore.setState({
+    user: null,
+    session: null,
+    isAuthenticated: false,
+    isInitialized: true,
+    isLoading: false,
+    hasCompletedOnboarding: false,
+    sessionRecoveryRequired: true,
+  });
+  const session = {
+    access_token: 'synthetic-google-token',
+    user: { id: 'returning-google-user', user_metadata: {} },
+  } as any;
+  jest.mocked(getCurrentVideoCacheSize).mockReturnValue(0);
+  jest
+    .mocked(clearVideoCacheAsync)
+    .mockRejectedValueOnce(
+      new Error('NSCocoaErrorDomain Code=260: The folder does not exist.')
+    );
+  jest
+    .mocked(ensurePrivateImageCachesCleared)
+    .mockImplementationOnce(clearPrivateVideoCache);
+  jest.mocked(OAuthService.signInWithGoogle).mockResolvedValueOnce({
+    success: true,
+    user: session.user,
+    session,
+  });
+  mockGetMyProfile.mockResolvedValueOnce({
+    id: session.user.id,
+    username: 'Returning member',
+    has_completed_onboarding: true,
+    momenta_balance: 100,
+  } as any);
+  await useAuthStore.getState().signInWithGoogle();
+  expect(useAuthStore.getState()).toMatchObject({
+    isAuthenticated: true,
+    isLoading: false,
+    hasCompletedOnboarding: true,
+    sessionRecoveryRequired: false,
+    user: { id: session.user.id },
+  });
+  jest.mocked(clearVideoCacheAsync).mockReset().mockResolvedValue(undefined);
+});
+
 it('loads a restored account once when Supabase reports the same session twice at launch', async () => {
   const session = {
     access_token: 'persisted-token',
@@ -189,4 +241,63 @@ it('loads a restored account once when Supabase reports the same session twice a
   expect(useAuthStore.getState().isAuthenticated).toBe(true);
   expect(useAuthStore.getState().isLoading).toBe(false);
   expect(mockGetMyProfile).toHaveBeenCalledTimes(1);
+});
+
+describe('durable recovery quarantine', () => {
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    useAuthStore.setState({
+      user: null,
+      session: null,
+      isLoading: false,
+      isInitialized: false,
+      isAuthenticated: false,
+    });
+    await AsyncStorage.clear();
+    mockSupabase.auth.signOut.mockResolvedValue({ error: null });
+  });
+
+  it('rejects a quarantined restored session without waiting for an auth event', async () => {
+    const storage = AsyncStorage;
+    const {
+      MAIN_RECOVERY_QUARANTINE_STORAGE_KEY,
+    } = require('@/lib/auth/main-recovery-quarantine');
+    await storage.setItem(MAIN_RECOVERY_QUARANTINE_STORAGE_KEY, 'user-1');
+    mockSupabase.auth.getSession.mockResolvedValue({
+      data: {
+        session: {
+          access_token: 'synthetic-recovery',
+          user: { id: 'user-1', user_metadata: {} },
+        } as any,
+      },
+      error: null,
+    });
+    await useAuthStore.getState().initializeAuth();
+    expect(useAuthStore.getState().isAuthenticated).toBe(false);
+    expect(useAuthStore.getState().user).toBeNull();
+    expect(mockGetMyProfile).not.toHaveBeenCalled();
+  });
+
+  it('rejects direct session acceptance even for an already-ready account', async () => {
+    const storage = AsyncStorage;
+    const {
+      MAIN_RECOVERY_QUARANTINE_STORAGE_KEY,
+    } = require('@/lib/auth/main-recovery-quarantine');
+    await storage.setItem(MAIN_RECOVERY_QUARANTINE_STORAGE_KEY, 'user-1');
+    useAuthStore.setState({
+      user: { id: 'user-1', username: 'Synthetic' },
+      isAuthenticated: true,
+      isInitialized: true,
+      isLoading: false,
+    });
+    await useAuthStore
+      .getState()
+      .setUserAndSession(
+        { id: 'user-1', user_metadata: {} } as any,
+        { access_token: 'synthetic-recovery', user: { id: 'user-1' } } as any
+      );
+    expect(useAuthStore.getState().isAuthenticated).toBe(false);
+    expect(useAuthStore.getState().session).toBeNull();
+    expect(mockGetMyProfile).not.toHaveBeenCalled();
+  });
 });

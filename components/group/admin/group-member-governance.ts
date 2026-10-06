@@ -4,19 +4,26 @@ import {
   unknownGroupGovernance,
   type GroupGovernanceOutcome,
 } from '@/lib/group-governance';
+import { resolveGroupMemberIdentityName } from '@/lib/groups/member-identity-copy';
 import {
   groupMemberRoleCopy,
   type GroupMemberRole,
 } from '@/lib/group-member-policy';
 import { supabase } from '@/lib/supabase';
 import type { GroupMember } from '@/store/group-store';
+import type { TranslationKey } from '@/lib/localization/en-NZ';
+
+type TranslateCopy = (
+  key: TranslationKey,
+  values?: Record<string, string | number>
+) => string;
 
 type RoleChange = 'admin' | 'member';
 
-export const getMemberName = (member: GroupMember) =>
-  member.displayName ||
-  member.username ||
-  `Member ${member.userId.slice(0, 8)}`;
+export const getMemberName = (
+  member: GroupMember,
+  translateCopy?: TranslateCopy
+) => resolveGroupMemberIdentityName(member, translateCopy);
 
 export const checkRoleChange = async ({
   groupId,

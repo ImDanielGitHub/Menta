@@ -140,7 +140,15 @@ export const hasFreshOnboardingLegalConsent = (
 
 const parseDraft = (value: unknown): OnboardingDraft | null => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
-  const candidate = value as Partial<OnboardingDraft | LegacyOnboardingDraft>;
+  const legacy = value as Record<string, unknown>;
+  // The retired check-in choice became a note; keep the authored promise.
+  const normalised =
+    legacy.version === 1 && legacy.proofType === 'check_in'
+      ? { ...legacy, proofType: 'note' }
+      : value;
+  const candidate = normalised as Partial<
+    OnboardingDraft | LegacyOnboardingDraft
+  >;
   if (!hasValidDraftFields(candidate)) return null;
 
   if (

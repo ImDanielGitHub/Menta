@@ -446,12 +446,12 @@ export const fullTodayProofFrFR = {
   'todayProof.promise.open_review_queue':
     "Ouvrir la file d'attente de vérification",
   'todayProof.promise.report': 'Signaler la promesse',
-  'todayProof.promise.reminder_question': 'Souhaitez‑vous un rappel ?',
+  'todayProof.promise.reminder_question': 'Recevoir des rappels de preuve ?',
   'todayProof.promise.reminder_detail':
-    'Menta peut vous rappeler avant que cette promesse ne soit due.',
-  'todayProof.promise.remind_about': 'Rappelez‑moi cette promesse',
+    'Menta peut vous rappeler avant l’échéance de la preuve pour toute promesse active. Ce choix s’applique à toutes les promesses, pas seulement à celle-ci.',
+  'todayProof.promise.remind_about': 'Rappels de preuve',
   'todayProof.promise.remind_detail':
-    'Envoyer un rappel avant que la preuve ne soit due.',
+    'S’applique à toutes les promesses, pas seulement à celle-ci.',
   'todayProof.promise.set_reminders': 'Configurer les rappels',
   'todayProof.promise.without_reminders': 'Continuer sans rappels',
   'todayProof.promise.invite_question': "Inviter quelqu'un à cette promesse ?",
@@ -603,6 +603,14 @@ export const fullTodayProofFrFR = {
     "Nous n'avons pas pu confirmer si la preuve a été envoyée. Vérifiez son statut avant de réessayer.",
   'todayProof.proof.failed_detail':
     "La preuve n'a pas été envoyée. Vérifiez votre connexion et réessayez. Votre brouillon reste ici s'il a été enregistré localement.",
+  'todayProof.proof.already_sent':
+    'La preuve d’aujourd’hui est déjà sur cette promesse. Vous n’avez pas besoin de l’envoyer à nouveau.',
+  'todayProof.proof.not_joined':
+    'Vous devez rejoindre cette promesse avant d’envoyer une preuve.',
+  'todayProof.proof.text_too_generic':
+    'Ajoutez un détail. « Done » seul ne suffit pas.',
+  'todayProof.proof.safety_disclosure':
+    'La preuve doit être adaptée au travail (SFW). Si quelqu’un la signale, le personnel autorisé de Menta peut la vérifier pour des raisons de sécurité.',
   'todayProof.proof.share_accepted':
     "Ma preuve pour la promesse d'aujourd'hui a été approuvée sur Menta.",
   'todayProof.proof.share_pending':
@@ -678,6 +686,10 @@ export const fullTodayProofFrFR = {
   'todayProof.review.queue': "File d'attente de vérification",
   'todayProof.review.nothing_else': "Rien d'autre à vérifier pour le moment",
   'todayProof.review.no_submissions': 'Aucune soumission à vérifier',
+  'todayProof.review.empty_title_approved': 'Aucune preuve approuvée ici',
+  'todayProof.review.empty_title_retry':
+    'Aucune preuve n’a besoin d’un autre essai',
+  'todayProof.review.empty_title_all': 'Aucune preuve ici',
   'todayProof.review.reward_unconfirmed':
     "La décision de preuve a été enregistrée, mais la récompense n'a pas été confirmée.",
   'todayProof.review.reward_failed':
@@ -911,9 +923,9 @@ export const fullTodayProofFrFR = {
   'todayProof.residual.visibility': 'Visibilité',
   'todayProof.residual.reminder': 'Rappel',
   'todayProof.residual.open_proof_recovery': 'Ouvrir la récupération de preuve',
-  'todayProof.residual.not_counted_yet': 'Pas encore compté',
+  'todayProof.residual.not_counted_yet': "Aujourd'hui ne compte pas encore",
   'todayProof.residual.the_saved_proof_remains_on_this_device_until_menta_confirms_the_':
-    "La preuve enregistrée reste sur cet appareil jusqu'à ce que Menta confirme le reçu du serveur.",
+    "La preuve enregistrée reste sur cet appareil jusqu'à ce que Menta la confirme. Tu n'as pas besoin de l'envoyer à nouveau.",
   'todayProof.residual.view_proof_history': "Voir l'historique des preuves",
   'todayProof.residual.start_today_s_proof':
     "Commencer la preuve d'aujourd'hui",
@@ -921,7 +933,7 @@ export const fullTodayProofFrFR = {
   'todayProof.residual.no_new_proof_was_started':
     "Aucune nouvelle preuve n'a été commencée",
   'todayProof.residual.check_the_current_server_status_before_sending_or_retrying_proof':
-    "Vérifiez le statut actuel du serveur avant d'envoyer ou de réessayer la preuve.",
+    "Vérifie si cette preuve a été enregistrée avant d'envoyer ou de réessayer.",
   'todayProof.residual.a_previous_day_was_protected':
     'Un jour précédent était protégé',
   'todayProof.residual.the_protected_day_remains_in_proof_history_today_still_needs_its':
@@ -1089,6 +1101,8 @@ export const fullTodayProofFrFR = {
   'todayProof.milestone.reached.one': 'Vous avez atteint {count} jour.',
   'todayProof.milestone.reached.other': 'Vous avez atteint {count} jours.',
   'todayProof.milestone.reward': '+{reward} Momenta',
+  'todayProof.milestone.approved_now': 'Approuvé maintenant',
+  'todayProof.milestone.approved_at': 'Approuvé {date}',
   'todayProof.streak.day_count': '{count} jour série',
   'todayProof.streak.day_count.one': '{count} jour série',
   'todayProof.streak.day_count.other': '{count} jour série',
@@ -1264,4 +1278,41 @@ export const fullTodayProofFrFR = {
   'todayProof.createFlow.editPromise': 'Modifier la promesse',
   'todayProof.createFlow.dayToggle': '{day}, compte',
   'todayProof.createFlow.dayToggleOff': '{day}, jour de repos',
+  'todayProof.promise.personal_cue': 'Promesse personnelle',
+  'todayProof.promise.queued_prompt':
+    'Menta n’a pas encore confirmé l’envoi. Ouvrez la preuve enregistrée avant d’en ajouter une autre.',
+  'todayProof.promise.one_change': 'Un changement est nécessaire',
+  'todayProof.promise.correction_prompt':
+    'La personne qui vérifie a demandé une preuve plus claire. La tentative précédente reste dans l’historique.',
+  'todayProof.promise.approved_prompt':
+    'La preuve d’aujourd’hui est acceptée. Le prochain jour dû apparaîtra quand le calendrier avancera.',
+  'todayProof.promise.missed_in_history':
+    'Un jour manqué figure dans votre historique',
+  'todayProof.promise.recovery_prompt':
+    'La série précédente est terminée, mais vous pouvez recommencer avec la prochaine preuve d’aujourd’hui.',
+  'todayProof.promise.unknown_paused_prompt':
+    'L’envoi est en pause jusqu’à ce que Menta confirme si une preuve existe déjà pour aujourd’hui.',
+  'todayProof.promise.protected_due': 'Série protégée · Preuve due aujourd’hui',
+  'todayProof.promise.active_prompt':
+    'Ajoutez la preuve d’aujourd’hui quand vous avez fait ce que vous avez promis.',
+  'todayProof.promise.progress_approved': '{approved} sur {total} acceptées',
+  'todayProof.promise.duration_days': 'Promesse de {days} jours',
+  'todayProof.promise.complete_title':
+    '{approved} jours sur {total} ont été acceptés.',
+  'todayProof.promise.complete_tally': '{approved} jours sur {total} acceptés',
+  'todayProof.promise.reviewed_own': 'vous avez vérifié votre propre preuve',
+  'todayProof.promise.reviewed_group':
+    'le groupe de la promesse a vérifié la preuve',
+  'todayProof.promise.share_complete':
+    '{title} : {approved} jours sur {total} acceptés sur Menta.',
+  'todayProof.promise.group_fallback': 'Promesse de groupe',
+  'todayProof.promise.reviewer_has_proof': '{name} a votre preuve.',
+  'todayProof.promise.proof_submitted': 'Preuve envoyée',
+  'todayProof.promise.waiting_unavailable':
+    'Menta a confirmé une vérification en attente, mais la preuve envoyée n’a pas pu être chargée.',
+  'todayProof.promise.your_log_starts':
+    'Envoyez la preuve d’aujourd’hui et votre journal commence ici.',
+  'todayProof.promise.self_review': 'Auto-vérification',
+  'todayProof.promise.peer_review_one': '{count} vérification par les pairs',
+  'todayProof.promise.peer_review_other': '{count} vérifications par les pairs',
 } as const;

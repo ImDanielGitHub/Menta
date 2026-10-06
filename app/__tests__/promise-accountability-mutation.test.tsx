@@ -5,6 +5,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react-native';
 
 import PromiseAccountabilityRoute from '@/app/promise-accountability';
@@ -23,6 +24,7 @@ const mockEmitHaptic = jest.fn().mockResolvedValue(true);
 const mockTrackProductOperation = jest.fn();
 const mockTrackInvite = jest.fn();
 const mockPrepareInvite = jest.fn();
+const mockManageMember = jest.fn();
 const mockClipboard = jest.fn();
 jest.mock('expo-clipboard', () => ({ setStringAsync: () => mockClipboard() }));
 const mockAuth = { user: { id: 'user-1' } };
@@ -110,9 +112,12 @@ jest.mock('@/lib/promises/accountability', () => ({
   accountabilityOwnerConsequence: () => 'They can join after accepting.',
   accountabilityRoleCopy: (role: string) => ({ title: role, description: '' }),
   buildPromiseAccountabilityShareMessage: jest.fn(),
+  resolveAccountabilityShareTitle: (title: string) =>
+    title.trim() || 'Join this promise',
   preparePromiseAccountabilityInvite: (...args: unknown[]) =>
     mockPrepareInvite(...args),
-  managePromiseAccountabilityMember: jest.fn(),
+  managePromiseAccountabilityMember: (...args: unknown[]) =>
+    mockManageMember(...args),
   leavePromiseAccountability: (...args: unknown[]) => mockLeave(...args),
   reconcilePromiseAccountabilityLeave: (...args: unknown[]) =>
     mockReconcile(...args),
@@ -259,15 +264,20 @@ jest.mock('@/components/ui', () => {
       ),
     AppOptionCard: ({
       title,
+      description,
       onPress,
+      disabled,
     }: {
       title: string;
+      description?: string;
       onPress: () => void;
+      disabled?: boolean;
     }) =>
       React.createElement(
         Pressable,
-        { onPress },
-        React.createElement(Text, null, title)
+        { onPress, disabled },
+        React.createElement(Text, null, title),
+        React.createElement(Text, null, description)
       ),
     AppScreen: container,
     AppTopBar: () => null,
@@ -278,6 +288,7 @@ jest.mock('@/components/ui', () => {
 describe('promise accountability mutation route', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockManageMember.mockReset().mockResolvedValue(undefined);
     mockPeerRole = null;
     mockLoadDraft.mockReset().mockResolvedValue(null);
     mockClearDraft.mockReset().mockResolvedValue(undefined);
@@ -322,6 +333,144 @@ describe('promise accountability mutation route', () => {
       },
     });
   });
+
+  it.each(['reviewer', 'supporter'] as const)(
+    'preserves the existing %s while withholding owner-only Partner conversion',
+    peerRole => {
+      mockCanInvite = true;
+      mockViewerRole = 'owner';
+      mockPeerRole = peerRole;
+      render(
+        <ThemeProvider>
+          <PromiseAccountabilityRoute />
+        </ThemeProvider>
+      );
+      fireEvent.press(
+        screen.getByRole('button', { name: `Peer. ${peerRole}.` })
+      );
+      const sheet = within(screen.getByTestId('manage-promise-member'));
+      expect(
+        sheet.getByText(
+          'Becoming a Partner needs their acceptance and cannot be changed here. Their current role stays in place.'
+        )
+      ).toBeTruthy();
+      fireEvent.press(sheet.getByText('partner'));
+      expect(mockManageMember).not.toHaveBeenCalled();
+      expect(mockPrepareInvite).not.toHaveBeenCalled();
+      expect(screen.queryByTestId('confirm-leave')).toBeNull();
+      expect(
+        screen.getByRole('button', { name: `Peer. ${peerRole}.` })
+      ).toBeTruthy();
+    }
+  );
+
+  it.each([
+    ['reviewer', 'supporter'],
+    ['supporter', 'reviewer'],
+    ['partner', 'reviewer'],
+  ])(
+    'preserves direct %s to %s changes and disables the selected role',
+    async (previousRole, nextRole) => {
+      mockCanInvite = true;
+      mockViewerRole = 'owner';
+      mockPeerRole = previousRole;
+      render(
+        <ThemeProvider>
+          <PromiseAccountabilityRoute />
+        </ThemeProvider>
+      );
+      fireEvent.press(
+        screen.getByRole('button', { name: `Peer. ${previousRole}.` })
+      );
+      const sheet = within(screen.getByTestId('manage-promise-member'));
+      fireEvent.press(sheet.getByText(previousRole));
+      expect(mockManageMember).not.toHaveBeenCalled();
+      fireEvent.press(sheet.getByText(nextRole));
+      await waitFor(() =>
+        expect(mockManageMember).toHaveBeenCalledWith(
+          expect.objectContaining({ memberId: 'peer-2', role: nextRole })
+        )
+      );
+      expect(mockPrepareInvite).not.toHaveBeenCalled();
+    }
+  );
+
+  it('preserves explicit removal without preparing a Partner invitation', async () => {
+    mockCanInvite = true;
+    mockViewerRole = 'owner';
+    mockPeerRole = 'reviewer';
+    render(
+      <ThemeProvider>
+        <PromiseAccountabilityRoute />
+      </ThemeProvider>
+    );
+    fireEvent.press(screen.getByRole('button', { name: 'Peer. reviewer.' }));
+    fireEvent.press(
+      within(screen.getByTestId('manage-promise-member')).getByText(
+        'Remove from this promise'
+      )
+    );
+    expect(mockManageMember).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId('confirm-leave'));
+    await waitFor(() =>
+      expect(mockManageMember).toHaveBeenCalledWith(
+        expect.objectContaining({ memberId: 'peer-2', role: null })
+      )
+    );
+    expect(mockPrepareInvite).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    'cancelled',
+    'preparation failed',
+    'sharing failed',
+    'not delivered',
+  ])(
+    'keeps an existing Reviewer when a separate Partner invitation is %s',
+    async outcome => {
+      mockCanInvite = true;
+      mockViewerRole = 'owner';
+      mockPeerRole = 'reviewer';
+      if (outcome === 'preparation failed') {
+        mockPrepareInvite.mockRejectedValueOnce(
+          new Error('Invitation unavailable')
+        );
+      }
+      const share = jest.spyOn(Share, 'share');
+      if (outcome === 'sharing failed') {
+        share.mockRejectedValueOnce(new Error('Sharing unavailable'));
+      } else {
+        share.mockResolvedValue({ action: Share.dismissedAction });
+      }
+      render(
+        <ThemeProvider>
+          <PromiseAccountabilityRoute />
+        </ThemeProvider>
+      );
+      fireEvent.press(screen.getByText('partner'));
+      fireEvent.press(screen.getByTestId('prepare-promise-invitation'));
+      if (outcome === 'preparation failed') {
+        await waitFor(() =>
+          expect(
+            screen.getByTestId('prepare-promise-invitation')
+          ).not.toBeDisabled()
+        );
+        expect(screen.queryByTestId('share-promise-invitation')).toBeNull();
+      } else {
+        const shareButton = await screen.findByTestId(
+          'share-promise-invitation'
+        );
+        if (outcome !== 'not delivered') {
+          fireEvent.press(shareButton);
+          await waitFor(() => expect(shareButton).not.toBeDisabled());
+          expect(share).toHaveBeenCalled();
+        }
+      }
+      expect(mockManageMember).not.toHaveBeenCalled();
+      expect(screen.queryByTestId('confirm-leave')).toBeNull();
+      share.mockRestore();
+    }
+  );
 
   it.each([
     [Share.dismissedAction, false],

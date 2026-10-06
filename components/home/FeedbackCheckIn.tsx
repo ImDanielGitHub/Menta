@@ -17,6 +17,8 @@ import {
 import { AppButton } from '@/components/ui/AppButton';
 import { MentaMascot } from '@/components/ui/MentaMascot';
 import { ModalCard } from '@/components/ui/modal/ModalCard';
+import { getFeedbackCheckInCopy } from '@/lib/feedback/check-in-copy';
+import { useTranslation } from '@/lib/localization';
 
 /** Close our sheet before handing off to StoreKit or the feedback form. */
 export function FeedbackCheckIn({
@@ -40,13 +42,15 @@ export function FeedbackCheckIn({
     return () => task.cancel();
   }, [onDismiss, visible]);
 
+  const { t } = useTranslation();
+  const copy = getFeedbackCheckInCopy(t);
   return (
     <ModalCard
       visible={visible}
       onClose={onClose}
       onDismiss={onDismiss}
       surface="sheet"
-      accessibilityLabel="How is Menta going?"
+      accessibilityLabel={copy.accessibilityLabel}
       testID="feedback-check-in"
     >
       <ScrollView contentContainerStyle={styles.content} bounces={false}>
@@ -56,12 +60,12 @@ export function FeedbackCheckIn({
           style={styles.mascot}
         />
         <Text accessibilityRole="header" style={styles.heading}>
-          Are you enjoying Menta?
+          {copy.heading}
         </Text>
-        <Text style={styles.body}>We’d love to hear how it’s going.</Text>
+        <Text style={styles.body}>{copy.body}</Text>
         <View style={styles.actions}>
           <AppButton
-            title="Yes, I am"
+            title={copy.working}
             accessibilityHint="Requests the native app rating prompt"
             variant="accent"
             size="large"
@@ -69,14 +73,14 @@ export function FeedbackCheckIn({
             onPress={() => onAnswer('positive')}
           />
           <AppButton
-            title="Something could be better"
+            title={copy.better}
             variant="secondary"
             size="large"
             fullWidth
             onPress={() => onAnswer('improve')}
           />
           <AppButton
-            title="Not now"
+            title={copy.notNow}
             variant="ghost"
             fullWidth
             onPress={onClose}

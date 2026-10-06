@@ -216,6 +216,10 @@ export const completionPtPT = {
   'fullAuth.residual.report.form_label': 'este formulário',
   'fullAuth.residual.report.report_context_label': 'o relatório',
   'fullAuth.residual.report.feedback_title': 'comentários para a Menta',
+  'fullAuth.residual.report.feedback_privacy':
+    'Os seus comentários e qualquer captura de ecrã que escolher vão em privado para a equipa da Menta.',
+  'fullAuth.residual.report.feedback_send_helper':
+    'Envie quando estiver pronto. Pode voltar e alterar qualquer coisa.',
   'fullAuth.residual.report.category_promise': 'Promessa',
   'fullAuth.residual.report.category_group': 'Grupo',
   'fullAuth.residual.report.category_proof': 'Comprovativo',
@@ -295,8 +299,12 @@ export const completionPtPT = {
   'groups.source.date.range': '{start} a {end}',
   'groups.source.date.starts': 'Começa em {date}',
   'groups.source.date.ends': 'Termina em {date}',
+  'groups.source.date.archived': 'Arquivado em {date}',
+  'groups.source.date.archived_unknown': 'Grupo arquivado',
   'groups.source.member.fallback': 'Membro',
   'groups.source.group.fallback': 'Grupo',
+  'groups.source.activity.joined': '{memberName} entrou em {groupName}',
+  'groups.source.activity.left': '{memberName} saiu de {groupName}',
   'groups.source.member.count': '{count} membros',
   'groups.source.member.count.one': '{count} membro',
   'groups.source.member.count.other': '{count} membros',

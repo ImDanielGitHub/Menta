@@ -23,6 +23,7 @@ import {
   uploadDurableProofMedia,
 } from '@/lib/services/proof-media-service';
 import { networkManager } from '@/lib/network';
+import { logError } from '@/lib/sentry';
 import { recordTypicalProofHour } from '@/lib/notifications/revealed-habit';
 import { STORAGE_BUCKETS, supabase } from '@/lib/supabase';
 import type { MilestoneResult } from '@/lib/streak-manager';
@@ -35,6 +36,7 @@ import {
   decodeProofAdBreakHint,
   type ProofAdBreakHint,
 } from '@/lib/proof-ad-break-contract';
+import { getProofSubmitFallbackCopy } from '@/lib/proof/submit-fallback-copy';
 
 type RpcSubmitProofPayload = {
   success?: boolean;
@@ -589,7 +591,9 @@ const assertMatchingDraftIdentity = (
     {
       receiptStatus: 'failed',
       clientEventId: existing.clientEventId,
-      draft: existing,
+      // Identity conflicts must not return another account's local evidence
+      // to a caller that is only entitled to the requested proof context.
+      draft: identityChanged ? null : existing,
       code: 'CLIENT_EVENT_ID_REUSED',
     }
   );
@@ -1064,7 +1068,7 @@ export const submitChallengeProof = async ({
 
     if (payload.success === false) {
       const message =
-        payload.message || payload.error || 'Failed to submit challenge proof';
+        payload.message || payload.error || getProofSubmitFallbackCopy();
 
       if (
         payload.code === 'DAILY_SUBMISSION_EXISTS' &&
@@ -1385,17 +1389,30 @@ export const attachQueuedProofSubmissionProcessor = (
   let disposed = false;
   const run = async () => {
     if (disposed) return;
-    const result = await processQueuedProofSubmissions({ userId });
-    if (!disposed && result.attempted > 0) onProcessed?.(result);
+    try {
+      const result = await processQueuedProofSubmissions({ userId });
+      if (!disposed && result.attempted > 0) onProcessed?.(result);
+    } catch (error) {
+      // Storage and connectivity failures must not become unhandled rejections
+      // from foreground/network listeners. Keep drafts for the next retry.
+      logError(new Error('Queued proof recovery failed'), { error });
+    }
   };
 
-  const unsubscribe = networkManager.addListener(state => {
-    if (state.isConnected && state.isInternetReachable !== false) void run();
+  const unsubscribe = networkManager.addListener(() => {
+    if (networkManager.isOnline()) void run();
   });
   const appStateSubscription = AppState.addEventListener('change', state => {
     if (state === 'active') void run();
   });
-  void networkManager.checkConnectivity().then(run);
+  void networkManager
+    .checkConnectivity()
+    .then(run)
+    .catch(error => {
+      logError(new Error('Proof recovery connectivity check failed'), {
+        error,
+      });
+    });
 
   return () => {
     disposed = true;

@@ -232,7 +232,7 @@ describe('promise invite entry route', () => {
   it('dismisses only the promise invite represented by this screen', async () => {
     render(<JoinPromiseRoute />);
 
-    fireEvent.press(await screen.findByText('Not now'));
+    fireEvent.press(await screen.findByTestId('join-promise-not-now'));
     expect(mockDismiss).toHaveBeenCalledWith(mockCurrentPending);
     expect(mockRouter.replace).toHaveBeenCalledWith('/onboarding');
   });

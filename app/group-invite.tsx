@@ -38,6 +38,10 @@ import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { AlertTriangleIcon, RefreshCcwIcon } from '@/components/ui/icons';
 import { trackMetaAdsInviteFriend } from '@/lib/meta-ads';
 import {
+  resolveGroupInviteIdentityName,
+  resolveGroupInviteSentenceName,
+} from '@/lib/groups/invite-copy';
+import {
   buildInviteShareMessage,
   buildInviteShareUrl,
 } from '@/lib/invite-links';
@@ -99,8 +103,10 @@ export default function GroupInviteScreen() {
   );
 
   const [groupName, setGroupName] = React.useState(
-    paramGroupName?.trim() || 'your group'
+    paramGroupName?.trim() ?? ''
   );
+  const identityName = resolveGroupInviteIdentityName(groupName, t);
+  const sentenceName = resolveGroupInviteSentenceName(groupName, t);
   const [preview, setPreview] = React.useState<InvitePreview | null>(null);
   const [screenState, setScreenState] = React.useState<InviteState>('ready');
   const [showLargeQr, setShowLargeQr] = React.useState(false);
@@ -135,12 +141,11 @@ export default function GroupInviteScreen() {
     try {
       const [group, invite] = await Promise.all([
         fetchGroupDetails(groupId),
-        shareGroup(groupId, paramGroupName?.trim() || 'your group'),
+        shareGroup(groupId, resolveGroupInviteIdentityName(paramGroupName, t)),
       ]);
       if (!mountedRef.current || useAuthStore.getState().user?.id !== userId)
         return;
-      const resolvedName =
-        group.name?.trim() || paramGroupName?.trim() || 'your group';
+      const resolvedName = group.name?.trim() || paramGroupName?.trim() || '';
       setGroupName(resolvedName);
       previewOwnerRef.current = userId;
       setPreview(invite);
@@ -241,11 +246,11 @@ export default function GroupInviteScreen() {
     setError(null);
     try {
       const result = await Share.share({
-        title: t('groups.invite.share_title', { group: groupName }),
+        title: t('groups.invite.share_title', { group: sentenceName }),
         message: buildInviteShareMessage({
           kind: 'group',
           code: preview.code,
-          title: groupName,
+          title: identityName,
         }),
       });
       if (
@@ -268,7 +273,7 @@ export default function GroupInviteScreen() {
     } finally {
       sharingRef.current = false;
     }
-  }, [groupName, preview, t]);
+  }, [identityName, preview, sentenceName, t]);
 
   const replaceInvite = React.useCallback(async () => {
     if (!groupId || !preview || replaceInFlightRef.current) return;
@@ -370,7 +375,7 @@ export default function GroupInviteScreen() {
         <View style={[styles.headerFrame, insetPadding]}>
           <AppTopBar
             title={t('groups.invite.title')}
-            subtitle={groupName}
+            subtitle={identityName}
             onBack={handleBack}
             backLabel={
               screenState === 'confirm-replace'
@@ -587,7 +592,7 @@ export default function GroupInviteScreen() {
             >
               <View style={styles.introCopy}>
                 <Text style={styles.pageTitle}>
-                  {t('groups.invite.invite_to', { group: groupName })}
+                  {t('groups.invite.invite_to', { group: sentenceName })}
                 </Text>
                 <Text style={styles.bodyCopy}>{t('groups.invite.intro')}</Text>
               </View>
@@ -690,7 +695,7 @@ export default function GroupInviteScreen() {
                     bare
                   />
                   <View style={styles.qrSheetCopy}>
-                    <Text style={styles.qrSheetGroup}>{groupName}</Text>
+                    <Text style={styles.qrSheetGroup}>{identityName}</Text>
                     <Text style={styles.bodyCopy}>
                       {t('groups.invite.qr_detail')}
                     </Text>

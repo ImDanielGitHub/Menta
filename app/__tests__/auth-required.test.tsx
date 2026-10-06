@@ -169,4 +169,18 @@ describe('AuthRequiredScreen', () => {
 
     expect(mockRouter.replace).toHaveBeenCalledWith('/onboarding-again');
   });
+
+  it('names a promise join instead of a group join', () => {
+    mockParams = { next: '/join-funding?code=FIT2026' };
+
+    renderScreen();
+
+    expect(screen.getByText('Sign in to join this promise')).toBeTruthy();
+    expect(screen.queryByText('Sign in to join this group')).toBeNull();
+    expect(
+      screen.getByText(
+        'Your invitation stays with your account. Nothing is joined yet.'
+      )
+    ).toBeTruthy();
+  });
 });

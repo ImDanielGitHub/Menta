@@ -10,6 +10,7 @@ import {
 } from '@/lib/invite-links';
 import { supabase } from '@/lib/supabase';
 import { translate } from '@/lib/localization';
+import { buildReferralShareCopy } from '@/lib/referrals/share-copy';
 
 export interface UserReferral {
   id: string;
@@ -234,12 +235,7 @@ const rpc = async (
   ).call(supabase, functionName, args);
 
 type ReferralOperation =
-  | 'fetch'
-  | 'generate'
-  | 'process'
-  | 'cancel'
-  | 'programme'
-  | 'stats';
+  'fetch' | 'generate' | 'process' | 'cancel' | 'programme' | 'stats';
 
 type ReferralRequestScope = {
   accountId: string;
@@ -681,12 +677,11 @@ export const useReferralStore = create<ReferralState>()(
 
       shareReferralLink: async (userId: string, username?: string) => {
         const referralLink = await get().generateReferralLink(userId);
-        const shareTitle = `Join ${username ? `${username} on ` : ''}Menta`;
-        const shareMessage = `Join me on Menta. Create your first promise to complete the referral.\n\n${referralLink}`;
+        const shareCopy = buildReferralShareCopy(referralLink, username);
 
         await Share.share({
-          message: shareMessage,
-          title: shareTitle,
+          message: shareCopy.message,
+          title: shareCopy.title,
           url: referralLink,
         });
       },

@@ -460,13 +460,12 @@ export const fullTodayProofDeDE = {
   'todayProof.promise.preparing_invite': 'Einladung wird vorbereitet…',
   'todayProof.promise.open_review_queue': 'Prüfungen öffnen',
   'todayProof.promise.report': 'Versprechen melden',
-  'todayProof.promise.reminder_question':
-    'Möchtest du eine Erinnerung erhalten?',
+  'todayProof.promise.reminder_question': 'Nachweis-Erinnerungen erhalten?',
   'todayProof.promise.reminder_detail':
-    'Menta kann dich vor dem Fälligkeitszeitpunkt erinnern.',
-  'todayProof.promise.remind_about': 'Erinnere mich an dieses Versprechen',
+    'Menta kann dich erinnern, bevor ein Nachweis für jedes aktive Versprechen fällig ist. Diese Wahl gilt für alle Versprechen, nicht nur für dieses.',
+  'todayProof.promise.remind_about': 'Nachweis-Erinnerungen',
   'todayProof.promise.remind_detail':
-    'Sende eine Erinnerung, bevor der Nachweis fällig ist.',
+    'Gilt für jedes Versprechen, nicht nur für dieses.',
   'todayProof.promise.set_reminders': 'Erinnerungen einrichten',
   'todayProof.promise.without_reminders': 'Ohne Erinnerungen fortfahren',
   'todayProof.promise.invite_question':
@@ -615,6 +614,14 @@ export const fullTodayProofDeDE = {
     'Wir konnten nicht bestätigen, ob der Nachweis gesendet wurde. Prüfe den Status, bevor du es erneut versuchst.',
   'todayProof.proof.failed_detail':
     'Nachweis wurde nicht gesendet. Prüfe deine Verbindung und versuch es erneut. Dein Entwurf bleibt hier, wenn er lokal gespeichert wurde.',
+  'todayProof.proof.already_sent':
+    'Der heutige Nachweis liegt bereits für dieses Versprechen vor. Du musst ihn nicht erneut senden.',
+  'todayProof.proof.not_joined':
+    'Du musst diesem Versprechen beitreten, bevor du einen Nachweis senden kannst.',
+  'todayProof.proof.text_too_generic':
+    'Füge ein Detail hinzu. „Done“ allein reicht nicht.',
+  'todayProof.proof.safety_disclosure':
+    'Nachweise müssen arbeitsplatztauglich (SFW) sein. Wenn jemand sie meldet, können autorisierte Menta-Mitarbeitende sie auf Sicherheit prüfen.',
   'todayProof.proof.share_accepted':
     'Mein Nachweis für das heutige Versprechen wurde auf Menta bestätigt.',
   'todayProof.proof.share_pending':
@@ -690,6 +697,10 @@ export const fullTodayProofDeDE = {
   'todayProof.review.queue': 'Prüfungen',
   'todayProof.review.nothing_else': 'Noch nichts weiter zu prüfen',
   'todayProof.review.no_submissions': 'Keine Einreichungen zum Prüfen',
+  'todayProof.review.empty_title_approved': 'Kein bestätigter Nachweis hier',
+  'todayProof.review.empty_title_retry':
+    'Kein Nachweis braucht einen neuen Versuch',
+  'todayProof.review.empty_title_all': 'Kein Nachweis hier',
   'todayProof.review.reward_unconfirmed':
     'Die Prüfentscheidung wurde gespeichert, aber die Belohnung wurde nicht bestätigt.',
   'todayProof.review.reward_failed':
@@ -935,16 +946,16 @@ export const fullTodayProofDeDE = {
   'todayProof.residual.reminder': 'Erinnerung',
   'todayProof.residual.open_proof_recovery':
     'Nachweis‑Wiederherstellung öffnen',
-  'todayProof.residual.not_counted_yet': 'Noch nicht gezählt',
+  'todayProof.residual.not_counted_yet': 'Heute zählt noch nicht',
   'todayProof.residual.the_saved_proof_remains_on_this_device_until_menta_confirms_the_':
-    'Der gespeicherte Nachweis bleibt auf diesem Gerät, bis Menta den Erhalt bestätigt.',
+    'Der gespeicherte Nachweis bleibt auf diesem Gerät, bis Menta ihn bestätigt. Du musst ihn nicht erneut senden.',
   'todayProof.residual.view_proof_history': 'Nachweis‑Verlauf anzeigen',
   'todayProof.residual.start_today_s_proof': 'Heutigen Nachweis starten',
   'todayProof.residual.check_again': 'Erneut prüfen',
   'todayProof.residual.no_new_proof_was_started':
     'Kein neuer Nachweis wurde gestartet',
   'todayProof.residual.check_the_current_server_status_before_sending_or_retrying_proof':
-    'Prüfe den aktuellen Stand, bevor du den Nachweis sendest oder es erneut versuchst.',
+    'Prüfe, ob dieser Nachweis gespeichert wurde, bevor du ihn sendest oder es erneut versuchst.',
   'todayProof.residual.a_previous_day_was_protected':
     'Ein vorheriger Tag war geschützt',
   'todayProof.residual.the_protected_day_remains_in_proof_history_today_still_needs_its':
@@ -1122,6 +1133,8 @@ export const fullTodayProofDeDE = {
   'todayProof.milestone.reached.one': 'Du hast {count} Tag erreicht.',
   'todayProof.milestone.reached.other': 'Du hast {count} Tage erreicht.',
   'todayProof.milestone.reward': '+{reward} Momenta',
+  'todayProof.milestone.approved_now': 'Jetzt bestätigt',
+  'todayProof.milestone.approved_at': 'Bestätigt {date}',
   'todayProof.streak.day_count': '{count}-Tage-Serie',
   'todayProof.streak.day_count.one': '{count}-Tage-Serie',
   'todayProof.streak.day_count.other': '{count}-Tage-Serie',
@@ -1325,4 +1338,41 @@ export const fullTodayProofDeDE = {
   'todayProof.createFlow.editPromise': 'Versprechen bearbeiten',
   'todayProof.createFlow.dayToggle': '{day}, zählt',
   'todayProof.createFlow.dayToggleOff': '{day}, Ruhetag',
+  'todayProof.promise.personal_cue': 'Persönliches Versprechen',
+  'todayProof.promise.queued_prompt':
+    'Menta hat den Versand noch nicht bestätigt. Öffne den gespeicherten Nachweis, bevor du einen weiteren hinzufügst.',
+  'todayProof.promise.one_change': 'Eine Änderung nötig',
+  'todayProof.promise.correction_prompt':
+    'Die prüfende Person hat um einen klareren Nachweis gebeten. Der frühere Versuch bleibt in der Nachweishistorie.',
+  'todayProof.promise.approved_prompt':
+    'Der Nachweis von heute ist bestätigt. Der nächste fällige Tag erscheint, wenn der Zeitplan weitergeht.',
+  'todayProof.promise.missed_in_history':
+    'Ein verpasster Tag steht in deiner Historie',
+  'todayProof.promise.recovery_prompt':
+    'Der vorherige Lauf ist beendet, aber du kannst heute mit dem nächsten Nachweis neu beginnen.',
+  'todayProof.promise.unknown_paused_prompt':
+    'Das Senden ist pausiert, bis Menta bestätigt, ob für heute schon ein Nachweis vorliegt.',
+  'todayProof.promise.protected_due': 'Serie geschützt · Nachweis heute fällig',
+  'todayProof.promise.active_prompt':
+    'Füge den Nachweis von heute hinzu, wenn du getan hast, was du versprochen hast.',
+  'todayProof.promise.progress_approved': '{approved} von {total} bestätigt',
+  'todayProof.promise.duration_days': '{days}-Tage-Versprechen',
+  'todayProof.promise.complete_title':
+    '{approved} von {total} Tagen wurden bestätigt.',
+  'todayProof.promise.complete_tally': '{approved} von {total} Tagen bestätigt',
+  'todayProof.promise.reviewed_own': 'du hast deinen eigenen Nachweis geprüft',
+  'todayProof.promise.reviewed_group':
+    'die Versprechensgruppe hat den Nachweis geprüft',
+  'todayProof.promise.share_complete':
+    '{title}: {approved} von {total} Tagen auf Menta bestätigt.',
+  'todayProof.promise.group_fallback': 'Gruppenversprechen',
+  'todayProof.promise.reviewer_has_proof': '{name} hat deinen Nachweis.',
+  'todayProof.promise.proof_submitted': 'Nachweis gesendet',
+  'todayProof.promise.waiting_unavailable':
+    'Menta hat eine ausstehende Prüfung bestätigt, aber der gesendete Nachweis konnte nicht geladen werden.',
+  'todayProof.promise.your_log_starts':
+    'Sende den Nachweis von heute, dann beginnt dein Protokoll hier.',
+  'todayProof.promise.self_review': 'Selbstprüfung',
+  'todayProof.promise.peer_review_one': '{count} Prüfung durch andere',
+  'todayProof.promise.peer_review_other': '{count} Prüfungen durch andere',
 } as const;

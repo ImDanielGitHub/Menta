@@ -209,6 +209,8 @@ export const fullCommerceDeDE = {
   'commerce.wallet.adjustmentDescription': 'Kontostand angepasst',
   'commerce.wallet.activityDescription': 'Momenta-Aktivität',
   'commerce.wallet.promiseCreated': 'Versprechen erstellt',
+  'commerce.wallet.promiseJoined': 'Versprechen beigetreten: {title}',
+  'commerce.wallet.promiseJoinedUnknown': 'Einem Versprechen beigetreten',
   'commerce.wallet.groupCreated': 'Gruppe erstellt',
   'commerce.shop.title': 'Shop',
   'commerce.shop.intro':

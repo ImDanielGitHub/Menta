@@ -11,6 +11,16 @@ import {
   emitConfirmedOutcome,
   emitHaptic,
 } from '@/lib/motion/haptics';
+import { useTranslation } from '@/lib/localization';
+import {
+  getGroupSettingsDeleteNoticeCopy,
+  getGroupSettingsLeaveNoticeCopy,
+  getGroupSettingsNameRequiredCopy,
+  getGroupSettingsOwnerOnlyCopy,
+  getGroupSettingsSaveFailedCopy,
+  getGroupSettingsSaveUnconfirmedCopy,
+  getGroupSettingsSavedCopy,
+} from '@/lib/groups/admin-settings-copy';
 type Notice = {
   kind: 'error' | 'info' | 'success' | 'warning';
   title: string;
@@ -50,6 +60,7 @@ export const useGroupSettingsActions = ({
   router: AppRouter;
   userId?: string;
 }) => {
+  const { t } = useTranslation();
   const [saveLoading, setSaveLoading] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
   const [leaveSheetVisible, setLeaveSheetVisible] = useState(false);
@@ -62,16 +73,14 @@ export const useGroupSettingsActions = ({
     if (!isOwner) {
       setNotice({
         kind: 'info',
-        title: 'Owner only',
-        message: 'Only the owner can save these group settings.',
+        ...getGroupSettingsOwnerOnlyCopy(t),
       });
       return;
     }
     if (!name.trim()) {
       setNotice({
         kind: 'error',
-        title: 'Name required',
-        message: 'Give this group a name before saving.',
+        ...getGroupSettingsNameRequiredCopy(t),
       });
       return;
     }
@@ -103,9 +112,7 @@ export const useGroupSettingsActions = ({
       if (!receiptMatches) {
         setNotice({
           kind: 'warning',
-          title: 'Save not confirmed',
-          message:
-            'Menta could not confirm whether the settings were saved. Your edits are still here. Check the group before trying again.',
+          ...getGroupSettingsSaveUnconfirmedCopy(t),
         });
         return;
       }
@@ -121,21 +128,18 @@ export const useGroupSettingsActions = ({
       }
       setNotice({
         kind: 'success',
-        title: 'Changes saved',
-        message: 'Group settings are up to date.',
+        ...getGroupSettingsSavedCopy(t),
       });
     } catch {
       void emitHaptic({ type: 'unknown' });
       setNotice({
         kind: 'error',
-        title: "Changes weren't saved",
-        message:
-          'Check your connection and try again. Your edits are still here.',
+        ...getGroupSettingsSaveFailedCopy(t),
       });
     } finally {
       setSaveLoading(false);
     }
-  }, [description, fetchGroups, group, isOwner, name, privacy, saveLoading]);
+  }, [description, fetchGroups, group, isOwner, name, privacy, saveLoading, t]);
 
   const currentGroupId = group?.id;
 
@@ -173,17 +177,17 @@ export const useGroupSettingsActions = ({
       }
       setNotice({
         kind: outcome.kind === 'unknown' ? 'warning' : 'error',
-        title:
-          outcome.kind === 'unknown'
-            ? 'Leave result unknown'
-            : 'No group change',
-        message: outcome.message,
+        ...getGroupSettingsLeaveNoticeCopy(
+          outcome.kind === 'unknown' ? 'unknown' : 'failed',
+          outcome.message,
+          t
+        ),
       });
     } finally {
       setLeaveLoading(false);
       setLeaveSheetVisible(false);
     }
-  }, [group, leaveGroupAction, leaveLoading, router, userId]);
+  }, [group, leaveGroupAction, leaveLoading, router, t, userId]);
 
   const confirmDelete = useCallback(async () => {
     if (!group || deleteLoading) return;
@@ -207,20 +211,17 @@ export const useGroupSettingsActions = ({
       }
       setNotice({
         kind: outcome.kind === 'unknown' ? 'warning' : 'error',
-        title:
-          outcome.kind === 'unknown'
-            ? 'Delete not confirmed'
-            : 'Group not deleted',
-        message:
-          outcome.kind === 'unknown'
-            ? 'Menta could not confirm whether the group was deleted. Return to Groups and check before trying again.'
-            : outcome.message,
+        ...getGroupSettingsDeleteNoticeCopy(
+          outcome.kind === 'unknown' ? 'unknown' : 'failed',
+          outcome.message,
+          t
+        ),
       });
     } finally {
       setDeleteLoading(false);
       setDeleteSheetVisible(false);
     }
-  }, [deleteGroup, deleteLoading, group, router]);
+  }, [deleteGroup, deleteLoading, group, router, t]);
 
   return {
     confirmDelete,

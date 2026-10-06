@@ -6,41 +6,35 @@ import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import { useTranslation } from '@/lib/localization';
 import { isWidgetPromiseId } from '@/lib/widgets/widget-model';
 import { useAuthStore } from '@/store/auth-store';
-import {
-  refreshHomeWidget,
-  useHomeWidgetStore,
-} from '@/store/home-widget-store';
+import { readWidgetPromiseForLink } from '@/store/home-widget-store';
 
 /** Revalidate identity, membership and proof status instead of trusting a saved widget URL. */
 export default function WidgetOpenScreen() {
   const { promise } = useLocalSearchParams<{ promise?: string | string[] }>();
-  const ownerId = useAuthStore(state => state.user?.id);
-  const ready = useHomeWidgetStore(state => state.ready);
-  const available = useHomeWidgetStore(state => state.available);
-  const hydrationFailed = useHomeWidgetStore(
-    state => !state.ready && state.error !== null
+  const ownerId = useAuthStore(state =>
+    state.isInitialized && state.isAuthenticated ? state.user?.id : undefined
   );
   const router = useRouter();
   const { t } = useTranslation();
   useEffect(() => {
     if (!ownerId) return;
-    if (!ready) {
-      if (hydrationFailed) router.replace('/(tabs)');
+    if (typeof promise !== 'string' || !isWidgetPromiseId(promise)) {
+      router.replace('/(tabs)');
       return;
     }
     let active = true;
+    const current = () => {
+      const auth = useAuthStore.getState();
+      return (
+        active &&
+        auth.isInitialized &&
+        auth.isAuthenticated &&
+        auth.user?.id === ownerId
+      );
+    };
     void (async () => {
-      if (available) await refreshHomeWidget(true);
-      if (!active || useAuthStore.getState().user?.id !== ownerId) return;
-      const state = useHomeWidgetStore.getState();
-      const id =
-        typeof promise === 'string' && isWidgetPromiseId(promise)
-          ? promise
-          : state.preferences.promiseId;
-      const selected =
-        !state.error && state.ownerId === ownerId
-          ? state.promises.find(item => item.id === id)
-          : undefined;
+      const selected = await readWidgetPromiseForLink(promise);
+      if (!current()) return;
       if (!selected || selected.deadline <= Date.now()) {
         router.replace('/(tabs)');
         return;
@@ -64,11 +58,13 @@ export default function WidgetOpenScreen() {
           },
         });
       }
-    })();
+    })().catch(() => {
+      if (current()) router.replace('/(tabs)');
+    });
     return () => {
       active = false;
     };
-  }, [available, hydrationFailed, ownerId, promise, ready, router]);
+  }, [ownerId, promise, router]);
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />

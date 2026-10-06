@@ -8,12 +8,14 @@ import type {
   ServerReviewFact,
 } from '@/lib/loop';
 import { ECONOMY_CONTRACT_V1 } from '@/lib/economy/contract';
+import { getReviewRequiredDetail } from '@/lib/loop/review-required-copy';
 import {
   resolveCatalogueLocale,
   translate,
   type TranslationKey,
   type TranslationValues,
 } from '@/lib/localization';
+import { getCorrectionFeedbackCopy } from '@/lib/proof/correction-copy';
 import {
   DEFAULT_PROOF_DUE_TIME,
   formatProofDueLabel,
@@ -480,19 +482,23 @@ export const resolveTodayPresentation = (
         animateMascot: false,
       });
 
-    case 'correction-requested':
+    case 'correction-requested': {
+      const correction = getCorrectionFeedbackCopy({
+        proofType: primary?.verificationType,
+        correctionReason: primary?.correctionReason,
+        locale,
+      });
       return present({
         layout: 'hero',
         accent: 'danger',
-        title: t('today.state.correction.title'),
-        detail: primary?.correctionReason
-          ? primary.correctionReason
-          : t('today.state.correction.detail'),
-        primaryLabel: t('today.state.correction.action'),
+        title: correction.title,
+        detail: correction.detail,
+        primaryLabel: correction.primaryLabel,
         secondaryLabel: t('today.state.correction.feedback'),
         mascot: null,
         animateMascot: false,
       });
+    }
 
     case 'review-required':
       return present({
@@ -503,9 +509,11 @@ export const resolveTodayPresentation = (
               name: review.submitterName,
             })
           : t('today.state.review.title'),
-        detail: t('today.state.review.detail', {
+        detail: getReviewRequiredDetail({
+          proofType: review?.verificationType,
           reward: ECONOMY_CONTRACT_V1.review.reward,
           dailyLimit: ECONOMY_CONTRACT_V1.review.dailyLimit,
+          t,
         }),
         primaryLabel: t('today.state.review.action'),
         secondaryLabel: review?.groupId

@@ -25,7 +25,7 @@ export const fullDomainFeedbackDeDE = {
   'domain.error.database':
     'Datensynchronisierung fehlgeschlagen. Versuche es gleich noch einmal.',
   'domain.error.challenge':
-    'Fehler beim Laden des Versprechens. Aktualisiere die Seite und versuche es erneut.',
+    'Menta konnte dieses Versprechen nicht aktualisieren. Versuche es erneut.',
   'domain.error.group':
     'Gruppenaktion fehlgeschlagen. Versuche es noch einmal.',
   'domain.error.unknown': 'Etwas ist schiefgelaufen. Versuche es erneut.',
@@ -38,7 +38,8 @@ export const fullDomainFeedbackDeDE = {
   'domain.error.title.submission': 'Einreichung fehlgeschlagen',
   'domain.error.title.review': 'Prüfungsfehler',
   'domain.error.title.database': 'Synchronisierungsfehler',
-  'domain.error.title.challenge': 'Fehler beim Versprechen',
+  'domain.error.title.challenge':
+    'Dieses Versprechen konnte nicht aktualisiert werden',
   'domain.error.title.group': 'Gruppenfehler',
   'domain.error.title.unknown': 'Fehler',
   'domain.error.connection_tips': 'Tipps zur Verbindung',
@@ -534,4 +535,11 @@ export const fullDomainFeedbackDeDE = {
   'domain.notifications.members': 'Mitglieder',
   'domain.notifications.review': 'Prüfung',
   'domain.notifications.reviews': 'Prüfungen',
+  'domain.feedback.checkin.a11y': 'Wie läuft Menta für dich?',
+  'domain.feedback.checkin.heading': 'Wie läuft Menta für dich?',
+  'domain.feedback.checkin.body':
+    'Sag uns, was für dich funktioniert oder was klarer sein könnte.',
+  'domain.feedback.checkin.working': 'Ja, es läuft gut für mich',
+  'domain.feedback.checkin.better': 'Etwas könnte besser sein',
+  'domain.feedback.checkin.not_now': 'Nicht jetzt',
 } as const;

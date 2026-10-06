@@ -18,21 +18,42 @@ export const mentaCheckDe = {
     'Du kannst jederzeit auch eine vertraute Person hinzufügen.',
   'mentaCheck.option.passNote':
     'Menta Check ist in Pro enthalten. Ohne Pro kostet es für dieses Versprechen {cost} Momenta pro Woche. Du kannst jederzeit aufhören.',
-  'mentaCheck.consent.bubble':
-    'Bevor ich etwas prüfe, zeige ich dir, was ich sehe.',
-  'mentaCheck.consent.photoTitle': 'Dein Foto, Video und deine Notiz',
-  'mentaCheck.consent.photoBody':
-    'Zusammen mit deinem Versprechen und dem, was der Nachweis zeigen soll.',
-  'mentaCheck.consent.timeTitle': 'Wann du deinen Nachweis gesendet hast',
-  'mentaCheck.consent.timeBody':
-    'Und für welchen Tag er gilt. Wir senden keine Standort-Metadaten.',
-  'mentaCheck.consent.neverTitle': 'Keine Konto- oder Freundesdaten',
-  'mentaCheck.consent.neverBody': 'Prüfungen werden nach 90 Tagen gelöscht.',
-  'mentaCheck.consent.disclosure':
-    'Mit deiner Zustimmung verarbeiten OpenRouter und seine KI-Anbieter deinen Nachweis, deine Notiz und deine Regel, einschließlich sichtbarer Inhalte und Ton in Videos. Wir senden keine Kontodaten oder Standortmetadaten. Du kannst dies in Menta Check ausschalten.',
-  'mentaCheck.consent.policyLink': 'So gehen wir mit deinen Nachweisen um',
-  'mentaCheck.consent.accept': 'Menta darf meine Nachweise prüfen',
-  'mentaCheck.consent.decline': 'Jemand anderen auswählen',
+  'mentaCheck.consent.bubble': 'Erlaubnis für KI-Prüfungen',
+  'mentaCheck.consent.media':
+    'Wenn du zustimmst, sendet Menta deine Fotos, kurzen Videos mit Ton und Notizen an einen Drittanbieter.',
+  'mentaCheck.consent.purpose':
+    'Dein Versprechen, deine Nachweisregel und der Zeitpunkt der Einreichung werden ebenfalls gesendet, damit der Anbieter prüfen kann, ob dein Nachweis deiner Regel entspricht.',
+  'mentaCheck.consent.scope':
+    'Diese Erlaubnis gilt für Nachweise, die noch auf eine KI-Prüfung warten, und für zukünftige Nachweise, die du mit aktivierten KI-Prüfungen einreichst.',
+  'mentaCheck.consent.exclusions':
+    'Wir fügen keine Konto- oder Freundesdaten hinzu.',
+  'mentaCheck.consent.withdrawal':
+    'Du kannst deine Erlaubnis in den Einstellungen von Menta Check widerrufen.',
+  'mentaCheck.consent.accept': 'KI-Prüfungen erlauben',
+  'mentaCheck.consent.decline': 'Nicht jetzt',
+  'mentaCheck.permission.loading': 'Deine Erlaubnis wird geprüft…',
+  'mentaCheck.permission.loadError':
+    'Menta konnte deine Erlaubnis nicht laden. Versuche es erneut.',
+  'mentaCheck.permission.retry': 'Erneut versuchen',
+  'mentaCheck.permission.bubble': 'Deine Erlaubnis für KI-Prüfungen.',
+  'mentaCheck.permission.needsReview': 'Erlaubnis überprüfen',
+  'mentaCheck.permission.reviewBody':
+    'Prüfe, was gesendet wird, bevor du KI-Prüfungen erlaubst.',
+  'mentaCheck.permission.unchanged':
+    'Deine bisherigen Prüfeinstellungen bleiben unverändert.',
+  'mentaCheck.permission.unchangedUntilChoice':
+    'Deine bisherigen Prüfeinstellungen bleiben unverändert, bis du sie selbst änderst.',
+  'mentaCheck.permission.review': 'Erlaubnis prüfen',
+  'mentaCheck.permission.allowed': 'Erlaubnis erteilt',
+  'mentaCheck.permission.scope':
+    'Gilt für Nachweise, die auf eine KI-Prüfung warten, und für zukünftige Nachweise, die du mit aktivierten KI-Prüfungen einreichst.',
+  'mentaCheck.permission.media':
+    'Fotos, kurze Videos mit Ton und Notizen werden zusammen mit deinem Versprechen, deiner Nachweisregel und dem Zeitpunkt der Einreichung an einen Drittanbieter gesendet.',
+  'mentaCheck.permission.withdrawal':
+    'Widerrufe die Erlaubnis, damit keine Nachweise für neue KI-Prüfungen mehr gesendet werden. Bereits gesendete Nachweise lassen sich nicht zurückholen.',
+  'mentaCheck.permission.withdraw': 'Erlaubnis widerrufen',
+  'mentaCheck.permission.return':
+    'Du kannst jederzeit hierher zurückkehren, um deine Erlaubnis zu ändern.',
   'mentaCheck.receipt.bubble':
     'Gespeichert! Schick ein Foto, wenn du fertig bist, und ich schaue es mir an.',
   'mentaCheck.receipt.checkedBy': 'Menta',

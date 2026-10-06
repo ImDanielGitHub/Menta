@@ -26,4 +26,16 @@ export const authLoginDeDE = {
   'auth.login.action.apple': 'Mit Apple anmelden',
   'auth.login.action.google': 'Mit Google anmelden',
   'auth.login.action.replay_intro': 'So funktioniert Menta',
+  'auth.login.required.join_promise_title':
+    'Melde dich an, um diesem Versprechen beizutreten',
+  'auth.login.required.join_promise_detail':
+    'Deine Einladung bleibt bei deinem Konto. Es wurde noch nichts beigetreten.',
+  'auth.login.required.create_promise_title':
+    'Melde dich an, um ein Versprechen zu erstellen',
+  'auth.login.required.create_promise_detail':
+    'Dein Entwurf bleibt auf diesem Telefon, bis du dich anmeldest.',
+  'auth.login.required.open_promise_title':
+    'Melde dich an, um dieses Versprechen zu öffnen',
+  'auth.login.required.open_promise_detail':
+    'Menta öffnet dieses Versprechen unter deinem Konto.',
 } as const satisfies Pick<EnglishCatalogue, AuthLoginKey>;

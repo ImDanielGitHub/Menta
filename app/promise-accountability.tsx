@@ -62,6 +62,7 @@ import {
   accountabilityOwnerConsequence,
   accountabilityOwnerInviteAction,
   buildPromiseAccountabilityShareMessage,
+  resolveAccountabilityShareTitle,
   preparePromiseAccountabilityInvite,
   leavePromiseAccountability,
   reconcilePromiseAccountabilityLeave,
@@ -1463,9 +1464,7 @@ export default function PromiseAccountabilityRoute() {
     });
     try {
       const result = await Share.share({
-        title: t('groups.source.accountability.share.title', {
-          promise: prepared.challengeTitle,
-        }),
+        title: resolveAccountabilityShareTitle(prepared.challengeTitle, t),
         message: buildPromiseAccountabilityShareMessage({
           challengeTitle: prepared.challengeTitle,
           code: prepared.code,
@@ -2677,6 +2676,7 @@ export default function PromiseAccountabilityRoute() {
       />
       <SimpleBottomSheet
         visible={Boolean(selectedMember)}
+        testID="manage-promise-member"
         onClose={() => {
           if (!managingMember) setSelectedMember(null);
         }}
@@ -2694,13 +2694,25 @@ export default function PromiseAccountabilityRoute() {
               </View>
               {ROLE_OPTIONS.map(option => {
                 const copy = accountabilityRoleCopy(option, t);
+                const requiresPartnerAcceptance =
+                  option === 'partner' && selectedMember.role !== 'partner';
                 return (
                   <AppOptionCard
                     key={option}
                     title={copy.title}
-                    description={copy.description}
+                    description={
+                      requiresPartnerAcceptance
+                        ? t(
+                            'groups.source.accountability.member.partner_requires_acceptance'
+                          )
+                        : copy.description
+                    }
                     selected={selectedMember.role === option}
-                    disabled={managingMember}
+                    disabled={
+                      managingMember ||
+                      selectedMember.role === option ||
+                      requiresPartnerAcceptance
+                    }
                     icon={
                       <Image
                         resizeMode="contain"

@@ -1,11 +1,16 @@
-export async function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+export async function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  label: string
+): Promise<T> {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
   try {
     const timeoutPromise = new Promise<T>((_, reject) => {
       timeoutId = setTimeout(() => {
-        const err = new Error(`${label} timed out after ${ms}ms`);
-        // @ts-ignore
-        err.code = 'TIMEOUT';
+        const err = Object.assign(
+          new Error(`${label} timed out after ${ms}ms`),
+          { code: 'TIMEOUT' }
+        );
         reject(err);
       }, ms);
     });
@@ -16,5 +21,3 @@ export async function withTimeout<T>(promise: Promise<T>, ms: number, label: str
     if (timeoutId) clearTimeout(timeoutId);
   }
 }
-
-

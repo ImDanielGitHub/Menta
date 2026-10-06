@@ -15,7 +15,7 @@ import { AppState, Linking } from 'react-native';
 
 import { CameraVerification } from '@/components/CameraVerification';
 import { ThemeProvider } from '@/constants/ThemeContext';
-import { getProofDraft } from '@/lib/proof-drafts';
+import { createProofDraft, getProofDraft } from '@/lib/proof-drafts';
 import { captureError, captureMessage } from '@/lib/sentry';
 
 jest.mock('@/components/proof', () => {
@@ -113,6 +113,7 @@ jest.mock('expo-image-picker', () => ({
 jest.mock('@/lib/services/proof-media-service', () => ({
   persistProofMediaLocally: (...args: unknown[]) =>
     mockPersistProofMediaLocally(...args),
+  releaseDurableProofMedia: jest.fn(),
   getDurableProofMedia: (...args: unknown[]) =>
     mockGetDurableProofMedia(...args),
 }));
@@ -165,10 +166,13 @@ jest.mock('@/components/ui/Toast', () => ({
 }));
 
 jest.mock('@/store/auth-store', () => ({
-  useAuthStore: (selector?: (state: { user: typeof mockUser }) => unknown) => {
-    const state = { user: mockUser };
-    return selector ? selector(state) : state;
-  },
+  useAuthStore: Object.assign(
+    (selector?: (state: { user: typeof mockUser }) => unknown) => {
+      const state = { user: mockUser };
+      return selector ? selector(state) : state;
+    },
+    { getState: () => ({ user: mockUser }) }
+  ),
 }));
 
 const renderCameraVerification = (
@@ -390,6 +394,14 @@ describe('CameraVerification camera access', () => {
       contentType: 'video/quicktime',
     });
 
+    await createProofDraft({
+      userId: 'user-123',
+      challengeId: 'challenge-123',
+      clientEventId: '11111111-1111-4111-8111-111111111111',
+      proofType: 'video',
+      proofValue: 'file:///documents/saved-proof.mov',
+      clientTimeZone: 'Pacific/Auckland',
+    });
     renderCameraVerification({
       verificationType: 'video',
       initialLocalMediaUri: 'file:///documents/saved-proof.mov',

@@ -59,7 +59,7 @@ export const MemberRow = ({
         t(
           readOnly ? 'groups.admin.view_member' : 'groups.admin.manage_member',
           {
-            member: getMemberName(member),
+            member: getMemberName(member, t),
           }
         )
       }
@@ -76,14 +76,14 @@ export const MemberRow = ({
       <Avatar
         borderColor={mentaColors.border}
         borderWidth={StyleSheet.hairlineWidth}
-        name={getMemberName(member)}
+        name={getMemberName(member, t)}
         showBorder
         size={40}
         source={member.avatarUrl ? { uri: member.avatarUrl } : undefined}
       />
       <View style={styles.memberCopy}>
         <Text numberOfLines={memberNameLines} style={styles.memberName}>
-          {getMemberName(member)}
+          {getMemberName(member, t)}
         </Text>
         <Text style={styles.memberRole}>
           {groupMemberRoleCopy[member.role]}

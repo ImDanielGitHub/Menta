@@ -10,6 +10,7 @@ jest.mock('@/components/menta-check/menta-trial-notice', () => ({
   MentaTrialNotice: () => null,
 }));
 import {
+  AppState,
   Keyboard,
   Pressable,
   Share,
@@ -17,7 +18,8 @@ import {
   type TextInputProps,
   View,
 } from 'react-native';
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import type { ProofDraft } from '@/lib/proof-drafts';
 import { captureError } from '@/lib/sentry';
 
 const mockRouter = {
@@ -32,6 +34,7 @@ let mockRouteParams: Record<string, string> = {
   verificationType: 'text',
 };
 
+let mockNextMediaDraft: ProofDraft | null = null;
 const mockSubmitChallengeProof = jest.fn();
 const mockResumeProofSubmission = jest.fn();
 const mockEmitConfirmedSuccess = jest.fn();
@@ -240,10 +243,26 @@ jest.mock('@/components/proof/ProofOutcomeView', () => {
 
 jest.mock('@/components/CameraVerification', () => {
   const React = require('react');
-  const { View } = require('react-native');
+  const { View, Pressable, Text } = require('react-native');
 
   return {
-    CameraVerification: () => <View testID="camera-verification" />,
+    CameraVerification: ({
+      initialLocalMediaUri,
+      onLocalDraftSaved,
+    }: {
+      initialLocalMediaUri?: string;
+      onLocalDraftSaved?: (draft: ProofDraft) => void;
+    }) => (
+      <View testID="camera-verification">
+        <Text>{initialLocalMediaUri}</Text>
+        <Pressable
+          testID="mock-adopt-capture"
+          onPress={() => {
+            if (mockNextMediaDraft) onLocalDraftSaved?.(mockNextMediaDraft);
+          }}
+        />
+      </View>
+    ),
   };
 });
 
@@ -436,6 +455,8 @@ const acceptedDraft = {
 describe('ChallengeVerificationScreen durable proof receipts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockNextMediaDraft = null;
+    mockGetProofDraft.mockReset();
     mockRouteParams = {
       challengeId: 'challenge-123',
       verificationType: 'text',
@@ -452,6 +473,97 @@ describe('ChallengeVerificationScreen durable proof receipts', () => {
       reason: 'not_due',
     });
   });
+
+  it('ignores an older foreground draft read after a newer capture is adopted', async () => {
+    mockRouteParams.verificationType = 'photo';
+    mockRouteParams.clientEventId = acceptedDraft.clientEventId;
+    const oldDraft: ProofDraft = {
+      ...acceptedDraft,
+      groupId: null,
+      sendRequestedAt: null,
+      status: 'saved-local',
+      proofType: 'photo',
+      proofValue: 'file:///old.jpg',
+      localMediaUri: 'file:///old.jpg',
+    };
+    const initialDraftRead = Promise.resolve(oldDraft);
+    mockGetProofDraft.mockReturnValue(initialDraftRead);
+    let onActive!: (state: string) => void;
+    const originalSubscribe = jest
+      .mocked(AppState.addEventListener)
+      .getMockImplementation();
+    jest
+      .mocked(AppState.addEventListener)
+      .mockImplementation((_event, listener) => {
+        onActive = listener;
+        return { remove: jest.fn() };
+      });
+    const result = render(<ChallengeVerificationScreen />);
+    try {
+      // React's concurrent renderer must finish the asynchronous restore before
+      // this test introduces a separate, deliberately delayed foreground read.
+      await act(async () => {
+        await initialDraftRead;
+      });
+      await waitFor(() =>
+        expect(result.getByText('file:///old.jpg')).toBeTruthy()
+      );
+      let resolve!: (draft: ProofDraft) => void;
+      mockGetProofDraft.mockReturnValueOnce(
+        new Promise<ProofDraft>(r => {
+          resolve = r;
+        })
+      );
+      act(() => onActive('active'));
+      mockNextMediaDraft = {
+        ...oldDraft,
+        proofValue: 'file:///latest.jpg',
+        localMediaUri: 'file:///latest.jpg',
+      };
+      await act(async () => {
+        fireEvent.press(result.getByTestId('mock-adopt-capture'));
+      });
+      await waitFor(() =>
+        expect(result.getByText('file:///latest.jpg')).toBeTruthy()
+      );
+      await act(async () => {
+        resolve(oldDraft);
+      });
+      expect(result.getByText('file:///latest.jpg')).toBeTruthy();
+      expect(result.queryByText('file:///old.jpg')).toBeNull();
+    } finally {
+      result.unmount();
+      jest
+        .mocked(AppState.addEventListener)
+        .mockImplementation(originalSubscribe!);
+    }
+  });
+
+  it.each([
+    { userId: 'another-user', challengeId: 'challenge-123' },
+    { userId: 'user-123', challengeId: 'another-challenge' },
+  ])(
+    'does not load a route-selected draft outside its account and promise',
+    async identity => {
+      mockRouteParams.clientEventId = 'foreign-draft';
+      mockGetProofDraft.mockResolvedValue({
+        ...acceptedDraft,
+        ...identity,
+        clientEventId: 'foreign-draft',
+        status: 'saved-local',
+        proofValue: 'Synthetic private note from another proof context',
+      });
+      const { getByPlaceholderText, queryByText } = render(
+        <ChallengeVerificationScreen />
+      );
+      await waitFor(() => expect(mockGetProofDraft).toHaveBeenCalled());
+      expect(getByPlaceholderText(proofPlaceholder).props.value).toBe('');
+      expect(
+        queryByText('Synthetic private note from another proof context')
+      ).toBeNull();
+      expect(mockSubmitChallengeProof).not.toHaveBeenCalled();
+    }
+  );
 
   it.each(['photo', 'video', 'text'])(
     'shows the complete correction handoff in the existing %s compose notice',
@@ -742,7 +854,7 @@ describe('ChallengeVerificationScreen durable proof receipts', () => {
   it('shows an existing daily proof as a final fact instead of offering another retry', async () => {
     mockSubmitChallengeProof.mockRejectedValue(
       new MockProofSubmissionError(
-        "Today's proof is already waiting for review.",
+        "Today's proof is already on this promise. You do not need to send it again.",
         {
           receiptStatus: 'pending-review',
           clientEventId: 'client-event-123',
@@ -759,7 +871,9 @@ describe('ChallengeVerificationScreen durable proof receipts', () => {
 
     await waitFor(() =>
       expect(
-        getByText("Today's proof is already waiting for review.")
+        getByText(
+          "Today's proof is already on this promise. You do not need to send it again."
+        )
       ).toBeTruthy()
     );
     expect(getByText('View promise')).toBeTruthy();
@@ -806,9 +920,7 @@ describe('ChallengeVerificationScreen durable proof receipts', () => {
     fireEvent.changeText(getByPlaceholderText(proofPlaceholder), 'Done');
     fireEvent.press(getByTestId('text-proof-hold-to-send-tap-alternative'));
 
-    expect(
-      getByText('Add a detail to continue. “Done” alone is not enough.')
-    ).toBeTruthy();
+    expect(getByText('Add a detail. “Done” alone is not enough.')).toBeTruthy();
     expect(mockSubmitChallengeProof).not.toHaveBeenCalled();
   });
 });

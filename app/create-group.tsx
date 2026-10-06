@@ -84,6 +84,7 @@ import {
   getCreateGroupDraftKey,
   type CreateGroupDraft,
 } from '@/lib/groups/create-group-draft';
+import { describeCreatedGroup } from '@/lib/groups/create-group-copy';
 import {
   DEFAULT_GROUP_IMAGE_PRESET,
   GROUP_IMAGE_PRESETS,
@@ -899,7 +900,7 @@ export default function CreateGroupScreen() {
         name: trimmedName,
         description:
           selectedParamTemplate?.description ??
-          `A ${duration}-day group for shared promises.`,
+          describeCreatedGroup(duration, t),
         owner_id: user.id,
         duration_days: duration,
         cost,

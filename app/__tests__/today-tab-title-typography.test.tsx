@@ -268,8 +268,8 @@ describe('Today tab title typography', () => {
       lineHeight: 53.2,
     });
     expect(screen.getByText('Personal promises')).toHaveStyle({
-      fontSize: 22.4,
-      lineHeight: 32.2,
+      fontSize: 33.6,
+      lineHeight: 43.4,
     });
     expect(screen.getByText('View your personal promises')).toHaveStyle({
       fontSize: 18.2,
@@ -342,6 +342,15 @@ describe('Today tab title typography', () => {
 
     expect(screen.getByTestId('today-ipad-two-column')).toBeTruthy();
     expect(screen.getByTestId('today-dashboard-secondary')).toBeTruthy();
+  });
+
+  it('clears a pull-to-refresh request when the account is absent', async () => {
+    mockUser = null;
+    render(<TodayScreen />);
+    await act(async () => {
+      mockRefreshControl?.props.onRefresh();
+    });
+    expect(mockRefreshControl?.props.refreshing).toBe(false);
   });
 
   it('keeps focus refreshes out of the pull-to-refresh spinner', () => {

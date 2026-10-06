@@ -28,6 +28,7 @@ export const navigationPtBR = {
   'navigation.personal.active': '{count} promessas ativas',
   'navigation.personal.active.one': '{count} promessa ativa',
   'navigation.personal.active.other': '{count} promessas ativas',
+  'navigation.personal.streak_label': 'Sequência ativa mais longa',
   'navigation.personal.longest':
     '{active} · Sequência ativa mais longa: {days}',
   'navigation.notifications.accessibility': 'Configurações de notificações',

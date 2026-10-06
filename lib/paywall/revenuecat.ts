@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
+import { getOperationalFlag } from '@/lib/operational-flags';
 import type {
   AdDisplayedData,
   AdFailedToLoadData,
@@ -41,6 +42,11 @@ const APP_OWNERSHIP = Constants.appOwnership;
 const RUNNING_IN_EXPO_GO = APP_OWNERSHIP === 'expo';
 const IS_BROWSER = Platform.OS === 'web';
 export const REVENUECAT_SUPPORTED = !RUNNING_IN_EXPO_GO && !IS_BROWSER;
+
+const revenueCatEnabled = (): boolean =>
+  REVENUECAT_SUPPORTED &&
+  getOperationalFlag('revenuecat_enabled') &&
+  !getOperationalFlag('safe_mode');
 
 export type ProPlan = 'weekly' | 'monthly' | 'annual';
 export type CreditPack = 'small' | 'medium' | 'large';
@@ -131,7 +137,11 @@ const getPurchasesMember = <Key extends keyof PurchasesClient>(
   const member = module[key] ?? module.default?.[key];
 
   if (typeof member === 'function' && owner) {
-    return member.bind(owner) as PurchasesClient[Key];
+    return ((...args: unknown[]) => {
+      // Recheck at the actual SDK call, including after awaited offerings.
+      if (!revenueCatEnabled()) throw new Error('revenuecat_disabled');
+      return Reflect.apply(member, owner, args);
+    }) as PurchasesClient[Key];
   }
 
   return member;
@@ -168,8 +178,29 @@ const ANDROID_RC_API_KEY =
 
 // Internal configuration state to avoid UninitializedPurchasesError
 let isConfigured = false;
-let configurePromise: Promise<void> | null = null;
 let desiredAppUserId: string | undefined;
+let identityGeneration = 0;
+let identityQueue: Promise<void> = Promise.resolve();
+
+// Capture before asynchronous work (including module imports), not when its
+// callback eventually runs: the same user can belong to a later session.
+export const captureRevenueCatIdentity = (): number => identityGeneration;
+
+const invalidateRevenueCatIdentity = (): void => {
+  identityGeneration += 1;
+  desiredAppUserId = undefined;
+};
+
+const queueIdentityOperation = <Result>(
+  operation: () => Promise<Result>
+): Promise<Result> => {
+  const result = identityQueue.then(operation);
+  identityQueue = result.then(
+    () => undefined,
+    () => undefined
+  );
+  return result;
+};
 
 type AdCapability =
   | 'adTracker'
@@ -192,20 +223,25 @@ const SERVER_CONFIRM_ATTEMPTS = 3;
 const SERVER_CONFIRM_INTERVAL_MS = 500;
 
 async function getPurchasesModule(): Promise<PurchasesModule | null> {
-  if (Platform.OS === 'web') return null;
+  if (!revenueCatEnabled()) return null;
   try {
     // Dynamic import to avoid bundling issues on platforms without native module
     const mod: PurchasesModule = await import('react-native-purchases');
-    return mod;
+    return revenueCatEnabled() ? mod : null;
   } catch (e) {
     console.warn('[RevenueCat] SDK not available:', e);
     return null;
   }
 }
 
-async function configureInternal(appUserId?: string): Promise<void> {
+// Only call while owning identityQueue. Native effects already in flight must
+// settle before logout can clear them; obsolete work must not start a new one.
+async function configureInternal(
+  appUserId: string | undefined,
+  generation: number
+): Promise<void> {
   const RC = await getPurchasesModule();
-  if (!RC) return;
+  if (!RC || generation !== identityGeneration) return;
   try {
     sentryBreadcrumb('revenuecat_init_start', { userId: appUserId });
     const apiKey = Platform.OS === 'ios' ? IOS_RC_API_KEY : ANDROID_RC_API_KEY;
@@ -220,9 +256,12 @@ async function configureInternal(appUserId?: string): Promise<void> {
       return;
     }
     const configure = getPurchasesMember(RC, 'configure');
-    if (typeof configure === 'function') {
-      await configure({ apiKey, appUserID: appUserId });
-    }
+    if (typeof configure !== 'function') return;
+    await configure({ apiKey, appUserID: appUserId });
+    // Even an obsolete successful configuration created native identity that
+    // the queued logout must clear. Do not discard that fact on cancellation.
+    isConfigured = true;
+    if (generation !== identityGeneration) return;
     const setLogLevel = getPurchasesMember(RC, 'setLogLevel');
     const logLevels = getPurchasesMember(RC, 'LOG_LEVEL');
     if (setLogLevel && logLevels) {
@@ -233,7 +272,6 @@ async function configureInternal(appUserId?: string): Promise<void> {
         await setLogLevel(logLevel);
       }
     }
-    isConfigured = true;
     if (__DEV__) {
       console.warn('[RevenueCat] Initialized for user:', appUserId);
     }
@@ -247,39 +285,48 @@ async function configureInternal(appUserId?: string): Promise<void> {
   }
 }
 
-async function ensureInitialized(appUserId?: string): Promise<boolean> {
-  if (appUserId) {
-    desiredAppUserId = appUserId;
+async function ensureInitializedInternal(
+  appUserId: string | undefined,
+  generation: number
+): Promise<boolean> {
+  if (!revenueCatEnabled() || generation !== identityGeneration) return false;
+  if (appUserId) desiredAppUserId = appUserId;
+  if (!isConfigured) {
+    await configureInternal(desiredAppUserId, generation);
   }
-  if (isConfigured) return true;
-  if (!configurePromise) {
-    configurePromise = configureInternal(desiredAppUserId);
-  }
-  const activeAttempt = configurePromise;
-  try {
-    await activeAttempt;
-    return isConfigured;
-  } catch {
-    return false;
-  } finally {
-    // A failed or skipped configuration must not poison every future retry.
-    // Keep the shared promise only after the native SDK is configured.
-    if (!isConfigured && configurePromise === activeAttempt) {
-      configurePromise = null;
-    }
-  }
+  return generation === identityGeneration && isConfigured;
+}
+
+function ensureInitialized(
+  appUserId?: string,
+  generation = captureRevenueCatIdentity()
+): Promise<boolean> {
+  return queueIdentityOperation(() =>
+    ensureInitializedInternal(appUserId, generation)
+  );
 }
 
 async function getPurchasesForAccount(
   appUserId: string
 ): Promise<PurchasesModule | null> {
-  if (!appUserId || useAuthStore.getState().user?.id !== appUserId) return null;
+  const generation = captureRevenueCatIdentity();
+  const isCurrentAccount = () => {
+    const auth = useAuthStore.getState();
+    return (
+      Boolean(appUserId) &&
+      generation === identityGeneration &&
+      auth.isAuthenticated &&
+      !auth.isLoading &&
+      auth.user?.id === appUserId
+    );
+  };
+  if (!isCurrentAccount()) return null;
 
-  const initialized = await ensureInitialized(appUserId);
-  if (!initialized) return null;
+  const initialized = await ensureInitialized(appUserId, generation);
+  if (!initialized || !isCurrentAccount()) return null;
 
   const RC = await getPurchasesModule();
-  if (!RC) return null;
+  if (!RC || !isCurrentAccount()) return null;
 
   const getAppUserID = getPurchasesMember(RC, 'getAppUserID');
   if (typeof getAppUserID !== 'function') {
@@ -298,7 +345,7 @@ async function getPurchasesForAccount(
     return null;
   }
 
-  return useAuthStore.getState().user?.id === appUserId ? RC : null;
+  return isCurrentAccount() ? RC : null;
 }
 
 export async function prepareRevenueCatAdReward(
@@ -387,6 +434,7 @@ export async function trackRevenueCatAdEvent(
         reportMissingAdCapability(payload.type);
         return false;
       }
+      if (!revenueCatEnabled()) return false;
       await method.call(tracker, data);
       return true;
     };
@@ -560,45 +608,60 @@ export const RevenueCatAPI = {
   },
   confirmServerProAccess,
   isInitialized: () => isConfigured,
-  logIn: async (appUserId?: string) => {
-    if (!appUserId) return;
-    desiredAppUserId = appUserId;
-    try {
-      const RC = await getPurchasesModule();
-      if (!RC) return;
-      const logIn = getPurchasesMember(RC, 'logIn');
-      if (typeof logIn === 'function') {
-        const initialized = await ensureInitialized(appUserId);
-        if (!initialized) return;
-        await logIn(appUserId);
-        sentryBreadcrumb('revenuecat_login_success', {
+  invalidateIdentity: invalidateRevenueCatIdentity,
+  logIn: async (
+    appUserId?: string,
+    generation = captureRevenueCatIdentity()
+  ) => {
+    if (!appUserId || generation !== identityGeneration) return;
+    await queueIdentityOperation(async () => {
+      if (generation !== identityGeneration) return;
+      try {
+        const RC = await getPurchasesModule();
+        if (!RC || generation !== identityGeneration) return;
+        const logIn = getPurchasesMember(RC, 'logIn');
+        if (typeof logIn === 'function') {
+          // Already owns the queue. Re-enqueueing initialization here would
+          // deadlock login behind itself.
+          const initialized = await ensureInitializedInternal(
+            appUserId,
+            generation
+          );
+          if (!initialized || generation !== identityGeneration) return;
+          await logIn(appUserId);
+          if (generation !== identityGeneration) return;
+          sentryBreadcrumb('revenuecat_login_success', {
+            userId: appUserId,
+          });
+        }
+      } catch (e) {
+        sentryCapture(e, {
+          context: 'revenuecat_login_failed',
           userId: appUserId,
         });
       }
-    } catch (e) {
-      sentryCapture(e, {
-        context: 'revenuecat_login_failed',
-        userId: appUserId,
-      });
-    }
+    });
   },
   logOut: async () => {
-    try {
-      if (!isConfigured) return;
-      const RC = await getPurchasesModule();
-      if (!RC) return;
-      const logOut = getPurchasesMember(RC, 'logOut');
-      if (typeof logOut === 'function') {
-        await logOut();
-        sentryBreadcrumb('revenuecat_logout_success', {});
+    // Invalidate synchronously, even if the SDK has not finished configuring.
+    invalidateRevenueCatIdentity();
+    await queueIdentityOperation(async () => {
+      try {
+        if (!isConfigured) return;
+        const RC = await getPurchasesModule();
+        if (!RC) return;
+        const logOut = getPurchasesMember(RC, 'logOut');
+        if (typeof logOut === 'function') {
+          await logOut();
+          sentryBreadcrumb('revenuecat_logout_success', {});
+        }
+      } catch (e) {
+        sentryCapture(e, { context: 'revenuecat_logout_failed' });
+      } finally {
+        isConfigured = false;
+        desiredAppUserId = undefined;
       }
-    } catch (e) {
-      sentryCapture(e, { context: 'revenuecat_logout_failed' });
-    } finally {
-      isConfigured = false;
-      configurePromise = null;
-      desiredAppUserId = undefined;
-    }
+    });
   },
   getOfferings: async (): Promise<PurchasesOfferings | null> => {
     try {

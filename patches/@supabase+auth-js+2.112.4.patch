@@ -1,0 +1,108 @@
+diff --git a/node_modules/@supabase/auth-js/dist/main/GoTrueClient.js b/node_modules/@supabase/auth-js/dist/main/GoTrueClient.js
+--- a/node_modules/@supabase/auth-js/dist/main/GoTrueClient.js
++++ b/node_modules/@supabase/auth-js/dist/main/GoTrueClient.js
+@@ -3420,6 +3420,9 @@
+             };
+             const { data, error: sessionError } = result;
+             if (sessionError && !(0, errors_1.isAuthSessionMissingError)(sessionError)) {
++                // Local logout must survive an expired-session refresh failure.
++                // Menta serializes credential transitions and uses the shared lock.
++                if (scope !== 'others') await removeCurrentSession();
+                 return this._returnResult({ error: sessionError });
+             }
+             const accessToken = (_a = data.session) === null || _a === void 0 ? void 0 : _a.access_token;
+@@ -3638,7 +3641,7 @@
+             if (this.lock != null) {
+                 // TODO(v3): remove legacy lock path
+                 await this._acquireLock(this.lockAcquireTimeout, async () => {
+-                    this._emitInitialSession(id);
++                    await this._emitInitialSession(id);
+                 });
+             }
+             else {
+diff --git a/node_modules/@supabase/auth-js/dist/main/lib/locks.js b/node_modules/@supabase/auth-js/dist/main/lib/locks.js
+--- a/node_modules/@supabase/auth-js/dist/main/lib/locks.js
++++ b/node_modules/@supabase/auth-js/dist/main/lib/locks.js
+@@ -330,6 +330,10 @@
+             throw e;
+         }
+     })();
++    // The retained tail is not the caller-facing promise. Mark its rejection
++    // handled even when no later operation arrives to drain this lock.
++    PROCESS_LOCKS[name].then(undefined, () => {});
++
+     // finally wait for the current operation to finish successfully, with an
+     // error or with an acquire timeout error
+     return await currentOperation;
+diff --git a/node_modules/@supabase/auth-js/dist/module/GoTrueClient.js b/node_modules/@supabase/auth-js/dist/module/GoTrueClient.js
+--- a/node_modules/@supabase/auth-js/dist/module/GoTrueClient.js
++++ b/node_modules/@supabase/auth-js/dist/module/GoTrueClient.js
+@@ -3417,6 +3417,9 @@
+             };
+             const { data, error: sessionError } = result;
+             if (sessionError && !isAuthSessionMissingError(sessionError)) {
++                // Local logout must survive an expired-session refresh failure.
++                // Menta serializes credential transitions and uses the shared lock.
++                if (scope !== 'others') await removeCurrentSession();
+                 return this._returnResult({ error: sessionError });
+             }
+             const accessToken = (_a = data.session) === null || _a === void 0 ? void 0 : _a.access_token;
+@@ -3635,7 +3638,7 @@
+             if (this.lock != null) {
+                 // TODO(v3): remove legacy lock path
+                 await this._acquireLock(this.lockAcquireTimeout, async () => {
+-                    this._emitInitialSession(id);
++                    await this._emitInitialSession(id);
+                 });
+             }
+             else {
+diff --git a/node_modules/@supabase/auth-js/dist/module/lib/locks.js b/node_modules/@supabase/auth-js/dist/module/lib/locks.js
+--- a/node_modules/@supabase/auth-js/dist/module/lib/locks.js
++++ b/node_modules/@supabase/auth-js/dist/module/lib/locks.js
+@@ -322,6 +322,10 @@
+             throw e;
+         }
+     })();
++    // The retained tail is not the caller-facing promise. Mark its rejection
++    // handled even when no later operation arrives to drain this lock.
++    PROCESS_LOCKS[name].then(undefined, () => {});
++
+     // finally wait for the current operation to finish successfully, with an
+     // error or with an acquire timeout error
+     return await currentOperation;
+diff --git a/node_modules/@supabase/auth-js/src/GoTrueClient.ts b/node_modules/@supabase/auth-js/src/GoTrueClient.ts
+--- a/node_modules/@supabase/auth-js/src/GoTrueClient.ts
++++ b/node_modules/@supabase/auth-js/src/GoTrueClient.ts
+@@ -4073,6 +4073,9 @@
+       }
+       const { data, error: sessionError } = result
+       if (sessionError && !isAuthSessionMissingError(sessionError)) {
++        // Local logout must survive an expired-session refresh failure.
++        // Menta serializes credential transitions and uses the shared lock.
++        if (scope !== 'others') await removeCurrentSession()
+         return this._returnResult({ error: sessionError })
+       }
+       const accessToken = data.session?.access_token
+@@ -4333,7 +4336,7 @@
+       if (this.lock != null) {
+         // TODO(v3): remove legacy lock path
+         await this._acquireLock(this.lockAcquireTimeout, async () => {
+-          this._emitInitialSession(id)
++          await this._emitInitialSession(id)
+         })
+       } else {
+         await this._emitInitialSession(id)
+diff --git a/node_modules/@supabase/auth-js/src/lib/locks.ts b/node_modules/@supabase/auth-js/src/lib/locks.ts
+--- a/node_modules/@supabase/auth-js/src/lib/locks.ts
++++ b/node_modules/@supabase/auth-js/src/lib/locks.ts
+@@ -401,6 +401,10 @@
+     }
+   })()
+ 
++  // The retained tail is not the caller-facing promise. Mark its rejection
++  // handled even when no later operation arrives to drain this lock.
++  PROCESS_LOCKS[name].then(undefined, () => {})
++
+   // finally wait for the current operation to finish successfully, with an
+   // error or with an acquire timeout error
+   return await currentOperation

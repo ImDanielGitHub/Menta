@@ -1,4 +1,8 @@
 import {
+  pickTodayRejectedReviewNote,
+  withCorrectionReasonParams,
+} from '@/lib/proof-correction-copy';
+import {
   type MentaPalette,
   mentaRadii,
   mentaSpacing,
@@ -94,6 +98,7 @@ interface Submission {
   local_day?: string | null;
   media_url?: string | null;
   submission_text?: string | null;
+  review_notes?: string | null;
 }
 
 interface SoloParticipantRow {
@@ -244,7 +249,7 @@ export default function SoloChallengesScreen() {
           const { data: subs, error: subsError } = await supabase
             .from('challenge_submissions')
             .select(
-              'id, challenge_id, status, submission_date, local_day, media_url, submission_text'
+              'id, challenge_id, status, submission_date, local_day, media_url, submission_text, review_notes'
             )
             .eq('user_id', user.id)
             .in('challenge_id', ids)
@@ -364,7 +369,7 @@ export default function SoloChallengesScreen() {
         const { data, error } = await supabase
           .from('challenge_submissions')
           .select(
-            'id, challenge_id, status, submission_date, local_day, media_url, submission_text'
+            'id, challenge_id, status, submission_date, local_day, media_url, submission_text, review_notes'
           )
           .eq('user_id', user.id)
           .eq('challenge_id', challenge.id)
@@ -548,19 +553,30 @@ export default function SoloChallengesScreen() {
       ) {
         router.push({
           pathname: '/verification',
-          params: {
-            challengeId: challenge.id,
-            verificationType: challenge.verificationType,
-            suggestedVerificationType: challenge.verificationType,
-            source: 'solo',
-          },
+          params: withCorrectionReasonParams(
+            {
+              challengeId: challenge.id,
+              verificationType: challenge.verificationType,
+              suggestedVerificationType: challenge.verificationType,
+              source: 'solo',
+            },
+            status === 'rejected'
+              ? pickTodayRejectedReviewNote(
+                  submissionsByChallenge[challenge.id] ?? [],
+                  {
+                    timezone:
+                      Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+                  }
+                )
+              : null
+          ),
         });
         return;
       }
 
       openPromiseDetail(challenge.id);
     },
-    [openPromiseDetail, router, todayStatus]
+    [openPromiseDetail, router, submissionsByChallenge, todayStatus]
   );
 
   const openCreate = useCallback(

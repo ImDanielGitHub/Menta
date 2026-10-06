@@ -1,0 +1,35 @@
+diff --git a/node_modules/expo-image/android/src/main/java/expo/modules/image/ExpoImageModule.kt b/node_modules/expo-image/android/src/main/java/expo/modules/image/ExpoImageModule.kt
+index 2adb8be..7ea1ba6 100644
+--- a/node_modules/expo-image/android/src/main/java/expo/modules/image/ExpoImageModule.kt
++++ b/node_modules/expo-image/android/src/main/java/expo/modules/image/ExpoImageModule.kt
+@@ -8,6 +8,7 @@ import android.util.Log
+ import androidx.core.graphics.drawable.toBitmap
+ import androidx.core.graphics.drawable.toBitmapOrNull
+ import androidx.core.view.doOnDetach
++import com.facebook.drawee.backends.pipeline.Fresco
+ import com.bumptech.glide.Glide
+ import com.bumptech.glide.load.DataSource
+ import com.bumptech.glide.load.engine.DiskCacheStrategy
+@@ -254,16 +255,16 @@ class ExpoImageModule : Module() {
+     }
+ 
+     AsyncFunction("clearMemoryCache") {
+-      val activity = appContext.currentActivity ?: return@AsyncFunction false
+-      Glide.get(activity).clearMemory()
++      val context = appContext.reactContext?.applicationContext ?: return@AsyncFunction false
++      Glide.get(context).clearMemory()
++      Fresco.getImagePipeline().clearMemoryCaches()
+       return@AsyncFunction true
+     }.runOnQueue(Queues.MAIN)
+ 
+     AsyncFunction<Boolean>("clearDiskCache") {
+-      val activity = appContext.currentActivity ?: return@AsyncFunction false
+-      activity.let {
+-        Glide.get(activity).clearDiskCache()
+-      }
++      val context = appContext.reactContext?.applicationContext ?: return@AsyncFunction false
++      Glide.get(context).clearDiskCache()
++      Fresco.getImagePipeline().clearDiskCaches()
+ 
+       return@AsyncFunction true
+     }
