@@ -174,19 +174,16 @@ export const beginHomeWidgetSession = (
       else publish(snapshot, current);
     } catch {
       if (current()) {
-        const existing = useHomeWidgetStore.getState().snapshot;
-        const canKeep =
-          existing.ownerId === ownerId && existing.expiresAt > Date.now();
-        const fallback = canKeep
-          ? existing
-          : makeWidgetFallback('stale', locale);
+        // Ownership does not prove that the cached title still matches the
+        // saved showText preference. A failed preference read must redact it.
+        const fallback = makeWidgetFallback('stale', locale);
         useHomeWidgetStore.setState({
           ready: false,
           error: 'read',
           loading: false,
           snapshot: fallback,
         });
-        if (!canKeep) publish(fallback, current);
+        publish(fallback, current);
       }
     }
   })();
@@ -239,6 +236,30 @@ const readHistory = async (
     }));
 };
 
+const readWidgetPromises = async (): Promise<WidgetPromise[]> => {
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  const read = await withTimeout(readTodayAccountability(timezone));
+  if (read.source !== 'v2')
+    throw new Error('Authoritative streak data unavailable');
+  const promises = read.rows
+    .map(readWidgetPromise)
+    .filter((value): value is WidgetPromise => value !== null);
+  if (promises.length !== read.rows.length)
+    throw new Error('Incomplete widget promise data');
+  return promises;
+};
+
+/** A widget tap has its own promise ID and must not depend on local preference I/O. */
+export const readWidgetPromiseForLink = async (
+  promiseId: string
+): Promise<WidgetPromise | null> => {
+  if (!isWidgetPromiseId(promiseId)) return null;
+  return (
+    (await readWidgetPromises()).find(promise => promise.id === promiseId) ??
+    null
+  );
+};
+
 export const refreshHomeWidget = async (loadChoices = false): Promise<void> => {
   const state = useHomeWidgetStore.getState();
   if (!state.available || !state.ownerId || state.saving) return;
@@ -253,16 +274,8 @@ export const refreshHomeWidget = async (loadChoices = false): Promise<void> => {
   const current = () => epoch === sessionEpoch && request === readEpoch;
   useHomeWidgetStore.setState({ loading: true, error: null });
   try {
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
-    const read = await withTimeout(readTodayAccountability(timezone));
+    const promises = await readWidgetPromises();
     if (!current()) return;
-    if (read.source !== 'v2')
-      throw new Error('Authoritative streak data unavailable');
-    const promises = read.rows
-      .map(readWidgetPromise)
-      .filter((value): value is WidgetPromise => value !== null);
-    if (promises.length !== read.rows.length)
-      throw new Error('Incomplete widget promise data');
     const preferences = useHomeWidgetStore.getState().preferences;
     const selected = promises.find(
       promise => promise.id === preferences.promiseId

@@ -94,6 +94,12 @@ import {
 } from '@/lib/commitments/templates';
 import { listCreateIntensityOptions } from '@/lib/commitments/create-intensity-copy';
 import { type PromiseCreationReceipt } from '@/lib/commitments/promise-creation-receipt';
+import {
+  loadCreateReminderPreference,
+  persistCreateReminderPreference,
+} from '@/lib/commitments/create-reminder-preference';
+import { notificationService } from '@/lib/services/notification-service';
+import { showGlobalToast } from '@/lib/toast-provider';
 import type {
   ChallengeDifficulty,
   ChallengeVerificationType,
@@ -318,13 +324,8 @@ export default function CreateChallengeScreen() {
   const [reviewer, setReviewer] = React.useState<ReviewerChoice>({
     kind: 'self',
   });
-  const [restoredGroupId, setRestoredGroupId] = React.useState<string | null>(
-    null
-  );
   const groupId =
-    routeGroupId ??
-    restoredGroupId ??
-    (reviewer.kind === 'group' ? reviewer.groupId : null);
+    routeGroupId ?? (reviewer.kind === 'group' ? reviewer.groupId : null);
   const mode: 'solo' | 'group' =
     routeMode === 'group' || groupId ? 'group' : 'solo';
   const checkInWeekdays = checkInWeekdaysFor(checkInPlan);
@@ -604,6 +605,19 @@ export default function CreateChallengeScreen() {
   const restorePromiseDraft = React.useCallback(
     (draft: PromiseCreationDraftInput) => {
       if (draft.ownerUserId !== user?.id) return;
+      if (routeGroupId && (draft.groupId ?? null) !== routeGroupId) {
+        // Ordinary drafts do not cross into a different audience. A durable
+        // receipt or uncertain result must be resumed in its original scope.
+        if (draft.pendingFriendChallengeId || draft.unknownCreateResultAt) {
+          router.replace({
+            pathname: '/create-challenge',
+            params: draft.groupId
+              ? { mode: 'group', groupId: draft.groupId }
+              : { mode: 'solo' },
+          });
+        }
+        return;
+      }
       if (draft.pendingFriendChallengeId) {
         setCreationRecovery(null);
         const recovery = getPromiseCreationReceiptRecovery(draft.ownerUserId);
@@ -627,12 +641,23 @@ export default function CreateChallengeScreen() {
             ).indexOf(restoredStep)
           : draft.currentStep
       );
-      setReviewer(draft.reviewer ?? { kind: 'self' });
+      setReviewer(
+        draft.groupId
+          ? {
+              kind: 'group',
+              groupId: draft.groupId,
+              name:
+                draft.reviewer?.kind === 'group' &&
+                draft.reviewer.groupId === draft.groupId
+                  ? draft.reviewer.name
+                  : t('todayProof.createFlow.yourGroups'),
+            }
+          : (draft.reviewer ?? { kind: 'self' })
+      );
       setCheckInPlan(draft.checkInPlan ?? { kind: 'every' });
       setTemplateId(draft.templateId);
       setMentaBackup(draft.mentaBackup ?? false);
       setMentaMomenta(draft.mentaMomenta ?? false);
-      setRestoredGroupId(draft.groupId ?? null);
       pendingFriendRef.current = draft.pendingFriendChallengeId ?? null;
       setPendingFriendChallengeId(pendingFriendRef.current);
       creationReceiptRef.current = Boolean(pendingFriendRef.current);
@@ -658,7 +683,7 @@ export default function CreateChallengeScreen() {
         setCreationError(recovery);
       }
     },
-    [locale, showsReviewerStep, t, user?.id]
+    [locale, routeGroupId, router, showsReviewerStep, t, user?.id]
   );
 
   useFocusEffect(
@@ -696,7 +721,6 @@ export default function CreateChallengeScreen() {
       setCheckInPlan({ kind: 'every' });
       setMentaBackup(false);
       setMentaMomenta(false);
-      setRestoredGroupId(null);
       pendingFriendRef.current = null;
       setPendingFriendChallengeId(null);
       setTemplateId(selectedParamTemplate?.id);
@@ -886,8 +910,84 @@ export default function CreateChallengeScreen() {
     router.replace('/(tabs)' as never);
   }, [router]);
 
+  const reminderPreferenceRevision = React.useRef(0);
+  const reminderPreferenceWrites = React.useRef<Promise<void>>(
+    Promise.resolve()
+  );
+
+  const readCreateReminderPreference = React.useCallback(
+    async (userId: string) => {
+      const prefs = await notificationService.getUserPreferences(userId);
+      return prefs?.challenge_reminders;
+    },
+    []
+  );
+
+  const writeCreateReminderPreference = React.useCallback(
+    async (userId: string, enabled: boolean) => {
+      await notificationService.updateUserPreferences(userId, {
+        challenge_reminders: enabled,
+      });
+    },
+    []
+  );
+
+  React.useEffect(() => {
+    if (postCreateView !== 'notifications') return;
+
+    let cancelled = false;
+    const revision = reminderPreferenceRevision.current;
+    void loadCreateReminderPreference(user?.id, readCreateReminderPreference)
+      .then(enabled => {
+        if (!cancelled && revision === reminderPreferenceRevision.current)
+          setReminderEducationEnabled(enabled);
+      })
+      .catch(() => {
+        if (!cancelled && revision === reminderPreferenceRevision.current)
+          setReminderEducationEnabled(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [postCreateView, readCreateReminderPreference, user?.id]);
+
+  const handleReminderEducationChange = React.useCallback(
+    (enabled: boolean) => {
+      const owner = user?.id;
+      const scope = creationScopeRef.current;
+      const version = scope.version;
+      const previous = reminderEducationEnabled;
+      const revision = ++reminderPreferenceRevision.current;
+      const isCurrent = () =>
+        Boolean(
+          owner &&
+          scope.active &&
+          scope.version === version &&
+          scope.owner === owner &&
+          useAuthStore.getState().user?.id === owner
+        );
+      if (!isCurrent()) return;
+      setReminderEducationEnabled(enabled);
+      const write = reminderPreferenceWrites.current.then(async () => {
+        if (!isCurrent()) return;
+        await persistCreateReminderPreference(
+          owner,
+          enabled,
+          writeCreateReminderPreference
+        );
+      });
+      reminderPreferenceWrites.current = write.catch(() => {
+        if (isCurrent() && reminderPreferenceRevision.current === revision) {
+          setReminderEducationEnabled(previous);
+          showGlobalToast(t('domain.network.error'), 'error');
+        }
+      });
+    },
+    [reminderEducationEnabled, t, user?.id, writeCreateReminderPreference]
+  );
+
   const handleOpenReminderEducation = React.useCallback(() => {
-    setReminderEducationEnabled(true);
     setPostCreateView('notifications');
   }, []);
 
@@ -1821,7 +1921,7 @@ export default function CreateChallengeScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <NotificationEducationState
           enabled={reminderEducationEnabled}
-          onChangeEnabled={setReminderEducationEnabled}
+          onChangeEnabled={handleReminderEducationChange}
           onLearnPermissions={() =>
             router.push({
               pathname: '/notification-settings',

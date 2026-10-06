@@ -23,6 +23,10 @@ import { WidgetHomeScene } from '@/components/widgets/WidgetHomeScene';
 
 import { useTranslation } from '@/lib/localization';
 import { backOrReplace } from '@/lib/navigation/safe-back';
+import {
+  getHomeWidgetEmptyCreateCopy,
+  getHomeWidgetSkipCopy,
+} from '@/lib/widgets/home-widget-copy';
 import { makeStreakWidgetSnapshot } from '@/lib/widgets/widget-model';
 import {
   refreshHomeWidget,
@@ -211,16 +215,18 @@ export default function HomeWidgetScreen() {
           />
           {!state.promises.length && !state.loading ? (
             <AppButton
-              title={t('widgets.state.empty.action')}
+              title={getHomeWidgetEmptyCreateCopy(t)}
               onPress={() => router.push('/create-challenge?mode=solo')}
               fullWidth
+              testID="home-widget-empty-create"
             />
           ) : null}
           <AppButton
             fullWidth
             variant="ghost"
-            title={t('widgets.notNow')}
+            title={getHomeWidgetSkipCopy(t)}
             onPress={() => backOrReplace(router, '/(tabs)/profile')}
+            testID="home-widget-not-now"
           />
         </>
       )}

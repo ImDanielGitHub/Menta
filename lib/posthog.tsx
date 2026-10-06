@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import PostHog, { PostHogProvider } from 'posthog-react-native';
 
 import { trackAmplitudeEvent } from '@/lib/amplitude';
+import { shouldExportProductAnalyticsEvent } from '@/lib/analytics/export-policy';
 import { getPaywallAnalyticsProperties } from '@/lib/analytics/onboarding-paywall-context';
 import {
   resolveExperimentAssignment,
@@ -170,6 +171,7 @@ export const trackProductEvent = <TEvent extends MentaAnalyticsEvent>(
     ? []
     : [AnalyticsEventProperties[TEvent]]
 ): void => {
+  if (!shouldExportProductAnalyticsEvent(event, properties[0])) return;
   recordProductAnalyticsEvent(event, properties[0]);
   trackAmplitudeEvent(event, ...properties);
 

@@ -3,6 +3,7 @@ import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   createClient,
+  processLock,
   type SupabaseClient,
   User as SupabaseUser,
 } from '@supabase/supabase-js';
@@ -340,6 +341,8 @@ export type TypedSupabaseClient = SupabaseClient<Database>;
 export const supabase = createClient<any>(SUPABASE_URL, supabaseAnonKey, {
   auth: {
     storage: AsyncStorage,
+    lock: processLock,
+    lockAcquireTimeout: -1,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: Platform.OS === 'web',
@@ -367,6 +370,8 @@ export const getEmailConfirmationSupabase = (): SupabaseClient<any> => {
       {
         auth: {
           storage: AsyncStorage,
+          lock: processLock,
+          lockAcquireTimeout: -1,
           autoRefreshToken: false,
           persistSession: true,
           detectSessionInUrl: false,

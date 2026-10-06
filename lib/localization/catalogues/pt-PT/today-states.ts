@@ -83,7 +83,7 @@ export const todayStatesPtPT = {
   'today.state.pending.named_title': '{promise} aguarda análise.',
   'today.state.pending.title': 'O seu comprovativo aguarda análise.',
   'today.state.pending.detail':
-    'Ela chegou à Menta. O resultado vai aparecer aqui.',
+    'Alguém ainda precisa de aceitar. Hoje só conta depois disso. Não precisa de enviar outra vez.',
   'today.state.pending.action': 'Ver comprovativo',
   'today.state.correction.title':
     'O seu comprovativo precisa de uma alteração.',
@@ -94,7 +94,13 @@ export const todayStatesPtPT = {
   'today.state.review.named_title': '{name} enviou um comprovativo.',
   'today.state.review.title': 'Um comprovativo precisa da sua análise.',
   'today.state.review.detail':
+    'Verifique o comprovativo. Aprove ou peça uma única correção clara. Cada análise confirmada adiciona {reward} Momenta, até {dailyLimit} por dia.',
+  'today.state.review.detail_note':
+    'Leia a nota. Aprove ou peça uma única correção clara. Cada análise confirmada adiciona {reward} Momenta, até {dailyLimit} por dia.',
+  'today.state.review.detail_photo':
     'Verifique a fotografia. Aprove ou peça uma única correção clara. Cada análise confirmada adiciona {reward} Momenta, até {dailyLimit} por dia.',
+  'today.state.review.detail_video':
+    'Veja o vídeo. Aprove ou peça uma única correção clara. Cada análise confirmada adiciona {reward} Momenta, até {dailyLimit} por dia.',
   'today.state.review.action': 'Analisar comprovativo',
   'today.state.review.see_group': 'Ver grupo',
   'today.state.review.open_queue': 'Abrir fila',

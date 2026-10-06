@@ -32,7 +32,7 @@ import {
   accessibilityLabel as swiftUIAccessibilityLabel,
   font as swiftUIFont,
 } from '@expo/ui/swift-ui/modifiers';
-import NativeDatePicker from 'react-native-date-picker';
+import type NativeDatePicker from 'react-native-date-picker';
 import { ChevronRightIcon, EyeIcon, EyeOffIcon } from '@/components/ui/icons';
 import {
   AppScaledText as Text,
@@ -49,7 +49,17 @@ import { composeSpokenLabel } from '@/lib/accessibility';
 import { scaleTypeMetrics } from '@/constants/phone-layout';
 import { useTranslation } from '@/lib/localization/use-translation';
 
-const AndroidDatePicker = Platform.OS === 'android' ? NativeDatePicker : null;
+// iOS uses SwiftUI. Never evaluate the Android package on other runtimes.
+const AndroidDatePicker = (() => {
+  if (Platform.OS !== 'android') return null;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require('react-native-date-picker')
+      .default as typeof NativeDatePicker;
+  } catch {
+    return null;
+  }
+})();
 
 export interface AppTextFieldRef {
   focus: () => void;
@@ -111,6 +121,21 @@ export const AppTextField = forwardRef<AppTextFieldRef, AppTextFieldProps>(
     const theme = useTheme();
     const inheritedTextScale = useAppTextScale();
     const textScale = requestedTextScale ?? inheritedTextScale ?? undefined;
+    // SwiftUI does not yet preserve these TextInput contracts. Route callers
+    // that require them through the existing native TextInput implementation.
+    const requiresNativeInput =
+      props.maxLength !== undefined ||
+      props.autoCorrect !== undefined ||
+      props.spellCheck !== undefined ||
+      props.textContentType !== undefined ||
+      props.autoComplete !== undefined ||
+      props.autoCapitalize !== undefined ||
+      props.keyboardType !== undefined ||
+      props.returnKeyType !== undefined ||
+      Boolean(onSubmitEditing || nextInputRef || dismissKeyboardOnSubmit);
+    const showExpoField =
+      canUseExpoField({ multiline, editable }) && !requiresNativeInput;
+
     const expoRef = useRef<ExpoTextFieldRef | null>(null);
     const expoTextState = useNativeState(String(defaultValue ?? value ?? ''));
     const nativeRef = useRef<TextInput | null>(null);
@@ -119,14 +144,14 @@ export const AppTextField = forwardRef<AppTextFieldRef, AppTextFieldProps>(
 
     useImperativeHandle(ref, () => ({
       focus: () => {
-        if (canUseExpoField({ multiline, editable })) {
+        if (showExpoField) {
           void expoRef.current?.focus();
           return;
         }
         nativeRef.current?.focus();
       },
       blur: () => {
-        if (canUseExpoField({ multiline, editable })) {
+        if (showExpoField) {
           void expoRef.current?.blur();
           return;
         }
@@ -134,7 +159,7 @@ export const AppTextField = forwardRef<AppTextFieldRef, AppTextFieldProps>(
       },
       clear: () => {
         lastValueRef.current = '';
-        if (canUseExpoField({ multiline, editable })) {
+        if (showExpoField) {
           expoTextState.set('');
           props.onChangeText?.('');
           return;
@@ -150,7 +175,7 @@ export const AppTextField = forwardRef<AppTextFieldRef, AppTextFieldProps>(
         return;
       }
       const nextValue = String(value);
-      if (!canUseExpoField({ multiline, editable })) {
+      if (!showExpoField) {
         return;
       }
       if (nextValue === lastValueRef.current) {
@@ -158,7 +183,7 @@ export const AppTextField = forwardRef<AppTextFieldRef, AppTextFieldProps>(
       }
       lastValueRef.current = nextValue;
       expoTextState.set(nextValue);
-    }, [editable, expoTextState, multiline, value]);
+    }, [expoTextState, showExpoField, value]);
 
     const handleSubmit = () => {
       onSubmitEditing?.();
@@ -174,7 +199,6 @@ export const AppTextField = forwardRef<AppTextFieldRef, AppTextFieldProps>(
         ? theme.colors.border.focus
         : theme.colors.border.primary;
 
-    const showExpoField = canUseExpoField({ multiline, editable });
     const resolvedAccessibilityLabel =
       props.accessibilityLabel ?? label ?? placeholder;
     const scaledInputStyle =

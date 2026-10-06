@@ -54,6 +54,9 @@ const loadOneSignalSdk = async (): Promise<OneSignalSdk> =>
 const openUrlWithLinking = (url: string): Promise<unknown> =>
   Linking.openURL(url);
 
+const ACCOUNT_SCOPED_DATA_DISABLED =
+  'OneSignal account-scoped data sharing is disabled';
+
 export const isValidOneSignalAppId = (value: unknown): value is string =>
   typeof value === 'string' && ONESIGNAL_APP_ID.test(value.trim());
 
@@ -179,6 +182,11 @@ export class OneSignalRetentionNotificationProvider implements RetentionNotifica
     if (!this.initializationPromise) {
       this.initializationPromise = this.loadSdk().then(sdk => {
         sdk.initialize(this.appId);
+        // OneSignal's public mobile SDK cannot authenticate external IDs. Keep
+        // this installation anonymous until provider-side identity
+        // verification is available, including when an older app release left
+        // a persisted external identity on the native SDK.
+        sdk.logout();
         sdk.Notifications.addEventListener(
           'click',
           this.handleNotificationClick
@@ -236,10 +244,13 @@ export class OneSignalRetentionNotificationProvider implements RetentionNotifica
     }
   }
 
-  async bindExternalUser(userId: string): Promise<void> {
+  async bindExternalUser(_userId: string): Promise<void> {
     try {
       const sdk = await this.getSdk();
-      sdk.login(userId);
+      // Preserve the client's permission and click lifecycle without binding
+      // an unauthenticated external ID. Repeating logout also covers a native
+      // identity added between initialization and profile hydration.
+      sdk.logout();
       trackProductEvent('Notification Provider Outcome', {
         operation: 'bind_user',
         outcome: 'succeeded',
@@ -256,34 +267,23 @@ export class OneSignalRetentionNotificationProvider implements RetentionNotifica
   }
 
   async recordEvent(
-    event: RetentionEventName,
-    properties: RetentionEventProperties
+    _event: RetentionEventName,
+    _properties: RetentionEventProperties
   ): Promise<void> {
-    const sdk = await this.getSdk();
-    sdk.User.trackEvent(event, properties);
+    throw new Error(ACCOUNT_SCOPED_DATA_DISABLED);
   }
 
-  async syncInAppTriggers(triggers: RetentionInAppTriggers): Promise<void> {
-    const sdk = await this.getSdk();
-    const context = triggers.notification_prompt_context;
-    if (
-      context === 'first_promise' ||
-      context === 'promise_invite' ||
-      context === 'settings'
-    ) {
-      this.activePromptContext = context;
-    }
-    sdk.InAppMessages.addTriggers(triggers);
+  async syncInAppTriggers(_triggers: RetentionInAppTriggers): Promise<void> {
+    throw new Error(ACCOUNT_SCOPED_DATA_DISABLED);
   }
 
   async removeInAppTriggers(
     names: readonly RetentionInAppTriggerName[]
   ): Promise<void> {
-    const sdk = await this.getSdk();
-    sdk.InAppMessages.removeTriggers([...names]);
     if (names.includes('notification_prompt_context')) {
       this.activePromptContext = 'other';
     }
+    throw new Error(ACCOUNT_SCOPED_DATA_DISABLED);
   }
 
   async requestPushPermission(fallbackToSettings: boolean): Promise<boolean> {
@@ -296,24 +296,15 @@ export class OneSignalRetentionNotificationProvider implements RetentionNotifica
     return () => this.permissionListeners.delete(listener);
   }
 
-  async syncAudienceTags(tags: RetentionAudienceTags): Promise<void> {
-    const sdk = await this.getSdk();
-    sdk.User.addTags(
-      Object.fromEntries(
-        Object.entries(tags).map(([key, value]) => [key, String(value)])
-      )
-    );
+  async syncAudienceTags(_tags: RetentionAudienceTags): Promise<void> {
+    throw new Error(ACCOUNT_SCOPED_DATA_DISABLED);
   }
 
-  async syncEmailSubscription(email: string, enabled: boolean): Promise<void> {
-    const sdk = await this.getSdk();
-    if (enabled) sdk.User.addEmail(email);
-    else sdk.User.removeEmail(email);
-    trackProductEvent('Notification Provider Outcome', {
-      operation: 'channel_subscription',
-      outcome: 'succeeded',
-      provider: 'onesignal',
-    });
+  async syncEmailSubscription(
+    _email: string,
+    _enabled: boolean
+  ): Promise<void> {
+    throw new Error(ACCOUNT_SCOPED_DATA_DISABLED);
   }
 
   async unbindExternalUser(): Promise<void> {
@@ -327,14 +318,7 @@ export class OneSignalRetentionNotificationProvider implements RetentionNotifica
     }
     const sdk = await this.initializationPromise;
 
-    try {
-      sdk.InAppMessages.removeTriggers([
-        ...ONESIGNAL_OWNED_IN_APP_TRIGGER_NAMES,
-      ]);
-    } catch {}
-
-    // Identity removal is the privacy-critical operation. Do not let a local
-    // in-app-trigger cleanup error prevent logout.
+    // Identity removal is the privacy-critical operation.
     try {
       sdk.logout();
       trackProductEvent('Notification Provider Outcome', {

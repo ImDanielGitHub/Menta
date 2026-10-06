@@ -20,6 +20,7 @@ import {
 } from '@/lib/commerce/commerce-readback';
 import { waitForRevenueCatAdRewardReceipt } from '@/lib/ads/revenuecat-reward-receipt';
 import { createClientEventId } from '@/lib/client-event-id';
+import { getMomentaSpendSignInCopy } from '@/lib/momenta/spend-auth-copy';
 import { getPowerUpSupport } from '@/lib/shop/powerUpSupport';
 
 export type PurchaseableItem = {
@@ -47,11 +48,7 @@ export type PurchaseableItem = {
 };
 
 export type TransactionType =
-  | 'earned'
-  | 'spent'
-  | 'bonus'
-  | 'purchase'
-  | 'adjustment';
+  'earned' | 'spent' | 'bonus' | 'purchase' | 'adjustment';
 
 const TRANSACTION_TYPES: readonly TransactionType[] = [
   'earned',
@@ -98,10 +95,7 @@ export interface OwnedItem {
 }
 
 export type ShopPurchaseOutcome =
-  | 'confirmed'
-  | 'insufficient-balance'
-  | 'failed'
-  | 'unknown';
+  'confirmed' | 'insufficient-balance' | 'failed' | 'unknown';
 
 export type ShopPurchaseReceipt = {
   clientEventId: string;
@@ -139,11 +133,7 @@ export type AdRewardClaimResult = {
   earned: boolean;
   amount: number;
   reason?:
-    | 'daily-limit'
-    | 'cooldown'
-    | 'unauthenticated'
-    | 'in-progress'
-    | 'unknown';
+    'daily-limit' | 'cooldown' | 'unauthenticated' | 'in-progress' | 'unknown';
   message?: string;
 };
 
@@ -987,10 +977,8 @@ export const useMomentaStore = create<MomentaState>()(
             data: { user },
           } = await supabase.auth.getUser();
           if (!user) {
-            showToast.error(
-              translate('en-NZ', 'sourceGate.momenta.loginRequired'),
-              translate('en-NZ', 'sourceGate.momenta.loginRequiredDetail')
-            );
+            const copy = getMomentaSpendSignInCopy();
+            showToast.error(copy.title, copy.detail);
             return false;
           }
           if (

@@ -1,6 +1,12 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  getGroupDetailErrorKind,
+  normalizeGroupReadError,
+  readGroupResource,
+} from '@/lib/groups/group-access-boundary';
 
-import { supabase } from '@/lib/supabase';
+import { useTranslation } from '@/lib/localization';
+import { resolveAccountabilityMemberName } from '@/lib/loop/accountability-member-copy';
 import {
   buildGroupAccountabilitySnapshot,
   type GroupAccountabilitySnapshot,
@@ -9,6 +15,7 @@ import {
   type GroupBoardSubmissionInput,
 } from '@/lib/loop/group-accountability-board';
 import { interactiveQueryConfig } from '@/lib/queryClient';
+import { supabase } from '@/lib/supabase';
 
 type SubmissionRow = {
   user_id: string;
@@ -45,7 +52,8 @@ const encouragementIds = (value: unknown): string[] => {
 
 const normaliseMediaProof = (
   value: unknown,
-  memberNames: ReadonlyMap<string, string>
+  memberNames: ReadonlyMap<string, string>,
+  unnamedMemberName: string
 ): GroupBoardMediaProof | null => {
   const row = asRecord(value);
   if (!row) return null;
@@ -73,8 +81,8 @@ const normaliseMediaProof = (
   const contributorName =
     asString(profile?.display_name) ||
     asString(profile?.username) ||
-    memberNames.get(contributorId);
-  if (!contributorName) return null;
+    memberNames.get(contributorId) ||
+    unnamedMemberName;
 
   return {
     id,
@@ -135,40 +143,63 @@ export const useGroupAccountabilityBoard = ({
   participantUserIds?: readonly string[];
   enabled?: boolean;
 }) => {
+  const { locale, t } = useTranslation();
+  const unnamedMemberName = resolveAccountabilityMemberName(null, null, t);
+  const namedMembers = members.map(member => ({
+    ...member,
+    name: resolveAccountabilityMemberName(member.name, null, t),
+  }));
   const stableChallengeIds = [...challengeIds].sort();
-  const stableMemberIds = members.map(member => member.userId).sort();
+  const stableMemberIds = namedMembers.map(member => member.userId).sort();
   const stableParticipantIds = participantUserIds
     ? [...participantUserIds].sort()
     : null;
 
-  const query = useQuery<GroupAccountabilitySnapshot>({
-    queryKey: [
-      'groupAccountabilityBoard',
-      userId ?? '',
-      groupId ?? '',
-      stableChallengeIds,
-      stableMemberIds,
-      stableParticipantIds,
-    ],
-    queryFn: async () => {
-      const participants = stableParticipantIds
-        ? new Set(stableParticipantIds)
-        : null;
-      const participantMembers = participants
-        ? members.filter(member => participants.has(member.userId))
-        : members;
-      if (!groupId || stableChallengeIds.length === 0) {
-        return emptySnapshot(participantMembers);
-      }
+  const queryClient = useQueryClient();
+  const authorityKey = [
+    'groupAccountabilityBoard',
+    userId ?? '',
+    groupId ?? '',
+  ];
+  const queryKey = [
+    'groupAccountabilityBoard',
+    userId ?? '',
+    groupId ?? '',
+    locale,
+    stableChallengeIds,
+    stableMemberIds,
+    stableParticipantIds,
+  ];
+  const query = useQuery<GroupAccountabilitySnapshot | null>({
+    queryKey,
+    queryFn: () =>
+      readGroupResource(
+        queryClient,
+        {
+          userId: userId ?? '',
+          groupId: groupId ?? '',
+          queryKey,
+          authorityKey,
+        },
+        async () => {
+          const participants = stableParticipantIds
+            ? new Set(stableParticipantIds)
+            : null;
+          const participantMembers = participants
+            ? namedMembers.filter(member => participants.has(member.userId))
+            : namedMembers;
+          if (!groupId || stableChallengeIds.length === 0) {
+            return emptySnapshot(participantMembers);
+          }
 
-      const [boardRead, proofRead] = await Promise.all([
-        supabase.rpc('get_group_accountability_board', {
-          p_group_id: groupId,
-        }),
-        supabase
-          .from('challenge_submissions')
-          .select(
-            `
+          const [boardRead, proofRead] = await Promise.all([
+            supabase.rpc('get_group_accountability_board', {
+              p_group_id: groupId,
+            }),
+            supabase
+              .from('challenge_submissions')
+              .select(
+                `
               id,
               challenge_id,
               user_id,
@@ -185,67 +216,88 @@ export const useGroupAccountabilityBoard = ({
                 user_id
               )
             `
-          )
-          .in('challenge_id', stableChallengeIds)
-          .in('media_type', ['photo', 'video'])
-          .in('status', ['pending', 'approved', 'rejected'])
-          .not('media_url', 'is', null)
-          .order('submission_date', { ascending: false })
-          .limit(12),
-      ]);
+              )
+              .in('challenge_id', stableChallengeIds)
+              .in('media_type', ['photo', 'video'])
+              .in('status', ['pending', 'approved', 'rejected'])
+              .not('media_url', 'is', null)
+              .order('submission_date', { ascending: false })
+              .limit(12),
+          ]);
 
-      if (boardRead.error) {
-        throw boardRead.error;
-      }
+          if (boardRead.error) {
+            throw normalizeGroupReadError(boardRead.error, boardRead.status);
+          }
+          if (proofRead.error) {
+            const error = normalizeGroupReadError(
+              proofRead.error,
+              proofRead.status
+            );
+            const kind = getGroupDetailErrorKind(error);
+            if (
+              kind === 'permission' ||
+              kind === 'not-found' ||
+              queryClient.getQueryData(queryKey) === null
+            )
+              throw error;
+          }
 
-      const rows = (
-        (boardRead.data ?? []) as unknown as SubmissionRow[]
-      ).filter(row => !participants || participants.has(row.user_id));
-      const boardMembers =
-        rows.length > 0
-          ? rows.map(row => ({
-              userId: row.user_id,
-              name: row.display_name || row.username || 'Member',
-              avatarUrl: row.avatar_url,
-              isCurrentUser: row.is_current_user,
-            }))
-          : participantMembers;
-      const submissions = rows
-        .map(normaliseSubmission)
-        .filter(
-          (submission): submission is GroupBoardSubmissionInput =>
-            submission !== null
-        );
-      const memberNames = new Map(
-        boardMembers.map(member => [member.userId, member.name] as const)
-      );
-      const recentProof = proofRead.error
-        ? []
-        : (proofRead.data ?? [])
-            .map(row => normaliseMediaProof(row, memberNames))
-            .filter((proof): proof is GroupBoardMediaProof => proof !== null);
+          const rows = (
+            (boardRead.data ?? []) as unknown as SubmissionRow[]
+          ).filter(row => !participants || participants.has(row.user_id));
+          const boardMembers =
+            rows.length > 0
+              ? rows.map(row => ({
+                  userId: row.user_id,
+                  name: resolveAccountabilityMemberName(
+                    row.display_name,
+                    row.username,
+                    t
+                  ),
+                  avatarUrl: row.avatar_url,
+                  isCurrentUser: row.is_current_user,
+                }))
+              : participantMembers;
+          const submissions = rows
+            .map(normaliseSubmission)
+            .filter(
+              (submission): submission is GroupBoardSubmissionInput =>
+                submission !== null
+            );
+          const memberNames = new Map(
+            boardMembers.map(member => [member.userId, member.name] as const)
+          );
+          const recentProof = proofRead.error
+            ? []
+            : (proofRead.data ?? [])
+                .map(row =>
+                  normaliseMediaProof(row, memberNames, unnamedMemberName)
+                )
+                .filter(
+                  (proof): proof is GroupBoardMediaProof => proof !== null
+                );
 
-      return buildGroupAccountabilitySnapshot({
-        members: boardMembers,
-        submissions,
-        recentProof,
-        proofReadState: proofRead.error ? 'unavailable' : 'available',
-      });
-    },
+          return buildGroupAccountabilitySnapshot({
+            members: boardMembers,
+            submissions,
+            recentProof,
+            proofReadState: proofRead.error ? 'unavailable' : 'available',
+          });
+        }
+      ),
     enabled: Boolean(groupId) && enabled,
     ...interactiveQueryConfig,
   });
 
   return {
     ...query,
-    hasSnapshot: query.data !== undefined,
+    hasSnapshot: query.data != null,
+    accessDenied: query.data === null,
     isInitialLoading: query.isPending && query.data === undefined,
     isStaleSnapshot:
-      query.data !== undefined &&
-      (query.isError || query.fetchStatus === 'paused'),
+      query.data != null && (query.isError || query.fetchStatus === 'paused'),
     isUnavailable:
-      query.data === undefined &&
-      (query.isError || query.fetchStatus === 'paused'),
+      query.data == null && (query.isError || query.fetchStatus === 'paused'),
     lastUpdatedAt: query.dataUpdatedAt || undefined,
   };
 };

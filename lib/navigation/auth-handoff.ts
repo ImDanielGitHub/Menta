@@ -3,10 +3,7 @@ import { translate } from '@/lib/localization';
 export type AuthHandoffMode = 'login' | 'signup';
 
 export type AuthHandoffSurface =
-  | 'login'
-  | 'register'
-  | 'email-auth'
-  | 'onboarding';
+  'login' | 'register' | 'email-auth' | 'onboarding';
 
 export type OnboardingHandoffAction = 'sign_in' | 'finish_setup';
 

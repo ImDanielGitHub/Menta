@@ -15,6 +15,11 @@ import {
   DEFAULT_PROOF_DUE_TIME,
   resolveProofDueCountdown,
 } from '@/lib/time/proof-due';
+import {
+  getProofDueHelperCopy,
+  getProofDueHelperKind,
+  getProofDueRemainingCopy,
+} from '@/lib/time/proof-due-copy';
 import { useTranslation } from '@/lib/localization';
 
 type ProofDueCountdownProps = {
@@ -75,18 +80,18 @@ export const ProofDueCountdown: React.FC<ProofDueCountdownProps> = ({
       : state.phase === 'due'
         ? t('todayProof.streak.reminder_in')
         : t('todayProof.streak.proof_counts');
+  const helperLabel = getProofDueHelperCopy(
+    getProofDueHelperKind(state),
+    state.proofDueLabel,
+    t
+  );
   const helper = promiseLabel
     ? t('todayProof.streak.promise_countdown_helper', {
         promise: promiseLabel,
-        helper: state.helperLabel.replace(/\.$/, ''),
+        helper: helperLabel.replace(/\.$/, ''),
       })
-    : state.helperLabel;
-  const durationLabel =
-    state.hours === 0
-      ? state.minutes === 1
-        ? t('todayProof.streak.minute', { count: state.minutes })
-        : t('todayProof.streak.minutes', { count: state.minutes })
-      : state.remainingLabel;
+    : helperLabel;
+  const durationLabel = getProofDueRemainingCopy(state.hours, state.minutes, t);
   const heroSuffix =
     state.target === 'extension'
       ? t('todayProof.streak.until_extension')
@@ -132,7 +137,7 @@ export const ProofDueCountdown: React.FC<ProofDueCountdownProps> = ({
     <View
       accessibilityLabel={t('todayProof.streak.card_accessibility', {
         eyebrow,
-        remaining: state.remainingLabel,
+        remaining: durationLabel,
         helper,
       })}
       accessibilityRole="text"
@@ -143,7 +148,7 @@ export const ProofDueCountdown: React.FC<ProofDueCountdownProps> = ({
         <ClockIcon color={mentaColors.warning} size={22} />
         <Text style={styles.eyebrow}>{eyebrow}</Text>
       </View>
-      <Text style={styles.remaining}>{state.remainingLabel}</Text>
+      <Text style={styles.remaining}>{durationLabel}</Text>
       <Text style={styles.helper}>{helper}</Text>
     </View>
   );

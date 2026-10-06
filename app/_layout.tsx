@@ -27,7 +27,6 @@ import {
 import * as Linking from 'expo-linking';
 import { useAuthStore } from '@/store/auth-store';
 import { useChallengeStore } from '@/store/challenge-store';
-import { useGroupStore } from '@/store/group-store';
 import { useReferralStore } from '@/store/referral-store';
 import { useInviteStore } from '@/store/invite-store';
 import { useMomentaStore } from '@/store/momenta-store';
@@ -44,6 +43,7 @@ import { ThemeProvider, useTheme } from '@/constants/ThemeContext';
 import { DensityProvider } from '@/constants/DensityContext';
 import { WebNotSupported } from '@/components/WebNotSupported';
 import { PaywallHost } from '@/components/paywall/PaywallHost';
+import { captureRevenueCatIdentity } from '@/lib/paywall/revenuecat';
 import { LegacyAppUpdateGate } from '@/components/update/LegacyAppUpdateGate';
 import {
   bootstrapSentry,
@@ -64,6 +64,8 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { queryClient, asyncStoragePersister } from '@/lib/queryClient';
 import { HomeWidgetSync } from '@/components/widgets/HomeWidgetSync';
+import { StartupFaceOverlay } from '@/components/ui/StartupFaceOverlay';
+import { hideNativeStartupSplashAfterRenderError } from '@/lib/startup-splash';
 import ErrorBoundary from './error-boundary';
 import { initializeAds } from '@/lib/ads';
 import { showToast, ToastProvider } from '@/components/ui/Toast';
@@ -74,6 +76,8 @@ import {
   PRIMARY_INVITE_HOST,
 } from '@/lib/invite-links';
 import { getAppIntentDeepLinkAction } from '@/lib/app-intents/deep-links';
+import { withCorrectionReasonParams } from '@/lib/proof-correction-copy';
+import { readTodayCorrectionReason } from '@/lib/proof/today-correction-reason';
 import { getInviteDeepLinkAction } from '@/lib/navigation/invite-deep-link';
 import {
   buildEventInviteEntryHref,
@@ -129,6 +133,7 @@ import {
 } from '@/lib/posthog';
 import { OtaUpdateReadyHost } from '@/components/update/OtaUpdateReadyHost';
 import { useTranslation } from '@/lib/localization/use-translation';
+import { getMyFirstDueProofTarget } from '@/lib/proof/due-proof-target';
 
 const e2eMode = isE2EMode();
 
@@ -682,6 +687,7 @@ function NativeRootLayoutContent() {
         // Handle quick check-ins: menta://checkin?challengeId=XYZ
         else if (appIntentAction?.type === 'checkin') {
           let challengeId = appIntentAction.challengeId;
+          let serverVerificationType: string | null = null;
 
           if (!isAuthenticated) {
             setPendingProtectedRoute('/(tabs)', 'deep_link', null);
@@ -698,15 +704,14 @@ function NativeRootLayoutContent() {
             return;
           }
 
-          // If no challengeId provided, try to pick the first pending submission
+          // Without an explicit target, ask the server for the first active,
+          // enrolled proof that is currently due. The response intentionally
+          // contains no group, promise, deadline, or streak metadata.
           if (!challengeId) {
             try {
-              const { getTodaysSubmissions } = useGroupStore.getState();
-              const subs = await getTodaysSubmissions(user!.id);
-              const pending = subs.find(s => !s.hasSubmittedToday);
-              if (pending) {
-                challengeId = pending.challengeId;
-              }
+              const target = await getMyFirstDueProofTarget();
+              challengeId = target?.challengeId;
+              serverVerificationType = target?.verificationType ?? null;
             } catch (error) {
               console.warn(
                 '[RootLayout] Failed to resolve pending submission for quick check-in',
@@ -726,7 +731,8 @@ function NativeRootLayoutContent() {
 
           const { challenges: challengeState } = useChallengeStore.getState();
           const challenge = challengeState.find(c => c.id === challengeId);
-          const verificationType = challenge?.verificationType;
+          const verificationType =
+            serverVerificationType ?? challenge?.verificationType;
           const supportedMediaTypes: ReadonlySet<string> = new Set([
             'photo',
             'video',
@@ -734,14 +740,30 @@ function NativeRootLayoutContent() {
           ]);
 
           if (verificationType && supportedMediaTypes.has(verificationType)) {
+            const correctionOwner = user?.id;
+            if (
+              !correctionOwner ||
+              useAuthStore.getState().user?.id !== correctionOwner
+            )
+              return;
+            const correctionReason = correctionOwner
+              ? await readTodayCorrectionReason({
+                  challengeId,
+                  userId: correctionOwner,
+                }).catch(() => null)
+              : null;
+            if (useAuthStore.getState().user?.id !== correctionOwner) return;
             router.push({
               pathname: '/verification',
-              params: {
-                challengeId,
-                verificationType,
-                suggestedVerificationType: verificationType,
-                source: 'quick_checkin',
-              },
+              params: withCorrectionReasonParams(
+                {
+                  challengeId,
+                  verificationType,
+                  suggestedVerificationType: verificationType,
+                  source: 'quick_checkin',
+                },
+                correctionReason
+              ),
             });
           } else {
             router.push(`/challenges/${challengeId}`);
@@ -913,6 +935,8 @@ function NativeRootLayoutContent() {
 
   // Keep Sentry and purchase identity aligned with the current account.
   useEffect(() => {
+    let cancelled = false;
+    const identity = captureRevenueCatIdentity();
     if (user) {
       startTransition(() => {
         // Set user context in Sentry (non-blocking)
@@ -925,15 +949,26 @@ function NativeRootLayoutContent() {
         // CRITICAL: Log in to RevenueCat with user's Supabase ID
         // This ensures purchases are associated with the correct user
         // and webhooks can match the app_user_id to our database
-        import('@/lib/paywall/revenuecat')
-          .then(({ RevenueCatAPI }) => {
-            RevenueCatAPI.logIn(user.id).catch(e => {
-              console.warn('[RootLayout] RevenueCat login failed:', e);
+        if (!isLoading) {
+          import('@/lib/paywall/revenuecat')
+            .then(({ RevenueCatAPI }) => {
+              const auth = useAuthStore.getState();
+              if (
+                cancelled ||
+                auth.isLoading ||
+                !auth.isAuthenticated ||
+                auth.user?.id !== user.id
+              ) {
+                return;
+              }
+              return RevenueCatAPI.logIn(user.id, identity).catch(e => {
+                console.warn('[RootLayout] RevenueCat login failed:', e);
+              });
+            })
+            .catch(error => {
+              rootDebugLog('[RootLayout] RevenueCat module unavailable', error);
             });
-          })
-          .catch(error => {
-            rootDebugLog('[RootLayout] RevenueCat module unavailable', error);
-          });
+        }
 
         // Keep shared diagnostics context non-identifying.
         setRuntimeContext({
@@ -953,7 +988,10 @@ function NativeRootLayoutContent() {
         });
       });
     }
-  }, [user]);
+    return () => {
+      cancelled = true;
+    };
+  }, [user, isLoading]);
 
   // Navigation logic with enhanced error handling (+ Beta Gate pre-auth)
   useEffect(() => {
@@ -1632,19 +1670,12 @@ export default sentryWrap(function RootLayout() {
     state => state.equippedItemSkus.theme
   );
 
-  useEffect(() => {
-    if (Platform.OS !== 'web' && (fontsLoaded || fontError)) {
-      void SplashScreen.hideAsync().catch(error => {
-        void error;
-      });
-    }
-  }, [fontError, fontsLoaded]);
-
   if (!fontsLoaded && !fontError) return null;
 
   return (
     <ErrorBoundary
       onError={(error, errorInfo) => {
+        if (Platform.OS !== 'web') hideNativeStartupSplashAfterRenderError();
         console.error(
           '[RootLayout] Top-level error boundary triggered:',
           error,
@@ -1669,6 +1700,7 @@ export default sentryWrap(function RootLayout() {
             </QueryClientProvider>
           </MentaPostHogProvider>
         </SafeAreaProvider>
+        <StartupFaceOverlay />
       </GestureHandlerRootView>
     </ErrorBoundary>
   );

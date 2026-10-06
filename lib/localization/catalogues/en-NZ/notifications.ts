@@ -99,7 +99,8 @@ export const notificationsEnNZ = {
   'notifications.onboarding.permission_off.title': 'Notifications are off',
   'notifications.onboarding.permission_off.body':
     'Menta works without notifications. You can turn reminders on later from Settings.',
-  'notifications.onboarding.permission_off.action': 'Continue',
+  'notifications.onboarding.permission_off.action':
+    'Continue without reminders',
   'notifications.onboarding.permission_off.settings': 'Open settings',
   'notifications.onboarding.granted.title': 'Notifications are on',
   'notifications.onboarding.granted.body':

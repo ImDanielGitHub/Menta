@@ -88,6 +88,9 @@ export const hasAuthoritativeLocalDay = (
       submission.local_day !== null && submission.local_day !== undefined
   ) ?? false;
 
-/** Existing same-day proof is view-only from the list to avoid duplicate-submit copy. */
+/**
+ * Pending or accepted proof stays view-only from the list so we do not invite
+ * a second send. A rejected proof needs a clearer follow-up, so it submits.
+ */
 export const getSoloTodayAction = (status: SoloTodayStatus): SoloTodayAction =>
-  status === 'none' ? 'submit' : 'view-details';
+  status === 'none' || status === 'rejected' ? 'submit' : 'view-details';

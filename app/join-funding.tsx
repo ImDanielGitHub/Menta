@@ -19,8 +19,13 @@ import { useAuthStore } from '@/store/auth-store';
 import { useChallengeStore } from '@/store/challenge-store';
 import { useInviteStore } from '@/store/invite-store';
 import { useJoinFundingStore } from '@/store/join-funding-store';
-
+import {
+  getJoinFundingMembershipWithoutReceiptCopy,
+  getJoinFundingNoReceiptCopy,
+  getJoinFundingRetryLabel,
+} from '@/lib/groups/join-funding-copy';
 import { useTranslation } from '@/lib/localization';
+
 const firstParam = (value: string | string[] | undefined): string | null => {
   if (Array.isArray(value)) return value[0]?.trim() || null;
   return value?.trim() || null;
@@ -291,10 +296,10 @@ export default function JoinFundingRoute() {
         joinState.quote?.challengeId ?? joinState.target?.challengeId;
       return (
         <JoinMembershipWithoutReceiptState
-          message={
-            joinState.message ??
-            'No new Momenta debit is being claimed on this screen.'
-          }
+          message={getJoinFundingMembershipWithoutReceiptCopy(
+            joinState.message,
+            t
+          )}
           onOpen={() => {
             if (!challengeId) return;
             if (
@@ -319,11 +324,8 @@ export default function JoinFundingRoute() {
 
     return (
       <JoinFundingFailureState
-        message={
-          joinState.message ??
-          'Menta did not receive an authoritative join result.'
-        }
-        actionLabel={joinState.retry ? 'Try again' : undefined}
+        message={getJoinFundingNoReceiptCopy(joinState.message, t)}
+        actionLabel={joinState.retry ? getJoinFundingRetryLabel(t) : undefined}
         onAction={joinState.retry ? handleRetry : undefined}
         onBack={goBack}
       />

@@ -438,11 +438,12 @@ export const fullTodayProofEnNZ = {
   'todayProof.promise.preparing_invite': 'Preparing invite…',
   'todayProof.promise.open_review_queue': 'Open review queue',
   'todayProof.promise.report': 'Report promise',
-  'todayProof.promise.reminder_question': 'Would you like a reminder?',
+  'todayProof.promise.reminder_question': 'Want proof reminders?',
   'todayProof.promise.reminder_detail':
-    'Menta can remind you before this promise is due.',
-  'todayProof.promise.remind_about': 'Remind me about this promise',
-  'todayProof.promise.remind_detail': 'Send one reminder before proof is due.',
+    'Menta can remind you before proof is due on any active promise. This choice applies to every promise, not just this one.',
+  'todayProof.promise.remind_about': 'Proof reminders',
+  'todayProof.promise.remind_detail':
+    'Applies to every promise, not just this one.',
   'todayProof.promise.set_reminders': 'Set up reminders',
   'todayProof.promise.without_reminders': 'Continue without reminders',
   'todayProof.promise.invite_question': 'Invite someone to this promise?',
@@ -581,6 +582,14 @@ export const fullTodayProofEnNZ = {
     'We could not confirm whether the proof was sent. Check its status before trying again.',
   'todayProof.proof.failed_detail':
     'Proof was not sent. Check your connection and try again. Your draft stays here if it was saved locally.',
+  'todayProof.proof.already_sent':
+    "Today's proof is already on this promise. You do not need to send it again.",
+  'todayProof.proof.not_joined':
+    'You need to join this promise before you can send proof.',
+  'todayProof.proof.text_too_generic':
+    'Add a detail. “Done” alone is not enough.',
+  'todayProof.proof.safety_disclosure':
+    'Proof must be safe for work (SFW). If someone reports it, authorised Menta staff can review it for safety.',
   'todayProof.proof.share_accepted':
     "My proof for today's promise was approved on Menta.",
   'todayProof.proof.share_pending':
@@ -655,6 +664,9 @@ export const fullTodayProofEnNZ = {
   'todayProof.review.queue': 'Review queue',
   'todayProof.review.nothing_else': 'Nothing else to review yet',
   'todayProof.review.no_submissions': 'No submissions to review',
+  'todayProof.review.empty_title_approved': 'No approved proof here',
+  'todayProof.review.empty_title_retry': 'No proof needs another try',
+  'todayProof.review.empty_title_all': 'No proof here',
   'todayProof.review.reward_unconfirmed':
     'The proof decision was saved, but the reward was not confirmed.',
   'todayProof.review.reward_failed':
@@ -883,15 +895,15 @@ export const fullTodayProofEnNZ = {
   'todayProof.residual.visibility': 'Visibility',
   'todayProof.residual.reminder': 'Reminder',
   'todayProof.residual.open_proof_recovery': 'Open proof recovery',
-  'todayProof.residual.not_counted_yet': 'Not counted yet',
+  'todayProof.residual.not_counted_yet': 'Today does not count yet',
   'todayProof.residual.the_saved_proof_remains_on_this_device_until_menta_confirms_the_':
-    'The saved proof remains on this device until Menta confirms the server receipt.',
+    'The saved proof stays on this device until Menta confirms it. You do not need to send it again.',
   'todayProof.residual.view_proof_history': 'View proof history',
   'todayProof.residual.start_today_s_proof': "Start today's proof",
   'todayProof.residual.check_again': 'Check again',
   'todayProof.residual.no_new_proof_was_started': 'No new proof was started',
   'todayProof.residual.check_the_current_server_status_before_sending_or_retrying_proof':
-    'Check the current server status before sending or retrying proof.',
+    'Check whether this proof was saved before sending or retrying.',
   'todayProof.residual.a_previous_day_was_protected':
     'A previous day was protected',
   'todayProof.residual.the_protected_day_remains_in_proof_history_today_still_needs_its':
@@ -1064,6 +1076,8 @@ export const fullTodayProofEnNZ = {
   'todayProof.milestone.reached.one': 'You reached {count} day.',
   'todayProof.milestone.reached.other': 'You reached {count} days.',
   'todayProof.milestone.reward': '+{reward} Momenta',
+  'todayProof.milestone.approved_now': 'Approved now',
+  'todayProof.milestone.approved_at': 'Approved {date}',
   'todayProof.streak.day_count': '{count} day streak',
   'todayProof.streak.day_count.one': '{count} day streak',
   'todayProof.streak.day_count.other': '{count} day streak',
@@ -1254,4 +1268,39 @@ export const fullTodayProofEnNZ = {
   'todayProof.createFlow.editPromise': 'Edit promise',
   'todayProof.createFlow.dayToggle': '{day}, counts',
   'todayProof.createFlow.dayToggleOff': '{day}, rest day',
+  'todayProof.promise.personal_cue': 'Personal promise',
+  'todayProof.promise.queued_prompt':
+    'Menta has not confirmed delivery yet. Open the saved proof before adding another one.',
+  'todayProof.promise.one_change': 'One change needed',
+  'todayProof.promise.correction_prompt':
+    'The reviewer asked for clearer proof. The earlier attempt stays in proof history.',
+  'todayProof.promise.approved_prompt':
+    'Today’s proof is approved. The next due day will appear when the schedule advances.',
+  'todayProof.promise.missed_in_history': 'A missed day is in your history',
+  'todayProof.promise.recovery_prompt':
+    'The previous run ended, but you can start again with today’s next proof.',
+  'todayProof.promise.unknown_paused_prompt':
+    'Sending is paused until Menta confirms whether proof already exists for today.',
+  'todayProof.promise.protected_due': 'Streak protected · Proof due today',
+  'todayProof.promise.active_prompt':
+    'Add today’s proof when you’ve done what you promised.',
+  'todayProof.promise.progress_approved': '{approved} of {total} approved',
+  'todayProof.promise.duration_days': '{days}-day promise',
+  'todayProof.promise.complete_title':
+    '{approved} of {total} days were approved.',
+  'todayProof.promise.complete_tally': '{approved} of {total} days approved',
+  'todayProof.promise.reviewed_own': 'you reviewed your own proof',
+  'todayProof.promise.reviewed_group': 'the promise group reviewed proof',
+  'todayProof.promise.share_complete':
+    '{title}: {approved} of {total} days approved on Menta.',
+  'todayProof.promise.group_fallback': 'Group promise',
+  'todayProof.promise.reviewer_has_proof': '{name} has your proof.',
+  'todayProof.promise.proof_submitted': 'Proof submitted',
+  'todayProof.promise.waiting_unavailable':
+    'Menta confirmed a pending review, but the submitted proof could not be loaded.',
+  'todayProof.promise.your_log_starts':
+    "Submit today's proof and your log starts here.",
+  'todayProof.promise.self_review': 'Self-review',
+  'todayProof.promise.peer_review_one': '{count} peer review',
+  'todayProof.promise.peer_review_other': '{count} peer reviews',
 } as const;

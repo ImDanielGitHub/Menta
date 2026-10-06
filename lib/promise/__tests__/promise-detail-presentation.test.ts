@@ -91,9 +91,11 @@ describe('Promise detail presentation authority', () => {
   it('translates stored frequency values into ordinary copy', () => {
     expect(formatPromiseFrequency('daily')).toBe('Every day');
     expect(formatPromiseFrequency('weekly')).toBe('Once a week');
+    expect(formatPromiseFrequency('every week')).toBe('Once a week');
     expect(formatPromiseFrequency('three_times_weekly')).toBe(
-      'Three times weekly'
+      'Three times a week'
     );
+    expect(formatPromiseFrequency('weekday_only')).toBe('Custom schedule');
   });
 
   it('formats the saved reminder as a local wall-clock time', () => {

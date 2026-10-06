@@ -1,9 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type AppleDeletionAuthorizationStatus =
-  | 'not_applicable'
-  | 'revoked'
-  | 'manual_revocation_required';
+  'not_applicable' | 'revoked' | 'manual_revocation_required';
 
 export type AccountDeletionReceipt = {
   success: true;

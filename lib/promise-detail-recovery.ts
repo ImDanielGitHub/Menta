@@ -3,11 +3,7 @@ import { translate } from '@/lib/localization';
 type UnknownRecord = Record<string, unknown>;
 
 export type PromiseDetailRecoveryKind =
-  | 'session-expired'
-  | 'offline'
-  | 'access-denied'
-  | 'not-found'
-  | 'retryable';
+  'session-expired' | 'offline' | 'access-denied' | 'not-found' | 'retryable';
 
 export type PromiseDetailLoadFailure = {
   code: string | null;

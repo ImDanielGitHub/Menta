@@ -3436,6 +3436,14 @@ export type Database = {
         Args: { p_accept: boolean; p_source?: string };
         Returns: Json;
       };
+      get_menta_check_media_consent_v2: {
+        Args: Record<PropertyKey, never>;
+        Returns: Json;
+      };
+      set_menta_check_consent_v2: {
+        Args: { p_accept: boolean; p_source: string; p_policy_version: number };
+        Returns: Json;
+      };
       set_promise_menta_check_v1: {
         Args: {
           p_backup_hours?: number;
@@ -4318,6 +4326,13 @@ export type Database = {
         }[];
       };
       get_my_referral_program_v2: { Args: never; Returns: Json };
+      get_my_due_proof_targets_v1: {
+        Args: { p_timezone: string };
+        Returns: {
+          challenge_id: string;
+          verification_type: string;
+        }[];
+      };
       get_my_revenuecat_ad_reward_receipt: {
         Args: { p_client_transaction_id: string };
         Returns: Json;

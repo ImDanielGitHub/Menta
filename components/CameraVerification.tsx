@@ -50,10 +50,12 @@ import {
   ProofCheckerLine,
 } from '@/components/proof/ProofCheckerLine';
 import type { ProofChecker } from '@/lib/proof/proof-roles';
+import { isProofDraftForContext } from '@/lib/proof-draft-scope';
 
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import {
   createProofDraft,
+  releaseUnreferencedProofMedia,
   getProofDraft,
   updateProofDraft,
   type ProofDraft,
@@ -61,6 +63,7 @@ import {
 import {
   getDurableProofMedia,
   persistProofMediaLocally,
+  releaseDurableProofMedia,
   type DurableProofMedia,
 } from '@/lib/services/proof-media-service';
 import { addBreadcrumb, captureError, captureMessage } from '@/lib/sentry';
@@ -224,15 +227,59 @@ export function CameraVerification({
     onPreviewChange?.(showsPreview);
   }, [onPreviewChange, showsPreview]);
 
-  const preparePendingUpload = useCallback(
-    async (mediaUri: string, mediaType: 'photo' | 'video') =>
-      persistProofMediaLocally({
-        sourceUri: mediaUri,
-        mediaType,
-        clientEventId,
-      }),
-    [clientEventId]
-  );
+  const scopeKey = JSON.stringify([user?.id, challengeId, clientEventId]);
+  const scopeRef = useRef(scopeKey);
+  const generationRef = useRef(0);
+  const mountedRef = useRef(true);
+  if (scopeRef.current !== scopeKey) {
+    scopeRef.current = scopeKey;
+    generationRef.current += 1;
+  }
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      generationRef.current += 1;
+    };
+  }, []);
+  useEffect(() => {
+    initialMediaPreparedRef.current = false;
+    setPendingUpload(null);
+    setIsProcessing(false);
+    setIsRecording(false);
+    setProofNotice(null);
+  }, [scopeKey]);
+
+  const beginAttempt = useCallback(() => {
+    const generation = ++generationRef.current;
+    const capturedScope = scopeKey;
+    const owner = user?.id;
+    const isCurrent = () =>
+      Boolean(
+        owner &&
+        mountedRef.current &&
+        generation === generationRef.current &&
+        capturedScope === scopeRef.current &&
+        useAuthStore.getState().user?.id === owner
+      );
+    const guard = (existing: ProofDraft | null) =>
+      isCurrent() &&
+      (!existing || isProofDraftForContext(existing, owner, challengeId));
+    return { isCurrent, guard };
+  }, [challengeId, scopeKey, user?.id]);
+
+  const cancelCapture = useCallback(() => {
+    generationRef.current += 1;
+    const camera = cameraRef.current;
+    if (isRecording && camera) {
+      void Promise.resolve()
+        .then(() => camera.stopRecording())
+        .catch(() => undefined);
+    }
+    setIsProcessing(false);
+    setIsRecording(false);
+    onCancel();
+  }, [isRecording, onCancel]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', setAppState);
@@ -244,30 +291,44 @@ export function CameraVerification({
       !initialLocalMediaUri ||
       initialMediaPreparedRef.current ||
       pendingUpload
-    ) {
+    )
       return;
-    }
-
     initialMediaPreparedRef.current = true;
-    Promise.resolve()
-      .then(() =>
-        getDurableProofMedia({
+    const attempt = beginAttempt();
+    void getProofDraft(clientEventId)
+      .then(draft => {
+        if (!attempt.isCurrent()) return;
+        if (
+          !isProofDraftForContext(draft, user?.id, challengeId) ||
+          draft.localMediaUri !== initialLocalMediaUri
+        ) {
+          throw new Error(
+            'This proof belongs to a different account or promise.'
+          );
+        }
+        const prepared = getDurableProofMedia({
           localMediaUri: initialLocalMediaUri,
           mediaType: verificationType,
-        })
-      )
-      .then(setPendingUpload)
+          t,
+        });
+        if (attempt.isCurrent()) setPendingUpload(prepared);
+      })
       .catch(error => {
-        onCaptureIssue?.(
-          null,
-          getErrorMessage(error, t('shared.camera.reopenSavedProofFailed'))
-        );
+        if (attempt.isCurrent())
+          onCaptureIssue?.(
+            null,
+            getErrorMessage(error, t('shared.camera.reopenSavedProofFailed'))
+          );
       });
   }, [
+    beginAttempt,
+    challengeId,
+    clientEventId,
     initialLocalMediaUri,
     onCaptureIssue,
     pendingUpload,
     t,
+    user?.id,
     verificationType,
   ]);
 
@@ -324,36 +385,75 @@ export function CameraVerification({
     verificationType,
   ]);
 
-  const persistLocalDraft = useCallback(
-    async (upload: PendingUpload): Promise<ProofDraft> => {
-      if (!user) {
-        throw new Error(t('shared.camera.signInBeforeSending'));
+  const adoptCapture = useCallback(
+    async (
+      sourceUri: string,
+      mediaType: 'photo' | 'video',
+      attempt: ReturnType<typeof beginAttempt>
+    ) => {
+      if (!attempt.isCurrent()) return;
+      let freshUri: string | null = null;
+      try {
+        const existing = await getProofDraft(clientEventId);
+        if (!attempt.guard(existing))
+          throw new Error('This proof capture is no longer current.');
+        const prepared = await persistProofMediaLocally({
+          sourceUri,
+          mediaType,
+          clientEventId,
+          t,
+        });
+        freshUri = prepared.localMediaUri;
+        if (!attempt.isCurrent()) return;
+        const currentDraft = await getProofDraft(clientEventId);
+        if (!attempt.guard(currentDraft))
+          throw new Error('This proof capture is no longer current.');
+        const adoptionGuard = (draft: ProofDraft | null) =>
+          attempt.guard(draft) &&
+          JSON.stringify(draft) === JSON.stringify(existing);
+        const draft = currentDraft
+          ? await updateProofDraft(
+              clientEventId,
+              {
+                proofType: mediaType,
+                proofValue: freshUri,
+                localMediaUri: freshUri,
+                remoteMediaUrl: null,
+                status: LOCAL_DRAFT_STATUS,
+                sendRequestedAt: null,
+                lastError: null,
+              },
+              adoptionGuard
+            )
+          : await createProofDraft(
+              {
+                userId: user!.id,
+                challengeId,
+                groupId,
+                proofType: mediaType,
+                proofValue: freshUri,
+                localMediaUri: freshUri,
+                clientTimeZone,
+                clientEventId,
+              },
+              adoptionGuard
+            );
+        // Adoption is durable before a parent callback can remount the camera.
+        freshUri = null;
+        if (!attempt.isCurrent()) return;
+        setPendingUpload(prepared);
+        setProofNotice(null);
+        setCameraError(null);
+        onLocalDraftSaved?.(draft);
+      } finally {
+        if (freshUri) {
+          const released = await releaseUnreferencedProofMedia(
+            freshUri,
+            releaseDurableProofMedia
+          );
+          if (!released) addBreadcrumb('local_cleanup_deferred');
+        }
       }
-
-      const existing = await getProofDraft(clientEventId);
-      const draft = existing
-        ? await updateProofDraft(clientEventId, {
-            proofType: upload.mediaType,
-            proofValue: upload.localMediaUri,
-            localMediaUri: upload.localMediaUri,
-            remoteMediaUrl: null,
-            status: LOCAL_DRAFT_STATUS,
-            sendRequestedAt: null,
-            lastError: null,
-          })
-        : await createProofDraft({
-            userId: user.id,
-            challengeId,
-            groupId,
-            proofType: upload.mediaType,
-            proofValue: upload.localMediaUri,
-            localMediaUri: upload.localMediaUri,
-            clientTimeZone,
-            clientEventId,
-          });
-
-      onLocalDraftSaved?.(draft);
-      return draft;
     },
     [
       challengeId,
@@ -368,7 +468,7 @@ export function CameraVerification({
 
   const handlePickFromLibrary = useCallback(async () => {
     if (isProcessing || pendingUpload) return;
-
+    const attempt = beginAttempt();
     setIsProcessing(true);
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -378,40 +478,32 @@ export function CameraVerification({
         videoMaxDuration: 30,
         videoExportPreset: ImagePicker.VideoExportPreset.H264_1280x720,
       });
-
-      if (result.canceled || !result.assets[0]?.uri) return;
-
-      const prepared = await preparePendingUpload(
-        result.assets[0].uri,
-        verificationType
-      );
-      await persistLocalDraft(prepared);
-      setPendingUpload(prepared);
-      setProofNotice(null);
-      setCameraError(null);
+      if (result.canceled || !result.assets[0]?.uri || !attempt.isCurrent())
+        return;
+      await adoptCapture(result.assets[0].uri, verificationType, attempt);
     } catch (error) {
-      setProofNotice({
-        title: t('shared.camera.proofCouldNotOpen'),
-        description: getErrorMessage(
-          error,
-          t('shared.camera.proofPrepareFailed')
-        ),
-      });
+      if (attempt.isCurrent())
+        setProofNotice({
+          title: t('shared.camera.proofCouldNotOpen'),
+          description: getErrorMessage(
+            error,
+            t('shared.camera.proofPrepareFailed')
+          ),
+        });
     } finally {
-      setIsProcessing(false);
+      if (attempt.isCurrent()) setIsProcessing(false);
     }
   }, [
+    adoptCapture,
+    beginAttempt,
     isProcessing,
     pendingUpload,
-    persistLocalDraft,
-    preparePendingUpload,
     t,
     verificationType,
   ]);
 
   const handleCapture = useCallback(async () => {
     if (!cameraRef.current || isProcessing || !isReady || pendingUpload) return;
-
     if (verificationType === 'video' && isRecording) {
       try {
         await cameraRef.current.stopRecording();
@@ -420,60 +512,50 @@ export function CameraVerification({
       }
       return;
     }
-
-    if (verificationType === 'video') {
-      setIsRecording(true);
-      try {
-        const recording = await cameraRef.current.recordAsync({
-          maxDuration: 30,
-        });
-        if (!recording?.uri) {
-          throw new Error(t('shared.camera.videoFileMissing'));
-        }
-
-        setIsProcessing(true);
-        const prepared = await preparePendingUpload(recording.uri, 'video');
-        await persistLocalDraft(prepared);
-        setPendingUpload(prepared);
-      } catch (error) {
-        setCameraError(
-          getErrorMessage(error, t('shared.camera.videoSaveFailed'))
+    const attempt = beginAttempt();
+    if (verificationType === 'video') setIsRecording(true);
+    else setIsProcessing(true);
+    try {
+      const capture =
+        verificationType === 'video'
+          ? await cameraRef.current.recordAsync({ maxDuration: 30 })
+          : await cameraRef.current.takePictureAsync({
+              quality: 0.8,
+              skipProcessing: false,
+              exif: false,
+            });
+      if (!attempt.isCurrent()) return;
+      if (!capture?.uri)
+        throw new Error(
+          verificationType === 'video'
+            ? t('shared.camera.videoFileMissing')
+            : t('shared.camera.photoFileMissing')
         );
-      } finally {
+      setIsProcessing(true);
+      await adoptCapture(capture.uri, verificationType, attempt);
+    } catch (error) {
+      if (attempt.isCurrent())
+        setCameraError(
+          getErrorMessage(
+            error,
+            verificationType === 'video'
+              ? t('shared.camera.videoSaveFailed')
+              : t('shared.camera.photoCaptureFailed')
+          )
+        );
+    } finally {
+      if (attempt.isCurrent()) {
         setIsRecording(false);
         setIsProcessing(false);
       }
-      return;
-    }
-
-    setIsProcessing(true);
-    try {
-      const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.8,
-        skipProcessing: false,
-        exif: false,
-      });
-      if (!photo?.uri) {
-        throw new Error(t('shared.camera.photoFileMissing'));
-      }
-
-      const prepared = await preparePendingUpload(photo.uri, 'photo');
-      await persistLocalDraft(prepared);
-      setPendingUpload(prepared);
-    } catch (error) {
-      setCameraError(
-        getErrorMessage(error, t('shared.camera.photoCaptureFailed'))
-      );
-    } finally {
-      setIsProcessing(false);
     }
   }, [
+    adoptCapture,
+    beginAttempt,
     isProcessing,
     isReady,
     isRecording,
     pendingUpload,
-    persistLocalDraft,
-    preparePendingUpload,
     t,
     verificationType,
   ]);
@@ -486,13 +568,28 @@ export function CameraVerification({
       return;
     }
 
+    const attempt = beginAttempt();
     setIsProcessing(true);
     try {
-      const consentedDraft = await updateProofDraft(clientEventId, {
-        sendRequestedAt: new Date().toISOString(),
-        lastError: null,
-      });
+      const existing = await getProofDraft(clientEventId);
+      if (!isProofDraftForContext(existing, user.id, challengeId)) {
+        throw new Error(
+          'This proof belongs to a different account or promise.'
+        );
+      }
+      const consentedDraft = await updateProofDraft(
+        clientEventId,
+        {
+          sendRequestedAt: new Date().toISOString(),
+          lastError: null,
+        },
+        draft =>
+          attempt.guard(draft) &&
+          draft?.localMediaUri === pendingUpload.localMediaUri
+      );
+      if (!attempt.isCurrent()) return;
       onLocalDraftSaved?.(consentedDraft);
+      if (!attempt.isCurrent()) return;
 
       onVerificationComplete({
         clientEventId,
@@ -508,15 +605,22 @@ export function CameraVerification({
       let preservedDraft: ProofDraft | null = null;
       try {
         preservedDraft = await getProofDraft(clientEventId);
+        if (!isProofDraftForContext(preservedDraft, user.id, challengeId)) {
+          preservedDraft = null;
+        }
       } catch {
         // Keep the original consent/storage error as the useful user-facing fact.
       }
-      onCaptureIssue?.(preservedDraft, message);
+      if (attempt.isCurrent()) onCaptureIssue?.(preservedDraft, message);
     } finally {
-      setIsProcessing(false);
-      setIsRecording(false);
+      if (attempt.isCurrent()) {
+        setIsProcessing(false);
+        setIsRecording(false);
+      }
     }
   }, [
+    beginAttempt,
+    challengeId,
     clientEventId,
     isProcessing,
     onCaptureIssue,
@@ -575,7 +679,10 @@ export function CameraVerification({
         tapAlternativeLabel={t('shared.camera.sendOneTap')}
         leadingAction={{
           label: t('proofRoles.send.retake'),
-          onPress: () => setPendingUpload(null),
+          onPress: () => {
+            generationRef.current += 1;
+            setPendingUpload(null);
+          },
           disabled: isProcessing,
           testID: 'media-proof-retake',
         }}
@@ -787,7 +894,7 @@ export function CameraVerification({
           />
           <AppButton
             title={t('cameraAccess.notNow')}
-            onPress={onCancel}
+            onPress={cancelCapture}
             variant="ghost"
             size="large"
             fullWidth
@@ -821,7 +928,7 @@ export function CameraVerification({
         />
         <AppButton
           title={t('shared.camera.leaveCapture')}
-          onPress={onCancel}
+          onPress={cancelCapture}
           variant="ghost"
           size="large"
           fullWidth
@@ -989,7 +1096,7 @@ export function CameraVerification({
         </Pressable>
 
         <Pressable
-          onPress={onCancel}
+          onPress={cancelCapture}
           disabled={isRecording || isProcessing}
           style={({ pressed }) => [
             styles.cameraIconButton,

@@ -147,7 +147,7 @@ export const fullAuthAccountDeDE = {
   'fullAuth.auth_required.menta_records_the_review_under_your_account':
     'Menta erfasst die Prüfung in deinem Konto.',
   'fullAuth.auth_required.menta_saves_this_proof_with_the_right_promise_an':
-    'Menta speichert diesen Nachweis mit dem richtigen Versprechen und der richtigen Abrechnung.',
+    'Menta speichert diesen Nachweis mit dem richtigen Versprechen und Konto.',
   'fullAuth.auth_required.momenta': 'Momenta',
   'fullAuth.auth_required.proof': 'Nachweis',
   'fullAuth.auth_required.reviews': 'Prüfungen',
@@ -346,6 +346,10 @@ export const fullAuthAccountDeDE = {
     'Es ändert sich nichts, bis du eines auswählst.',
   'fullAuth.edit_profile.photo_not_changed_photoerror':
     'Foto nicht geändert. {photoError}',
+  'fullAuth.edit_profile.photo_too_large':
+    'Wähle ein Foto, das kleiner als 5 MB ist.',
+  'fullAuth.edit_profile.photo_type_rejected':
+    'Wähle ein JPEG-, PNG- oder WebP-Bild für dein Profilfoto.',
   'fullAuth.edit_profile.photo_visibility': 'Sichtbarkeit von Fotos',
   'fullAuth.edit_profile.photo_will_be_removed': 'Foto wird entfernt',
   'fullAuth.edit_profile.profile_unavailable': 'Profil nicht verfügbar',
@@ -746,6 +750,8 @@ export const fullAuthAccountDeDE = {
   'fullAuth.onboarding.every_day': 'Jeden Tag',
   'fullAuth.onboarding.every_day_2': '· Jeden Tag ·',
   'fullAuth.promise.frequency.once_a_week': 'Einmal pro Woche',
+  'fullAuth.promise.frequency.three_times_a_week': 'Dreimal pro Woche',
+  'fullAuth.promise.frequency.custom': 'Eigener Zeitplan',
   'fullAuth.onboarding.first_promise': 'Erstes Versprechen',
   'fullAuth.onboarding.first_promise_firstpromisecost_momenta_after_cre':
     'Erstes Versprechen: {firstPromiseCost} Momenta. Nach der Erstellung erhältst du {welcomeBonus} Momenta für spätere Entscheidungen.',
@@ -1666,6 +1672,10 @@ export const fullAuthAccountDeDE = {
   'fullAuth.residual.report.form_label': 'dieses Formular',
   'fullAuth.residual.report.report_context_label': 'der Bericht',
   'fullAuth.residual.report.feedback_title': 'Menta-Rückmeldung',
+  'fullAuth.residual.report.feedback_privacy':
+    'Dein Feedback und jedes ausgewählte Screenshot gehen privat an das Menta-Team.',
+  'fullAuth.residual.report.feedback_send_helper':
+    'Sende, wenn du bereit bist. Du kannst zurückgehen und alles ändern.',
   'fullAuth.residual.report.category_promise': 'Versprechen',
   'fullAuth.residual.report.category_group': 'Gruppe',
   'fullAuth.residual.report.category_proof': 'Nachweis',

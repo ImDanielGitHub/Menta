@@ -82,6 +82,7 @@ import { getReviewEvidenceStatus } from '@/lib/review-evidence';
 import { useLargeTypeLineLimit } from '@/lib/accessibility';
 
 import { trackProductEvent } from '@/lib/posthog';
+import { getReviewQueueEmptyTitle } from '@/lib/review/review-queue-copy';
 
 type ReviewStatus = Exclude<ModerationStatus, 'reported'>;
 
@@ -640,10 +641,6 @@ export const StreamlinedReviewQueue: React.FC<StreamlinedReviewQueueProps> = ({
     : challengeId
       ? t('todayProof.review.promise_reviews')
       : t('todayProof.review.queue');
-  const pendingEmptyTitle =
-    entryPoint === 'proof_receipt'
-      ? t('todayProof.review.nothing_else')
-      : t('todayProof.review.no_submissions');
   const activeSubmission = useMemo(() => {
     if (!activeSubmissionId) return null;
     return (
@@ -1624,9 +1621,7 @@ export const StreamlinedReviewQueue: React.FC<StreamlinedReviewQueueProps> = ({
             <View style={styles.emptyState}>
               <CheckCircleIcon size={34} color={colors.text.primary} />
               <Text style={styles.emptyTitle}>
-                {filterStatus === 'pending'
-                  ? pendingEmptyTitle
-                  : `No ${filterStatus} proofs here`}
+                {getReviewQueueEmptyTitle(filterStatus, t, { entryPoint })}
               </Text>
               <Text style={styles.emptyCopy}>
                 {getEmptyCopy(filterStatus, t, { entryPoint })}

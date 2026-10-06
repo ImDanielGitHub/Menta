@@ -34,9 +34,12 @@ interface DensityContextType {
   screenHeight: number;
 }
 
-const getDensityConfig = (density: DensityLevel, isTablet: boolean): DensityConfig => {
+const getDensityConfig = (
+  density: DensityLevel,
+  isTablet: boolean
+): DensityConfig => {
   const baseMultiplier = isTablet ? 1.2 : 1;
-  
+
   switch (density) {
     case 'compact':
       return {
@@ -59,7 +62,7 @@ const getDensityConfig = (density: DensityLevel, isTablet: boolean): DensityConf
         textScale: 0.9,
         iconScale: 0.85,
       };
-    
+
     case 'comfortable':
       return {
         padding: {
@@ -81,7 +84,7 @@ const getDensityConfig = (density: DensityLevel, isTablet: boolean): DensityConf
         textScale: 1.0,
         iconScale: 1.0,
       };
-    
+
     case 'spacious':
       return {
         padding: {
@@ -106,51 +109,59 @@ const getDensityConfig = (density: DensityLevel, isTablet: boolean): DensityConf
   }
 };
 
-const getAutomaticDensity = (width: number, height: number, isTablet: boolean): DensityLevel => {
+const getAutomaticDensity = (
+  width: number,
+  height: number,
+  isTablet: boolean
+): DensityLevel => {
   // Auto-detect based on screen size and device type
   if (isTablet) {
     return 'comfortable'; // Tablets default to comfortable
   }
-  
+
   if (width < 375) {
     return 'compact'; // Small phones get compact
   } else if (width > 414) {
     return 'spacious'; // Large phones get spacious
   }
-  
+
   return 'comfortable'; // Default for medium phones
 };
 
 const DensityContext = createContext<DensityContextType | null>(null);
 
-export const DensityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const DensityProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { width, height } = Dimensions.get('window');
   const isTablet = width > 768;
-  
-  const [density, setDensityState] = useState<DensityLevel>(() => 
+
+  const [density, setDensityState] = useState<DensityLevel>(() =>
     getAutomaticDensity(width, height, isTablet)
   );
-  
+
   const config = getDensityConfig(density, isTablet);
-  
+
   const setDensity = useCallback((newDensity: DensityLevel) => {
     setDensityState(newDensity);
   }, []);
-  
+
   const getAutomatic = useCallback(() => {
     return getAutomaticDensity(width, height, isTablet);
   }, [width, height, isTablet]);
-  
+
   return (
-    <DensityContext.Provider value={{
-      density,
-      config,
-      setDensity,
-      getAutomatic,
-      isTablet,
-      screenWidth: width,
-      screenHeight: height,
-    }}>
+    <DensityContext.Provider
+      value={{
+        density,
+        config,
+        setDensity,
+        getAutomatic,
+        isTablet,
+        screenWidth: width,
+        screenHeight: height,
+      }}
+    >
       {children}
     </DensityContext.Provider>
   );
@@ -164,7 +175,7 @@ export const useDensity = (): DensityContextType => {
   return context;
 };
 
-export const useDensityStyles = <T extends Record<string, any>>(
+export const useDensityStyles = <T extends Record<string, unknown>>(
   createStyles: (config: DensityConfig, context: DensityContextType) => T
 ): T => {
   const densityContext = useDensity();

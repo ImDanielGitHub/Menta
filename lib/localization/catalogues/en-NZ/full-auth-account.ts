@@ -311,6 +311,9 @@ export const fullAuthAccountEnNZ = {
     'Nothing changes until you choose one.',
   'fullAuth.edit_profile.photo_not_changed_photoerror':
     'Photo not changed. {photoError}',
+  'fullAuth.edit_profile.photo_too_large': 'Choose a photo smaller than 5 MB.',
+  'fullAuth.edit_profile.photo_type_rejected':
+    'Choose a JPEG, PNG, or WebP image for your profile photo.',
   'fullAuth.edit_profile.photo_visibility': 'Photo visibility',
   'fullAuth.edit_profile.photo_will_be_removed': 'Photo will be removed',
   'fullAuth.edit_profile.profile_unavailable': 'Profile unavailable',
@@ -692,6 +695,8 @@ export const fullAuthAccountEnNZ = {
   'fullAuth.onboarding.every_day': 'Every day',
   'fullAuth.onboarding.every_day_2': '· Every day ·',
   'fullAuth.promise.frequency.once_a_week': 'Once a week',
+  'fullAuth.promise.frequency.three_times_a_week': 'Three times a week',
+  'fullAuth.promise.frequency.custom': 'Custom schedule',
   'fullAuth.onboarding.first_promise': 'First promise',
   'fullAuth.onboarding.first_promise_firstpromisecost_momenta_after_cre':
     'First promise, {firstPromiseCost} Momenta. After creation, {welcomeBonus} welcome Momenta for later choices.',
@@ -1581,6 +1586,10 @@ export const fullAuthAccountEnNZ = {
   'fullAuth.residual.report.form_label': 'this form',
   'fullAuth.residual.report.report_context_label': 'the report',
   'fullAuth.residual.report.feedback_title': 'Menta feedback',
+  'fullAuth.residual.report.feedback_privacy':
+    'Your feedback and any screenshot you choose go privately to the Menta team.',
+  'fullAuth.residual.report.feedback_send_helper':
+    'Send when you are ready. You can go back and change anything.',
   'fullAuth.residual.report.category_promise': 'Promise',
   'fullAuth.residual.report.category_group': 'Group',
   'fullAuth.residual.report.category_proof': 'Proof',

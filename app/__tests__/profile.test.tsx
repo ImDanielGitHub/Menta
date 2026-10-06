@@ -525,6 +525,27 @@ describe('ProfileScreen', () => {
     expect(screen.queryByTestId('profile-first-use')).toBeNull();
   });
 
+  it('hides the previous account month when the next account progress read fails', async () => {
+    const rendered = render(<ProfileScreen />);
+    await screen.findByTestId('profile-month');
+    mockedReadProfileMonth.mockRejectedValueOnce(new Error('offline'));
+    mockAuthState.user = {
+      ...mockAuthState.user,
+      id: 'user-2',
+      username: 'ben',
+    };
+    mockedGetMyProfile.mockResolvedValueOnce({
+      ...profile,
+      id: 'user-2',
+      username: 'ben',
+      display_name: 'Ben Aroha',
+    });
+    rendered.rerender(<ProfileScreen />);
+    expect(screen.queryByTestId('profile-month')).toBeNull();
+    await screen.findByText('Ben Aroha');
+    expect(screen.queryByTestId('profile-month')).toBeNull();
+  });
+
   it('shows a zero streak with a live promise as day 1, not a bare 0', async () => {
     mockChallengeState.userChallenges[0].currentStreak = 0;
 

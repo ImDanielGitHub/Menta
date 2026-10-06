@@ -1,33 +1,27 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from '@/lib/localization';
-import * as Linking from 'expo-linking';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   PaperAuthCheckEmail,
   PaperAuthResetForm,
 } from '@/components/onboarding/PaperAuthReset';
 import { passwordRecoverySupabase } from '@/lib/supabase';
-import { PASSWORD_RECOVERY_REDIRECT_PATH } from '@/lib/auth/password-recovery-config';
+import { PASSWORD_RECOVERY_REDIRECT_URL } from '@/lib/auth/password-recovery-config';
+import { takePasswordResetPrefill } from '@/lib/auth/password-reset-prefill';
+import { formatPasswordResetResendTime } from '@/lib/auth/password-reset-copy';
 
 const normalizeEmail = (value: string) => value.trim().toLowerCase();
 const isValidEmail = (value: string) => /\S+@\S+\.\S+/.test(value.trim());
 
-const getParam = (value?: string | string[]) =>
-  typeof value === 'string' ? value : '';
-
 const RESET_LINK_COOLDOWN_SECONDS = 45;
 
-const formatResendTime = (availableAt: number) =>
-  new Intl.DateTimeFormat('en-NZ', {
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(new Date(availableAt));
-
 export default function ForgotPasswordScreen() {
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
   const router = useRouter();
-  const params = useLocalSearchParams<{ email?: string | string[] }>();
-  const [email, setEmail] = useState(getParam(params.email));
+  const params = useLocalSearchParams<{ prefill?: string | string[] }>();
+  const [email, setEmail] = useState(() =>
+    takePasswordResetPrefill(params.prefill)
+  );
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [sent, setSent] = useState(false);
@@ -70,7 +64,7 @@ export default function ForgotPasswordScreen() {
     try {
       const { error } =
         await passwordRecoverySupabase.auth.resetPasswordForEmail(cleanEmail, {
-          redirectTo: Linking.createURL(PASSWORD_RECOVERY_REDIRECT_PATH),
+          redirectTo: PASSWORD_RECOVERY_REDIRECT_URL,
         });
 
       if (error) throw error;
@@ -96,7 +90,9 @@ export default function ForgotPasswordScreen() {
         errorMessage={errorMessage}
         loading={loading}
         resendAvailableAtLabel={
-          resendAvailableAt ? formatResendTime(resendAvailableAt) : undefined
+          resendAvailableAt
+            ? formatPasswordResetResendTime(resendAvailableAt, locale)
+            : undefined
         }
         resendSecondsRemaining={resendSecondsRemaining}
         testID="forgot-password-success"

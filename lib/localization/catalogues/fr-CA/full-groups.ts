@@ -119,6 +119,8 @@ export const fullGroupsFrCA = {
   'groups.create.name_short_detail': 'Utilisez au moins trois caractères.',
   'groups.create.default_description':
     'Un groupe pour votre première promesse.',
+  'groups.create.shared_description':
+    'Un groupe de {count} jours pour des promesses partagées.',
   'groups.create.cost_unknown_title':
     'Impossible de confirmer le coût du groupe',
   'groups.create.cost_unknown_detail':
@@ -776,6 +778,13 @@ export const fullGroupsFrCA = {
   'groups.redirect.one_moment': 'Un instant',
   'groups.redirect.checking': 'Menta vérifie le code d’invitation.',
   'groups.redirect.enter_group_code': 'Entrez le code du groupe',
+  'groups.redirect.needs_promise_code':
+    'L’invitation à la promesse a besoin d’un code',
+  'groups.redirect.needs_promise_code_subtitle':
+    'Ce lien concernait une promesse, mais il n’incluait pas de code d’invitation valide.',
+  'groups.redirect.missing_promise_code': 'Code de promesse manquant',
+  'groups.redirect.missing_promise_code_detail':
+    'Demandez un nouveau lien à la personne qui vous a invité. Un code de groupe n’ouvrira pas cette promesse.',
   'groups.redirect.without_invite': 'Continuer sans invitation',
   'groups.redirect.referral_title': 'Invitation',
   'groups.redirect.referral_missing_title':
@@ -887,6 +896,7 @@ export const fullGroupsFrCA = {
   'groups.share.back_you': 'Retour à Vous',
   'groups.share.invite_someone': 'Inviter quelqu’un',
   'groups.share.invite_someone_title': 'Inviter quelqu’un à Menta',
+  'groups.share.referral_title_named': 'Rejoignez {name} sur Menta',
   'groups.share.preparing': 'Préparation de votre invitation',
   'groups.share.choose_where': 'Choisissez où partager',
   'groups.share.ready_after_return': 'Prêt à partager à nouveau',
@@ -932,7 +942,7 @@ export const fullGroupsFrCA = {
   'groups.share.opening_action': 'Ouverture du volet de partage…',
   'groups.share.share_again': 'Partager à nouveau',
   'groups.share.message':
-    'Rejoignez‑moi sur Menta. Utilisez ce lien, puis créez votre première promesse pour compléter le parrainage.\n\n{link}',
+    'Rejoignez‑moi sur Menta. Utilisez ce lien, puis créez votre première promesse.\n\n{link}',
   'groups.join.clipboard_empty': 'Presse‑papier vide',
   'groups.join.clipboard_empty_detail':
     'Copiez un code d’invitation, puis revenez et collez‑le ici.',
@@ -1012,10 +1022,14 @@ export const fullGroupsFrCA = {
   'groups.source.board.hint.members.one': '{count} membre',
   'groups.source.board.hint.members.other': '{count} membres',
   'groups.source.date.ends': 'Se termine le {date}',
+  'groups.source.date.archived': 'Archivé le {date}',
+  'groups.source.date.archived_unknown': 'Groupe archivé',
   'groups.source.date.no_fixed': 'Aucune date fixe',
   'groups.source.date.range': 'Du {start} au {end}',
   'groups.source.date.starts': 'Commence le {date}',
   'groups.source.group.fallback': 'Groupe',
+  'groups.source.activity.joined': '{memberName} a rejoint {groupName}',
+  'groups.source.activity.left': '{memberName} a quitté {groupName}',
   'groups.source.header.member': '{role} · {members}',
   'groups.source.header.public': '{privacy} · {members}',
   'groups.source.image_create_description':

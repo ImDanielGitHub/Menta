@@ -21,6 +21,7 @@ import {
 } from '@/lib/motion/haptics';
 import { supabase } from '@/lib/supabase';
 import type { GroupMember } from '@/store/group-store';
+import { useTranslation } from '@/lib/localization';
 
 type RoleChange = 'admin' | 'member';
 export type MemberAction =
@@ -48,6 +49,7 @@ export const useGroupMemberActions = ({
   role?: GroupMemberRole;
   userId?: string;
 }) => {
+  const { t } = useTranslation();
   const [notice, setNotice] = useState<MemberNotice>(null);
   const [selectedMember, setSelectedMember] = useState<GroupMember | null>(
     null
@@ -189,8 +191,8 @@ export const useGroupMemberActions = ({
           title: action.type === 'remove' ? 'Member removed' : 'Role updated',
           message:
             action.type === 'remove'
-              ? `${getMemberName(member)} no longer belongs to this group.`
-              : `${getMemberName(member)} is now ${
+              ? `${getMemberName(member, t)} no longer belongs to this group.`
+              : `${getMemberName(member, t)} is now ${
                   action.type === 'promote' ? 'admin' : 'a member'
                 }.`,
         });
@@ -215,6 +217,7 @@ export const useGroupMemberActions = ({
       loadMembers,
       memberLockReason,
       role,
+      t,
       userId,
     ]
   );

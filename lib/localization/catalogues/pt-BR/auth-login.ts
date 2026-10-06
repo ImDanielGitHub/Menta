@@ -26,4 +26,14 @@ export const authLoginPtBR = {
   'auth.login.action.apple': 'Entrar com Apple',
   'auth.login.action.google': 'Entrar com Google',
   'auth.login.action.replay_intro': 'Ver como a Menta funciona',
+  'auth.login.required.join_promise_title':
+    'Entre para participar desta promessa',
+  'auth.login.required.join_promise_detail':
+    'Seu convite fica na sua conta. Nada foi aceito ainda.',
+  'auth.login.required.create_promise_title': 'Entre para criar uma promessa',
+  'auth.login.required.create_promise_detail':
+    'Seu rascunho permanece neste celular até você entrar.',
+  'auth.login.required.open_promise_title': 'Entre para abrir esta promessa',
+  'auth.login.required.open_promise_detail':
+    'A Menta abre esta promessa na sua conta.',
 } as const satisfies Pick<EnglishCatalogue, AuthLoginKey>;

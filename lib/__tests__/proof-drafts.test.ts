@@ -185,4 +185,80 @@ describe('proof-drafts', () => {
     await removeProofDraft(draft.clientEventId);
     expect(await getProofDraft(draft.clientEventId)).toBeNull();
   });
+  it('preserves drafts saved concurrently for different promises', async () => {
+    const drafts = await Promise.all(
+      ['promise-a', 'promise-b'].map(challengeId =>
+        createProofDraft({
+          userId: 'user-1',
+          challengeId,
+          proofType: 'text',
+          proofValue: 'Done today',
+          clientTimeZone: 'UTC',
+        })
+      )
+    );
+    expect(
+      (await loadProofDrafts()).map(draft => draft.clientEventId).sort()
+    ).toEqual(drafts.map(draft => draft.clientEventId).sort());
+  });
+
+  it('merges concurrent receipt and media updates without losing either', async () => {
+    const draft = await createProofDraft({
+      userId: 'user-1',
+      challengeId: 'promise-a',
+      proofType: 'photo',
+      proofValue: 'file:///proof.jpg',
+      clientTimeZone: 'UTC',
+    });
+    await Promise.all([
+      updateProofDraft(draft.clientEventId, {
+        status: 'pending-review',
+        submissionId: 'submission-a',
+      }),
+      updateProofDraft(draft.clientEventId, { localMediaUri: null }),
+    ]);
+    expect(await getProofDraft(draft.clientEventId)).toMatchObject({
+      status: 'pending-review',
+      submissionId: 'submission-a',
+      localMediaUri: null,
+    });
+  });
+
+  it('does not resurrect a draft removed while its last update completes', async () => {
+    const draft = await createProofDraft({
+      userId: 'user-1',
+      challengeId: 'promise-a',
+      proofType: 'text',
+      proofValue: 'Done',
+      clientTimeZone: 'UTC',
+    });
+    await Promise.all([
+      updateProofDraft(draft.clientEventId, { status: 'accepted' }),
+      removeProofDraft(draft.clientEventId),
+    ]);
+    expect(await getProofDraft(draft.clientEventId)).toBeNull();
+  });
+
+  it('allows the next save after a storage write fails', async () => {
+    jest
+      .mocked(AsyncStorage.setItem)
+      .mockRejectedValueOnce(new Error('Storage unavailable'));
+    const input = {
+      userId: 'user-1',
+      proofType: 'text' as const,
+      proofValue: 'Done',
+      clientTimeZone: 'UTC',
+    };
+    const results = await Promise.allSettled([
+      createProofDraft({ ...input, challengeId: 'promise-a' }),
+      createProofDraft({ ...input, challengeId: 'promise-b' }),
+    ]);
+    expect(results.map(result => result.status)).toEqual([
+      'rejected',
+      'fulfilled',
+    ]);
+    expect((await loadProofDrafts()).map(draft => draft.challengeId)).toEqual([
+      'promise-b',
+    ]);
+  });
 });

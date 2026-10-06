@@ -465,8 +465,8 @@ PODS:
   - PromisesObjC (2.4.1)
   - PromisesSwift (2.4.1):
     - PromisesObjC (= 2.4.1)
-  - PurchasesHybridCommon (18.33.1):
-    - RevenueCat (= 5.87.1)
+  - PurchasesHybridCommon (19.0.0):
+    - RevenueCat (= 5.89.0)
   - RCTDeprecation (0.86.3)
   - RCTRequired (0.86.3)
   - RCTSwiftUI (0.86.3)
@@ -2419,7 +2419,7 @@ PODS:
     - ReactNativeDependencies
   - ReactNativeDependencies (0.86.3)
   - RecaptchaInterop (101.0.0)
-  - RevenueCat (5.87.1)
+  - RevenueCat (5.89.0)
   - RNCAsyncStorage (2.2.0):
     - hermes-engine
     - RCTRequired
@@ -2533,8 +2533,8 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - RNPurchases (10.8.1):
-    - PurchasesHybridCommon (= 18.33.1)
+  - RNPurchases (10.10.0):
+    - PurchasesHybridCommon (= 19.0.0)
     - React-Core
   - RNReanimated (4.5.1):
     - hermes-engine
@@ -3355,7 +3355,7 @@ SPEC CHECKSUMS:
   posthog-react-native-plugin: 144767f25e6391f691b14a7cbf907c99d905ef92
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
   PromisesSwift: 217dea0fd5d2ad65222a109c48698add13cc1c5b
-  PurchasesHybridCommon: 10fa5043609584e834a84b4641f9c1166e69ea55
+  PurchasesHybridCommon: 526db4f4895166e57ae866b3daeb0025030f84bd
   RCTDeprecation: 96f68ebf33f8762466b01d57d6e873c4f30efb07
   RCTRequired: 166eed8ad6d8440e73e56d09a9090366609823d2
   RCTSwiftUI: e818198d11928a78c2b2afe281d072171dab617f
@@ -3434,13 +3434,13 @@ SPEC CHECKSUMS:
   ReactCommon: 6bd9ca59389608bf7828a6351c692fa444681b87
   ReactNativeDependencies: 6738e602b46fd24aa453cd58267ec3bb8bf29d27
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
-  RevenueCat: 7d45133f048270481facf0f7b02530e503a01620
+  RevenueCat: 5e390c204dafb3ceeff76ade29bf295b952e6681
   RNCAsyncStorage: 0f84413588571e74ef9cff6e3b669346e3abf9cb
   RNCMaskedView: 48989935d9665d97d87fa7e44f486b4d22cd5b9f
   RNGestureHandler: a21ad1bb32b203570440c29b7e406a342a690842
   RNGoogleMobileAds: f63bcd910a3b28f3c39cc4044fb083292c1dc17b
   RNGoogleSignin: 3b64b41f8e7fcfca02667b34fd8de218c0835e00
-  RNPurchases: b772aeb6f252a7818d975e14372c8e6b13f040fe
+  RNPurchases: 59305b2056fbac538c37ef68b6b126e39ab2ddfa
   RNReanimated: 516d842d105966ae05a6a1ad7ad2a0dc1e968d6b
   RNScreens: 05b877358c403ad6b9d816e725f8a3d56cc5325d
   RNSentry: 3c577c80b1e7d0e3f965de98c515a1f2bdd42ec8

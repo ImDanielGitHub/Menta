@@ -40,6 +40,7 @@ import {
   resolveGroupJoinOutcome,
 } from '@/lib/groups/group-join-outcome';
 import {
+  describeJoinGroupConfirmSpend,
   describeJoinGroupPreviewSpend,
   resolveJoinGroupPreview,
   type JoinGroupQuote,
@@ -1335,11 +1336,11 @@ export default function JoinGroupScreen() {
 
           {previewState.kind === 'ready' ? (
             <Text style={styles.guestInviteHelper}>
-              {previewState.previewAccountId === null
-                ? 'Joining adds you to this group.'
-                : joinQuote
-                  ? `Joining costs ${joinQuote.cost} Momenta. Nothing is spent until you tap Join group.`
-                  : 'Menta will confirm the exact Momenta cost before anything is spent.'}
+              {describeJoinGroupConfirmSpend(
+                joinQuote?.cost ?? null,
+                previewState.previewAccountId !== null,
+                t
+              )}
             </Text>
           ) : null}
 

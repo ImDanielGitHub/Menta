@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -89,4 +89,11 @@ describe('MomentaTopUp ad rest (Paper M03)', () => {
     ).toBeTruthy();
     expect(screen.getByTestId('momenta-top-up-option-pro')).toBeChecked();
   });
+});
+
+it('offers a reachable wallet top-up without claiming a purchase completed', () => {
+  const onOpenWallet = jest.fn();
+  renderTopUp({ onOpenWallet });
+  fireEvent.press(screen.getByTestId('momenta-top-up-wallet'));
+  expect(onOpenWallet).toHaveBeenCalledTimes(1);
 });

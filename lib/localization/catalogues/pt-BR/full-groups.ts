@@ -113,6 +113,8 @@ export const fullGroupsPtBR = {
     'Menta não pode conectar este grupo sem a primeira promessa confirmada. Seu rascunho de grupo ainda está aqui. Volte para Hoje e tente novamente.',
   'groups.create.name_short_detail': 'Use ao menos três caracteres.',
   'groups.create.default_description': 'Um grupo para sua primeira promessa.',
+  'groups.create.shared_description':
+    'Um grupo de {count} dias para promessas compartilhadas.',
   'groups.create.cost_unknown_title':
     'Não foi possível confirmar o custo do grupo',
   'groups.create.cost_unknown_detail':
@@ -751,6 +753,13 @@ export const fullGroupsPtBR = {
   'groups.redirect.one_moment': 'Um momento',
   'groups.redirect.checking': 'Menta está verificando o código do convite.',
   'groups.redirect.enter_group_code': 'Insira o código do grupo',
+  'groups.redirect.needs_promise_code':
+    'O convite da promessa precisa de código',
+  'groups.redirect.needs_promise_code_subtitle':
+    'Este link era de uma promessa, mas não tinha um código de convite válido.',
+  'groups.redirect.missing_promise_code': 'Código da promessa ausente',
+  'groups.redirect.missing_promise_code_detail':
+    'Peça um novo convite a quem enviou. Um código de grupo não abre esta promessa.',
   'groups.redirect.without_invite': 'Continuar sem convite',
   'groups.redirect.referral_title': 'Convite',
   'groups.redirect.referral_missing_title':
@@ -859,6 +868,7 @@ export const fullGroupsPtBR = {
   'groups.share.back_you': 'Voltar ao Perfil',
   'groups.share.invite_someone': 'Convidar alguém',
   'groups.share.invite_someone_title': 'Convidar alguém para o Menta',
+  'groups.share.referral_title_named': 'Junte-se a {name} no Menta',
   'groups.share.preparing': 'Preparando seu convite',
   'groups.share.choose_where': 'Escolha onde compartilhar',
   'groups.share.ready_after_return': 'Pronto para compartilhar novamente',
@@ -904,7 +914,7 @@ export const fullGroupsPtBR = {
   'groups.share.opening_action': 'Abrindo menu de compartilhamento…',
   'groups.share.share_again': 'Compartilhar novamente',
   'groups.share.message':
-    'Junte‑se a mim no Menta. Use este link e crie sua primeira promessa para concluir a indicação.\n\n{link}',
+    'Junte‑se a mim no Menta. Use este link e crie sua primeira promessa.\n\n{link}',
   'groups.join.clipboard_empty': 'Área de transferência vazia',
   'groups.join.clipboard_empty_detail':
     'Copie um código de convite, volte e cole aqui.',

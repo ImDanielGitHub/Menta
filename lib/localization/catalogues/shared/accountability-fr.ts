@@ -321,6 +321,8 @@ export const accountabilityFr = {
     'Modifie le rôle de cette personne.',
   'groups.source.accountability.member.choose_role':
     'Choisissez un rôle dans cette promesse.',
+  'groups.source.accountability.member.partner_requires_acceptance':
+    'La tenir ensemble nécessite son accord et ne peut pas être choisi ici. Son rôle actuel reste en place.',
   'groups.source.accountability.member.remove_action':
     'Retirer de cette promesse',
   'groups.source.accountability.member.remove_confirm': 'Retirer la personne',
@@ -462,11 +464,15 @@ export const accountabilityFr = {
     'Le partage ne s’est pas ouvert',
   'groups.source.accountability.share.message':
     'Rejoignez-moi pour « {promise} » dans Menta. Je vous invite à {invitation}.\n\n{shareUrl}\nCode d’invitation : {code}',
+  'groups.source.accountability.share.message_unnamed':
+    'Rejoignez cette promesse sur Menta. Je vous invite à {invitation}.\n\n{shareUrl}\nCode d’invitation : {code}',
   'groups.source.accountability.share.still_ready_detail':
     'Menta ne peut pas savoir qui l’a reçue. Une personne apparaît ici seulement après avoir accepté.',
   'groups.source.accountability.share.still_ready_title':
     'Invitation toujours prête',
   'groups.source.accountability.share.title': 'Rejoindre {promise}',
+  'groups.source.accountability.share.title_unnamed':
+    'Rejoindre cette promesse',
   'groups.source.accountability.shared_promise_accessibility':
     '{promise}. {count} personnes.',
   'groups.source.accountability.shared_promise_accessibility.one':

@@ -96,6 +96,7 @@ import {
   getUnlockStreakDays,
   isSupportedCatalogItem,
 } from '@/lib/shop/catalogSupport';
+import { getShopItemAccountSummary } from '@/lib/shop/item-summary-copy';
 import { claimStreakShopUnlocks } from '@/lib/shop/streak-unlocks';
 import {
   isShopPowerUp,
@@ -251,6 +252,7 @@ export default function ShopItemDetailsScreen() {
   const adReward = useAdRewardAmount();
   const { enabled: adsEnabled } = useOperationalFlag('ads_enabled');
   const { enabled: safeMode } = useOperationalFlag('safe_mode');
+  const { enabled: revenueCatFlag } = useOperationalFlag('revenuecat_enabled');
   const canWatchSponsors =
     adsEnabled && !safeMode && areVerifiedAdRewardsEnabled();
   const approvedCreditSkus = getApprovedCreditSkus();
@@ -307,6 +309,8 @@ export default function ShopItemDetailsScreen() {
 
   const canBuyCredits =
     REVENUECAT_SUPPORTED &&
+    revenueCatFlag &&
+    !safeMode &&
     (approvedCreditSkuSet.has(CREDIT_PACK.id) ||
       approvedCreditSkuSet.has('com.anekedigitalapps.lockedin.credits_large'));
   const creditPurchaseReady = canBuyCredits && Boolean(creditPrice);
@@ -417,6 +421,17 @@ export default function ShopItemDetailsScreen() {
     unlockDays,
     t,
   });
+  const accountSummary = getShopItemAccountSummary(
+    {
+      category: item?.category,
+      displayName,
+      primaryState,
+      hideTrail: purchased || repeatConsumablePurchase,
+      unlockDays,
+      cost,
+    },
+    t
+  );
 
   const loadInventory = useCallback(async () => {
     if (!user?.id) {
@@ -1634,15 +1649,7 @@ export default function ShopItemDetailsScreen() {
           <View
             accessible
             accessibilityRole="summary"
-            accessibilityLabel={t('commerce.shop.detailSummaryAccessibility', {
-              kind: itemKindLabel,
-              name: displayName,
-              status: primaryState,
-              price:
-                purchased || repeatConsumablePurchase
-                  ? primaryState
-                  : priceLabel,
-            })}
+            accessibilityLabel={accountSummary.accessibilityLabel}
             style={styles.accountSummary}
             testID="shop-account-summary"
           >

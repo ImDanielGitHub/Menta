@@ -57,6 +57,36 @@ const EVENT_CAPABILITY_QUERY_PARAMS = [
 const normalizeSlashes = (value: string) =>
   value.split('/').filter(Boolean).join('/');
 
+// App schemes also accept URI forms such as menta:/verification. Detect the
+// scheme before treating input as a relative route. URL parsing removes ASCII
+// tabs and newlines, so classification must apply the same preprocessing.
+const hasUrlScheme = (value: string) =>
+  /^[a-z][a-z0-9+.-]*:/i.test(value.replace(/[\t\n\r]/g, ''));
+
+const getAppSchemeRouteParts = (
+  value: string
+): { routePath: string; search: string } | null => {
+  const normalized = value.replace(/[\t\n\r]/g, '');
+  const match = normalized.match(/^([a-z][a-z0-9+.-]*):(.*)$/i);
+  if (!match || !APP_SCHEMES.has(match[1].toLowerCase())) return null;
+
+  const [pathname = '', search = ''] = match[2].split(/(?=\?)/, 2);
+  return {
+    routePath: canonicalizeRoutePath(
+      pathname.replace(/\\/g, '/').replace(/^\/+/, '')
+    ),
+    search,
+  };
+};
+
+// Match Expo Router's file-base URL parsing before applying route-specific
+// authority rules. Backslashes and dot segments can otherwise change the
+// destination only after a different route's policy has already accepted it.
+const canonicalizeRoutePath = (value: string) =>
+  normalizeSlashes(
+    new URL(value.startsWith('/') ? value : `/${value}`, 'file:').pathname
+  );
+
 const isAllowedRoutePath = (routePath: string) => {
   if (routePath === TAB_ROUTE) return true;
   if (STATIC_APP_ROUTES.has(routePath)) return true;
@@ -75,27 +105,24 @@ const getGenericRouteParts = (
   rawPath: string
 ): { routePath: string; search: string } | null => {
   try {
-    if (rawPath.startsWith('/') || !rawPath.includes('://')) {
+    if (rawPath.startsWith('/') || !hasUrlScheme(rawPath)) {
       const [pathname = '', search = ''] = rawPath.split(/(?=\?)/, 2);
-      return { routePath: normalizeSlashes(pathname), search };
+      return { routePath: canonicalizeRoutePath(pathname), search };
     }
+
+    const appRoute = getAppSchemeRouteParts(rawPath);
+    if (appRoute) return appRoute;
 
     const parsed = new URL(rawPath);
     const scheme = parsed.protocol.replace(':', '').toLowerCase();
     const hostname = parsed.hostname.toLowerCase();
     const pathname = parsed.pathname.replace(/^\/+/, '');
 
-    if (APP_SCHEMES.has(scheme)) {
+    if (scheme === 'https' && UNIVERSAL_LINK_HOSTS.has(hostname)) {
       return {
-        routePath: normalizeSlashes(
-          [hostname, pathname].filter(Boolean).join('/')
-        ),
+        routePath: canonicalizeRoutePath(pathname),
         search: parsed.search,
       };
-    }
-
-    if (scheme === 'https' && UNIVERSAL_LINK_HOSTS.has(hostname)) {
-      return { routePath: normalizeSlashes(pathname), search: parsed.search };
     }
   } catch {
     return null;
@@ -105,7 +132,7 @@ const getGenericRouteParts = (
 };
 
 const buildInternalPath = (routePath: string, search: string) => {
-  const normalizedRoutePath = normalizeSlashes(routePath);
+  const normalizedRoutePath = canonicalizeRoutePath(routePath);
   // Quick-action/App Intent check-in resolution needs live signed-in state.
   // Cold starts land safely on Today while RootLayout resolves the exact due
   // promise from the original URL.
@@ -127,6 +154,19 @@ const buildInternalPath = (routePath: string, search: string) => {
     return null;
   }
   if (hasGenericEventCapability(normalizedRoutePath, search)) return null;
+
+  if (normalizedRoutePath === 'verification') {
+    // External links may select a capture destination, but they cannot supply
+    // trusted correction feedback, local draft identity, or workflow authority.
+    const input = new URLSearchParams(search.replace(/^\?/, ''));
+    const allowed = new URLSearchParams();
+    for (const name of ['challengeId', 'groupId', 'verificationType']) {
+      const values = input.getAll(name);
+      if (values.length === 1) allowed.set(name, values[0]);
+    }
+    const query = allowed.toString();
+    return `/verification${query ? `?${query}` : ''}`;
+  }
 
   if (normalizedRoutePath === TAB_ROUTE) {
     return `/${TAB_ROUTE}${search}`;
@@ -303,22 +343,20 @@ export const normalizeNativeIntentPath = (path: unknown) => {
       return buildInternalPath(pathname, search);
     }
 
-    if (!rawPath.includes('://')) {
+    if (!hasUrlScheme(rawPath)) {
       const [pathname = '', search = ''] = rawPath.split(/(?=\?)/, 2);
       return buildInternalPath(pathname, search);
+    }
+
+    const appRoute = getAppSchemeRouteParts(rawPath);
+    if (appRoute) {
+      return buildInternalPath(appRoute.routePath, appRoute.search);
     }
 
     const parsed = new URL(rawPath);
     const scheme = parsed.protocol.replace(':', '').toLowerCase();
     const hostname = parsed.hostname.toLowerCase();
     const pathname = parsed.pathname.replace(/^\/+/, '');
-
-    if (APP_SCHEMES.has(scheme)) {
-      const routePath = normalizeSlashes(
-        [hostname, pathname].filter(Boolean).join('/')
-      );
-      return buildInternalPath(routePath, parsed.search);
-    }
 
     if (scheme === 'https' && UNIVERSAL_LINK_HOSTS.has(hostname)) {
       return buildInternalPath(pathname, parsed.search);

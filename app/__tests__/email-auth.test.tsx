@@ -13,6 +13,7 @@ import EmailAuthScreen from '@/app/email-auth';
 import { ThemeProvider } from '@/constants/ThemeContext';
 import { mentaLayout } from '@/constants/MentaDesignSystem';
 import { resolvePhoneLayout } from '@/constants/phone-layout';
+import { takePasswordResetPrefill } from '@/lib/auth/password-reset-prefill';
 
 let mockPhoneLayout = resolvePhoneLayout({
   width: 430,
@@ -243,7 +244,7 @@ describe('EmailAuthScreen', () => {
     expect(mockRegister).not.toHaveBeenCalled();
   });
 
-  it('sends users to the reset request with a normalised email', () => {
+  it('keeps the email out of password-reset navigation', () => {
     renderEmailAuth();
 
     fireEvent.changeText(
@@ -252,10 +253,16 @@ describe('EmailAuthScreen', () => {
     );
     fireEvent.press(screen.getByTestId('email-auth-forgot-password'));
 
-    expect(mockPush).toHaveBeenCalledWith({
-      pathname: '/forgot-password',
-      params: { email: 'me@example.com' },
-    });
+    expect(mockPush).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pathname: '/forgot-password',
+      })
+    );
+    expect(JSON.stringify(mockPush.mock.calls)).not.toContain('me@example.com');
+    const href = mockPush.mock.calls[0][0];
+    expect(takePasswordResetPrefill(href.params.prefill)).toBe(
+      'me@example.com'
+    );
   });
 
   it('returns to onboarding methods when the draft opened email auth', () => {

@@ -217,6 +217,14 @@ export const fullEventsDeDE = {
   'events.check_in.closed_title': 'Check-in ist noch nicht geöffnet',
   'events.check_in.closed_body':
     'Der Check-in öffnet 30 Minuten vor der Veranstaltung und bleibt bis zum Ende geöffnet. Nichts hat sich geändert. Komm in diesem Zeitraum mit dem Veranstaltercode zurück.',
+  'events.check_in.ended_title': 'Check-in ist geschlossen',
+  'events.check_in.ended_body':
+    'Der Check-in bleibt bis zum Ende der Veranstaltung geöffnet. Diese Veranstaltung ist beendet, daher kann die Teilnahme hier nicht bestätigt werden. Nichts hat sich geändert.',
+  'events.check_in.cancelled_body':
+    'Diese Veranstaltung findet nicht mehr statt. Die Teilnahme kann hier nicht bestätigt werden. Nichts hat sich geändert.',
+  'events.check_in.unavailable_title': 'Check-in ist nicht geöffnet',
+  'events.check_in.window_unavailable_body':
+    'Der Check-in öffnet 30 Minuten vor der Veranstaltung und bleibt bis zum Ende geöffnet. Nichts hat sich geändert. Verwende den Veranstaltercode in diesem Zeitraum.',
   'events.check_in.rejected_title': 'QR-Code nicht akzeptiert',
   'events.check_in.rejected_reason': 'Dieser Code wurde nicht akzeptiert.',
   'events.check_in.rejected_body':
@@ -593,4 +601,8 @@ export const fullEventsDeDE = {
   'events.recap.share_line.approved': '{count} Fotos genehmigt',
   'events.recap.share_title': 'Rückblick zu {event}',
   'events.recap.completed': 'Veranstaltung abgeschlossen',
+  'events.action.transport_unknown':
+    'Die Ereignisaktion wurde möglicherweise ausgeführt. Stelle die Verbindung wieder her und prüfe den Status, bevor du es erneut versuchst.',
+  'events.action.malformed_unknown':
+    'Menta konnte das Ergebnis nicht lesen. Prüfe, was sich geändert hat, bevor du es erneut versuchst.',
 } as const;

@@ -394,15 +394,28 @@ export default function SettingsScreen() {
     }
   }, [adPrivacyOptionsBusy, t]);
 
-  const recoverAccountRoute = useCallback(() => {
+  const recoverAccountRoute = useCallback(async () => {
     if (
       accountState === 'profile-missing' ||
       accountState === 'session-unavailable'
     ) {
-      clearAuthData();
+      try {
+        // App-state cleanup alone leaves the independently persisted Supabase
+        // session active. Finish the real session-end path before navigation.
+        await logout();
+      } catch {
+        setSettingsNotice({
+          tone: 'error',
+          title: t('fullAuth.settings.you_are_still_signed_in'),
+          description: t(
+            'fullAuth.settings.menta_could_not_end_this_session_your_account_an'
+          ),
+        });
+        return;
+      }
     }
     router.replace('/login');
-  }, [accountState, clearAuthData, router]);
+  }, [accountState, logout, router, t]);
 
   const openAccountRoute = useCallback(
     (path: '/(tabs)/profile' | '/notification-settings') => {

@@ -108,6 +108,79 @@ describe('Amplitude transport', () => {
     expect(shouldHoldAmplitudeReplayForPathname('/(tabs)/today')).toBe(false);
   });
 
+  const recoveryPaths = [
+    '/forgot-password',
+    '/password-recovery',
+    '/password-recovery/callback',
+  ];
+
+  it.each(
+    recoveryPaths.flatMap(path => [
+      path,
+      `${path}/`,
+      `${path}?status=invalid`,
+      `/(auth)${path}/?code=synthetic-code`,
+    ])
+  )('holds password recovery replay for %s', path => {
+    const { shouldHoldAmplitudeReplayForPathname } = require('@/lib/amplitude');
+    expect(shouldHoldAmplitudeReplayForPathname(path)).toBe(true);
+  });
+
+  it.each(recoveryPaths)(
+    'never starts replay on a cold start at %s',
+    async path => {
+      jest.isolateModules(() => {
+        const transport = require('@/lib/amplitude');
+        transport.initializeAmplitude();
+        transport.setAmplitudeSessionReplayHold(
+          'route',
+          transport.shouldHoldAmplitudeReplayForPathname(path)
+        );
+      });
+
+      await flushReplayState();
+      expect(mockAmplitudeAdd).toHaveBeenCalledTimes(1);
+      expect(mockReplayStart).not.toHaveBeenCalled();
+    }
+  );
+
+  it('stops on recovery entry and resumes only after recovery and purchase holds clear', async () => {
+    const transport = require('@/lib/amplitude');
+    const navigate = async (path: string) => {
+      transport.setAmplitudeSessionReplayHold(
+        'route',
+        transport.shouldHoldAmplitudeReplayForPathname(path)
+      );
+      await flushReplayState();
+    };
+    transport.initializeAmplitude();
+    await navigate('/(tabs)/today');
+    expect(mockReplayStart).toHaveBeenCalledTimes(1);
+
+    for (const path of recoveryPaths) {
+      await navigate(path);
+      expect(mockReplayStop).toHaveBeenCalledTimes(1);
+      expect(mockReplayStart).toHaveBeenCalledTimes(1);
+    }
+
+    transport.setAmplitudeSessionReplayHold('iap', true);
+    await navigate('/(tabs)/today');
+    expect(mockReplayStart).toHaveBeenCalledTimes(1);
+    transport.setAmplitudeSessionReplayHold('iap', false);
+    await flushReplayState();
+    expect(mockReplayStart).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    '/onboarding',
+    '/(tabs)/today',
+    '/password-recovery-help',
+    '/forgot-password-help',
+  ])('preserves replay eligibility for %s', path => {
+    const { shouldHoldAmplitudeReplayForPathname } = require('@/lib/amplitude');
+    expect(shouldHoldAmplitudeReplayForPathname(path)).toBe(false);
+  });
+
   it('does not initialise replay outside an enabled production profile', async () => {
     process.env.EXPO_PUBLIC_AMPLITUDE_REPLAY_ENABLED = 'false';
 

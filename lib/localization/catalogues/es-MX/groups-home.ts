@@ -55,4 +55,24 @@ export const groupsHomeEsMX = {
   'groupsHome.groupAction.empty_title': 'No hay revisiones pendientes',
   'groupsHome.groupAction.empty_detail':
     'Ahora mismo nadie espera que revises tu prueba.',
+  'groupsHome.adminNotice.ownerOnlyTitle': 'Solo quien es dueño',
+  'groupsHome.adminNotice.ownerOnlyDetail':
+    'Solo quien es dueño puede guardar estos ajustes del grupo.',
+  'groupsHome.adminNotice.nameRequiredTitle': 'Nombre obligatorio',
+  'groupsHome.adminNotice.nameRequiredDetail':
+    'Ponle un nombre a este grupo antes de guardar.',
+  'groupsHome.adminNotice.saveUnconfirmedTitle': 'Guardado no confirmado',
+  'groupsHome.adminNotice.saveUnconfirmedDetail':
+    'Menta no pudo confirmar si se guardaron los ajustes. Tus cambios siguen aquí. Revisa el grupo antes de intentarlo de nuevo.',
+  'groupsHome.adminNotice.savedTitle': 'Cambios guardados',
+  'groupsHome.adminNotice.savedDetail': 'Los ajustes del grupo están al día.',
+  'groupsHome.adminNotice.saveFailedTitle': 'No se guardaron los cambios',
+  'groupsHome.adminNotice.saveFailedDetail':
+    'Revisa tu conexión e inténtalo de nuevo. Tus cambios siguen aquí.',
+  'groupsHome.adminNotice.leaveUnknownTitle': 'Salida no confirmada',
+  'groupsHome.adminNotice.leaveFailedTitle': 'El grupo no cambió',
+  'groupsHome.adminNotice.deleteUnconfirmedTitle': 'Eliminación no confirmada',
+  'groupsHome.adminNotice.deleteUnconfirmedDetail':
+    'Menta no pudo confirmar si se eliminó el grupo. Vuelve a Grupos y revísalo antes de intentarlo de nuevo.',
+  'groupsHome.adminNotice.deleteFailedTitle': 'Grupo no eliminado',
 } as const satisfies Pick<EnglishCatalogue, GroupsHomeKey>;

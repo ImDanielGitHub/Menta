@@ -2,6 +2,7 @@ import { createClientEventId } from '@/lib/client-event-id';
 import { supabase } from '@/lib/supabase';
 import {
   decodeMentaOverview,
+  decodeMentaMediaPermission,
   decodeMentaToday,
 } from '@/lib/menta-check/decode';
 import type {
@@ -37,6 +38,19 @@ export async function getMentaCheckOverview(): Promise<MentaCheckOverview | null
   return decodeMentaOverview(data);
 }
 
+/** Readback uses the independent active v2 receipt owned by the current session. */
+export async function getMentaCheckMediaPermissionV2(): Promise<
+  'allowed' | 'needs-review'
+> {
+  const { data, error } = await supabase.rpc(
+    'get_menta_check_media_consent_v2'
+  );
+  if (error) throw error;
+  const state = decodeMentaMediaPermission(data);
+  if (state === 'unavailable') throw new Error('CONSENT_NOT_CONFIRMED');
+  return state;
+}
+
 export type MentaConsentSource =
   'onboarding' | 'create' | 'settings' | 'intro' | 'group';
 
@@ -50,6 +64,50 @@ export async function setMentaCheckConsent(
   });
   if (error) throw error;
   return asResult(data);
+}
+
+/** Explicit media disclosure acceptance; legacy consent is never v2 evidence. */
+export async function acceptMentaCheckMediaConsentV2(
+  source: MentaConsentSource
+): Promise<
+  MentaRpcResult<{
+    consented: true;
+    policy_version: 2;
+    acknowledgement_id: string;
+    acknowledged_at: string;
+  }>
+> {
+  const { data, error } = await supabase.rpc('set_menta_check_consent_v2', {
+    p_accept: true,
+    p_source: source,
+    p_policy_version: 2,
+  });
+  if (error) throw error;
+  const result = asResult<{
+    consented: boolean;
+    policy_version: number;
+    acknowledgement_id: string;
+    acknowledged_at: string;
+  }>(data);
+  if (result.success === false) return result;
+  if (
+    result.success !== true ||
+    result.consented !== true ||
+    result.policy_version !== 2 ||
+    typeof result.acknowledgement_id !== 'string' ||
+    result.acknowledgement_id.length === 0 ||
+    typeof result.acknowledged_at !== 'string' ||
+    !Number.isFinite(Date.parse(result.acknowledged_at))
+  ) {
+    return { success: false, code: 'CONSENT_NOT_CONFIRMED' };
+  }
+  return {
+    success: true,
+    consented: true,
+    policy_version: 2,
+    acknowledgement_id: result.acknowledgement_id,
+    acknowledged_at: result.acknowledged_at,
+  };
 }
 
 export async function setPromiseReviewMode(

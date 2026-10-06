@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { withAuthStorageLock } from './auth-storage-lock';
 
 const MAIN_RECOVERY_QUARANTINE_KEY = 'menta.main-auth.recovery-quarantine.v1';
 
@@ -12,14 +13,31 @@ export const quarantineMainRecoveryUser = async (userId: string) => {
   await AsyncStorage.setItem(MAIN_RECOVERY_QUARANTINE_KEY, userId);
 };
 
-export const clearAndVerifyMainLocalSession = async (storageKey: string) => {
-  const keys = [storageKey, `${storageKey}-user`];
-  await AsyncStorage.multiRemove(keys);
-  const remaining = await AsyncStorage.multiGet(keys);
-  if (remaining.some(([, value]) => value !== null)) {
-    throw new Error('Main recovery session cleanup was not verified.');
-  }
-};
+export const clearAndVerifyMainLocalSession = async (storageKey: string) =>
+  withAuthStorageLock(storageKey, async () => {
+    const ordinaryKeys = new Set([
+      storageKey,
+      `${storageKey}-user`,
+      `${storageKey}-code-verifier`,
+      `${storageKey}-flows-code-verifier`,
+    ]);
+    const flowPrefix = `${storageKey}-flow-`;
+    const verifierSuffix = '-code-verifier';
+    // Earlier SDK flow-index races can leave verifiers outside the index.
+    // Enumerate only this exact ordinary namespace, never recovery storage.
+    for (const key of await AsyncStorage.getAllKeys()) {
+      if (key.startsWith(flowPrefix) && key.endsWith(verifierSuffix)) {
+        const flowId = key.slice(flowPrefix.length, -verifierSuffix.length);
+        if (/^[a-zA-Z0-9_-]{8,64}$/.test(flowId)) ordinaryKeys.add(key);
+      }
+    }
+    const keys = [...ordinaryKeys];
+    await AsyncStorage.multiRemove(keys);
+    const remaining = await AsyncStorage.multiGet(keys);
+    if (remaining.some(([, value]) => value !== null)) {
+      throw new Error('Main local session cleanup was not verified.');
+    }
+  });
 
 export const confineUnexpectedMainRecovery = async ({
   storageKey,

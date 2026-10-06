@@ -66,6 +66,8 @@ jest.mock('react-native-google-mobile-ads', () => ({
     CLOSED: 'closed',
     ERROR: 'error',
     LOADED: 'loaded',
+    CLICKED: 'clicked',
+    PAID: 'paid',
   },
   AdsConsent: {
     gatherConsent: mockGatherConsent,
@@ -437,6 +439,67 @@ describe('Google UMP rewarded-ad gate', () => {
 
     await expect(resultPromise).resolves.toEqual({ shown: true });
   });
+
+  it.each(['rewarded', 'interstitial'] as const)(
+    'forwards %s paid callbacks without trusting them as reward receipts',
+    async format => {
+      const ads = loadAdsModule();
+      const { trackRevenueCatAdEvent } = require('@/lib/paywall/revenuecat');
+      const outcome =
+        format === 'rewarded'
+          ? ads.showRewardedAdDetailed({ appUserId: 'consent-user' })
+          : ads.showInterstitialAdDetailed({ appUserId: 'consent-user' });
+      await waitForAdLoad();
+      mockAdListeners.get(
+        format === 'rewarded' ? 'rewarded_loaded' : 'loaded'
+      )?.();
+      mockAdListeners.get('opened')?.();
+      mockAdListeners.get('clicked')?.();
+      mockAdListeners.get('paid')?.({
+        value: 0.07,
+        currency: 'USD',
+        precision: 1,
+      });
+      expect(trackRevenueCatAdEvent).toHaveBeenCalledWith(
+        'consent-user',
+        expect.objectContaining({
+          type: 'revenue',
+          data: expect.objectContaining({
+            adFormat: format,
+            revenueMicros: 70_000,
+            currency: 'USD',
+          }),
+        })
+      );
+      expect(trackRevenueCatAdEvent).toHaveBeenCalledWith(
+        'consent-user',
+        expect.objectContaining({ type: 'displayed' })
+      );
+      expect(trackRevenueCatAdEvent).toHaveBeenCalledWith(
+        'consent-user',
+        expect.objectContaining({ type: 'opened' })
+      );
+      const revenueCalls = trackRevenueCatAdEvent.mock.calls.filter(
+        ([, event]: [string, { type: string }]) => event.type === 'revenue'
+      ).length;
+      mockAdListeners.get('paid')?.({ value: -1, currency: 'USD' });
+      mockAdListeners.get('paid')?.({ value: Number.NaN, currency: 'USD' });
+      expect(
+        trackRevenueCatAdEvent.mock.calls.filter(
+          ([, event]: [string, { type: string }]) => event.type === 'revenue'
+        )
+      ).toHaveLength(revenueCalls);
+      mockAdListeners.get('closed')?.();
+      if (format === 'rewarded') {
+        await expect(outcome).resolves.toMatchObject({
+          earned: false,
+          amount: 0,
+        });
+      } else {
+        await expect(outcome).resolves.toEqual({ shown: true });
+      }
+    }
+  );
 
   it('keeps an interstitial fail-open when consent cannot permit ads', async () => {
     mockGatherConsent.mockResolvedValue(

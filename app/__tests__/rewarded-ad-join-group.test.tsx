@@ -308,7 +308,7 @@ describe('join group sponsor reward', () => {
     expect(mockPendingInvite).toMatchObject({ code: 'GROUP1234' });
     expect(
       screen.getByText(
-        'Joining costs 50 Momenta. Nothing is spent until you tap Join group.'
+        'Joining spends 50 Momenta. Your code is used only after the group accepts you.'
       )
     ).toBeTruthy();
     expect(screen.queryByText('Join a group')).toBeNull();
@@ -649,7 +649,7 @@ describe('join group sponsor reward', () => {
     );
     const rendered = renderScreen();
     await screen.findByText(
-      'Joining costs 0 Momenta. Nothing is spent until you tap Join group.'
+      'Your first join is free, whether it’s a promise or a group. Any cost is shown before you confirm.'
     );
     fireEvent.press(await screen.findByRole('button', { name: 'Join group' }));
     await waitFor(() => expect(mockJoinInvoke).toHaveBeenCalledTimes(1));

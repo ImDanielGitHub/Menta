@@ -54,4 +54,25 @@ export const groupsHomeDeDE = {
   'groupsHome.groupAction.empty_title': 'Keine offenen Prüfungen',
   'groupsHome.groupAction.empty_detail':
     'Gerade wartet niemand auf deine Prüfung.',
+  'groupsHome.adminNotice.ownerOnlyTitle': 'Nur Gruppeninhaber',
+  'groupsHome.adminNotice.ownerOnlyDetail':
+    'Nur der Gruppeninhaber kann diese Gruppeneinstellungen speichern.',
+  'groupsHome.adminNotice.nameRequiredTitle': 'Name erforderlich',
+  'groupsHome.adminNotice.nameRequiredDetail':
+    'Gib dieser Gruppe einen Namen, bevor du speicherst.',
+  'groupsHome.adminNotice.saveUnconfirmedTitle': 'Speichern nicht bestätigt',
+  'groupsHome.adminNotice.saveUnconfirmedDetail':
+    'Menta konnte nicht bestätigen, ob die Einstellungen gespeichert wurden. Deine Änderungen sind noch hier. Prüfe die Gruppe, bevor du es erneut versuchst.',
+  'groupsHome.adminNotice.savedTitle': 'Änderungen gespeichert',
+  'groupsHome.adminNotice.savedDetail':
+    'Die Gruppeneinstellungen sind aktuell.',
+  'groupsHome.adminNotice.saveFailedTitle': 'Änderungen nicht gespeichert',
+  'groupsHome.adminNotice.saveFailedDetail':
+    'Prüfe deine Verbindung und versuche es erneut. Deine Änderungen sind noch hier.',
+  'groupsHome.adminNotice.leaveUnknownTitle': 'Verlassen nicht bestätigt',
+  'groupsHome.adminNotice.leaveFailedTitle': 'Keine Gruppenänderung',
+  'groupsHome.adminNotice.deleteUnconfirmedTitle': 'Löschen nicht bestätigt',
+  'groupsHome.adminNotice.deleteUnconfirmedDetail':
+    'Menta konnte nicht bestätigen, ob die Gruppe gelöscht wurde. Geh zurück zu Gruppen und prüfe das, bevor du es erneut versuchst.',
+  'groupsHome.adminNotice.deleteFailedTitle': 'Gruppe nicht gelöscht',
 } as const satisfies Pick<EnglishCatalogue, GroupsHomeKey>;

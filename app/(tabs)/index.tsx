@@ -42,6 +42,7 @@ import {
 } from '@/components/loop/build-daily-loop-facts';
 import { mapProofDraftsToOverlays } from '@/components/loop/map-proof-overlays';
 import { resolveTodayPresentation } from '@/components/loop/today-copy';
+import { getTodayLedgerScopeLabel } from '@/lib/loop/today-ledger-copy';
 import { sanitizeCorrectionReason } from '@/lib/proof-correction-copy';
 import { NotificationBell } from '@/components/home/NotificationBell';
 import { PersonalPromisesShortcut } from '@/components/home/PersonalPromisesShortcut';
@@ -216,6 +217,13 @@ const getVerificationType = (
   return 'photo';
 };
 
+const readReviewVerificationType = (
+  value: unknown
+): ServerReviewFact['verificationType'] => {
+  if (value === 'photo' || value === 'video' || value === 'text') return value;
+  return undefined;
+};
+
 const getSubmissionStatusLabel = (
   status: ObligationProofStatus,
   t: ReturnType<typeof useTranslation>['t']
@@ -296,6 +304,9 @@ const decodePendingReviews = (value: unknown): ServerReviewFact[] => {
       groupName: asString(row.group_name),
       submitterName: asString(row.submitter_name) ?? 'A member',
       submittedAtIso: asString(row.submitted_at) ?? new Date().toISOString(),
+      verificationType: readReviewVerificationType(
+        row.verification_type ?? row.media_type ?? row.proof_type
+      ),
     });
   }
   return reviews;
@@ -609,7 +620,10 @@ export default function HomeScreen() {
 
   const refreshToday = useCallback(async () => {
     const requestedUserId = activeUserIdRef.current;
-    if (!requestedUserId) return;
+    if (!requestedUserId) {
+      if (mountedRef.current) setRefreshing(false);
+      return;
+    }
 
     await refreshCoordinatorRef.current.run(requestedUserId, async () => {
       const refreshVersion = ++refreshVersionRef.current;
@@ -1353,7 +1367,7 @@ export default function HomeScreen() {
         verificationType: submission.verificationType,
         title: submission.challengeTitle,
         detail: t('today.home.also.detail', {
-          where: submission.groupName ?? t('today.home.personal'),
+          where: getTodayLedgerScopeLabel(submission.groupName, t),
           day: dayLabel,
         }),
         statusLabel,

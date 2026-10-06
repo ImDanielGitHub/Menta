@@ -1,16 +1,8 @@
 export type CommercePaperRoute =
-  | 'paywall'
-  | 'momenta'
-  | 'shop'
-  | 'shop-detail'
-  | 'inventory';
+  'paywall' | 'momenta' | 'shop' | 'shop-detail' | 'inventory';
 
 export type CommercePaperTone =
-  | 'neutral'
-  | 'action'
-  | 'success'
-  | 'warning'
-  | 'danger';
+  'neutral' | 'action' | 'success' | 'warning' | 'danger';
 
 export type CommercePaperKind =
   | 'gate'

@@ -20,8 +20,10 @@ const mockReadTimeline = jest.fn();
 const mockReadAccountability = jest.fn();
 const mockRouter = { replace: jest.fn() };
 const mockPublished: StreakWidgetSnapshot[] = [];
-const mockPendingReads: ((value: { source: 'v2'; rows: never[] }) => void)[] =
-  [];
+const mockPendingReads: ((value: {
+  source: 'v2';
+  rows: Record<string, unknown>[];
+}) => void)[] = [];
 
 jest.mock('@/store/auth-store', () => ({
   useAuthStore: Object.assign(
@@ -69,7 +71,7 @@ jest.mock('@/lib/widgets/widget-native', () => ({
 
 const promiseId = '10b09cc1-3bfb-4c13-82b1-c77b6fdfb759';
 const authoritativeRead = () => ({
-  source: 'v2',
+  source: 'v2' as const,
   rows: [
     {
       challenge_id: promiseId,
@@ -220,7 +222,7 @@ it('loads the saved selection and refreshes even when the native cache read fail
   });
 });
 
-it('preserves a valid owned widget after a preference read failure and retries on the next refresh', async () => {
+it('redacts a valid owned widget after a preference read failure and retries on the next refresh', async () => {
   mockAuth.isInitialized = true;
   jest
     .mocked(AsyncStorage.getItem)
@@ -234,8 +236,11 @@ it('preserves a valid owned widget after a preference read failure and retries o
       error: 'read',
     })
   );
-  expect(useHomeWidgetStore.getState().snapshot.streak).toBe('8');
-  expect(mockPublished).toEqual([]);
+  expect(useHomeWidgetStore.getState().snapshot.title).not.toBe(
+    'Read my private journal'
+  );
+  expect(mockPublished.at(-1)?.title).not.toBe('Read my private journal');
+  expect(mockPublished.length).toBeGreaterThan(0);
   await act(async () => {
     await refreshHomeWidget();
   });
@@ -273,18 +278,81 @@ it('keeps an unreadable unowned cache neutral and still retries saved preference
   await waitFor(() => expect(mockPublished.at(-1)?.streak).toBe('9'));
 });
 
-it('leaves the widget loading route if saved preferences cannot be restored', async () => {
+it.each([false, true])(
+  'revalidates a widget tap while preference loading=%s has an error',
+  async loading => {
+    mockAuth.isInitialized = true;
+    useHomeWidgetStore.setState({
+      ownerId: 'owner-a',
+      available: true,
+      ready: false,
+      loading,
+      error: 'read',
+    });
+    mockReadAccountability.mockResolvedValue(authoritativeRead());
+    render(<WidgetOpenScreen />);
+    await waitFor(() =>
+      expect(mockRouter.replace).toHaveBeenCalledWith({
+        pathname: '/verification',
+        params: {
+          challengeId: promiseId,
+          verificationType: 'text',
+          source: 'solo',
+        },
+      })
+    );
+    expect(mockReadAccountability).toHaveBeenCalledTimes(1);
+  }
+);
+
+it('waits for confirmed authentication before revalidating a widget tap', async () => {
+  mockReadAccountability.mockResolvedValue(authoritativeRead());
+  const screen = render(<WidgetOpenScreen />);
+  expect(mockReadAccountability).not.toHaveBeenCalled();
   mockAuth.isInitialized = true;
-  useHomeWidgetStore.setState({
-    ownerId: 'owner-a',
-    available: true,
-    ready: false,
-    error: 'read',
-  });
+  screen.rerender(<WidgetOpenScreen />);
+  await waitFor(() =>
+    expect(mockRouter.replace).toHaveBeenCalledWith(
+      expect.objectContaining({ pathname: '/verification' })
+    )
+  );
+});
+
+it('does not open a promise that the server no longer returns for this account', async () => {
+  mockAuth.isInitialized = true;
+  mockReadAccountability.mockResolvedValue({ source: 'v2', rows: [] });
   render(<WidgetOpenScreen />);
   await waitFor(() =>
     expect(mockRouter.replace).toHaveBeenCalledWith('/(tabs)')
   );
+});
+
+it.each(['pending', 'approved'])(
+  'opens history for server-confirmed %s proof',
+  async proofStatus => {
+    mockAuth.isInitialized = true;
+    const read = authoritativeRead();
+    read.rows[0].proof_status = proofStatus;
+    mockReadAccountability.mockResolvedValue(read);
+    render(<WidgetOpenScreen />);
+    await waitFor(() =>
+      expect(mockRouter.replace).toHaveBeenCalledWith({
+        pathname: '/challenges/[id]',
+        params: { id: promiseId, view: 'history' },
+      })
+    );
+  }
+);
+
+it('ignores a widget response from the account that was left during the read', async () => {
+  mockAuth.isInitialized = true;
+  const screen = render(<WidgetOpenScreen />);
+  mockAuth.user = { id: 'owner-b' };
+  screen.rerender(<WidgetOpenScreen />);
+  await act(async () => {
+    mockPendingReads.shift()?.(authoritativeRead());
+  });
+  expect(mockRouter.replace).not.toHaveBeenCalled();
 });
 
 it('allows setup to replace malformed saved preferences without disclosing cached text', async () => {

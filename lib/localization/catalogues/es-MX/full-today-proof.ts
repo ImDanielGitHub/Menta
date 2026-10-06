@@ -445,12 +445,12 @@ export const fullTodayProofEsMX = {
   'todayProof.promise.preparing_invite': 'Preparando invitación…',
   'todayProof.promise.open_review_queue': 'Abrir lista de revisión',
   'todayProof.promise.report': 'Promesa de informe',
-  'todayProof.promise.reminder_question': '¿Quieres un recordatorio?',
+  'todayProof.promise.reminder_question': '¿Quieres recordatorios de prueba?',
   'todayProof.promise.reminder_detail':
-    'Menta puede recordártelo antes de que venza esta promesa.',
-  'todayProof.promise.remind_about': 'Recuérdame esta promesa',
+    'Menta puede recordarte antes de que venza la prueba de cualquier promesa activa. Esta opción se aplica a todas las promesas, no solo a esta.',
+  'todayProof.promise.remind_about': 'Recordatorios de prueba',
   'todayProof.promise.remind_detail':
-    'Envía un recordatorio antes de que venza la prueba.',
+    'Se aplica a todas las promesas, no solo a esta.',
   'todayProof.promise.set_reminders': 'Configurar recordatorios',
   'todayProof.promise.without_reminders': 'Continuar sin recordatorios',
   'todayProof.promise.invite_question': '¿Invitar a alguien a esta promesa?',
@@ -595,6 +595,14 @@ export const fullTodayProofEsMX = {
     'No pudimos confirmar si se envió la prueba. Comprueba su estado antes de volver a intentarlo.',
   'todayProof.proof.failed_detail':
     'No se envió prueba. Comprueba tu conexión y vuelve a intentarlo. Tu borrador permanece aquí si se guardó localmente.',
+  'todayProof.proof.already_sent':
+    'La prueba de hoy ya está en esta promesa. No hace falta enviarla otra vez.',
+  'todayProof.proof.not_joined':
+    'Tienes que unirte a esta promesa antes de enviar una prueba.',
+  'todayProof.proof.text_too_generic':
+    'Agrega un detalle. «Done» solo no basta.',
+  'todayProof.proof.safety_disclosure':
+    'La prueba debe ser apta para el trabajo (SFW). Si alguien la denuncia, el personal autorizado de Menta puede revisarla por seguridad.',
   'todayProof.proof.share_accepted':
     'Mi prueba de la promesa de hoy fue aprobada en Menta.',
   'todayProof.proof.share_pending':
@@ -670,6 +678,9 @@ export const fullTodayProofEsMX = {
   'todayProof.review.queue': 'Lista de revisión',
   'todayProof.review.nothing_else': 'Nada más que revisar todavía',
   'todayProof.review.no_submissions': 'No hay envíos para revisar',
+  'todayProof.review.empty_title_approved': 'No hay pruebas aprobadas aquí',
+  'todayProof.review.empty_title_retry': 'Ninguna prueba necesita otro intento',
+  'todayProof.review.empty_title_all': 'No hay pruebas aquí',
   'todayProof.review.reward_unconfirmed':
     'Se guardó la decisión de prueba, pero no se confirmó la recompensa.',
   'todayProof.review.reward_failed':
@@ -904,16 +915,16 @@ export const fullTodayProofEsMX = {
   'todayProof.residual.visibility': 'Visibilidad',
   'todayProof.residual.reminder': 'Recordatorio',
   'todayProof.residual.open_proof_recovery': 'Recuperación de prueba abierta',
-  'todayProof.residual.not_counted_yet': 'Aún no contado',
+  'todayProof.residual.not_counted_yet': 'Hoy aún no cuenta',
   'todayProof.residual.the_saved_proof_remains_on_this_device_until_menta_confirms_the_':
-    'La prueba guardada permanece en este dispositivo hasta que Menta confirme la recepción del servidor.',
+    'La prueba guardada permanece en este dispositivo hasta que Menta la confirme. No hace falta enviarla de nuevo.',
   'todayProof.residual.view_proof_history': 'Ver historial de pruebas',
   'todayProof.residual.start_today_s_proof': 'Comienza la prueba de hoy',
   'todayProof.residual.check_again': 'Volver a comprobar',
   'todayProof.residual.no_new_proof_was_started':
     'No se inició ninguna nueva prueba.',
   'todayProof.residual.check_the_current_server_status_before_sending_or_retrying_proof':
-    'Verifica el estado actual del servidor antes de enviar o volver a intentar la prueba.',
+    'Comprueba si esta prueba se guardó antes de enviarla o volver a intentarlo.',
   'todayProof.residual.a_previous_day_was_protected':
     'Se protegió un día anterior',
   'todayProof.residual.the_protected_day_remains_in_proof_history_today_still_needs_its':
@@ -1080,6 +1091,8 @@ export const fullTodayProofEsMX = {
   'todayProof.milestone.reached.one': 'Llegaste al día {count}.',
   'todayProof.milestone.reached.other': 'Llegaste a {count} días.',
   'todayProof.milestone.reward': '+{reward} Momentas',
+  'todayProof.milestone.approved_now': 'Aprobado ahora',
+  'todayProof.milestone.approved_at': 'Aprobado {date}',
   'todayProof.streak.day_count': 'Racha de {count} días',
   'todayProof.streak.day_count.one': 'Racha de {count} día',
   'todayProof.streak.day_count.other': 'Racha de {count} días',
@@ -1248,4 +1261,40 @@ export const fullTodayProofEsMX = {
   'todayProof.createFlow.editPromise': 'Editar promesa',
   'todayProof.createFlow.dayToggle': '{day}, cuenta',
   'todayProof.createFlow.dayToggleOff': '{day}, día de descanso',
+  'todayProof.promise.personal_cue': 'Promesa personal',
+  'todayProof.promise.queued_prompt':
+    'Menta aún no ha confirmado el envío. Abre la prueba guardada antes de añadir otra.',
+  'todayProof.promise.one_change': 'Hace falta un cambio',
+  'todayProof.promise.correction_prompt':
+    'Quien revisa pidió una prueba más clara. El intento anterior sigue en el historial.',
+  'todayProof.promise.approved_prompt':
+    'La prueba de hoy está aprobada. El próximo día pendiente aparecerá cuando avance el calendario.',
+  'todayProof.promise.missed_in_history': 'Hay un día perdido en tu historial',
+  'todayProof.promise.recovery_prompt':
+    'La racha anterior terminó, pero puedes empezar de nuevo con la siguiente prueba de hoy.',
+  'todayProof.promise.unknown_paused_prompt':
+    'El envío está en pausa hasta que Menta confirme si ya existe una prueba para hoy.',
+  'todayProof.promise.protected_due': 'Racha protegida · Prueba pendiente hoy',
+  'todayProof.promise.active_prompt':
+    'Añade la prueba de hoy cuando hayas hecho lo que prometiste.',
+  'todayProof.promise.progress_approved': '{approved} de {total} aprobadas',
+  'todayProof.promise.duration_days': 'Promesa de {days} días',
+  'todayProof.promise.complete_title':
+    'Se aprobaron {approved} de {total} días.',
+  'todayProof.promise.complete_tally': '{approved} de {total} días aprobados',
+  'todayProof.promise.reviewed_own': 'revisaste tu propia prueba',
+  'todayProof.promise.reviewed_group':
+    'el grupo de la promesa revisó la prueba',
+  'todayProof.promise.share_complete':
+    '{title}: {approved} de {total} días aprobados en Menta.',
+  'todayProof.promise.group_fallback': 'Promesa de grupo',
+  'todayProof.promise.reviewer_has_proof': '{name} tiene tu prueba.',
+  'todayProof.promise.proof_submitted': 'Prueba enviada',
+  'todayProof.promise.waiting_unavailable':
+    'Menta confirmó una revisión pendiente, pero no se pudo cargar la prueba enviada.',
+  'todayProof.promise.your_log_starts':
+    'Envía la prueba de hoy y tu registro empieza aquí.',
+  'todayProof.promise.self_review': 'Autorevisión',
+  'todayProof.promise.peer_review_one': '{count} revisión de pares',
+  'todayProof.promise.peer_review_other': '{count} revisiones de pares',
 } as const satisfies Pick<EnglishCatalogue, FullTodayProofKey>;

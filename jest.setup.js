@@ -265,6 +265,8 @@ jest.mock('expo-video', () => {
   const React = require('react');
   const { View } = require('react-native');
   return {
+    clearVideoCacheAsync: jest.fn(() => Promise.resolve()),
+    getCurrentVideoCacheSize: jest.fn(() => 0),
     VideoView: ({ children, ...props }) => (
       <View {...props} testID="expo-video-view">
         {children}

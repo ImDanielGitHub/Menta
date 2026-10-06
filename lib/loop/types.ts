@@ -42,17 +42,10 @@ export type ProofLifecycleState =
 
 /** Authoritative per-obligation proof status for the local day. */
 export type ObligationProofStatus =
-  | 'none'
-  | 'pending'
-  | 'approved'
-  | 'rejected';
+  'none' | 'pending' | 'approved' | 'rejected';
 
 export type GroupRiskLevel =
-  | 'safe'
-  | 'at_risk'
-  | 'critical'
-  | 'failed'
-  | 'expired';
+  'safe' | 'at_risk' | 'critical' | 'failed' | 'expired';
 
 /**
  * Fetch lifecycle for the atomic daily-loop snapshot.
@@ -61,10 +54,7 @@ export type GroupRiskLevel =
 export type DailyLoopFetchStatus = 'idle' | 'loading' | 'ready' | 'failed';
 
 export type ConfirmedReceiptKind =
-  | 'accepted'
-  | 'pending-review'
-  | 'correction-requested'
-  | 'sent';
+  'accepted' | 'pending-review' | 'correction-requested' | 'sent';
 
 /** Timezone + calendar day fields shared by Today and proof receipts. */
 export type LoopDayContext = {
@@ -120,6 +110,7 @@ export type ServerReviewFact = {
   groupName?: string | null;
   submitterName: string;
   submittedAtIso: string;
+  verificationType?: 'photo' | 'video' | 'text';
 };
 
 /** Group pressure fact for Today risk surfaces. */
@@ -155,10 +146,7 @@ export type DailyLoopServerFacts = {
 };
 
 export type LocalProofOverlayStatus =
-  | 'saved-local'
-  | 'uploading'
-  | 'unknown-result'
-  | 'terminal-failure';
+  'saved-local' | 'uploading' | 'unknown-result' | 'terminal-failure';
 
 /**
  * Client-only overlay. Must never be treated as a server receipt.

@@ -224,7 +224,9 @@ easier. Use a **new, empty project** for this installation.
    `supabase secrets set --env-file .env.server --project-ref YOUR_PROJECT_REF`.
    Fill in only your own values first.
 6. Configure Auth redirect URLs including `menta://auth/callback` and
-   `menta://password-recovery/callback`. Set a site URL you control and
+   `menta://password-recovery/callback`. For a claimed HTTPS callback, set
+   `EXPO_PUBLIC_PASSWORD_RECOVERY_REDIRECT_URL` to a domain you control and
+   allow that URL in Supabase. Set a site URL you control and
    configure email delivery and confirmation for your test users.
 
 The baseline creates a fresh application schema. It is not an upgrade script

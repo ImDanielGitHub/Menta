@@ -15,16 +15,18 @@ export const defaultTransitionConfig: ThemeTransitionConfig = {
 };
 
 // Hook for smooth theme transitions
-export const useThemeTransition = (config: ThemeTransitionConfig = defaultTransitionConfig) => {
+export const useThemeTransition = (
+  config: ThemeTransitionConfig = defaultTransitionConfig
+) => {
   const { isDark } = useTheme();
   const transitionValue = useRef(new Animated.Value(isDark ? 1 : 0)).current;
   const isTransitioning = useRef(false);
 
   useEffect(() => {
     if (isTransitioning.current) return;
-    
+
     isTransitioning.current = true;
-    
+
     Animated.timing(transitionValue, {
       toValue: isDark ? 1 : 0,
       duration: config.duration,
@@ -69,16 +71,21 @@ export const useThemeTransition = (config: ThemeTransitionConfig = defaultTransi
 export const withThemeTransition = <P extends object>(
   Component: React.ComponentType<P>
 ) => {
-  return React.forwardRef<any, P & { transitionConfig?: ThemeTransitionConfig }>((props, ref) => {
+  const ThemeTransition = React.forwardRef<
+    unknown,
+    P & { transitionConfig?: ThemeTransitionConfig }
+  >((props, ref) => {
     const { transitionConfig, ...restProps } = props;
     const transition = useThemeTransition(transitionConfig);
-    
+
     return React.createElement(Component, {
       ...(restProps as P),
       ref,
       themeTransition: transition,
     });
   });
+  ThemeTransition.displayName = `withThemeTransition(${Component.displayName || Component.name || 'Component'})`;
+  return ThemeTransition;
 };
 
 // Predefined transition presets

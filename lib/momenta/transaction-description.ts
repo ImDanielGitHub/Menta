@@ -1,4 +1,8 @@
-import { enNZ, type TranslationKey } from '@/lib/localization/en-NZ';
+import type { TranslationKey } from '@/lib/localization/en-NZ';
+import {
+  translate,
+  type TranslationValues,
+} from '@/lib/localization/translate';
 
 /**
  * Wallet rows are written by server code and by the RevenueCat webhook, and some
@@ -20,9 +24,13 @@ const lastIdentifierSegment = (value: string) => {
   return segments[segments.length - 1] ?? value;
 };
 
-type TransactionTranslate = (key: TranslationKey) => string;
+type TransactionTranslate = (
+  key: TranslationKey,
+  values?: TranslationValues
+) => string;
 
-const defaultTranslate: TransactionTranslate = key => String(enNZ[key]);
+const defaultTranslate: TransactionTranslate = (key, values) =>
+  translate('en-NZ', key, values);
 
 const planFromIdentifier = (
   identifier: string,
@@ -108,6 +116,14 @@ export const describeMomentaTransaction = (
       return t('commerce.wallet.groupCreated');
     default:
       break;
+  }
+
+  const challengeJoin = raw.match(/^challenge join:\s*(.*)$/i);
+  if (challengeJoin) {
+    const title = challengeJoin[1].trim();
+    return title
+      ? t('commerce.wallet.promiseJoined', { title })
+      : t('commerce.wallet.promiseJoinedUnknown');
   }
 
   const separatorIndex = raw.indexOf(':');

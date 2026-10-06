@@ -1,11 +1,18 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { useVideoPlayer } from 'expo-video';
 
 import {
   ProofConnectionMosaic,
   type ProofConnectionMosaicItem,
 } from '@/components/proof/ProofConnectionMosaic';
+
+jest.mock('@/lib/services/proof-media-viewer', () => ({
+  resolveProofVideoUri: jest.fn(async (uri: string) =>
+    uri.includes('://') ? uri : `https://proof.example.test/${uri}`
+  ),
+}));
 
 jest.mock('@/components/ui/SignedImage', () => {
   const React = require('react') as typeof import('react');
@@ -206,6 +213,31 @@ describe('ProofConnectionMosaic', () => {
     );
     expect(reactionStyle.minHeight).toBe(44);
     expect(reactionStyle.minWidth).toBe(44);
+  });
+
+  it('generates a missing video thumbnail without persistent video caching', async () => {
+    const replaceAsync = jest.fn().mockResolvedValue(undefined);
+    const generateThumbnailsAsync = jest
+      .fn()
+      .mockResolvedValue([{ uri: 'memory-only-thumbnail' }]);
+    jest.mocked(useVideoPlayer).mockReturnValue({
+      replaceAsync,
+      generateThumbnailsAsync,
+    } as unknown as ReturnType<typeof useVideoPlayer>);
+
+    render(
+      <ProofConnectionMosaic
+        items={[{ ...videoProof, thumbnailUrl: null }]}
+        onOpenProof={jest.fn()}
+      />
+    );
+
+    await waitFor(() =>
+      expect(replaceAsync).toHaveBeenCalledWith({
+        uri: expect.any(String),
+        useCaching: false,
+      })
+    );
   });
 
   it('expands real media on an explicitly supplied iPad lane', () => {

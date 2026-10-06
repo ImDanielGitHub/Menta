@@ -83,6 +83,17 @@ describe('Today copy contract', () => {
     expect(presentation.detail).not.toHaveLength(0);
   });
 
+  it('names a person reviewing pending proof instead of an automatic Menta result', () => {
+    const presentation = resolve('proof-pending-review');
+
+    expect(presentation.title).toBe('Your proof is waiting for review.');
+    expect(presentation.detail).toContain('reviewer');
+    expect(presentation.detail).toContain('does not count');
+    expect(presentation.detail).toContain('do not need to send it again');
+    expect(presentation.detail).not.toMatch(/result will appear/i);
+    expect(presentation.primaryLabel).toBe('View proof');
+  });
+
   it('keeps an unknown local send honest and resumable', () => {
     const presentation = resolve(
       'proof-saved-local',
@@ -467,11 +478,67 @@ describe('Today copy contract', () => {
     const presentation = resolve('review-required');
 
     expect(presentation.detail).toContain(
-      'Check the photo, then approve it or ask for one clear correction.'
+      'Check the proof, then approve it or ask for one clear correction.'
     );
+    expect(presentation.detail).not.toContain('Check the photo');
     expect(presentation.detail).toContain(
       'Each confirmed review adds 8 Momenta, up to 20 a day.'
     );
+  });
+
+  it('names the agreed proof type when a review is due', () => {
+    const selection = {
+      ...createSelection('review-required'),
+      primaryReviewId: 'rev-1',
+    };
+    const presentation = resolveTodayPresentation({
+      selection,
+      obligations: [],
+      pendingReviews: [
+        {
+          reviewId: 'rev-1',
+          challengeId: 'challenge-2',
+          challengeTitle: 'Morning journal',
+          submitterName: 'Mia',
+          submittedAtIso: '2026-08-03T00:10:00.000Z',
+          verificationType: 'text',
+        },
+      ],
+      groupRisks: [],
+      now: new Date('2026-08-03T00:30:00.000Z'),
+    });
+
+    expect(presentation.detail).toContain('Read the note');
+    expect(presentation.detail.toLowerCase()).not.toContain('photo');
+  });
+
+  it('names the next proof type after a correction', () => {
+    const selection = {
+      ...createSelection('correction-requested'),
+      primaryChallengeId: 'challenge-1',
+    };
+    const presentation = resolveTodayPresentation({
+      selection,
+      obligations: [
+        {
+          obligationKey: 'solo:challenge-1',
+          challengeId: 'challenge-1',
+          title: 'Morning focus',
+          verificationType: 'video',
+          localDay: selection.localDay,
+          timezone: selection.timezone,
+          proofStatus: 'rejected',
+          isSolo: true,
+        },
+      ],
+      pendingReviews: [],
+      groupRisks: [],
+      now: new Date('2026-08-03T00:30:00.000Z'),
+    });
+
+    expect(presentation.title).toBe('One clearer video, then you’re done');
+    expect(presentation.primaryLabel).toBe('Add a clearer video');
+    expect(presentation.detail.toLowerCase()).not.toContain('photo');
   });
 
   it.each([

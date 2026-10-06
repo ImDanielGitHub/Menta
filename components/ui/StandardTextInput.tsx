@@ -54,14 +54,13 @@ export const StandardTextInput = forwardRef<
     const resolvedAutoComplete =
       preventAutofill || isConfirmPassword
         ? 'off'
-        : autoCompleteType ?? autoComplete;
+        : (autoCompleteType ?? autoComplete);
 
-    const resolvedTextContentType =
-      isConfirmPassword
-        ? 'none'
-        : isNewPassword
-          ? 'newPassword'
-          : textContentType;
+    const resolvedTextContentType = isConfirmPassword
+      ? 'none'
+      : isNewPassword
+        ? 'newPassword'
+        : textContentType;
 
     return (
       <AppTextField

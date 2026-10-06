@@ -115,7 +115,8 @@ export const notificationsEsMX = {
   'notifications.onboarding.permission_off.title': 'No pasa nada.',
   'notifications.onboarding.permission_off.body':
     'Menta funciona sin notificaciones. Puedes activar los recordatorios más tarde desde Configuración.',
-  'notifications.onboarding.permission_off.action': 'Continuar',
+  'notifications.onboarding.permission_off.action':
+    'Continuar sin recordatorios',
   'notifications.onboarding.permission_off.settings': 'Abrir configuración',
   'notifications.onboarding.granted.title': 'Todo listo.',
   'notifications.onboarding.granted.body':

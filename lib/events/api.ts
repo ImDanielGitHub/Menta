@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { getEventActionUnknownCopy } from '@/lib/events/event-action-copy';
 import { translate } from '@/lib/localization';
 import { trackProductEvent } from '@/lib/posthog';
 import { captureError } from '@/lib/sentry';
@@ -576,7 +577,7 @@ const invokeEventAction = async <TData>(input: {
           input.action,
           input.clientEventId,
           'FUNCTION_TRANSPORT_FAILED',
-          "We couldn't tell whether the event action went through. Check its status before trying again."
+          getEventActionUnknownCopy('transport')
         )
       );
     }
@@ -594,7 +595,7 @@ const invokeEventAction = async <TData>(input: {
         input.action,
         input.clientEventId,
         'MALFORMED_SERVER_RECEIPT',
-        "Menta couldn't read the result. Check what changed before trying again."
+        getEventActionUnknownCopy('malformed')
       )
     );
   } catch {
@@ -603,7 +604,7 @@ const invokeEventAction = async <TData>(input: {
         input.action,
         input.clientEventId,
         'FUNCTION_TRANSPORT_FAILED',
-        "We couldn't tell whether the event action went through. Check its status before trying again."
+        getEventActionUnknownCopy('transport')
       )
     );
   }

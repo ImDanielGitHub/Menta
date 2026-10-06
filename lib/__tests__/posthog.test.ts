@@ -35,6 +35,7 @@ jest.mock('@amplitude/analytics-react-native', () => ({
 }));
 
 describe('PostHog transport', () => {
+  const originalStoreUrl = process.env.EXPO_PUBLIC_IOS_STORE_URL;
   const originalApiKey = process.env.EXPO_PUBLIC_POSTHOG_KEY;
   const originalHost = process.env.EXPO_PUBLIC_POSTHOG_HOST;
   const originalAmplitudeKey = process.env.EXPO_PUBLIC_AMPLITUDE_API_KEY;
@@ -42,12 +43,15 @@ describe('PostHog transport', () => {
   beforeEach(() => {
     jest.resetModules();
     jest.clearAllMocks();
+    process.env.EXPO_PUBLIC_IOS_STORE_URL = 'https://example.org/menta-ios';
     process.env.EXPO_PUBLIC_POSTHOG_KEY = 'public-test-key';
     process.env.EXPO_PUBLIC_POSTHOG_HOST = 'https://us.i.posthog.com';
     process.env.EXPO_PUBLIC_AMPLITUDE_API_KEY = 'public-amplitude-key';
   });
 
   afterAll(() => {
+    if (originalStoreUrl === undefined) delete process.env.EXPO_PUBLIC_IOS_STORE_URL;
+    else process.env.EXPO_PUBLIC_IOS_STORE_URL = originalStoreUrl;
     process.env.EXPO_PUBLIC_POSTHOG_KEY = originalApiKey;
     process.env.EXPO_PUBLIC_POSTHOG_HOST = originalHost;
     process.env.EXPO_PUBLIC_AMPLITUDE_API_KEY = originalAmplitudeKey;
@@ -329,7 +333,7 @@ describe('PostHog transport', () => {
       status: 'offer',
       mode: 'required',
       minimumVersion: '1.9.2',
-      storeUrl: 'https://apps.apple.com/app/id6747362646',
+      storeUrl: 'https://example.org/menta-ios',
     });
     expect(stop).toBe(unsubscribe);
   });

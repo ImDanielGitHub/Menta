@@ -39,6 +39,10 @@ import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { readFileBase64 } from '@/lib/filesystem';
 import { PROFILE_SAFETY_DISCLOSURE } from '@/lib/content-safety';
 import {
+  describeProfilePhotoError,
+  type ProfilePhotoErrorCopy,
+} from '@/lib/profile/photo-error-copy';
+import {
   getMyProfile,
   updateMyProfile,
   type MyProfile,
@@ -162,7 +166,9 @@ export default function EditProfileScreen() {
   const [stagedPhoto, setStagedPhoto] = useState<StagedPhoto | null>(null);
   const [photoRemovalStaged, setPhotoRemovalStaged] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
-  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<ProfilePhotoErrorCopy | null>(
+    null
+  );
   const [pickerNotice, setPickerNotice] = useState<PickerNotice>(null);
   const requestRef = useRef(0);
   const saveInFlightRef = useRef(false);
@@ -299,14 +305,12 @@ export default function EditProfileScreen() {
       const mimeType = asset.mimeType ?? 'image/jpeg';
       if (!SUPPORTED_PROFILE_PHOTO_MIME_TYPES.has(mimeType)) {
         setPickerNotice(null);
-        setPhotoError(
-          'Choose a JPEG, PNG, or WebP image for your profile photo.'
-        );
+        setPhotoError(describeProfilePhotoError('type', t));
         return;
       }
       if (asset.fileSize && asset.fileSize > MAX_PROFILE_PHOTO_BYTES) {
         setPickerNotice(null);
-        setPhotoError('Choose a photo smaller than 5 MB.');
+        setPhotoError(describeProfilePhotoError('size', t));
         return;
       }
 
@@ -317,9 +321,9 @@ export default function EditProfileScreen() {
     } catch {
       if (!isCurrentAccount()) return;
       setPickerNotice(null);
-      setPhotoError('Menta could not open your photo library. Try again.');
+      setPhotoError(describeProfilePhotoError('library', t));
     }
-  }, [currentProfile, isSaving, updateEditingState]);
+  }, [currentProfile, isSaving, t, updateEditingState]);
 
   const handleStagePhotoRemoval = useCallback(() => {
     if (!currentProfile || isSaving) return;
@@ -828,11 +832,8 @@ export default function EditProfileScreen() {
         {photoError ? (
           <AppInlineNotice
             tone="error"
-            title={t('fullAuth.edit_profile.choose_a_different_photo')}
-            description={t(
-              'fullAuth.edit_profile.photo_not_changed_photoerror',
-              { photoError: photoError }
-            )}
+            title={photoError.title}
+            description={photoError.description}
             testID="edit-profile-photo-rejected"
           />
         ) : null}

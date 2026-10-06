@@ -30,9 +30,7 @@ type EdgeReceipt = {
 };
 
 type RpcReceiptAction =
-  | EventFunctionAction
-  | 'prepare_post_delete'
-  | 'complete_post_delete';
+  EventFunctionAction | 'prepare_post_delete' | 'complete_post_delete';
 
 type EventFunctionContext = Awaited<ReturnType<typeof buildFunctionContext>>;
 

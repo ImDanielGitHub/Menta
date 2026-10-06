@@ -230,8 +230,6 @@ class ToastManager {
               {
                 tags: { toast_type: toast.type },
                 extras: {
-                  title: toast.title,
-                  message: toast.message,
                   count: nextCount,
                 },
               }
@@ -261,14 +259,12 @@ class ToastManager {
       safelyRecordToastTelemetry(() => {
         if (typeof addBreadcrumb === 'function') {
           addBreadcrumb('Error toast shown', {
-            title: toast.title,
-            message: toast.message,
+            toast_type: toast.type,
           });
         }
         if (typeof captureMessage === 'function') {
           captureMessage('ui_error_toast', __DEV__ ? 'info' : 'debug', {
             tags: { toast_type: toast.type },
-            extras: { title: toast.title, message: toast.message },
           });
         }
       });

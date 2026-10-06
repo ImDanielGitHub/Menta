@@ -11,10 +11,7 @@ export const META_ADS_INVITE_FRIEND_EVENT = 'InviteFriend';
 
 export type MetaAdsRegistrationMethod = 'email' | 'oauth';
 export type MetaAdsTrackingStatus =
-  | 'granted'
-  | 'denied'
-  | 'undetermined'
-  | 'unavailable';
+  'granted' | 'denied' | 'undetermined' | 'unavailable';
 
 type FacebookSettingsApi = {
   initializeSDK?: () => void;

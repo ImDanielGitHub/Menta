@@ -4,7 +4,7 @@ import { AppChoiceChip, AppOptionCard } from '@/components/ui/AppChoice';
 import { AppInlineNotice } from '@/components/ui/AppFeedback';
 import { AppSwitchRow } from '@/components/ui/AppFields';
 import { StandardTextInputRef } from '@/components/ui/StandardTextInput';
-import CreationTextInput from '@/components/creation/shared/CreationTextInput';
+import MentaCreationTextInput from '@/components/creation/shared/CreationTextInput';
 import type { ThemeContextType } from '@/constants/ThemeContext';
 import type {
   ChallengeDifficulty,
@@ -86,7 +86,7 @@ export function SettingsStep({
               />
             ))}
           </View>
-          <CreationTextInput
+          <MentaCreationTextInput
             ref={durationInputRef}
             label={t('todayProof.residual.custom_window')}
             required

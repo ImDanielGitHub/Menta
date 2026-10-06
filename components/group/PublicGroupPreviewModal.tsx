@@ -14,7 +14,7 @@ import { AppInlineNotice } from '@/components/ui/AppFeedback';
 import { Avatar } from '@/components/ui/Avatar';
 import { AppButton } from '@/components/ui/AppButton';
 import { GlobeIcon, LockIcon, XIcon } from '@/components/ui/icons';
-import ModalCard from '@/components/ui/modal/ModalCard';
+import MentaModalCard from '@/components/ui/modal/ModalCard';
 import {
   mentaLayout,
   mentaRadii,
@@ -121,7 +121,7 @@ const PublicGroupPreviewModal: React.FC<PublicGroupPreviewModalProps> = ({
       : t('groups.preview.promise', { count: activePromiseCount });
 
   return (
-    <ModalCard
+    <MentaModalCard
       visible={visible}
       onClose={handleRequestClose}
       maxWidth={390}
@@ -250,7 +250,7 @@ const PublicGroupPreviewModal: React.FC<PublicGroupPreviewModalProps> = ({
             : describeJoinGroupCostNotice(quotedCost ?? null, t)}
         </Text>
       </View>
-    </ModalCard>
+    </MentaModalCard>
   );
 };
 

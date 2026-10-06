@@ -2,7 +2,7 @@ import React from 'react';
 import { Text, View } from 'react-native';
 import { AppOptionCard } from '@/components/ui/AppChoice';
 import { StandardTextInputRef } from '@/components/ui/StandardTextInput';
-import CreationTextInput from '@/components/creation/shared/CreationTextInput';
+import MentaCreationTextInput from '@/components/creation/shared/CreationTextInput';
 import type { ThemeContextType } from '@/constants/ThemeContext';
 import type {
   CreateChallengeFormData,
@@ -70,7 +70,7 @@ export function VerificationStep({
       </View>
 
       {formData.verificationType !== 'none' ? (
-        <CreationTextInput
+        <MentaCreationTextInput
           ref={verificationDescInputRef}
           label={t('todayProof.create.proof_rule_label')}
           required
@@ -94,7 +94,7 @@ export function VerificationStep({
         />
       ) : null}
 
-      <CreationTextInput
+      <MentaCreationTextInput
         ref={submissionTextInputRef}
         label={t('todayProof.create.prompt_optional')}
         placeholder={t('todayProof.create.prompt_placeholder')}

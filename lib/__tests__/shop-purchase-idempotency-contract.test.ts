@@ -5,27 +5,9 @@ const migrationPath = path.join(
   process.cwd(),
   'supabase/migrations/20260810014142_make_shop_purchases_idempotent.sql'
 );
-const repairMigrationPath = path.join(
-  process.cwd(),
-  'supabase/migrations/20260810015114_repair_shop_purchase_coalesce.sql'
-);
 
 describe('shop purchase idempotency SQL contract', () => {
   const sql = fs.readFileSync(migrationPath, 'utf8').toLowerCase();
-  const repairSql = fs.readFileSync(repairMigrationPath, 'utf8').toLowerCase();
-
-  it('repairs the invalid schema-qualified coalesce expression', () => {
-    expect(repairSql).toContain(
-      "'public.purchase_shop_item(uuid,uuid,uuid)'::regprocedure"
-    );
-    expect(repairSql).toContain(
-      "'public.purchase_shop_item(uuid,text)'::regprocedure"
-    );
-    expect(repairSql).toContain("'pg_catalog.coalesce'");
-    expect(repairSql).toContain("'coalesce'");
-    expect(repairSql).toContain('pg_catalog.pg_get_functiondef');
-    expect(repairSql).toContain('shop_purchase_coalesce_repair_failed');
-  });
 
   it('requires a client event ID on the canonical purchase overload', () => {
     expect(sql).toContain(

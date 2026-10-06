@@ -5,6 +5,7 @@ import Constants from 'expo-constants';
 import * as Updates from 'expo-updates';
 import { Platform } from 'react-native';
 import { getAdvancedDiagnosticsEnabled } from '@/lib/advanced-diagnostics-preference';
+import { isAuthTransportError } from '@/lib/auth/transport-error';
 
 type SentryRecord = Record<string, unknown>;
 type SentryLogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
@@ -441,6 +442,36 @@ const shouldDropEvent = (event: SentryRecord): boolean => {
 };
 
 const prepareEvent = (event: SentryRecord, hint?: SentryRecord) => {
+  const exceptions = (
+    event.exception as {
+      values?: {
+        type?: string;
+        value?: string;
+        mechanism?: { handled?: boolean };
+      }[];
+    }
+  )?.values;
+  // Only handled connection loss is expected. Keep unhandled exceptions,
+  // server outages and mixed exception chains visible as issues.
+  if (
+    exceptions?.length === 1 &&
+    exceptions[0].mechanism?.handled === true &&
+    isAuthTransportError({
+      name: exceptions[0].type,
+      message: exceptions[0].value,
+      status: (hint?.originalException as { status?: unknown } | undefined)
+        ?.status,
+    })
+  ) {
+    Sentry.addBreadcrumb({
+      category: 'auth',
+      message: 'auth_connection_interrupted',
+      level: 'warning',
+      data: { outcome: 'safe_to_retry' },
+    });
+    return null;
+  }
+
   try {
     if (currentRoutePath) {
       event.tags = { ...(event.tags as SentryRecord), route: currentRoutePath };

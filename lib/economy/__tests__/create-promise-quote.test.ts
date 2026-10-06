@@ -101,5 +101,8 @@ describe('create promise quote', () => {
     expect(describeCreatePromiseQuota('active').title).toContain(
       'free promise limit'
     );
+    expect(describeCreatePromiseQuota('active').message).toContain(
+      'keep 3 live promises'
+    );
   });
 });

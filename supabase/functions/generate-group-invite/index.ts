@@ -30,6 +30,12 @@ serve(async (req: Request) => {
       return jsonResponse({ error: 'Not authenticated' }, 401);
     }
 
+    const { data: activeSession, error: sessionError } =
+      await context.userClient.rpc('current_session_is_active');
+    if (sessionError || activeSession !== true) {
+      return jsonResponse({ error: 'Session is no longer active' }, 401);
+    }
+
     const body = await readJsonBody<GenerateGroupInviteBody>(req);
     const groupId = body?.groupId?.trim();
     const shouldReplace = body?.replace === true;
@@ -52,7 +58,7 @@ serve(async (req: Request) => {
     if (!isAuthorised) {
       const { data: membership } = await context.userClient
         .from('team_members')
-        .select('id')
+        .select('user_id')
         .eq('group_id', groupId)
         .eq('user_id', context.user.id)
         .eq('role', 'admin')

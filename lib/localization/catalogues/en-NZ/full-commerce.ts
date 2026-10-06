@@ -150,6 +150,8 @@ export const fullCommerceEnNZ = {
   'commerce.wallet.adjustmentDescription': 'Balance adjustment',
   'commerce.wallet.activityDescription': 'Momenta activity',
   'commerce.wallet.promiseCreated': 'Promise created',
+  'commerce.wallet.promiseJoined': 'Joined promise: {title}',
+  'commerce.wallet.promiseJoinedUnknown': 'Joined a promise',
   'commerce.wallet.groupCreated': 'Group created',
   'commerce.shop.title': 'Shop',
   'commerce.shop.intro':
@@ -844,13 +846,13 @@ export const fullCommerceEnNZ = {
   'commerce.firstMiss.errorUnavailable':
     'This first-day offer is no longer available. You can still add proof today.',
   'commerce.firstMiss.bubble':
-    '{weekday} slipped by. One missed day isn’t the whole story.',
+    'Missed {weekday}? You can still keep your streak.',
   'commerce.firstMiss.decisionTitle': 'Keep your {count}-day streak?',
   'commerce.firstMiss.decisionBody':
-    'Your first missed day is on us. A free Streak Freeze covers {weekday}, and your count stays at {count}.',
+    'Use your free Streak Freeze to cover {weekday} and keep your {count}-day streak.',
   'commerce.firstMiss.decisionBodyNoCount':
-    'Your first missed day is on us. A free Streak Freeze covers {weekday}.',
-  'commerce.firstMiss.keep': 'Keep my streak for free',
+    'Use your free Streak Freeze to cover {weekday}.',
+  'commerce.firstMiss.keep': 'Use my free freeze',
   'commerce.firstMiss.startOver': 'Start over at day 1',
   'commerce.free.receiptReadBlocked': 'Check your saved promise',
   'commerce.free.receiptReadBlockedDetail':

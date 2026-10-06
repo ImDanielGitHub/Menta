@@ -10,6 +10,10 @@ import {
 } from '@/lib/notifications/notification-actions';
 import { trackProductEvent } from '@/lib/posthog';
 import { translate } from '@/lib/localization';
+import {
+  describeGroupMembershipActivity,
+  GROUP_MEMBERSHIP_LEFT_ACTIVITY,
+} from '@/lib/groups/group-activity-copy';
 import { logCrash } from '@/lib/sentry';
 import { withTimeout } from '@/utils/api';
 
@@ -77,11 +81,7 @@ export enum NotificationType {
 }
 
 export type TestNotificationRequestResult =
-  | 'queued'
-  | 'rate-limited'
-  | 'not-ready'
-  | 'auth-required'
-  | 'failed';
+  'queued' | 'rate-limited' | 'not-ready' | 'auth-required' | 'failed';
 
 export interface NotificationPayload {
   type: NotificationType;
@@ -403,8 +403,7 @@ class NotificationService {
 
   private getExpoProjectId(): string | undefined {
     const extra = Constants.expoConfig?.extra as
-      | { eas?: { projectId?: string } }
-      | undefined;
+      { eas?: { projectId?: string } } | undefined;
     return (
       extra?.eas?.projectId ||
       Constants.easConfig?.projectId ||
@@ -1447,11 +1446,24 @@ class NotificationService {
     groupId: string,
     activity: string
   ): Promise<boolean> {
+    const copy = describeGroupMembershipActivity({
+      memberName,
+      groupName,
+      kind:
+        activity === GROUP_MEMBERSHIP_LEFT_ACTIVITY || activity === 'left'
+          ? 'left'
+          : 'joined',
+    });
     return this.sendNotification(userId, {
       type: NotificationType.GROUP_ACTIVITY,
       priority: 3,
       data: { groupId },
-      variables: { memberName, groupName, activity },
+      body: copy.body,
+      variables: {
+        memberName: copy.memberName,
+        groupName: copy.groupName,
+        activity: copy.activity,
+      },
     });
   }
 
@@ -2109,9 +2121,7 @@ class NotificationService {
           (
             userChallenge as unknown as {
               challenges?:
-                | { title?: string | null }
-                | { title?: string | null }[]
-                | null;
+                { title?: string | null } | { title?: string | null }[] | null;
             }
           ).challenges
         );

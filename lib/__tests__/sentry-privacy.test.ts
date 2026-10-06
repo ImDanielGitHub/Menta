@@ -124,6 +124,56 @@ describe('Sentry privacy boundary', () => {
       setAdvancedDiagnosticsCollectionEnabled(false);
     }
 
+    const transportMessage =
+      'fetch failed: UnexpectedException: The network connection was lost. (at ExpoModulesCore/Promise.swift:56)';
+    const authEvent = (handled: boolean, value = transportMessage) => ({
+      exception: {
+        values: [
+          {
+            type: 'AuthRetryableFetchError',
+            value,
+            mechanism: { type: 'generic', handled },
+          },
+        ],
+      },
+    });
+    expect(
+      options.beforeSend(authEvent(true), {
+        originalException: { status: 0 },
+      })
+    ).toBeNull();
+    // Serialized captures do not necessarily retain the original error.
+    expect(options.beforeSend(authEvent(true), {})).toBeNull();
+    expect(sentryMock.addBreadcrumb).toHaveBeenCalledWith({
+      category: 'auth',
+      message: 'auth_connection_interrupted',
+      level: 'warning',
+      data: { outcome: 'safe_to_retry' },
+    });
+    expect(options.beforeSend(authEvent(false), {})).not.toBeNull();
+    expect(
+      options.beforeSend(authEvent(true), {
+        originalException: { status: 503 },
+      })
+    ).not.toBeNull();
+    expect(options.beforeSend(authEvent(true, 'HTTP 503'), {})).not.toBeNull();
+    expect(
+      options.beforeSend(
+        {
+          exception: {
+            values: [
+              {
+                type: 'TypeError',
+                value: transportMessage,
+                mechanism: { handled: true },
+              },
+            ],
+          },
+        },
+        {}
+      )
+    ).not.toBeNull();
+
     const event = options.beforeSend(
       {
         message:

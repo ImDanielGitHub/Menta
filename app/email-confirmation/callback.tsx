@@ -8,7 +8,10 @@ import {
   type SupabaseUser,
 } from '@/lib/supabase';
 import { useAuthStore } from '@/store/auth-store';
+import { getEmailConfirmationCallbackCopy } from '@/lib/auth/email-confirmation-callback-copy';
+import { runAuthTransition } from '@/lib/auth/auth-transition';
 import { trackConfirmedEmailSignup } from '@/lib/auth/email-confirmation-analytics';
+import { useTranslation } from '@/lib/localization';
 import {
   isEmailConfirmationForSession,
   useEmailConfirmationStore,
@@ -51,6 +54,7 @@ export const classifyEmailConfirmationFailure = (
 };
 
 export default function EmailConfirmationCallbackScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams<{
     code?: string | string[];
@@ -59,7 +63,9 @@ export default function EmailConfirmationCallbackScreen() {
     error_description?: string | string[];
   }>();
   const exchangeStartedRef = useRef(false);
-  const [message, setMessage] = useState('Checking your confirmation link…');
+  const [message, setMessage] = useState(() =>
+    getEmailConfirmationCallbackCopy('checking', t)
+  );
 
   useEffect(() => {
     if (exchangeStartedRef.current) return;
@@ -71,75 +77,83 @@ export default function EmailConfirmationCallbackScreen() {
       router.replace(`/email-confirmation?status=${status}`);
     };
 
-    const exchangeConfirmationCode = async () => {
-      const providerError =
-        getSingleParam(params.error_code) ??
-        getSingleParam(params.error_description) ??
-        getSingleParam(params.error);
-      if (providerError) {
-        returnToConfirmation(classifyEmailConfirmationFailure(providerError));
-        return;
-      }
+    const exchangeConfirmationCode = () =>
+      runAuthTransition(async transition => {
+        const providerError =
+          getSingleParam(params.error_code) ??
+          getSingleParam(params.error_description) ??
+          getSingleParam(params.error);
+        if (providerError) {
+          returnToConfirmation(classifyEmailConfirmationFailure(providerError));
+          return;
+        }
 
-      const code = getSingleParam(params.code);
-      if (!code) {
-        returnToConfirmation('invalid');
-        return;
-      }
+        const code = getSingleParam(params.code);
+        if (!code) {
+          returnToConfirmation('invalid');
+          return;
+        }
 
-      const confirmationStore = useEmailConfirmationStore.getState();
-      let pending = confirmationStore.pending;
-      if (!confirmationStore.hasHydrated) {
+        const confirmationStore = useEmailConfirmationStore.getState();
+        let pending = confirmationStore.pending;
+        if (!confirmationStore.hasHydrated) {
+          try {
+            pending = await confirmationStore.hydrate();
+          } catch {
+            // A valid PKCE exchange is still authoritative if the auxiliary
+            // screen state could not be restored.
+            pending = null;
+          }
+        }
+
         try {
-          pending = await confirmationStore.hydrate();
-        } catch {
-          // A valid PKCE exchange is still authoritative if the auxiliary
-          // screen state could not be restored.
-          pending = null;
-        }
-      }
+          const emailConfirmationSupabase = getEmailConfirmationSupabase();
+          const result =
+            await emailConfirmationSupabase.auth.exchangeCodeForSession(code);
+          const data = result.data as EmailConfirmationExchangeData;
+          const session = data.session;
+          const sessionUser = session?.user ?? data.user ?? null;
 
-      try {
-        const emailConfirmationSupabase = getEmailConfirmationSupabase();
-        const result =
-          await emailConfirmationSupabase.auth.exchangeCodeForSession(code);
-        const data = result.data as EmailConfirmationExchangeData;
-        const session = data.session;
-        const sessionUser = session?.user ?? data.user ?? null;
+          if (result.error || !session || !sessionUser?.id) {
+            returnToConfirmation(
+              classifyEmailConfirmationFailure(result.error)
+            );
+            return;
+          }
 
-        if (result.error || !session || !sessionUser?.id) {
-          returnToConfirmation(classifyEmailConfirmationFailure(result.error));
-          return;
-        }
+          if (pending && !isEmailConfirmationForSession(pending, sessionUser)) {
+            await emailConfirmationSupabase.auth.signOut({ scope: 'local' });
+            await useAuthStore
+              .getState()
+              .setUserAndSession(null, null, transition);
+            returnToConfirmation('account-mismatch');
+            return;
+          }
 
-        if (pending && !isEmailConfirmationForSession(pending, sessionUser)) {
-          await emailConfirmationSupabase.auth.signOut({ scope: 'local' });
-          returnToConfirmation('account-mismatch');
-          return;
-        }
-
-        await useAuthStore.getState().setUserAndSession(sessionUser, session);
-        const confirmedAuth = useAuthStore.getState();
-        if (
-          !confirmedAuth.isAuthenticated ||
-          confirmedAuth.user?.id !== sessionUser.id
-        ) {
-          returnToConfirmation('failed');
-          return;
-        }
-
-        if (pending) {
-          trackConfirmedEmailSignup(sessionUser.id, pending.requestedAt);
-          await useEmailConfirmationStore
+          await useAuthStore
             .getState()
-            .clearForEmail(pending.email);
+            .setUserAndSession(sessionUser, session, transition);
+          const confirmedAuth = useAuthStore.getState();
+          if (
+            !confirmedAuth.isAuthenticated ||
+            confirmedAuth.user?.id !== sessionUser.id
+          ) {
+            returnToConfirmation('failed');
+            return;
+          }
+
+          if (pending) {
+            trackConfirmedEmailSignup(sessionUser.id, pending.requestedAt);
+            await useEmailConfirmationStore
+              .getState()
+              .clearForEmail(pending.email);
+          }
+          setMessage(getEmailConfirmationCallbackCopy('confirmed', t));
+          router.replace('/onboarding');
+        } catch (error) {
+          returnToConfirmation(classifyEmailConfirmationFailure(error));
         }
-        setMessage('Email confirmed. Restoring your promise…');
-        router.replace('/onboarding');
-      } catch (error) {
-        returnToConfirmation(classifyEmailConfirmationFailure(error));
-      }
-    };
+      });
 
     void exchangeConfirmationCode();
   }, [
@@ -148,6 +162,7 @@ export default function EmailConfirmationCallbackScreen() {
     params.error_code,
     params.error_description,
     router,
+    t,
   ]);
 
   return (

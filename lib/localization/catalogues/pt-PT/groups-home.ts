@@ -55,4 +55,25 @@ export const groupsHomePtPT = {
   'groupsHome.groupAction.empty_title': 'Nenhuma análise pendente',
   'groupsHome.groupAction.empty_detail':
     'Ninguém aguarda a sua análise neste momento.',
+  'groupsHome.adminNotice.ownerOnlyTitle': 'Só a pessoa dona',
+  'groupsHome.adminNotice.ownerOnlyDetail':
+    'Só a pessoa dona pode guardar estas definições do grupo.',
+  'groupsHome.adminNotice.nameRequiredTitle': 'Nome obrigatório',
+  'groupsHome.adminNotice.nameRequiredDetail':
+    'Dê um nome a este grupo antes de guardar.',
+  'groupsHome.adminNotice.saveUnconfirmedTitle': 'Guardar não confirmado',
+  'groupsHome.adminNotice.saveUnconfirmedDetail':
+    'A Menta não conseguiu confirmar se as definições foram guardadas. As suas edições ainda estão aqui. Verifique o grupo antes de tentar novamente.',
+  'groupsHome.adminNotice.savedTitle': 'Alterações guardadas',
+  'groupsHome.adminNotice.savedDetail':
+    'As definições do grupo estão atualizadas.',
+  'groupsHome.adminNotice.saveFailedTitle': 'As alterações não foram guardadas',
+  'groupsHome.adminNotice.saveFailedDetail':
+    'Verifique a ligação e tente novamente. As suas edições ainda estão aqui.',
+  'groupsHome.adminNotice.leaveUnknownTitle': 'Saída não confirmada',
+  'groupsHome.adminNotice.leaveFailedTitle': 'O grupo não mudou',
+  'groupsHome.adminNotice.deleteUnconfirmedTitle': 'Eliminação não confirmada',
+  'groupsHome.adminNotice.deleteUnconfirmedDetail':
+    'A Menta não conseguiu confirmar se o grupo foi eliminado. Volte a Grupos e verifique antes de tentar novamente.',
+  'groupsHome.adminNotice.deleteFailedTitle': 'Grupo não eliminado',
 } as const satisfies Pick<EnglishCatalogue, GroupsHomeKey>;

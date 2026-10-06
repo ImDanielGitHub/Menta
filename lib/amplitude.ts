@@ -1,6 +1,7 @@
 import * as amplitude from '@amplitude/analytics-react-native';
 import { SessionReplayPlugin } from '@amplitude/plugin-session-replay-react-native';
 import { Platform } from 'react-native';
+import { shouldExportProductAnalyticsEvent } from '@/lib/analytics/export-policy';
 import {
   getPaywallAnalyticsProperties,
   setPaywallAnalyticsOwner,
@@ -42,6 +43,9 @@ const SENSITIVE_AMPLITUDE_REPLAY_PATHS = new Set([
   '/email-auth',
   '/email-confirmation',
   '/email-confirmation/callback',
+  '/forgot-password',
+  '/password-recovery',
+  '/password-recovery/callback',
   '/invite-activation',
   '/join-event',
   '/join-promise',
@@ -130,6 +134,7 @@ export const trackAmplitudeEvent = <TEvent extends MentaAnalyticsEvent>(
     ? []
     : [AnalyticsEventProperties[TEvent]]
 ): void => {
+  if (!shouldExportProductAnalyticsEvent(event, properties[0])) return;
   if (!apiKey) return;
 
   try {

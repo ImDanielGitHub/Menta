@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { notificationService } from '@/lib/services/notification-service';
 import { retentionNotificationClient } from '@/lib/notifications/retention-notification-client';
 import { useOnboardingCompletionStore } from '@/lib/navigation/onboarding-completion';
@@ -12,6 +13,37 @@ import { useProtectedRouteStore } from '@/store/protected-route-store';
 import { useReferralStore } from '@/store/referral-store';
 
 let teardownPromise: Promise<void> | null = null;
+let privateImageCachesCleared = false;
+let legacyPrivateVideoCacheCleared = false;
+
+export const ensurePrivateImageCachesCleared = async (): Promise<void> => {
+  if (
+    (privateImageCachesCleared && legacyPrivateVideoCacheCleared) ||
+    Platform.OS === 'web'
+  )
+    return;
+  const { Image } = await import('expo-image');
+  if (!privateImageCachesCleared) {
+    const [memoryCleared, diskCleared] = await Promise.all([
+      Image.clearMemoryCache(),
+      Image.clearDiskCache(),
+    ]);
+    if (!memoryCleared || !diskCleared) {
+      throw new Error(
+        'Private media caches could not be cleared. Please try again.'
+      );
+    }
+    privateImageCachesCleared = true;
+  }
+  if (!legacyPrivateVideoCacheCleared) {
+    // Private playback now always uses useCaching:false. Purge video data left
+    // by older releases once, before the first account is allowed to bind.
+    const { clearPrivateVideoCache } =
+      await import('@/lib/auth/clear-private-video-cache');
+    await clearPrivateVideoCache();
+    legacyPrivateVideoCacheCleared = true;
+  }
+};
 
 /**
  * Stop work and remove in-memory/persisted data that belongs to one account.
@@ -26,9 +58,14 @@ export const clearAccountScopedState = async (
   }
 
   teardownPromise = (async () => {
+    privateImageCachesCleared = false;
+    const retentionUnbinding = userId
+      ? Promise.resolve().then(() =>
+          retentionNotificationClient.unbindAccount(userId)
+        )
+      : Promise.resolve();
     if (userId) {
       notificationService.stopUserScopedWork(userId);
-      await retentionNotificationClient.unbindAccount(userId);
       useOnboardingCompletionStore.getState().clearOwnedCompletion(userId);
       clearEventCapabilitiesForUser(userId);
       useProtectedRouteStore.getState().clearOwnedPendingRoute(userId);
@@ -41,11 +78,15 @@ export const clearAccountScopedState = async (
     const { clearAllCache } = await import('@/lib/queryClient');
 
     await Promise.allSettled([
+      retentionUnbinding,
       useChallengeStore.getState().clearPersistedState(),
       useGroupStore.getState().clearGroupData(),
       clearAllCache(),
       userId ? clearOwnedOnboardingDraft(userId) : Promise.resolve(),
     ]);
+    // Other account data is removed even when native media cleanup fails.
+    // The next session must retry successfully before it can bind.
+    await ensurePrivateImageCachesCleared();
   })();
 
   try {

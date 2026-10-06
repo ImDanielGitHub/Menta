@@ -20,10 +20,9 @@ import { MentaNarrator } from '@/components/onboarding/MentaNarrator';
 import { withReadableLeading } from '@/constants/phone-layout';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
 import { useTheme } from '@/constants/ThemeContext';
-import {
-  GROUP_IMAGE_PRESET_PREFIX,
-  resolveGroupImagePreset,
-} from '@/lib/groups/group-image-presets';
+import { resolveGroupImagePreset } from '@/lib/groups/group-image-presets';
+import { SUPABASE_URL } from '@/lib/supabase';
+import { getTrustedGroupImageUri } from '@/lib/groups/group-image-uri';
 import type { Group, SharedPromiseSummary } from '@/store/group-store';
 import { useTranslation, type TranslationKey } from '@/lib/localization';
 
@@ -88,11 +87,9 @@ const GroupMark = ({
   const { colors } = useTheme();
   const imageUrl = group.image_url?.trim() || null;
   const imagePreset = resolveGroupImagePreset(imageUrl);
+  const trustedImageUri = getTrustedGroupImageUri(imageUrl, SUPABASE_URL);
   const imageSource =
-    imagePreset?.source ??
-    (imageUrl && !imageUrl.startsWith(GROUP_IMAGE_PRESET_PREFIX)
-      ? { uri: imageUrl }
-      : null);
+    imagePreset?.source ?? (trustedImageUri ? { uri: trustedImageUri } : null);
   const [imageFailed, setImageFailed] = React.useState(false);
   const groupInitial = group.name.trim().slice(0, 1).toLocaleUpperCase() || 'M';
 

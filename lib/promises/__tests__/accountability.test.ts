@@ -3,6 +3,7 @@ import {
   buildPromiseAccountabilityShareMessage,
   decodePromiseAccountabilitySummary,
   fetchPromiseAccountability,
+  resolveAccountabilityShareTitle,
   leavePromiseWithRoleAwareFallback,
   loadPromiseAccountabilityInvitePreview,
 } from '@/lib/promises/accountability';
@@ -198,6 +199,9 @@ describe('promise accountability contract', () => {
     expect(accountabilityRoleCopy('partner').title).toBe('Do it together');
     expect(accountabilityRoleCopy('reviewer').title).toBe('Review my proof');
     expect(accountabilityRoleCopy('supporter').title).toBe('Support me');
+    expect(resolveAccountabilityShareTitle('Walk after work')).toBe(
+      'Join Walk after work'
+    );
     expect(
       buildPromiseAccountabilityShareMessage({
         challengeTitle: 'Walk after work',
@@ -206,6 +210,20 @@ describe('promise accountability contract', () => {
         shareUrl: 'https://menta.quest/join/challenge/ABCD1234',
       })
     ).toContain('support progress');
+  });
+
+  it('names a blank promise without empty quotation marks', () => {
+    expect(resolveAccountabilityShareTitle('   ')).toBe('Join this promise');
+    expect(
+      buildPromiseAccountabilityShareMessage({
+        challengeTitle: '  ',
+        code: 'ABCD1234',
+        role: 'reviewer',
+        shareUrl: 'https://menta.quest/join/challenge/ABCD1234',
+      })
+    ).toBe(
+      'Join this promise on Menta. I’m inviting you to review proof.\n\nhttps://menta.quest/join/challenge/ABCD1234\nInvite code: ABCD1234'
+    );
   });
 
   it('uses the injected locale for role and complete share-message copy', () => {

@@ -206,6 +206,14 @@ export const fullEventsEsMX = {
   'events.check_in.closed_title': 'El registro aún no está abierto',
   'events.check_in.closed_body':
     'El registro abre 30 minutos antes del evento y permanece abierto hasta tu finalización. Nada cambió. Vuelve a esa ventana con el código del organizador.',
+  'events.check_in.ended_title': 'El registro se cerró',
+  'events.check_in.ended_body':
+    'El registro permanece abierto hasta que termina el evento. Este evento ya terminó, así que la asistencia no se puede confirmar aquí. Nada cambió.',
+  'events.check_in.cancelled_body':
+    'Este evento ya no se celebra. La asistencia no se puede confirmar aquí. Nada cambió.',
+  'events.check_in.unavailable_title': 'El registro no está abierto',
+  'events.check_in.window_unavailable_body':
+    'El registro abre 30 minutos antes del evento y permanece abierto hasta que termina. Nada cambió. Usa el código del organizador en esa ventana.',
   'events.check_in.rejected_title': 'QR no aceptado',
   'events.check_in.rejected_reason': 'Este código no fue aceptado.',
   'events.check_in.rejected_body':
@@ -567,4 +575,8 @@ export const fullEventsEsMX = {
     '{message} Comprueba este registro antes de introducir otro código.',
   'events.detail.join_unknown_with_message':
     '{message} No inicies otra solicitud para unirte. Comprueba primero esta solicitud.',
+  'events.action.transport_unknown':
+    'Puede que la acción del evento se haya completado. Reconecta y revisa su estado antes de volver a intentarlo.',
+  'events.action.malformed_unknown':
+    'Menta no pudo leer el resultado. Revisa qué cambió antes de volver a intentarlo.',
 } as const;

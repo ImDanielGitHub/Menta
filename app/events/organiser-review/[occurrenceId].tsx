@@ -14,7 +14,6 @@ import React, {
   useState,
 } from 'react';
 import {
-  Image,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -22,6 +21,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { Image as ExpoImage } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppScreen } from '@/components/ui/AppShell';
@@ -523,12 +523,14 @@ export default function EventOrganiserReviewScreen() {
                         })}
                 </Text>
                 {selectedItem.mediaPreviewUrl ? (
-                  <Image
+                  <ExpoImage
                     accessibilityLabel={t('events.review.photo_accessibility', {
                       attendee: selectedItem.attendeeUsername,
                     })}
+                    cachePolicy="memory"
+                    contentFit="cover"
                     onError={() => setPreviewState('failed')}
-                    onLoad={() => setPreviewState('ready')}
+                    onDisplay={() => setPreviewState('ready')}
                     source={{ uri: selectedItem.mediaPreviewUrl }}
                     style={styles.evidencePreview}
                   />

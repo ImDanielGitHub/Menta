@@ -1,8 +1,5 @@
 export type CatalogueReviewStatus =
-  | 'canonical-source'
-  | 'draft'
-  | 'language-reviewed'
-  | 'layout-checked';
+  'canonical-source' | 'draft' | 'language-reviewed' | 'layout-checked';
 
 export type CatalogueReview = {
   status: CatalogueReviewStatus;

@@ -4,11 +4,7 @@ import type {
 } from '@/lib/loop/accountability';
 
 export type StreakDayStatus =
-  | 'done'
-  | 'due'
-  | 'at_risk'
-  | 'waiting'
-  | 'correction';
+  'done' | 'due' | 'at_risk' | 'waiting' | 'correction';
 
 export interface StreakStateV2 {
   challengeId: string;

@@ -1,5 +1,22 @@
 import * as Updates from 'expo-updates';
-import { addBreadcrumb as sentryBreadcrumb, captureError as sentryCapture, captureMessage as sentryMessage } from '@/lib/sentry';
+import {
+  addBreadcrumb as sentryBreadcrumb,
+  captureError as sentryCapture,
+  captureMessage as sentryMessage,
+} from '@/lib/sentry';
+
+interface LegacyUpdatesEvent {
+  type?: unknown;
+  error?: unknown;
+  message?: unknown;
+}
+
+// Current Expo versions omit this API; retain best-effort older-client support.
+const updatesWithLegacyListener = Updates as typeof Updates & {
+  addListener?: (
+    listener: (event: LegacyUpdatesEvent | null | undefined) => void
+  ) => { remove?: () => void };
+};
 
 /**
  * Log basic Updates context to Sentry for debugging OTA-related crashes.
@@ -7,17 +24,26 @@ import { addBreadcrumb as sentryBreadcrumb, captureError as sentryCapture, captu
 export async function logUpdatesContextAtStartup(): Promise<void> {
   try {
     const context: Record<string, unknown> = {};
-    try { (context as any).updateId = (Updates as any).updateId ?? null; } catch {}
-    try { (context as any).channel = (Updates as any).channel ?? null; } catch {}
-    try { (context as any).runtimeVersion = (Updates as any).runtimeVersion ?? null; } catch {}
-    try { (context as any).isEmbeddedLaunch = (Updates as any).isEmbeddedLaunch ?? null; } catch {}
-    try { (context as any).manifest = (Updates as any).manifest ?? null; } catch {}
+    try {
+      context.updateId = Updates.updateId ?? null;
+    } catch {}
+    try {
+      context.channel = Updates.channel ?? null;
+    } catch {}
+    try {
+      context.runtimeVersion = Updates.runtimeVersion ?? null;
+    } catch {}
+    try {
+      context.isEmbeddedLaunch = Updates.isEmbeddedLaunch ?? null;
+    } catch {}
 
-    sentryBreadcrumb('updates_startup_context', context as any);
+    sentryBreadcrumb('updates_startup_context', context);
     if (__DEV__) {
-      sentryMessage('updates_startup_context', 'info', { extras: context as any });
+      sentryMessage('updates_startup_context', 'info', {
+        extras: context,
+      });
     }
-  } catch (e) {
+  } catch {
     // best-effort
   }
 }
@@ -28,22 +54,28 @@ export async function logUpdatesContextAtStartup(): Promise<void> {
  */
 export function attachUpdatesListeners(): () => void {
   try {
-    const subscription = (Updates as any).addListener?.((event: any) => {
+    const subscription = updatesWithLegacyListener.addListener?.(event => {
       try {
         const type = String(event?.type || 'unknown');
-        const data = event || {};
-        sentryBreadcrumb(`updates_event_${type}`, data as any);
+        const data = { type };
+        sentryBreadcrumb(`updates_event_${type}`, data);
         if (type === 'error') {
-          const err = (event && (event.error || event.message)) || new Error('Unknown Updates error');
-          sentryCapture(err as any, { context: 'expo_updates_listener', ...(data || {}) });
+          const err =
+            (event && (event.error || event.message)) ||
+            new Error('Unknown Updates error');
+          sentryCapture(err, {
+            context: 'expo_updates_listener',
+            ...data,
+          });
         }
       } catch {}
     });
     return () => {
-      try { subscription?.remove?.(); } catch {}
+      try {
+        subscription?.remove?.();
+      } catch {}
     };
-  } catch (e) {
-    return () => {};
+  } catch {
+    return () => undefined;
   }
 }
-

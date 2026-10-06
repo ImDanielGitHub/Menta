@@ -116,7 +116,12 @@ export function ProfileMonthGrid({ month }: { month: ProfileMonth }) {
                     <Text
                       style={[
                         styles.cellText,
-                        { color: tone.text },
+                        {
+                          color:
+                            day.state === 'today'
+                              ? colors.onPrimary
+                              : tone.text,
+                        },
                         day.state === 'today' ? styles.cellTextToday : null,
                       ]}
                     >
@@ -138,17 +143,23 @@ const createPaletteStyles = (mentaColors: MentaPalette) => {
     ProfileMonthDayState,
     { background: string; text: string; border?: string; dashed?: boolean }
   > = {
-    kept: { background: '#15332A', text: mentaColors.success },
-    frozen: { background: '#142838', text: '#A9D4F5' },
+    kept: {
+      background: mentaColors.successSoft,
+      text: mentaColors.success,
+    },
+    frozen: { background: mentaColors.raised, text: mentaColors.info },
     missed: {
       background: 'transparent',
       text: mentaColors.text.muted,
-      border: '#57564F',
+      border: mentaColors.text.muted,
       dashed: true,
     },
     today: { background: mentaColors.action, text: mentaColors.canvas },
-    open: { background: 'transparent', text: '#3A3A36' },
-    future: { background: '#121313', text: '#57564F' },
+    open: { background: 'transparent', text: mentaColors.text.muted },
+    future: {
+      background: mentaColors.surface,
+      text: mentaColors.text.muted,
+    },
   };
   const styles = StyleSheet.create({
     section: {

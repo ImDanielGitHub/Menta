@@ -207,6 +207,14 @@ export const fullEventsPtBR = {
   'events.check_in.closed_title': 'Check-in ainda não está aberto',
   'events.check_in.closed_body':
     'O check-in abre 30 minutos antes do evento e permanece aberto até o término. Nada mudou. Volte nesse período com o código do organizador.',
+  'events.check_in.ended_title': 'O check-in foi encerrado',
+  'events.check_in.ended_body':
+    'O check-in permanece aberto até o término do evento. Este evento já terminou, então a presença não pode ser confirmada aqui. Nada mudou.',
+  'events.check_in.cancelled_body':
+    'Este evento não vai mais acontecer. A presença não pode ser confirmada aqui. Nada mudou.',
+  'events.check_in.unavailable_title': 'O check-in não está aberto',
+  'events.check_in.window_unavailable_body':
+    'O check-in abre 30 minutos antes do evento e permanece aberto até o término. Nada mudou. Use o código do organizador nesse período.',
   'events.check_in.rejected_title': 'QR não aceito',
   'events.check_in.rejected_reason': 'Este código não foi aceito.',
   'events.check_in.rejected_body':
@@ -570,4 +578,8 @@ export const fullEventsPtBR = {
   'events.recap.share_line.approved': '{count} fotos aprovadas',
   'events.recap.share_title': 'Resumo de {event}',
   'events.recap.completed': 'Evento concluído',
+  'events.action.transport_unknown':
+    'A ação do evento pode ter sido concluída. Reconecte e confira o status antes de tentar novamente.',
+  'events.action.malformed_unknown':
+    'O Menta não conseguiu ler o resultado. Confira o que mudou antes de tentar novamente.',
 } as const;

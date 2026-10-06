@@ -41,8 +41,9 @@ export const sourceGateEsMX = {
     'Menta no pudo verificar el comprobante de la recompensa. Actualiza tu billetera antes de ver otro patrocinador.',
   'sourceGate.momenta.rewardAccountChanged':
     'La cuenta cambió antes de confirmar la recompensa.',
-  'sourceGate.momenta.loginRequired': 'Se requiere iniciar sesión',
-  'sourceGate.momenta.loginRequiredDetail': 'Inicia sesión para continuar.',
+  'sourceGate.momenta.loginRequired': 'Inicia sesión para gastar Momenta.',
+  'sourceGate.momenta.loginRequiredDetail':
+    'Este gasto no se realizó. Inicia sesión y vuelve a intentarlo.',
   'sourceGate.momenta.transactionFailed': 'La transacción falló',
   'sourceGate.momenta.transactionFailedDetail':
     'Inténtalo de nuevo en un momento.',
@@ -66,5 +67,5 @@ export const sourceGateEsMX = {
   'sourceGate.legacyUpdate.storeHint': 'Abre Menta en App Store',
   'sourceGate.legacyUpdate.updateAction': 'Actualizar Menta',
   'sourceGate.legacyUpdate.helpAction': 'Obtener ayuda',
-  'sourceGate.legacyUpdate.notNowAction': 'Ahora no',
+  'sourceGate.legacyUpdate.notNowAction': 'Conservar esta versión',
 } as const;

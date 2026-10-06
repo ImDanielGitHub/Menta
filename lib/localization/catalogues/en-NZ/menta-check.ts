@@ -17,21 +17,42 @@ export const mentaCheckEnNZ = {
   'mentaCheck.option.addFriendLater': 'You can add a friend as well, any time.',
   'mentaCheck.option.passNote':
     'Menta Check comes with Pro. Without it, it’s {cost} Momenta a week for this promise. Stop any time.',
-  'mentaCheck.consent.bubble':
-    'Before I look at anything, here’s what I’ll see.',
-  'mentaCheck.consent.photoTitle': 'Your photo, video and note',
-  'mentaCheck.consent.photoBody':
-    'Next to your promise and what the proof should show.',
-  'mentaCheck.consent.timeTitle': 'When you sent your proof',
-  'mentaCheck.consent.timeBody':
-    'Alongside the day your proof is for. We don’t send your location metadata.',
-  'mentaCheck.consent.neverTitle': 'No account or friend details',
-  'mentaCheck.consent.neverBody': 'Checks are deleted after 90 days.',
-  'mentaCheck.consent.disclosure':
-    'With your permission, OpenRouter and its AI providers process your proof, note and rule, including visible content and sound in videos. We don’t send your account details or location metadata. You can turn this off in Menta Check.',
-  'mentaCheck.consent.policyLink': 'How we handle your proof',
-  'mentaCheck.consent.accept': 'Let Menta check my proof',
-  'mentaCheck.consent.decline': 'Choose someone else',
+  'mentaCheck.consent.bubble': 'Permission for AI checks',
+  'mentaCheck.consent.media':
+    'If you agree, Menta will send your photos, short videos with sound, and notes to a third-party provider.',
+  'mentaCheck.consent.purpose':
+    'Your promise, proof rule and submission time are also sent so they can check whether your proof matches your rule.',
+  'mentaCheck.consent.scope':
+    'This permission covers your proof that is still waiting for an AI check and future proof you submit with AI checks enabled.',
+  'mentaCheck.consent.exclusions':
+    'We do not add your account or friend details.',
+  'mentaCheck.consent.withdrawal':
+    'You can withdraw permission in Menta Check settings.',
+  'mentaCheck.consent.accept': 'Allow AI checks',
+  'mentaCheck.consent.decline': 'Not now',
+  'mentaCheck.permission.loading': 'Checking your permission…',
+  'mentaCheck.permission.loadError':
+    'Menta couldn’t load your permission. Try again.',
+  'mentaCheck.permission.retry': 'Try again',
+  'mentaCheck.permission.bubble': 'Your AI check permission.',
+  'mentaCheck.permission.needsReview': 'Permission needs review',
+  'mentaCheck.permission.reviewBody':
+    'Review what is sent before you give permission for AI checks.',
+  'mentaCheck.permission.unchanged':
+    'Your existing review settings stay the same.',
+  'mentaCheck.permission.unchangedUntilChoice':
+    'Your existing review settings stay the same until you choose to change them.',
+  'mentaCheck.permission.review': 'Review permission',
+  'mentaCheck.permission.allowed': 'Permission allowed',
+  'mentaCheck.permission.scope':
+    'Covers proof waiting for an AI check and future proof you submit with AI checks enabled.',
+  'mentaCheck.permission.media':
+    'Photos, short videos with sound, and notes are sent to a third-party provider, along with your promise, proof rule and submission time.',
+  'mentaCheck.permission.withdrawal':
+    'Withdraw to stop sending proof for new AI checks. Proof already sent cannot be unsent.',
+  'mentaCheck.permission.withdraw': 'Withdraw permission',
+  'mentaCheck.permission.return':
+    'You can return here whenever you want to change your permission.',
   'mentaCheck.receipt.bubble':
     'Saved! Send a photo when you’re done and I’ll have a look.',
   'mentaCheck.receipt.checkedBy': 'Menta',

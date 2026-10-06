@@ -40,6 +40,10 @@ describe('EventAlbumMosaic', () => {
           .props.style
       )
     ).toMatchObject({ flex: 1, width: '100%' });
+    expect(
+      getByTestId('event-album-image-00000001-0000-4000-8000-000000000001')
+        .props.cachePolicy
+    ).toBe('memory');
   });
 
   it('makes the remaining-photo count an explicit accessibility element', () => {

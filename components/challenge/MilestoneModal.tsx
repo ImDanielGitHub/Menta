@@ -13,6 +13,7 @@ import { ModalCard } from '@/components/ui/modal/ModalCard';
 
 import { grantsAccountFreeze } from '@/lib/economy/contract';
 import { useTranslation } from '@/lib/localization';
+import { formatMilestoneApprovedAt } from '@/lib/promise/milestone-copy';
 
 interface MilestoneModalProps {
   visible: boolean;
@@ -22,18 +23,6 @@ interface MilestoneModalProps {
   onClose: () => void;
   onShare?: () => void;
 }
-
-const formatApprovedAt = (value: string | null | undefined) => {
-  if (!value) return 'Approved now';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Approved now';
-  return `Approved ${new Intl.DateTimeFormat('en-NZ', {
-    day: '2-digit',
-    month: 'short',
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(date)}`;
-};
 
 /** Rendered only after the submission RPC supplies an accepted milestone. */
 export const MilestoneModal: React.FC<MilestoneModalProps> = ({
@@ -46,7 +35,7 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
 }) => {
   const { styles } = useMentaStyles(createPaletteStyles);
 
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   return (
     <ModalCard
       visible={visible}
@@ -63,7 +52,9 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
         <Text style={styles.title}>
           {t('todayProof.milestone.reached', { count: milestone })}
         </Text>
-        <Text style={styles.approved}>{formatApprovedAt(approvedAt)}</Text>
+        <Text style={styles.approved}>
+          {formatMilestoneApprovedAt(approvedAt, locale, t)}
+        </Text>
 
         <View style={styles.facts}>
           <View style={styles.factRow}>

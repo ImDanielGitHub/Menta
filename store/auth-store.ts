@@ -1,11 +1,16 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { create, type StateCreator } from 'zustand';
+import {
+  persist,
+  createJSONStorage,
+  type PersistOptions,
+} from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 import { supabase, SupabaseUser, SUPABASE_URL } from '@/lib/supabase';
 import { Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { useMomentaStore } from './momenta-store';
 import { handleNetworkError, withRetry, networkManager } from '@/lib/network';
+import { isAuthTransportError } from '@/lib/auth/transport-error';
 import { isOperationalFeatureEnabled } from '@/lib/operational-flags';
 import { OAuthService, OAuthResult } from '@/lib/oauth';
 import Constants from 'expo-constants';
@@ -15,6 +20,7 @@ import {
   setUser as sentrySetUser,
   clearUser as sentryClearUser,
   logError,
+  addBreadcrumb,
 } from '@/lib/sentry';
 import {
   isNewAuthUser,
@@ -27,7 +33,10 @@ import {
   updateMyProfile,
   type MyProfilePatch,
 } from '@/lib/profile-api';
-import { clearAccountScopedState } from '@/lib/account-session-lifecycle';
+import {
+  clearAccountScopedState,
+  ensurePrivateImageCachesCleared,
+} from '@/lib/account-session-lifecycle';
 import {
   loadOnboardingDraftForUser,
   type OnboardingAccountabilityChoice,
@@ -41,6 +50,7 @@ import {
 } from '@/lib/auth/main-auth-event-policy';
 import { getDefaultSupabaseAuthStorageKey } from '@/lib/auth/password-recovery-config';
 import {
+  clearAndVerifyMainLocalSession,
   confineUnexpectedMainRecovery,
   getMainRecoveryQuarantineUserId,
 } from '@/lib/auth/main-recovery-quarantine';
@@ -57,6 +67,16 @@ import {
 } from '@/lib/posthog';
 import { setAmplitudeUserId } from '@/lib/amplitude';
 import { withTimeout } from '@/utils/api';
+import { withAuthStorageLock } from '@/lib/auth/auth-storage-lock';
+import {
+  getAuthTransitionGeneration,
+  hasActiveAuthTransition,
+  invalidateAuthTransitionEvents,
+  ownsAuthTransition,
+  runAuthContinuation,
+  runAuthTransition,
+  type AuthTransition,
+} from '@/lib/auth/auth-transition';
 
 const AUTH_CANCELLED_CODE = 'AUTH_CANCELLED';
 const ONBOARDING_ACCOUNT_CHANGED_CODE = 'ONBOARDING_ACCOUNT_CHANGED';
@@ -163,7 +183,8 @@ interface AuthState {
   initializeAuth: () => Promise<void>;
   setUserAndSession: (
     supabaseUser: SupabaseUser | null,
-    session: Session | null
+    session: Session | null,
+    transition?: AuthTransition
   ) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   register: (
@@ -248,27 +269,210 @@ let authStateSubscription: ReturnType<
 // refreshes JWTs during one session; that must not invalidate in-flight work
 // which still belongs to the same user.
 let accountIdentityEpoch = 0;
+let confirmedProfileAccountEpoch: number | null = null;
+// A fresh credential grant can replace a session without changing its user.
+// Keep that boundary separate from ordinary JWT refresh maintenance.
+let credentialSessionEpoch = 0;
+let acceptedCredentialGeneration: number | null = null;
+// Order asynchronous quarantine reads separately from account lifetimes:
+// a newer token may supersede acceptance without cancelling profile work.
+let sessionAcceptanceRequestId = 0;
 // Only a server-confirmed completion in this account lifetime can supersede
 // a profile read that started before the completion write committed.
 let completedOnboardingAccountEpoch: number | null = null;
 let accountTeardownBarrier: Promise<void> = Promise.resolve();
+const accountTeardownsInFlight = new Map<string, Promise<void>>();
+let logoutStorageVerificationPending = false;
 let emailRegistrationInFlight: Promise<EmailRegistrationResult> | null = null;
 let emailConfirmationResendInFlight: Promise<void> | null = null;
 
 const queueAccountTeardown = (
   userId: string | null | undefined
 ): Promise<void> => {
-  const teardown = accountTeardownBarrier.then(() =>
-    clearAccountScopedState(userId)
-  );
+  const teardownKey = userId ?? '__anonymous__';
+  const existing = accountTeardownsInFlight.get(teardownKey);
+  if (existing) return existing;
+  RevenueCatAPI.invalidateIdentity?.();
+  const teardown = accountTeardownBarrier.then(async () => {
+    try {
+      await RevenueCatAPI.logOut();
+    } catch {
+      // Local logout remains complete when the provider is unavailable.
+    } finally {
+      await clearAccountScopedState(userId);
+    }
+  });
+  accountTeardownsInFlight.set(teardownKey, teardown);
   // A later session transition must wait until the current account teardown
   // has settled, even when that teardown reports an error to its own caller.
   accountTeardownBarrier = teardown.catch(() => undefined);
+  void teardown
+    .finally(() => {
+      if (accountTeardownsInFlight.get(teardownKey) === teardown) {
+        accountTeardownsInFlight.delete(teardownKey);
+      }
+    })
+    .catch(() => undefined);
   return teardown;
 };
 
+const runAccountEnd = async (
+  transition: AuthTransition | undefined,
+  stillOwnsAccount: () => boolean,
+  operation: () => Promise<void>
+): Promise<void> => {
+  if (ownsAuthTransition(transition)) {
+    if (stillOwnsAccount()) await operation();
+  } else {
+    await runAuthTransition(operation, stillOwnsAccount);
+  }
+};
+
+type InternalAuthActions = AuthState & {
+  initializeAuth: (transition?: AuthTransition) => Promise<void>;
+  login: (
+    email: string,
+    password: string,
+    transition?: AuthTransition
+  ) => Promise<void>;
+  register: (
+    email: string,
+    password: string,
+    username: string,
+    transition?: AuthTransition
+  ) => Promise<EmailRegistrationResult>;
+  recoverEmailConfirmationSession: (
+    email: string,
+    transition?: AuthTransition
+  ) => Promise<EmailConfirmationSessionRecoveryResult>;
+  refreshSession: (transition?: AuthTransition) => Promise<void>;
+  signInWithGoogle: (
+    flow?: 'login' | 'signup',
+    transition?: AuthTransition
+  ) => Promise<void>;
+  signInWithApple: (
+    flow?: 'login' | 'signup',
+    transition?: AuthTransition
+  ) => Promise<void>;
+  signInWithGoogleOAuth: (transition?: AuthTransition) => Promise<void>;
+  signInWithAppleOAuth: (transition?: AuthTransition) => Promise<void>;
+};
+
+const coordinateAuthActions = (
+  actions: InternalAuthActions,
+  get: () => AuthState
+): AuthState => {
+  let registration: Promise<EmailRegistrationResult> | null = null;
+  let resend: Promise<void> | null = null;
+  let logoutRequested = false;
+  return {
+    ...actions,
+    initializeAuth: () =>
+      runAuthTransition(transition => actions.initializeAuth(transition)),
+    login: (email, password) =>
+      runAuthTransition(transition =>
+        actions.login(email, password, transition)
+      ),
+    register: (email, password, username) => {
+      if (registration) return registration;
+      const operation = runAuthTransition(transition =>
+        actions.register(email, password, username, transition)
+      );
+      registration = operation;
+      void operation
+        .finally(() => {
+          if (registration === operation) registration = null;
+        })
+        .catch(() => undefined);
+      return operation;
+    },
+    resendEmailConfirmation: email => {
+      if (resend) return resend;
+      const operation = runAuthTransition(() =>
+        actions.resendEmailConfirmation(email)
+      );
+      resend = operation;
+      void operation
+        .finally(() => {
+          if (resend === operation) resend = null;
+        })
+        .catch(() => undefined);
+      return operation;
+    },
+    recoverEmailConfirmationSession: email =>
+      runAuthContinuation(getAuthTransitionGeneration(), transition =>
+        actions.recoverEmailConfirmationSession(email, transition)
+      ).then(result => result ?? 'no_session'),
+    refreshSession: () => {
+      const expectedEpoch = accountIdentityEpoch;
+      return runAuthContinuation(
+        getAuthTransitionGeneration(),
+        async transition => {
+          if (expectedEpoch === accountIdentityEpoch) {
+            await actions.refreshSession(transition);
+          }
+        }
+      );
+    },
+    signInWithGoogle: flow =>
+      runAuthTransition(transition =>
+        actions.signInWithGoogle(flow, transition)
+      ),
+    signInWithApple: flow =>
+      runAuthTransition(transition =>
+        actions.signInWithApple(flow, transition)
+      ),
+    signInWithGoogleOAuth: () =>
+      runAuthTransition(transition =>
+        actions.signInWithGoogleOAuth(transition)
+      ),
+    signInWithAppleOAuth: () =>
+      runAuthTransition(transition => actions.signInWithAppleOAuth(transition)),
+    logout: () => {
+      if (logoutRequested || get().isLoading)
+        return Promise.reject(
+          new Error('A session change is already in progress.')
+        );
+      logoutRequested = true;
+      const expectedEpoch = accountIdentityEpoch;
+      const expectedCredentialEpoch = credentialSessionEpoch;
+      const expectedUserId = get().user?.id;
+      const operation = runAuthTransition(
+        async () => {
+          await actions.logout();
+          return true;
+        },
+        () =>
+          expectedEpoch === accountIdentityEpoch &&
+          expectedCredentialEpoch === credentialSessionEpoch &&
+          expectedUserId === get().user?.id
+      ).then(completed => {
+        if (!completed)
+          throw new Error(
+            'Your account changed before logout. Please try again.'
+          );
+      });
+      void operation
+        .finally(() => {
+          logoutRequested = false;
+        })
+        .catch(() => undefined);
+      return operation;
+    },
+  };
+};
+
+const persistCoordinatedAuth = (
+  initializer: StateCreator<InternalAuthActions>,
+  options: PersistOptions<AuthState, AuthPersistedState>
+) =>
+  persist<AuthState, [], [], AuthPersistedState>(
+    (set, get, api) => coordinateAuthActions(initializer(set, get, api), get),
+    options
+  );
+
 export const useAuthStore = create<AuthState>()(
-  persist(
+  persistCoordinatedAuth(
     (set, get) => ({
       user: null,
       session: null,
@@ -280,7 +484,7 @@ export const useAuthStore = create<AuthState>()(
       sessionRecoveryRequired: false,
       authListenerActive: false,
 
-      initializeAuth: async () => {
+      initializeAuth: async (transition?: AuthTransition) => {
         const currentState = get();
 
         // Prevent multiple initializations
@@ -295,107 +499,155 @@ export const useAuthStore = create<AuthState>()(
           if (!currentState.authListenerActive && !authStateSubscription) {
             authStateSubscription = supabase.auth.onAuthStateChange(
               async (event: AuthChangeEvent, session: Session | null) => {
+                const emittedGeneration = getAuthTransitionGeneration();
+                const emittedAccountEpoch = accountIdentityEpoch;
                 // Use setTimeout to avoid deadlocks as recommended by Supabase
-                setTimeout(async () => {
-                  const store = get();
-                  const eventAction = getMainAuthEventAction(event);
-                  const quarantinedUserId =
-                    eventAction === 'accept_session'
-                      ? await getMainRecoveryQuarantineUserId()
-                      : null;
+                setTimeout(() => {
+                  void runAuthContinuation(
+                    emittedGeneration,
+                    async transition => {
+                      const store = get();
+                      const eventAction = getMainAuthEventAction(event);
+                      const quarantinedUserId =
+                        eventAction === 'accept_session'
+                          ? await getMainRecoveryQuarantineUserId()
+                          : null;
 
-                  const rejectMainRecovery = async (userId: string) => {
-                    try {
-                      await confineUnexpectedMainRecovery({
-                        storageKey: mainAuthStorageKey,
-                        userId,
-                        signOut: () =>
-                          supabase.auth.signOut({ scope: 'local' }),
-                      });
-                    } catch {
-                      // The durable quarantine remains when local token
-                      // removal cannot be verified.
-                    } finally {
-                      store.clearAuthData();
-                    }
-                  };
+                      const rejectMainRecovery = async (userId: string) => {
+                        try {
+                          await confineUnexpectedMainRecovery({
+                            storageKey: mainAuthStorageKey,
+                            userId,
+                            signOut: () =>
+                              supabase.auth.signOut({ scope: 'local' }),
+                          });
+                        } catch {
+                          // The durable quarantine remains when local token
+                          // removal cannot be verified.
+                        } finally {
+                          store.clearAuthData();
+                          await accountTeardownBarrier;
+                        }
+                      };
 
-                  if (
-                    shouldRejectMainAuthEvent({
-                      action: eventAction,
-                      hasRecoveryQuarantine: Boolean(quarantinedUserId),
-                    })
-                  ) {
-                    await rejectMainRecovery(
-                      quarantinedUserId ??
-                        session?.user.id ??
-                        'unknown-recovery-user'
-                    );
-                    return;
-                  }
-
-                  if (eventAction === 'ignore') {
-                    return;
-                  }
-
-                  switch (event) {
-                    case 'INITIAL_SESSION':
-                      if (session?.user) {
-                        await loadRestoredSessionOnce(
-                          session,
-                          store.setUserAndSession
+                      if (
+                        shouldRejectMainAuthEvent({
+                          action: eventAction,
+                          hasRecoveryQuarantine: Boolean(quarantinedUserId),
+                        })
+                      ) {
+                        await rejectMainRecovery(
+                          quarantinedUserId ??
+                            session?.user.id ??
+                            'unknown-recovery-user'
                         );
+                        return;
                       }
-                      break;
 
-                    case 'SIGNED_IN':
-                      if (session?.user) {
-                        const current = get();
-                        const sameReadyAccount =
-                          current.isInitialized &&
-                          !current.isLoading &&
-                          current.isAuthenticated &&
-                          current.user?.id === session.user.id;
+                      if (eventAction === 'ignore') {
+                        return;
+                      }
 
-                        if (sameReadyAccount) {
-                          // A confirmed session for the account already on
-                          // screen is not a new account transition.
-                          set({ session });
-                        } else {
-                          await store.setUserAndSession(session.user, session);
+                      switch (event) {
+                        case 'INITIAL_SESSION':
+                          if (session?.user && !get().isAuthenticated) {
+                            logoutStorageVerificationPending = false;
+                            await loadRestoredSessionOnce(
+                              session,
+                              (user, restored) =>
+                                store.setUserAndSession(
+                                  user,
+                                  restored,
+                                  transition
+                                )
+                            );
+                          }
+                          break;
+
+                        case 'SIGNED_IN':
+                          if (session?.user) {
+                            logoutStorageVerificationPending = false;
+                            const current = get();
+                            const sameReadyAccount =
+                              current.isInitialized &&
+                              !current.isLoading &&
+                              current.isAuthenticated &&
+                              current.user?.id === session.user.id;
+
+                            if (sameReadyAccount) {
+                              // A confirmed session for the account already on
+                              // screen is not a new account transition.
+                              sessionAcceptanceRequestId += 1;
+                              set({ session });
+                            } else {
+                              await store.setUserAndSession(
+                                session.user,
+                                session,
+                                transition
+                              );
+                            }
+                          }
+                          break;
+
+                        case 'TOKEN_REFRESHED':
+                          if (session?.user) {
+                            logoutStorageVerificationPending = false;
+                            const current = get();
+                            if (
+                              current.isAuthenticated &&
+                              current.user?.id === session.user.id
+                            ) {
+                              // JWT rotation is session maintenance. Keep the
+                              // existing profile and routing authority mounted.
+                              sessionAcceptanceRequestId += 1;
+                              set({ session });
+                            } else {
+                              // Recover an unexpected refresh event only when the
+                              // local account is not established yet.
+                              await store.setUserAndSession(
+                                session.user,
+                                session,
+                                transition
+                              );
+                            }
+                          }
+                          break;
+
+                        case 'SIGNED_OUT': {
+                          if (
+                            logoutStorageVerificationPending ||
+                            emittedAccountEpoch !== accountIdentityEpoch
+                          )
+                            break;
+                          // SIGNED_OUT has no owner. A buffered notification
+                          // must not erase a session established before emission.
+                          const current = await supabase.auth.getSession();
+                          if (current.error || current.data.session) break;
+                          if (emittedAccountEpoch !== accountIdentityEpoch)
+                            break;
+                          store.clearAuthData();
+                          await accountTeardownBarrier;
+                          break;
                         }
-                      }
-                      break;
 
-                    case 'TOKEN_REFRESHED':
-                      if (session?.user) {
-                        const current = get();
-                        if (
-                          current.isAuthenticated &&
-                          current.user?.id === session.user.id
-                        ) {
-                          // JWT rotation is session maintenance. Keep the
-                          // existing profile and routing authority mounted.
-                          set({ session });
-                        } else {
-                          // Recover an unexpected refresh event only when the
-                          // local account is not established yet.
-                          await store.setUserAndSession(session.user, session);
-                        }
+                        case 'USER_UPDATED':
+                          if (session?.user) {
+                            // Refresh user data when user is updated
+                            await store.setUserAndSession(
+                              session.user,
+                              session,
+                              transition
+                            );
+                          }
+                          break;
                       }
-                      break;
-
-                    case 'SIGNED_OUT':
-                      store.clearAuthData();
-                      break;
-
-                    case 'USER_UPDATED':
-                      if (session?.user) {
-                        // Refresh user data when user is updated
-                        await store.setUserAndSession(session.user, session);
-                      }
-                      break;
-                  }
+                    }
+                  ).catch(error => {
+                    logError(error, {
+                      component: 'AuthStore',
+                      action: 'auth_event',
+                    });
+                  });
                 }, 0);
               }
             );
@@ -450,7 +702,9 @@ export const useAuthStore = create<AuthState>()(
               // Restore directly as well as listening for auth events. The
               // listener can be delayed or silent during persisted-session
               // hydration; both paths share one load for the same token.
-              await loadRestoredSessionOnce(session, get().setUserAndSession);
+              await loadRestoredSessionOnce(session, (user, restored) =>
+                get().setUserAndSession(user, restored, transition)
+              );
             } else {
               set({
                 isInitialized: true,
@@ -500,8 +754,54 @@ export const useAuthStore = create<AuthState>()(
 
       setUserAndSession: async (
         supabaseUser: SupabaseUser | null,
-        session: Session | null
+        session: Session | null,
+        transition?: AuthTransition
       ) => {
+        if (hasActiveAuthTransition() && !ownsAuthTransition(transition))
+          return;
+        if (
+          transition &&
+          transition.generation !== getAuthTransitionGeneration()
+        )
+          return;
+        // Every session entry point (including silent startup restoration and
+        // explicit refresh) shares this gate. Recovery authority must never
+        // become regular app authentication, even before profile hydration.
+        const acceptanceRequestId = ++sessionAcceptanceRequestId;
+        const acceptanceEpoch = accountIdentityEpoch;
+        const isCurrentAcceptance = () =>
+          acceptanceRequestId === sessionAcceptanceRequestId &&
+          acceptanceEpoch === accountIdentityEpoch;
+        if (supabaseUser && session) {
+          let quarantinedUserId: string | null;
+          try {
+            quarantinedUserId = await getMainRecoveryQuarantineUserId();
+          } catch {
+            if (isCurrentAcceptance()) {
+              get().clearAuthData();
+            }
+            return;
+          }
+          // A newer acceptance, logout or account handoff wins while storage
+          // is being read, regardless of which read settles first.
+          if (!isCurrentAcceptance()) return;
+          if (quarantinedUserId) {
+            await runAccountEnd(transition, isCurrentAcceptance, async () => {
+              get().clearAuthData();
+              try {
+                await confineUnexpectedMainRecovery({
+                  storageKey: mainAuthStorageKey,
+                  userId: quarantinedUserId,
+                  signOut: () => supabase.auth.signOut({ scope: 'local' }),
+                });
+              } catch {
+                // Preserve the durable quarantine when removal is unverified.
+              }
+              await accountTeardownBarrier;
+            });
+            return;
+          }
+        }
         authStoreDebugLog(
           '[AuthStore] Setting user and session:',
           !!supabaseUser,
@@ -509,6 +809,15 @@ export const useAuthStore = create<AuthState>()(
         );
 
         const currentState = get();
+        if (
+          supabaseUser &&
+          session &&
+          transition?.credentialChange &&
+          acceptedCredentialGeneration !== transition.generation
+        ) {
+          credentialSessionEpoch += 1;
+          acceptedCredentialGeneration = transition.generation;
+        }
         const sameReadyAccount =
           Boolean(supabaseUser && session) &&
           currentState.isAuthenticated &&
@@ -531,6 +840,7 @@ export const useAuthStore = create<AuthState>()(
           : accountIdentityEpoch;
 
         if (!supabaseUser || !session) {
+          invalidateAuthTransitionEvents();
           const previousUserId = currentState.user?.id;
           set({
             user: null,
@@ -560,6 +870,45 @@ export const useAuthStore = create<AuthState>()(
           return;
         }
 
+        const retryWithRotatedSession = async (): Promise<boolean> => {
+          const latest = get();
+          if (
+            accountEpoch !== accountIdentityEpoch ||
+            latest.user?.id !== supabaseUser.id ||
+            !latest.isAuthenticated ||
+            !latest.session ||
+            latest.session.access_token === session.access_token
+          )
+            return false;
+          // A failed profile read used older credentials. Confirm the profile
+          // with the refreshed session before revoking the account.
+          let retrySession = latest.session;
+          for (;;) {
+            set({ isLoading: true });
+            const hydration = get().setUserAndSession(
+              supabaseUser,
+              retrySession,
+              transition
+            );
+            const retryRequestId = sessionAcceptanceRequestId;
+            await hydration;
+            const after = get();
+            if (
+              accountEpoch !== accountIdentityEpoch ||
+              after.user?.id !== supabaseUser.id ||
+              !after.isAuthenticated ||
+              !after.session ||
+              confirmedProfileAccountEpoch === accountEpoch ||
+              retryRequestId === sessionAcceptanceRequestId
+            )
+              return true;
+            // Rotation can supersede the quarantine read before any profile
+            // request starts. Keep one retry alive for the latest session.
+            retrySession = after.session;
+          }
+        };
+
+        let hydrationStage = 'account_cleanup';
         try {
           const isAccountSwitch = Boolean(
             currentState.user?.id && currentState.user.id !== supabaseUser.id
@@ -584,6 +933,9 @@ export const useAuthStore = create<AuthState>()(
           if (accountEpoch !== accountIdentityEpoch) return;
 
           const isSameAccount = currentState.user?.id === supabaseUser.id;
+          hydrationStage = 'private_media_cleanup';
+          if (!isSameAccount) await ensurePrivateImageCachesCleared();
+          if (accountEpoch !== accountIdentityEpoch) return;
           // Activation is intentionally unconditional: a v4 persisted Momenta
           // snapshot has no owner, even when auth restores the same user id.
           useMomentaStore.getState().activateAccountScope(supabaseUser.id);
@@ -644,6 +996,7 @@ export const useAuthStore = create<AuthState>()(
 
           // 2) Background: fetch additional user profile data to enrich state
           // Fetch additional user profile data from our custom table
+          hydrationStage = 'profile_read';
           const profile = await withTimeout(
             getMyProfile(),
             AUTH_PROFILE_TIMEOUT_MS,
@@ -657,25 +1010,33 @@ export const useAuthStore = create<AuthState>()(
           }
 
           if (!profile) {
-            notificationService.stopUserScopedWork(supabaseUser.id);
-            await queueAccountTeardown(supabaseUser.id);
-            if (!isCurrentAccountSession()) return;
-            set({
-              user: null,
-              session: null,
-              isAuthenticated: false,
-              isInitialized: true,
-              isLoading: false,
-              hasCompletedOnboarding: false,
-            });
-            useMomentaStore.getState().clearMomentaData();
-            const { error: signOutError } = await supabase.auth.signOut();
-            if (signOutError && !isExpectedSessionEndError(signOutError)) {
-              console.warn(
-                '[AuthStore] Could not finish missing-profile sign-out:',
-                signOutError
-              );
-            }
+            if (await retryWithRotatedSession()) return;
+            await runAccountEnd(
+              transition,
+              isCurrentAccountSession,
+              async () => {
+                notificationService.stopUserScopedWork(supabaseUser.id);
+                await queueAccountTeardown(supabaseUser.id);
+                if (!isCurrentAccountSession()) return;
+                if (await retryWithRotatedSession()) return;
+                set({
+                  user: null,
+                  session: null,
+                  isAuthenticated: false,
+                  isInitialized: true,
+                  isLoading: false,
+                  hasCompletedOnboarding: false,
+                });
+                useMomentaStore.getState().clearMomentaData();
+                const { error: signOutError } = await supabase.auth.signOut();
+                if (signOutError && !isExpectedSessionEndError(signOutError)) {
+                  console.warn(
+                    '[AuthStore] Could not finish missing-profile sign-out:',
+                    signOutError
+                  );
+                }
+              }
+            );
             return;
           }
 
@@ -698,6 +1059,7 @@ export const useAuthStore = create<AuthState>()(
             momentaBalance: profile.momenta_balance || 0,
           };
 
+          hydrationStage = 'onboarding_draft';
           try {
             await withTimeout(
               loadOnboardingDraftForUser({
@@ -732,6 +1094,7 @@ export const useAuthStore = create<AuthState>()(
             '[AuthStore] User profile loaded successfully, onboarding:',
             profile.has_completed_onboarding
           );
+          hydrationStage = 'profile_confirmation';
           notificationService.startUserScopedWork(appUser.id);
           // Bind confirmed authority before subscribers or submit handlers can
           // emit success; a React effect can run after those events.
@@ -745,6 +1108,7 @@ export const useAuthStore = create<AuthState>()(
           } catch {
             // Each transport is optional and fails independently.
           }
+          confirmedProfileAccountEpoch = accountEpoch;
           set({
             user: appUser,
             // Keep a token rotated while profile hydration was in flight.
@@ -759,6 +1123,7 @@ export const useAuthStore = create<AuthState>()(
             sessionRecoveryRequired: false,
           });
 
+          hydrationStage = 'account_services';
           try {
             const confirmationStore = useEmailConfirmationStore.getState();
             const pendingConfirmation = confirmationStore.hasHydrated
@@ -881,11 +1246,13 @@ export const useAuthStore = create<AuthState>()(
           // code; it must not create referral or reward facts in parallel.
         } catch (error) {
           if (accountEpoch !== accountIdentityEpoch) return;
+          if (await retryWithRotatedSession()) return;
           const latest = get();
           if (
             latest.user?.id === supabaseUser.id &&
             latest.isAuthenticated &&
-            !latest.isLoading
+            !latest.isLoading &&
+            confirmedProfileAccountEpoch === accountEpoch
           ) {
             // INITIAL_SESSION and getSession may hydrate the same account
             // concurrently. A late failed read cannot undo confirmed authority.
@@ -895,12 +1262,18 @@ export const useAuthStore = create<AuthState>()(
             notificationService.stopUserScopedWork(supabaseUser.id);
             await queueAccountTeardown(supabaseUser.id);
             if (accountEpoch !== accountIdentityEpoch) return;
+            if (await retryWithRotatedSession()) return;
             try {
               sentryClearUser();
             } catch {}
           } else {
             logError(new Error('Account profile could not be confirmed'), {
               context: 'auth_profile_hydration',
+              stage: hydrationStage,
+              error_name: error instanceof Error ? error.name : 'unknown',
+              error_code: String(
+                (error as { code?: unknown } | null)?.code ?? 'unknown'
+              ),
               reason:
                 (error as { code?: unknown })?.code === 'TIMEOUT'
                   ? 'timeout'
@@ -923,7 +1296,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      refreshSession: async () => {
+      refreshSession: async (transition?: AuthTransition) => {
         try {
           const {
             data: { session },
@@ -932,22 +1305,33 @@ export const useAuthStore = create<AuthState>()(
           if (error) throw error;
 
           if (session?.user) {
-            await get().setUserAndSession(session.user, session);
+            await get().setUserAndSession(session.user, session, transition);
           } else {
             // A successful refresh response with no session is authoritative:
             // the local account has ended even when Supabase returns no error.
-            await get().setUserAndSession(null, null);
+            await get().setUserAndSession(null, null, transition);
           }
         } catch (error) {
           if (!isExpectedSessionEndError(error)) {
-            console.error('[AuthStore] Failed to refresh session:', error);
+            if (isAuthTransportError(error)) {
+              addBreadcrumb('auth_connection_interrupted', {
+                action: 'refreshSession',
+                outcome: 'safe_to_retry',
+              });
+            } else {
+              console.error('[AuthStore] Failed to refresh session:', error);
+            }
             return;
           }
-          await get().setUserAndSession(null, null);
+          await get().setUserAndSession(null, null, transition);
         }
       },
 
-      login: async (email: string, password: string) => {
+      login: async (
+        email: string,
+        password: string,
+        transition?: AuthTransition
+      ) => {
         set({ isLoading: true });
         try {
           // Offline guard
@@ -957,10 +1341,14 @@ export const useAuthStore = create<AuthState>()(
             throw new Error(msg);
           }
           const authData = await withRetry(async () => {
-            const { data, error } = await supabase.auth.signInWithPassword({
-              email,
-              password,
-            });
+            const { data, error } = await withAuthStorageLock(
+              mainAuthStorageKey,
+              () =>
+                supabase.auth.signInWithPassword({
+                  email,
+                  password,
+                })
+            );
 
             if (error) throw error;
             return data;
@@ -969,7 +1357,8 @@ export const useAuthStore = create<AuthState>()(
           if (authData.session?.user) {
             await get().setUserAndSession(
               authData.session.user as SupabaseUser,
-              authData.session
+              authData.session,
+              transition
             );
             // Reaching this line proves the person explicitly completed a
             // password sign-in. It is safe to retire an earlier pending
@@ -997,7 +1386,12 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      register: (email, password, username) => {
+      register: (
+        email: string,
+        password: string,
+        username: string,
+        transition?: AuthTransition
+      ) => {
         if (emailRegistrationInFlight) return emailRegistrationInFlight;
 
         const normalizedEmail = email.trim().toLowerCase();
@@ -1013,18 +1407,22 @@ export const useAuthStore = create<AuthState>()(
             // A signup email is a send operation. Do not automatically replay
             // it after a transport ambiguity; the confirmation screen owns a
             // bounded resend action.
-            const { data, error } = await supabase.auth.signUp({
-              email: normalizedEmail,
-              password,
-              options: {
-                data: {
-                  username,
-                },
-                emailRedirectTo: Linking.createURL(
-                  EMAIL_CONFIRMATION_REDIRECT_PATH
-                ),
-              },
-            });
+            const { data, error } = await withAuthStorageLock(
+              mainAuthStorageKey,
+              () =>
+                supabase.auth.signUp({
+                  email: normalizedEmail,
+                  password,
+                  options: {
+                    data: {
+                      username,
+                    },
+                    emailRedirectTo: Linking.createURL(
+                      EMAIL_CONFIRMATION_REDIRECT_PATH
+                    ),
+                  },
+                })
+            );
 
             if (error) throw error;
             trackMetaAdsSignUp({
@@ -1036,7 +1434,8 @@ export const useAuthStore = create<AuthState>()(
             if (data.session?.user) {
               await get().setUserAndSession(
                 data.session.user as SupabaseUser,
-                data.session
+                data.session,
+                transition
               );
               await useEmailConfirmationStore
                 .getState()
@@ -1096,15 +1495,17 @@ export const useAuthStore = create<AuthState>()(
             throw new Error(translate('en-NZ', 'domain.network.no_connection'));
           }
 
-          const { error } = await supabase.auth.resend({
-            type: 'signup',
-            email: normalizedEmail,
-            options: {
-              emailRedirectTo: Linking.createURL(
-                EMAIL_CONFIRMATION_REDIRECT_PATH
-              ),
-            },
-          });
+          const { error } = await withAuthStorageLock(mainAuthStorageKey, () =>
+            supabase.auth.resend({
+              type: 'signup',
+              email: normalizedEmail,
+              options: {
+                emailRedirectTo: Linking.createURL(
+                  EMAIL_CONFIRMATION_REDIRECT_PATH
+                ),
+              },
+            })
+          );
           if (error) throw error;
         })();
 
@@ -1118,7 +1519,10 @@ export const useAuthStore = create<AuthState>()(
         return attempt;
       },
 
-      recoverEmailConfirmationSession: async email => {
+      recoverEmailConfirmationSession: async (
+        email: string,
+        transition?: AuthTransition
+      ) => {
         const normalizedEmail = email.trim().toLowerCase();
         const {
           data: { session },
@@ -1135,7 +1539,11 @@ export const useAuthStore = create<AuthState>()(
           return 'account_mismatch';
         }
 
-        await get().setUserAndSession(session.user as SupabaseUser, session);
+        await get().setUserAndSession(
+          session.user as SupabaseUser,
+          session,
+          transition
+        );
         if (
           pending &&
           get().isAuthenticated &&
@@ -1150,39 +1558,45 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: async () => {
-        if (get().isLoading) {
-          throw new Error('A session change is already in progress.');
-        }
-
         set({ isLoading: true });
+        RevenueCatAPI.invalidateIdentity?.();
         const userId = get().user?.id;
+        const expectedEpoch = accountIdentityEpoch;
+        let localAccessEnded = false;
+        logoutStorageVerificationPending = true;
         try {
-          // Pause user-scoped services before asking Supabase to end the
-          // session, but do not clear local account state until the sign-out
-          // request has a trustworthy result. A failed request must leave the
-          // signed-in account authoritative and retryable.
-          if (userId) {
-            notificationService.stopUserScopedWork(userId);
+          if (userId) notificationService.stopUserScopedWork(userId);
+          let error: unknown = null;
+          try {
+            ({ error } = await supabase.auth.signOut());
+          } catch {
+            // Verify the SDK storage namespace even after a rejected request.
           }
-
-          const { error } = await supabase.auth.signOut();
-          if (error && !isExpectedSessionEndError(error)) {
-            throw error;
-          }
-
-          await RevenueCatAPI.logOut();
+          await clearAndVerifyMainLocalSession(mainAuthStorageKey);
+          if (expectedEpoch !== accountIdentityEpoch) return;
           get().clearAuthData();
-        } catch (e) {
-          if (userId && get().user?.id === userId && get().isAuthenticated) {
+          localAccessEnded = true;
+          logoutStorageVerificationPending = false;
+          set({ isLoading: true });
+          await queueAccountTeardown(userId);
+          if (error && !isExpectedSessionEndError(error)) throw error;
+        } catch (error) {
+          if (
+            !localAccessEnded &&
+            expectedEpoch === accountIdentityEpoch &&
+            userId &&
+            get().isAuthenticated
+          ) {
             notificationService.startUserScopedWork(userId);
           }
-          throw e;
+          throw error;
         } finally {
           set({ isLoading: false });
         }
       },
 
       clearAuthData: () => {
+        invalidateAuthTransitionEvents();
         accountIdentityEpoch += 1;
         const userId = get().user?.id;
         if (userId) {
@@ -1363,6 +1777,12 @@ export const useAuthStore = create<AuthState>()(
 
       updateProfile: async ({ username, avatarUrl }) => {
         const currentUser = get().user;
+        const expectedEpoch = accountIdentityEpoch;
+        const expectedGeneration = getAuthTransitionGeneration();
+        const stillOwnsProfile = () =>
+          expectedEpoch === accountIdentityEpoch &&
+          get().isAuthenticated &&
+          get().user?.id === currentUser?.id;
         if (!currentUser) {
           throw new Error('No authenticated user found');
         }
@@ -1387,26 +1807,30 @@ export const useAuthStore = create<AuthState>()(
         try {
           const data = await updateMyProfile(updates);
 
-          if (Object.keys(metadataUpdates).length > 0) {
-            const { error: authError } = await supabase.auth.updateUser({
-              data: metadataUpdates,
-            });
-            if (authError) {
-              console.warn(
-                '[AuthStore] Failed to update auth metadata:',
-                authError
-              );
+          await runAuthContinuation(expectedGeneration, async () => {
+            if (!stillOwnsProfile()) return;
+            if (Object.keys(metadataUpdates).length > 0) {
+              const { error: authError } = await supabase.auth.updateUser({
+                data: metadataUpdates,
+              });
+              if (authError) {
+                console.warn(
+                  '[AuthStore] Failed to update auth metadata:',
+                  authError
+                );
+              }
             }
-          }
 
-          set({
-            user: {
-              ...currentUser,
-              username: data?.username ?? currentUser.username,
-              avatarUrl: data?.avatar_url ?? undefined,
-              momentaBalance:
-                data?.momenta_balance ?? currentUser.momentaBalance,
-            },
+            if (!stillOwnsProfile()) return;
+            set({
+              user: {
+                ...currentUser,
+                username: data?.username ?? currentUser.username,
+                avatarUrl: data?.avatar_url ?? undefined,
+                momentaBalance:
+                  data?.momenta_balance ?? currentUser.momentaBalance,
+              },
+            });
           });
         } catch (error) {
           console.error('[AuthStore] Profile update failed:', error);
@@ -1414,7 +1838,10 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      signInWithGoogle: async (flow = 'login') => {
+      signInWithGoogle: async (
+        flow: 'login' | 'signup' = 'login',
+        transition?: AuthTransition
+      ) => {
         // App-owned release switch; Google stays available by default.
         const googleLoginDisabled = await isOperationalFeatureEnabled(
           'disable_google_login'
@@ -1430,8 +1857,9 @@ export const useAuthStore = create<AuthState>()(
             showGlobalToast(msg, 'error');
             throw new Error(msg);
           }
-          // Enforce native-only Google sign-in
-          const result: OAuthResult = await OAuthService.signInWithGoogle();
+          const result: OAuthResult = Constants.expoConfig?.extra?.oauthUseWeb
+            ? await OAuthService.signInWithGoogleOAuth()
+            : await OAuthService.signInWithGoogle();
 
           if (!result.success) {
             if (result.cancelled) {
@@ -1446,7 +1874,8 @@ export const useAuthStore = create<AuthState>()(
           if (result.session?.access_token && result.user?.id) {
             await get().setUserAndSession(
               result.user as SupabaseUser,
-              result.session as Session
+              result.session as Session,
+              transition
             );
           }
 
@@ -1487,7 +1916,10 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      signInWithApple: async (flow = 'login') => {
+      signInWithApple: async (
+        flow: 'login' | 'signup' = 'login',
+        transition?: AuthTransition
+      ) => {
         const useWeb = Boolean(Constants.expoConfig?.extra?.oauthUseWeb);
         // App-owned release switch; Apple stays available by default.
         const appleLoginDisabled = await isOperationalFeatureEnabled(
@@ -1513,15 +1945,16 @@ export const useAuthStore = create<AuthState>()(
             if (result.cancelled) {
               throw createAuthCancelledError();
             }
-            const msg = result.error || 'Apple sign-in failed';
-            showGlobalToast(msg, 'error');
-            throw new Error(msg);
+            throw (
+              result.cause ?? new Error(result.error || 'Apple sign-in failed')
+            );
           }
 
           if (result.session?.access_token && result.user?.id) {
             await get().setUserAndSession(
               result.user as SupabaseUser,
-              result.session as Session
+              result.session as Session,
+              transition
             );
           }
 
@@ -1549,16 +1982,18 @@ export const useAuthStore = create<AuthState>()(
           if (isAuthCancelled(error)) {
             throw error;
           }
-          logError(
-            new Error(
-              useWeb ? 'Apple OAuth Sign-In failed' : 'Apple Sign-In failed'
-            ),
-            {
-              component: 'AuthStore',
-              action: useWeb ? 'signInWithAppleOAuth' : 'signInWithApple',
-              error: error instanceof Error ? error.message : 'Unknown error',
-            }
-          );
+          if (!isAuthTransportError(error)) {
+            logError(
+              new Error(
+                useWeb ? 'Apple OAuth Sign-In failed' : 'Apple Sign-In failed'
+              ),
+              {
+                component: 'AuthStore',
+                action: useWeb ? 'signInWithAppleOAuth' : 'signInWithApple',
+                error: error instanceof Error ? error.message : 'Unknown error',
+              }
+            );
+          }
           const friendlyError = handleNetworkError(error);
           showGlobalToast(friendlyError, 'error');
           throw new Error(friendlyError);
@@ -1567,7 +2002,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      signInWithGoogleOAuth: async () => {
+      signInWithGoogleOAuth: async (transition?: AuthTransition) => {
         // Apply the same operational switch to the web OAuth flow.
         const googleLoginDisabled = await isOperationalFeatureEnabled(
           'disable_google_login'
@@ -1591,6 +2026,14 @@ export const useAuthStore = create<AuthState>()(
             throw new Error(msg);
           }
 
+          if (result.session?.access_token && result.user?.id) {
+            await get().setUserAndSession(
+              result.user as SupabaseUser,
+              result.session as Session,
+              transition
+            );
+          }
+
           // Auth state change listener will handle the session update
           authStoreDebugLog('Google OAuth sign-in successful');
           showGlobalToast(
@@ -1611,7 +2054,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      signInWithAppleOAuth: async () => {
+      signInWithAppleOAuth: async (transition?: AuthTransition) => {
         // Apply the same operational switch to the web OAuth flow.
         const appleLoginDisabled = await isOperationalFeatureEnabled(
           'disable_apple_login'
@@ -1640,7 +2083,8 @@ export const useAuthStore = create<AuthState>()(
           if (result.session?.access_token && result.user?.id) {
             await get().setUserAndSession(
               result.user as SupabaseUser,
-              result.session as Session
+              result.session as Session,
+              transition
             );
           }
 

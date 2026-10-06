@@ -2,7 +2,9 @@
 import { Platform } from 'react-native';
 import * as Crypto from 'expo-crypto';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { supabase } from './supabase';
+import { supabase, SUPABASE_URL } from './supabase';
+import { withAuthStorageLock } from '@/lib/auth/auth-storage-lock';
+import { getDefaultSupabaseAuthStorageKey } from '@/lib/auth/password-recovery-config';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { withRetry, networkManager } from '@/lib/network';
@@ -17,8 +19,12 @@ import {
   isExpectedOAuthCallbackUrl,
 } from '@/lib/oauth-callback';
 import { translate } from '@/lib/localization';
+import { isAuthTransportError } from '@/lib/auth/transport-error';
 
 const OAUTH_TOAST_ERROR = 'error' as const;
+const mainAuthStorageKey =
+  getDefaultSupabaseAuthStorageKey(SUPABASE_URL) ??
+  'menta-main-auth-storage-unresolved';
 
 // Minimal base64url decoder that works in RN/Expo (no external deps)
 function atobFallback(input: string): string {
@@ -26,14 +32,23 @@ function atobFallback(input: string): string {
   const g: any = globalThis as any;
   if (typeof g.atob === 'function') return g.atob(input);
   const chars =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-  let str = String(input).replace(/=+$/, '');
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  const value = String(input);
+  if (
+    !/^[A-Za-z0-9+/]*={0,2}$/.test(value) ||
+    value.replace(/=+$/, '').length % 4 === 1 ||
+    (value.includes('=') && value.length % 4 !== 0)
+  ) {
+    throw new Error('Invalid base64 input.');
+  }
+  const str = value.replace(/=+$/, '');
   let output = '';
   let bc = 0;
   let bs = 0;
   let buffer = 0;
   let idx = 0;
-  for (; (buffer = chars.indexOf(str.charAt(idx++))) !== -1; ) {
+  for (; idx < str.length;) {
+    buffer = chars.indexOf(str.charAt(idx++));
     bs = bc % 4 ? bs * 64 + buffer : buffer;
     if (bc++ % 4) {
       const charCode = 255 & (bs >> ((-2 * bc) & 6));
@@ -181,6 +196,7 @@ export interface OAuthResult {
   user?: any;
   session?: any;
   error?: string;
+  cause?: unknown;
   cancelled?: boolean;
 }
 
@@ -282,11 +298,10 @@ export class OAuthService {
         return { success: false, error: msg };
       }
       const GoogleSignin = getGoogleSignin();
-      // If native module missing, enforce native-only and do not fallback
+      // Choose the browser flow only when native sign-in is unavailable,
+      // before a native request or token validation has begun.
       if (!GoogleSignin) {
-        const msg = translate('en-NZ', 'domain.oauth.google_unavailable');
-        showGlobalToast(msg, OAUTH_TOAST_ERROR);
-        return { success: false, error: msg };
+        return await OAuthService.signInWithGoogleOAuth();
       }
 
       // Check if Google Play Services are available (Android)
@@ -343,96 +358,36 @@ export class OAuthService {
       const nonce = decodeJwtNonce(idToken);
       const includedNonce = Boolean(nonce);
 
-      // First attempt: include nonce only if the token contains it
-      let firstAttemptError: any | null = null;
-      let signInData: any | null = null;
-      try {
-        const request = includedNonce
-          ? {
-              provider: 'google' as const,
-              token: idToken!,
-              nonce: nonce as string,
-              access_token: accessToken,
-            }
-          : {
-              provider: 'google' as const,
-              token: idToken!,
-              access_token: accessToken,
-            };
-        const { data, error } = await withRetry(
-          () => supabase.auth.signInWithIdToken(request),
-          2,
-          800,
-          'supabase_google_id_token'
-        );
-        if (error) throw error;
-        signInData = data;
-        sentryBreadcrumb('google_signin_supabase_success', {
-          attempt: 'first',
-          includesNonce: includedNonce,
-        } as any);
-      } catch (err: any) {
-        firstAttemptError = err;
-        sentryBreadcrumb('google_signin_supabase_error', {
-          attempt: 'first',
-          message: String(err?.message || err),
-        } as any);
-      }
+      // Keep the native token's original exchange envelope on every transient
+      // retry. A nonce or ID-token validation error must never trigger a
+      // second exchange with weaker binding parameters.
+      const request = includedNonce
+        ? {
+            provider: 'google' as const,
+            token: idToken,
+            nonce: nonce as string,
+            access_token: accessToken,
+          }
+        : {
+            provider: 'google' as const,
+            token: idToken,
+            access_token: accessToken,
+          };
+      const { data, error } = await withRetry(
+        () =>
+          withAuthStorageLock(mainAuthStorageKey, () =>
+            supabase.auth.signInWithIdToken(request)
+          ),
+        2,
+        800,
+        'supabase_google_id_token'
+      );
+      if (error) throw error;
+      sentryBreadcrumb('google_signin_supabase_success', {
+        attempt: 'first',
+        includesNonce: includedNonce,
+      } as any);
 
-      // If we hit a nonce presence error, retry once toggling nonce presence
-      const nonceErrorText = String(
-        firstAttemptError?.message || ''
-      ).toLowerCase();
-      const isPresenceError =
-        firstAttemptError &&
-        (nonceErrorText.includes('should either both exist') ||
-          nonceErrorText.includes('nonce') ||
-          nonceErrorText.includes('id_token'));
-
-      if (firstAttemptError && isPresenceError) {
-        try {
-          const toggledRequest = includedNonce
-            ? {
-                provider: 'google' as const,
-                token: idToken!,
-                access_token: accessToken,
-              } // previously included -> omit now
-            : nonce
-              ? {
-                  provider: 'google' as const,
-                  token: idToken!,
-                  nonce: nonce as string,
-                  access_token: accessToken,
-                } // previously omitted -> include if available
-              : {
-                  provider: 'google' as const,
-                  token: idToken!,
-                  access_token: accessToken,
-                };
-          const { data, error } = await withRetry(
-            () => supabase.auth.signInWithIdToken(toggledRequest),
-            2,
-            800,
-            'supabase_google_id_token_retry'
-          );
-          if (error) throw error;
-          signInData = data;
-          sentryBreadcrumb('google_signin_supabase_success', {
-            attempt: 'retry',
-            toggledNonce: true,
-          } as any);
-        } catch (finalErr: any) {
-          sentryBreadcrumb('google_signin_supabase_error', {
-            attempt: 'retry',
-            message: String(finalErr?.message || finalErr),
-          } as any);
-          throw finalErr;
-        }
-      } else if (firstAttemptError && !isPresenceError) {
-        throw firstAttemptError;
-      }
-
-      const data = signInData!;
       return {
         success: true,
         user: data.user,
@@ -517,13 +472,18 @@ export class OAuthService {
 
       // Sign in with Supabase using the Apple ID token
       const { data, error } = await withRetry(
-        () =>
-          supabase.auth.signInWithIdToken({
-            provider: 'apple',
-            token: credential.identityToken as string,
-            // Pass the RAW nonce here; Supabase verifies against hashed nonce in the ID token
-            nonce: rawNonce,
-          }),
+        async () => {
+          const response = await withAuthStorageLock(mainAuthStorageKey, () =>
+            supabase.auth.signInWithIdToken({
+              provider: 'apple',
+              token: credential.identityToken as string,
+              // Pass the RAW nonce here; Supabase verifies against hashed nonce in the ID token
+              nonce: rawNonce,
+            })
+          );
+          if (isAuthTransportError(response.error)) throw response.error;
+          return response;
+        },
         2,
         800,
         'supabase_apple_id_token'
@@ -545,6 +505,27 @@ export class OAuthService {
         session: data.session,
       };
     } catch (error: any) {
+      if (isAppleAuthCancellation(error)) {
+        return {
+          success: false,
+          error: translate('en-NZ', 'domain.oauth.apple_cancelled'),
+          cancelled: true,
+        };
+      }
+
+      if (isAuthTransportError(error)) {
+        sentryBreadcrumb('apple_signin_connection_interrupted', {
+          provider: 'apple',
+          flow: 'native',
+          outcome: 'safe_to_retry',
+        });
+        return {
+          success: false,
+          error: translate('en-NZ', 'domain.oauth.offline'),
+          cause: error,
+        };
+      }
+
       console.error('Apple Sign-In Error:', error);
       try {
         sentryCapture(error, {
@@ -554,14 +535,6 @@ export class OAuthService {
           message: error?.message,
         });
       } catch {}
-
-      if (isAppleAuthCancellation(error)) {
-        return {
-          success: false,
-          error: translate('en-NZ', 'domain.oauth.apple_cancelled'),
-          cancelled: true,
-        };
-      }
 
       let errorMessage = translate(
         'en-NZ',
@@ -597,17 +570,19 @@ export class OAuthService {
 
       const { data, error } = await withRetry(
         () =>
-          supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-              redirectTo,
-              skipBrowserRedirect: true,
-              queryParams: {
-                access_type: 'offline',
-                prompt: 'consent',
+          withAuthStorageLock(mainAuthStorageKey, () =>
+            supabase.auth.signInWithOAuth({
+              provider: 'google',
+              options: {
+                redirectTo,
+                skipBrowserRedirect: true,
+                queryParams: {
+                  access_type: 'offline',
+                  prompt: 'consent',
+                },
               },
-            },
-          }),
+            })
+          ),
         2,
         800,
         'supabase_oauth_google'
@@ -716,13 +691,15 @@ export class OAuthService {
 
       const { data, error } = await withRetry(
         () =>
-          supabase.auth.signInWithOAuth({
-            provider: 'apple',
-            options: {
-              redirectTo,
-              skipBrowserRedirect: true,
-            },
-          }),
+          withAuthStorageLock(mainAuthStorageKey, () =>
+            supabase.auth.signInWithOAuth({
+              provider: 'apple',
+              options: {
+                redirectTo,
+                skipBrowserRedirect: true,
+              },
+            })
+          ),
         2,
         800,
         'supabase_oauth_apple'

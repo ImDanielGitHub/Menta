@@ -6,11 +6,7 @@ import { translate } from '@/lib/localization';
 export const REPORT_DRAFTS_STORAGE_KEY = 'menta.support-report-drafts.v1';
 
 export type ReportDraftStatus =
-  | 'draft'
-  | 'submitting'
-  | 'not-sent'
-  | 'result-unknown'
-  | 'server-confirmed';
+  'draft' | 'submitting' | 'not-sent' | 'result-unknown' | 'server-confirmed';
 
 export type ReportAttachmentMetadata = {
   name: string;

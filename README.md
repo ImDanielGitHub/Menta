@@ -91,8 +91,8 @@ Run the relevant additional tests when changing other features.
 
 ## About this version
 
-This update brings the app source to **1.9.7**, including the latest shipped
-proof, deletion, free-plan and reminder fixes. [SOURCE.md](SOURCE.md) describes
+This update brings the app source to **1.9.9**, including localized copy,
+media consent, proof and sign-in recovery, and group access fixes. [SOURCE.md](SOURCE.md) describes
 what is included and how updates work; `source-manifest.json` records the exact
 source revision. A source update does not publish an App Store build.
 

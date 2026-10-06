@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createSerialTaskQueue } from '@/lib/serial-task-queue';
 import { addBreadcrumb as recordProofDiagnostic } from '@/lib/sentry';
 import {
-  getProofDraft,
   isForegroundResumableReceipt,
   listResumableProofDrafts,
   type ProofDraft,
@@ -9,6 +9,7 @@ import {
 } from '@/lib/proof-drafts';
 
 export const PROOF_UPLOAD_QUEUE_STORAGE_KEY = 'menta.proof-upload-queue.v1';
+const mutateQueue = createSerialTaskQueue();
 
 /**
  * Queue metadata for foreground-resumable proof submission.
@@ -93,31 +94,32 @@ export const enqueueProofUpload = async (
     ProofDraft,
     'clientEventId' | 'userId' | 'challengeId' | 'attemptCount' | 'lastError'
   >
-): Promise<ProofUploadQueueItem> => {
-  const items = await loadProofUploadQueue();
-  const existingIndex = items.findIndex(
-    item => item.clientEventId === draft.clientEventId
-  );
-  const now = new Date().toISOString();
-  const next: ProofUploadQueueItem = {
-    clientEventId: draft.clientEventId,
-    userId: draft.userId,
-    challengeId: draft.challengeId,
-    enqueuedAt: existingIndex >= 0 ? items[existingIndex].enqueuedAt : now,
-    nextAttemptAt: now,
-    attemptCount: draft.attemptCount,
-    lastError: draft.lastError,
-  };
+): Promise<ProofUploadQueueItem> =>
+  mutateQueue(async () => {
+    const items = await loadProofUploadQueue();
+    const existingIndex = items.findIndex(
+      item => item.clientEventId === draft.clientEventId
+    );
+    const now = new Date().toISOString();
+    const next: ProofUploadQueueItem = {
+      clientEventId: draft.clientEventId,
+      userId: draft.userId,
+      challengeId: draft.challengeId,
+      enqueuedAt: existingIndex >= 0 ? items[existingIndex].enqueuedAt : now,
+      nextAttemptAt: now,
+      attemptCount: draft.attemptCount,
+      lastError: draft.lastError,
+    };
 
-  if (existingIndex >= 0) {
-    items[existingIndex] = next;
-  } else {
-    items.push(next);
-  }
+    if (existingIndex >= 0) {
+      items[existingIndex] = next;
+    } else {
+      items.push(next);
+    }
 
-  await persistProofUploadQueue(items);
-  return next;
-};
+    await persistProofUploadQueue(items);
+    return next;
+  });
 
 export const updateProofUploadQueueItem = async (
   clientEventId: string,
@@ -127,33 +129,35 @@ export const updateProofUploadQueueItem = async (
       'clientEventId' | 'userId' | 'challengeId' | 'enqueuedAt'
     >
   >
-): Promise<ProofUploadQueueItem> => {
-  const items = await loadProofUploadQueue();
-  const index = items.findIndex(item => item.clientEventId === clientEventId);
-  if (index < 0) {
-    throw new Error(`Proof upload queue item not found: ${clientEventId}`);
-  }
+): Promise<ProofUploadQueueItem> =>
+  mutateQueue(async () => {
+    const items = await loadProofUploadQueue();
+    const index = items.findIndex(item => item.clientEventId === clientEventId);
+    if (index < 0) {
+      throw new Error(`Proof upload queue item not found: ${clientEventId}`);
+    }
 
-  const updated: ProofUploadQueueItem = {
-    ...items[index],
-    ...patch,
-    clientEventId: items[index].clientEventId,
-    userId: items[index].userId,
-    challengeId: items[index].challengeId,
-    enqueuedAt: items[index].enqueuedAt,
-  };
-  items[index] = updated;
-  await persistProofUploadQueue(items);
-  return updated;
-};
+    const updated: ProofUploadQueueItem = {
+      ...items[index],
+      ...patch,
+      clientEventId: items[index].clientEventId,
+      userId: items[index].userId,
+      challengeId: items[index].challengeId,
+      enqueuedAt: items[index].enqueuedAt,
+    };
+    items[index] = updated;
+    await persistProofUploadQueue(items);
+    return updated;
+  });
 
 export const dequeueProofUpload = async (
   clientEventId: string
-): Promise<void> => {
-  const items = await loadProofUploadQueue();
-  const next = items.filter(item => item.clientEventId !== clientEventId);
-  await persistProofUploadQueue(next);
-};
+): Promise<void> =>
+  mutateQueue(async () => {
+    const items = await loadProofUploadQueue();
+    const next = items.filter(item => item.clientEventId !== clientEventId);
+    await persistProofUploadQueue(next);
+  });
 
 export const canQueueReceiptStatus = (status: ProofReceiptStatus): boolean =>
   isForegroundResumableReceipt(status);
@@ -171,10 +175,15 @@ export const listForegroundResumableUploads = async (): Promise<
     listResumableProofDrafts(),
   ]);
   const queuedIds = new Set(queue.map(item => item.clientEventId));
+  // Reuse the draft snapshot instead of rereading and parsing the entire
+  // collection for every queue row as saved proof history grows.
+  const resumableById = new Map(
+    drafts.map(draft => [draft.clientEventId, draft])
+  );
 
   const fromQueue: ProofDraft[] = [];
   for (const item of queue) {
-    const draft = await getProofDraft(item.clientEventId);
+    const draft = resumableById.get(item.clientEventId);
     if (
       draft &&
       isForegroundResumableReceipt(draft.status) &&

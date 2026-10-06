@@ -59,16 +59,17 @@ describe('native upload readiness contract', () => {
     expect(configuredIcon).not.toContain('splash-icon.png');
   });
 
-  it('uses one 1024-square launch composition for native and React handoff', () => {
+  it('preserves build 165 platform splash assets and fixed iOS handoff geometry', () => {
     const splashEntry = plugins.find(
       entry => Array.isArray(entry) && entry[0] === 'expo-splash-screen'
     ) as [string, unknown] | undefined;
     const splash = asRecord(splashEntry?.[1], 'expo-splash-screen config');
     const dark = asRecord(splash.dark, 'expo-splash-screen dark config');
-    const loadingSource = readText('components/ui/FullScreenLoading.tsx');
+    const iosSplash = asRecord(splash.ios, 'ios splash');
+    const androidSplash = asRecord(splash.android, 'android splash');
     const storyboard = readText('ios/LockedInPro/SplashScreen.storyboard');
     const canonicalAsset = fs.readFileSync(
-      path.join(process.cwd(), 'assets/images/menta-splash-welcome.png')
+      path.join(process.cwd(), 'assets/images/menta-launch-face.png')
     );
 
     expect(expo).not.toHaveProperty('splash');
@@ -83,17 +84,24 @@ describe('native upload readiness contract', () => {
       backgroundColor: '#080909',
       image: './assets/images/menta-splash-welcome.png',
     });
-    expect(loadingSource).toContain(
-      "require('@/assets/images/menta-splash-welcome.png')"
-    );
-    expect(loadingSource).not.toContain('blackandwhite-app-logo.png');
+    expect(iosSplash).toMatchObject({
+      image: './assets/images/menta-launch-face.png',
+      enableFullScreenImage_legacy: true,
+      resizeMode: 'cover',
+      backgroundColor: '#080909',
+    });
+    expect(androidSplash).toMatchObject({
+      image: './assets/images/menta-splash-welcome.png',
+      imageWidth: 280,
+      resizeMode: 'contain',
+    });
     expect(pngDimensions('assets/images/menta-splash-welcome.png')).toEqual({
       width: 1024,
       height: 1024,
     });
     expect(storyboard).toContain('firstAttribute="centerX"');
     expect(storyboard).toContain('firstAttribute="centerY"');
-    expect(storyboard.match(/constant="280"/g)).toHaveLength(2);
+    expect(storyboard.match(/multiplier="0.86"/g)).toHaveLength(2);
 
     for (const filename of ['image.png', 'image@2x.png', 'image@3x.png']) {
       const nativeAsset = fs.readFileSync(

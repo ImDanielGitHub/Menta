@@ -2,6 +2,15 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import ErrorBoundary from '@/app/error-boundary';
+import { StartupFaceOverlay } from '@/components/ui/StartupFaceOverlay';
+import { hideNativeStartupSplashAfterRenderError } from '@/lib/startup-splash';
+import { AccessibilityInfo } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
+
+jest.mock('expo-splash-screen', () => ({
+  setOptions: jest.fn(),
+  hide: jest.fn(),
+}));
 
 const mockRouter = {
   back: jest.fn(),
@@ -101,4 +110,33 @@ describe('ErrorBoundary support handoff', () => {
     expect(mockRouter.back).not.toHaveBeenCalled();
     expect(mockRouter.replace).toHaveBeenCalledWith('/support');
   });
+
+  it.each(['success', 'options failure', 'hide failure'])(
+    'dismisses native splash after an initial render error, including %s',
+    failure => {
+      const preference = jest.spyOn(AccessibilityInfo, 'isReduceMotionEnabled');
+      if (failure === 'options failure') {
+        jest.mocked(SplashScreen.setOptions).mockImplementationOnce(() => {
+          throw new Error('Native options unavailable');
+        });
+      }
+      if (failure === 'hide failure') {
+        jest.mocked(SplashScreen.hide).mockImplementationOnce(() => {
+          throw new Error('Native hide unavailable');
+        });
+      }
+
+      render(
+        <ErrorBoundary onError={hideNativeStartupSplashAfterRenderError}>
+          <ThrowingChild />
+          <StartupFaceOverlay />
+        </ErrorBoundary>
+      );
+
+      expect(preference).not.toHaveBeenCalled();
+      expect(SplashScreen.hide).toHaveBeenCalledTimes(1);
+      expect(screen.queryByTestId('startup-face-overlay')).toBeNull();
+      expect(screen.getByText('Something went wrong in Menta.')).toBeTruthy();
+    }
+  );
 });

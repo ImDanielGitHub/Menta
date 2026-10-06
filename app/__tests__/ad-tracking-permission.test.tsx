@@ -114,6 +114,8 @@ describe('AdTrackingPermissionScreen', () => {
   it('lets people skip the phone prompt and still use Menta', async () => {
     render(<AdTrackingPermissionScreen />);
 
+    expect(await screen.findByText('Back to settings')).toBeTruthy();
+    expect(screen.queryByText('Not now')).toBeNull();
     expect(
       await screen.findByTestId('ad-tracking-education-not-now')
     ).toBeTruthy();

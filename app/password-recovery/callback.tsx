@@ -74,7 +74,7 @@ export default function PasswordRecoveryCallbackScreen() {
     };
 
     void exchangeRecoveryCode();
-  }, [params.code, router]);
+  }, [params.code, router, t]);
 
   return (
     <AppScreen lane="focused" hasTabBar={false} testID="recovery-callback">

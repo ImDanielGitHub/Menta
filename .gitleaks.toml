@@ -14,3 +14,10 @@ condition = "AND"
 paths = ['''(^|/)ios/Podfile\.lock$''']
 regexTarget = "secret"
 regexes = ['''^(d4f13a8fe0baf391b2108511793e4b479691fb73|97d113f0f2680067e6e76d3c9249e7e1fc026b42|f69bd07d68cd3b766125f7e072c45d7340dea0de|217a876b249c3c585a54fd6f73e6b58c4f5c4238|26483d4d22c799e5adfb2de6ab47a5debd796476|ef4da5a3fc2e10b90c09a0a94a9baeaedc0341d5)$''']
+
+[[allowlists]]
+description = "Unsigned synthetic Google ID token with an invalid signature"
+condition = "AND"
+paths = ['''(^|/)lib/__tests__/oauth-google-cancellation\.test\.ts$''']
+regexTarget = "secret"
+regexes = ['''^eyJhbGciOiJub25lIn0\.e30\.invalid$''']

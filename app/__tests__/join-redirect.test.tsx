@@ -109,4 +109,18 @@ describe('JoinRedirectScreen', () => {
     expect(mockRouter.replace).toHaveBeenCalledWith('/');
     expect(useInviteStore.getState().pending).toBeNull();
   });
+
+  it('does not send a broken promise invite to group-code entry', () => {
+    mockParams = { type: 'challenge' };
+
+    renderJoinRedirect();
+
+    expect(screen.getByText('Promise invite needs a code')).toBeTruthy();
+    expect(screen.getByText('Missing promise code')).toBeTruthy();
+    expect(screen.queryByText('Enter group code')).toBeNull();
+
+    fireEvent.press(screen.getByText('Continue without invite'));
+    expect(mockRouter.replace).toHaveBeenCalledWith('/');
+    expect(useInviteStore.getState().pending).toBeNull();
+  });
 });

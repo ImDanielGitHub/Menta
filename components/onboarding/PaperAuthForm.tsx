@@ -87,6 +87,9 @@ export const PaperAuthForm: React.FC<PaperAuthFormProps> = ({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<PaperAuthFieldErrors>({});
   const [serverError, setServerError] = useState('');
+  const [duplicateEmail, setDuplicateEmail] = useState<string | null>(null);
+  const hasDuplicateEmail =
+    mode === 'signup' && duplicateEmail === normalizeEmail(email);
 
   const nameRef = useRef<PaperAuthFieldRef>(null);
   const emailRef = useRef<PaperAuthFieldRef>(null);
@@ -96,6 +99,7 @@ export const PaperAuthForm: React.FC<PaperAuthFormProps> = ({
   useEffect(() => {
     setErrors({});
     setServerError('');
+    setDuplicateEmail(null);
   }, [mode]);
 
   const copy = useMemo(
@@ -208,7 +212,8 @@ export const PaperAuthForm: React.FC<PaperAuthFormProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (isLoading) return;
+    if (isLoading || hasDuplicateEmail) return;
+    if (serverError || errors.email) return;
     if (!validate()) return;
 
     const input: PaperAuthSubmitInput = {
@@ -223,6 +228,7 @@ export const PaperAuthForm: React.FC<PaperAuthFormProps> = ({
     } catch (error: unknown) {
       const message = errorMessage(error, mode, t);
       if (mode === 'signup' && isDuplicateAccountError(message)) {
+        setDuplicateEmail(input.email);
         setErrors(current => ({
           ...current,
           email: t('fullAuth.residual.paper_auth.duplicate_email'),
@@ -245,7 +251,7 @@ export const PaperAuthForm: React.FC<PaperAuthFormProps> = ({
         confirmPassword.length > 0 &&
         password === confirmPassword));
   const isErrorState = Boolean(
-    serverError || errors.email?.includes('already')
+    serverError || errors.email || hasDuplicateEmail
   );
   const submitDisabled = !hasValidFields || isErrorState;
 
@@ -327,7 +333,10 @@ export const PaperAuthForm: React.FC<PaperAuthFormProps> = ({
             editable={!isLoading}
             onChangeText={value => {
               setEmail(value);
-              clearFieldError('email');
+              if (normalizeEmail(value) !== duplicateEmail) {
+                setDuplicateEmail(null);
+                clearFieldError('email');
+              }
             }}
           />
 

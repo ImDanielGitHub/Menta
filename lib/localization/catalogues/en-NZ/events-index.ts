@@ -20,8 +20,7 @@ export const eventsIndexEnNZ = {
   'events.index.error.refresh_title': 'Events could not refresh',
   'events.index.error.refresh_detail':
     'Menta could not load upcoming events. Try again.',
-  'events.index.error.organiser_title':
-    'Your organiser tools could not load',
+  'events.index.error.organiser_title': 'Your organiser tools could not load',
   'events.index.yours': 'Your events',
   'events.index.organiser_open': 'Open organiser pass for {event}',
   'events.index.organiser_hint':

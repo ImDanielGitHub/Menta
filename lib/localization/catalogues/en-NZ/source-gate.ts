@@ -41,8 +41,9 @@ export const sourceGateEnNZ = {
     'Menta could not verify the reward receipt. Refresh your wallet before watching another sponsor.',
   'sourceGate.momenta.rewardAccountChanged':
     'The account changed before the reward was confirmed.',
-  'sourceGate.momenta.loginRequired': 'Login required',
-  'sourceGate.momenta.loginRequiredDetail': 'Please log in to continue.',
+  'sourceGate.momenta.loginRequired': 'Sign in before spending Momenta.',
+  'sourceGate.momenta.loginRequiredDetail':
+    'This spend was not made. Sign in, then try again.',
   'sourceGate.momenta.transactionFailed': 'Transaction failed',
   'sourceGate.momenta.transactionFailedDetail': 'Please try again in a moment.',
   'sourceGate.referral.statusUnavailable': 'Referral status is unavailable.',
@@ -60,5 +61,5 @@ export const sourceGateEnNZ = {
   'sourceGate.legacyUpdate.storeHint': 'Opens Menta in the App Store',
   'sourceGate.legacyUpdate.updateAction': 'Update Menta',
   'sourceGate.legacyUpdate.helpAction': 'Get help',
-  'sourceGate.legacyUpdate.notNowAction': 'Not now',
+  'sourceGate.legacyUpdate.notNowAction': 'Keep this version',
 } as const;

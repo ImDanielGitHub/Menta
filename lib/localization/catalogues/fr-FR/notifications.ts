@@ -115,7 +115,7 @@ export const notificationsFrFR = {
   'notifications.onboarding.permission_off.title': 'Aucun souci.',
   'notifications.onboarding.permission_off.body':
     'Menta fonctionne sans notifications. Vous pourrez activer les rappels plus tard dans les réglages.',
-  'notifications.onboarding.permission_off.action': 'Continuer',
+  'notifications.onboarding.permission_off.action': 'Continuer sans rappels',
   'notifications.onboarding.permission_off.settings': 'Ouvrir les réglages',
   'notifications.onboarding.granted.title': 'Tout est prêt.',
   'notifications.onboarding.granted.body':

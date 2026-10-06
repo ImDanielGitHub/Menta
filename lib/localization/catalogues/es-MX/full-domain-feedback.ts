@@ -24,7 +24,7 @@ export const fullDomainFeedbackEsMX = {
   'domain.error.database':
     'Problema al sincronizar los datos. Vuelve a intentarlo en un momento.',
   'domain.error.challenge':
-    'Error de estado de promesa. Actualiza e inténtelo de nuevo.',
+    'Menta no pudo actualizar esta promesa. Inténtalo de nuevo.',
   'domain.error.group':
     'No se pudo completar la acción del grupo. Vuelve a intentarlo.',
   'domain.error.unknown': 'Algo salió mal. Vuelve a intentarlo.',
@@ -37,7 +37,7 @@ export const fullDomainFeedbackEsMX = {
   'domain.error.title.submission': 'Error de envío',
   'domain.error.title.review': 'Error de revisión',
   'domain.error.title.database': 'Error de sincronización',
-  'domain.error.title.challenge': 'Error de promesa',
+  'domain.error.title.challenge': 'Esta promesa no se pudo actualizar',
   'domain.error.title.group': 'Error de grupo',
   'domain.error.title.unknown': 'Error',
   'domain.error.connection_tips': 'Consejos de conexión',
@@ -508,4 +508,11 @@ export const fullDomainFeedbackEsMX = {
   'domain.notifications.members': 'Miembros',
   'domain.notifications.review': 'revisión',
   'domain.notifications.reviews': 'revisiones',
+  'domain.feedback.checkin.a11y': '¿Qué tal te va Menta?',
+  'domain.feedback.checkin.heading': '¿Qué tal te va Menta?',
+  'domain.feedback.checkin.body':
+    'Cuéntanos qué te funciona o qué podría estar más claro.',
+  'domain.feedback.checkin.working': 'Sí, me está funcionando',
+  'domain.feedback.checkin.better': 'Algo podría estar mejor',
+  'domain.feedback.checkin.not_now': 'Ahora no',
 } as const satisfies Pick<EnglishCatalogue, FullDomainFeedbackKey>;

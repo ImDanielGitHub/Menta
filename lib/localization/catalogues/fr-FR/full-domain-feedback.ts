@@ -23,7 +23,8 @@ export const fullDomainFeedbackFrFR = {
     'Échec de la vérification. Réessayez ou contactez le support.',
   'domain.error.database':
     'Problème de synchronisation des données. Réessayez dans un instant.',
-  'domain.error.challenge': 'Problème d’état du défi. Actualisez et réessayez.',
+  'domain.error.challenge':
+    'Menta n’a pas pu actualiser cette promesse. Réessayez.',
   'domain.error.group': 'L’action du groupe a échoué. Réessayez.',
   'domain.error.unknown': 'Un problème est survenu. Réessayez.',
   'domain.error.title.network': 'Erreur de connexion',
@@ -35,7 +36,7 @@ export const fullDomainFeedbackFrFR = {
   'domain.error.title.submission': 'Échec de l’envoi',
   'domain.error.title.review': 'Erreur de vérification',
   'domain.error.title.database': 'Erreur de synchronisation',
-  'domain.error.title.challenge': 'Erreur de défi',
+  'domain.error.title.challenge': 'Cette promesse n’a pas pu se mettre à jour',
   'domain.error.title.group': 'Erreur de groupe',
   'domain.error.title.unknown': 'Erreur',
   'domain.error.connection_tips': 'Conseils de connexion',
@@ -514,4 +515,11 @@ export const fullDomainFeedbackFrFR = {
   'domain.notifications.members': 'Membres',
   'domain.notifications.review': 'vérification',
   'domain.notifications.reviews': 'vérifications',
+  'domain.feedback.checkin.a11y': 'Comment se passe Menta pour vous ?',
+  'domain.feedback.checkin.heading': 'Comment se passe Menta pour vous ?',
+  'domain.feedback.checkin.body':
+    'Dites-nous ce qui fonctionne pour vous, ou ce qui pourrait être plus clair.',
+  'domain.feedback.checkin.working': 'Oui, ça marche pour moi',
+  'domain.feedback.checkin.better': 'Quelque chose pourrait être mieux',
+  'domain.feedback.checkin.not_now': 'Pas maintenant',
 } as const satisfies Pick<EnglishCatalogue, FullDomainFeedbackKey>;

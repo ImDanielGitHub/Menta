@@ -2,6 +2,11 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { Directory, File, Paths } from 'expo-file-system';
 
 import { ImageService } from '@/lib/image-service';
+import { createClientEventId } from '@/lib/client-event-id';
+import {
+  getProofMediaErrorCopy,
+  type ProofMediaTranslate,
+} from '@/lib/proof/proof-media-copy';
 import { addBreadcrumb as recordProofDiagnostic } from '@/lib/sentry';
 
 export type LocalProofMediaType = 'photo' | 'video';
@@ -36,15 +41,15 @@ const getVideoFormat = (uri: string) => {
 export const getDurableProofMedia = ({
   localMediaUri,
   mediaType,
+  t,
 }: {
   localMediaUri: string;
   mediaType: LocalProofMediaType;
+  t?: ProofMediaTranslate;
 }): DurableProofMedia => {
   const file = new File(localMediaUri);
   if (!file.exists) {
-    throw new Error(
-      'The saved proof file is no longer available on this phone.'
-    );
+    throw new Error(getProofMediaErrorCopy('missing', t));
   }
 
   const format =
@@ -55,52 +60,54 @@ export const getDurableProofMedia = ({
   return { localMediaUri: file.uri, mediaType, ...format };
 };
 
-const replaceDurableFile = async (
+const copyToNewDurableFile = async (
   sourceUri: string,
-  destination: File
+  destination: File,
+  t?: ProofMediaTranslate
 ): Promise<File> => {
   const source = new File(sourceUri);
   if (!source.exists) {
-    throw new Error(
-      'The saved proof file is no longer available on this phone.'
-    );
+    throw new Error(getProofMediaErrorCopy('missing', t));
   }
 
-  if (source.uri === destination.uri) return source;
-  await source.copy(destination, { overwrite: true });
+  // Never replace another capture, even if the generated ID collides.
+  await source.copy(destination, { overwrite: false });
   return destination;
 };
 
 /**
  * Move a capture out of temporary camera/library storage before it is shown as
- * a durable draft. The deterministic filename lets crash recovery reopen the
- * same file without guessing which temporary asset belonged to the draft.
+ * a durable draft. Each preparation owns a fresh file independently of the
+ * submission idempotency key. Retries reopen the URI stored in the draft.
  */
 export const persistProofMediaLocally = async ({
   sourceUri,
   mediaType,
   clientEventId,
+  t,
 }: {
   sourceUri: string;
   mediaType: LocalProofMediaType;
   clientEventId: string;
+  t?: ProofMediaTranslate;
 }): Promise<DurableProofMedia> => {
+  // Idempotency keys come from createClientEventId, never from a path. Reject
+  // unsafe/legacy route input before any directory or media operation.
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      clientEventId
+    )
+  ) {
+    throw new Error('Invalid proof event ID.');
+  }
   recordProofDiagnostic('local_prepare_started', {
     isPhoto: mediaType === 'photo',
   });
   const directory = getProofMediaDirectory();
+  const mediaAttemptId = createClientEventId();
 
   if (mediaType === 'photo') {
-    const destination = new File(directory, `${clientEventId}.jpg`);
-    const source = new File(sourceUri);
-    if (source.uri === destination.uri && source.exists) {
-      return {
-        localMediaUri: source.uri,
-        mediaType,
-        fileExt: 'jpg',
-        contentType: 'image/jpeg',
-      };
-    }
+    const destination = new File(directory, `${mediaAttemptId}.jpg`);
 
     const imageContext =
       ImageManipulator.ImageManipulator.manipulate(sourceUri);
@@ -112,10 +119,10 @@ export const persistProofMediaLocally = async ({
       format: ImageManipulator.SaveFormat.JPEG,
     });
     if (!compressed.uri) {
-      throw new Error('Menta could not prepare this photo for sending.');
+      throw new Error(getProofMediaErrorCopy('prepare', t));
     }
 
-    const durable = await replaceDurableFile(compressed.uri, destination);
+    const durable = await copyToNewDurableFile(compressed.uri, destination, t);
     recordProofDiagnostic('local_save_completed');
     return {
       localMediaUri: durable.uri,
@@ -126,8 +133,11 @@ export const persistProofMediaLocally = async ({
   }
 
   const format = getVideoFormat(sourceUri);
-  const destination = new File(directory, `${clientEventId}.${format.fileExt}`);
-  const durable = await replaceDurableFile(sourceUri, destination);
+  const destination = new File(
+    directory,
+    `${mediaAttemptId}.${format.fileExt}`
+  );
+  const durable = await copyToNewDurableFile(sourceUri, destination, t);
   recordProofDiagnostic('local_save_completed');
   return {
     localMediaUri: durable.uri,
@@ -139,14 +149,16 @@ export const persistProofMediaLocally = async ({
 export const readDurableProofMedia = async ({
   localMediaUri,
   mediaType,
+  t,
 }: {
   localMediaUri: string;
   mediaType: LocalProofMediaType;
+  t?: ProofMediaTranslate;
 }): Promise<DurableProofMedia & { fileData: string }> => {
   recordProofDiagnostic('file_read_started', {
     isPhoto: mediaType === 'photo',
   });
-  const prepared = getDurableProofMedia({ localMediaUri, mediaType });
+  const prepared = getDurableProofMedia({ localMediaUri, mediaType, t });
   const file = new File(prepared.localMediaUri);
   if (
     typeof file.size !== 'number' ||
@@ -154,7 +166,7 @@ export const readDurableProofMedia = async ({
     file.size > MAX_PROOF_MEDIA_BYTES
   ) {
     recordProofDiagnostic('file_size_rejected');
-    throw new Error('Choose proof media smaller than 50 MB.');
+    throw new Error(getProofMediaErrorCopy('too_large', t));
   }
   recordProofDiagnostic('file_base64_started', {
     sizeMiB: Math.ceil(file.size / (1024 * 1024)),
@@ -164,7 +176,7 @@ export const readDurableProofMedia = async ({
     hasData: Boolean(fileData),
   });
   if (!fileData) {
-    throw new Error('Menta could not reopen the saved proof on this phone.');
+    throw new Error(getProofMediaErrorCopy('reopen', t));
   }
 
   return { ...prepared, fileData };

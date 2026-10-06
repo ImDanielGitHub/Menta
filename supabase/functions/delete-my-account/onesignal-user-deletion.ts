@@ -2,9 +2,7 @@ const ONESIGNAL_APP_ID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export type OneSignalUserDeletionResult =
-  | { kind: 'deleted' }
-  | { kind: 'already-absent' }
-  | { kind: 'not-configured' };
+  { kind: 'deleted' } | { kind: 'already-absent' } | { kind: 'not-configured' };
 
 export const deleteOneSignalUser = async (options: {
   appId: string;

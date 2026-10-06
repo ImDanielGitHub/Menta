@@ -43,6 +43,7 @@ import {
 import { ProofOutcomeView } from '@/components/proof/ProofOutcomeView';
 import { usePromiseAccountability } from '@/hooks/usePromiseAccountability';
 import { resolveProofChecker } from '@/lib/proof/proof-roles';
+import { isProofDraftForContext } from '@/lib/proof-draft-scope';
 import { useTheme, useThemedStyles } from '@/constants/ThemeContext';
 
 import {
@@ -59,7 +60,12 @@ import {
   createConfirmedReceipt,
 } from '@/lib/motion/haptics';
 import { isProofMediaType, type ProofMediaType } from '@/lib/proof-types';
-import { PROOF_SAFETY_DISCLOSURE } from '@/lib/content-safety';
+import {
+  getProofFailedDetail,
+  getProofSafetyDisclosure,
+  getProofSubmissionReceiptOverride,
+  getTextProofValidationError,
+} from '@/lib/proof/verification-copy';
 import {
   ProofSubmissionError,
   resumeProofSubmission,
@@ -201,6 +207,26 @@ const getShareableReceiptMessage = (
 };
 
 export default function ChallengeVerificationScreen() {
+  const params = useLocalSearchParams<{
+    challengeId?: string | string[];
+    groupId?: string | string[];
+    clientEventId?: string | string[];
+    verificationType?: string | string[];
+  }>();
+  const { user } = useAuthStore();
+  // A route/account handoff gets fresh local UI state. Outstanding callbacks
+  // stay with the old mountedRef and cannot render its private proof again.
+  const scopeKey = JSON.stringify([
+    user?.id ?? null,
+    firstParam(params.challengeId),
+    firstParam(params.groupId),
+    firstParam(params.clientEventId),
+    firstParam(params.verificationType),
+  ]);
+  return <ChallengeVerificationContent key={scopeKey} />;
+}
+
+function ChallengeVerificationContent() {
   const router = useRouter();
   const { t } = useTranslation();
   const theme = useTheme();
@@ -274,6 +300,7 @@ export default function ChallengeVerificationScreen() {
     reward: number;
   } | null>(null);
   const mountedRef = useRef(true);
+  const draftRevisionRef = useRef(0);
   const captureOpenedRef = useRef(false);
   const clientEventIdRef = useRef(clientEventId);
   const proofAdBreakHintRequestRef = useRef<string | null>(null);
@@ -316,17 +343,33 @@ export default function ChallengeVerificationScreen() {
     router.replace(`/challenges/${challengeId}`);
   }, [challengeId, router]);
 
+  const draftOwnerId = user?.id;
   const loadCurrentDraft = useCallback(async () => {
-    if (!user || !challengeId) return null;
+    if (!draftOwnerId || !challengeId) return null;
 
+    const revision = ++draftRevisionRef.current;
     const exactDraft = await getProofDraft(clientEventIdRef.current);
+    if (!mountedRef.current || revision !== draftRevisionRef.current)
+      return null;
+    if (
+      exactDraft &&
+      !isProofDraftForContext(exactDraft, draftOwnerId, challengeId)
+    ) {
+      setClientEventId(createClientEventId());
+      return null;
+    }
     const draft =
       exactDraft ??
       (routeClientEventId
         ? null
-        : await getActiveProofDraftForChallenge(user.id, challengeId));
+        : await getActiveProofDraftForChallenge(draftOwnerId, challengeId));
 
-    if (!draft || !mountedRef.current) return draft;
+    if (
+      !mountedRef.current ||
+      revision !== draftRevisionRef.current ||
+      !isProofDraftForContext(draft, draftOwnerId, challengeId)
+    )
+      return null;
 
     setActiveDraft(draft);
     setClientEventId(draft.clientEventId);
@@ -341,7 +384,7 @@ export default function ChallengeVerificationScreen() {
     setScreenMode(isUnsentMediaPreview ? 'capture' : 'receipt');
     if (draft.proofType === 'text') setTextProof(draft.proofValue);
     return draft;
-  }, [challengeId, routeClientEventId, user]);
+  }, [challengeId, routeClientEventId, draftOwnerId]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -357,6 +400,7 @@ export default function ChallengeVerificationScreen() {
 
     return () => {
       mountedRef.current = false;
+      draftRevisionRef.current += 1;
     };
   }, [correctionNotice, loadCurrentDraft, verificationType]);
 
@@ -370,83 +414,94 @@ export default function ChallengeVerificationScreen() {
     return () => subscription.remove();
   }, [isSubmitting, loadCurrentDraft]);
 
-  const applySubmitResult = useCallback(async (result: SubmitProofResult) => {
-    if (!mountedRef.current) return;
+  const applySubmitResult = useCallback(
+    async (result: SubmitProofResult) => {
+      if (!mountedRef.current) return;
+      if (!isProofDraftForContext(result.draft, user?.id, challengeId)) {
+        setActiveDraft(null);
+        setReceiptStatus('failed');
+        setSubmissionErrorCode('ACCOUNT_CHANGED');
+        setScreenMode('receipt');
+        return;
+      }
 
-    setActiveDraft(result.draft);
-    setReceiptStatus(result.receiptStatus);
-    setReceiptDetailOverride(null);
-    setSubmissionErrorCode(null);
-    setScreenMode('receipt');
-    trackProductEvent('Proof Submission Outcome', {
-      is_correction: result.isCorrection === true,
-      outcome: getProofSubmissionOutcome(result.receiptStatus),
-      proof_type: result.draft.proofType,
-      reason: 'none',
-    });
-
-    proofAdBreakHintRequestRef.current = null;
-    pendingProofAdBreakRef.current = null;
-    setProofAdBreakHint(null);
-
-    const proofAdBreakSubmissionId = result.submissionId;
-    const hasConfirmedDirectInsertion =
-      (result.receiptStatus === 'accepted' ||
-        result.receiptStatus === 'pending-review') &&
-      result.inputAccepted === true &&
-      result.isCorrection === false &&
-      typeof proofAdBreakSubmissionId === 'string' &&
-      proofAdBreakSubmissionId.length > 0;
-
-    if (hasConfirmedDirectInsertion) {
-      // Keep the confirmed send identity before optional metadata resolves.
-      // The server claim decides cadence even when someone closes immediately.
-      pendingProofAdBreakRef.current = {
-        submissionId: proofAdBreakSubmissionId,
-      };
-      proofAdBreakHintRequestRef.current = proofAdBreakSubmissionId;
-      const hintPromise = result.proofAdBreakHint
-        ? Promise.resolve(result.proofAdBreakHint)
-        : getProofAdBreakHint(proofAdBreakSubmissionId);
-      void hintPromise.then(hint => {
-        if (
-          !mountedRef.current ||
-          proofAdBreakHintRequestRef.current !== proofAdBreakSubmissionId
-        ) {
-          return;
-        }
-
-        if (!hint?.due) {
-          proofAdBreakHintRequestRef.current = null;
-          return;
-        }
-
-        setProofAdBreakHint(hint);
+      draftRevisionRef.current += 1;
+      setActiveDraft(result.draft);
+      setReceiptStatus(result.receiptStatus);
+      setReceiptDetailOverride(null);
+      setSubmissionErrorCode(null);
+      setScreenMode('receipt');
+      trackProductEvent('Proof Submission Outcome', {
+        is_correction: result.isCorrection === true,
+        outcome: getProofSubmissionOutcome(result.receiptStatus),
+        proof_type: result.draft.proofType,
+        reason: 'none',
       });
-    }
 
-    if (result.receiptStatus === 'accepted') {
-      if (result.inputAccepted === true && result.submissionId) {
-        setCelebrationId(result.submissionId);
-      }
-      const receipt = createConfirmedReceipt(
-        'proof',
-        result.submissionId ?? result.clientEventId
-      );
-      void emitConfirmedSuccess(receipt);
+      proofAdBreakHintRequestRef.current = null;
+      pendingProofAdBreakRef.current = null;
+      setProofAdBreakHint(null);
 
-      if (result.inputAccepted === true) {
-        await queuePositiveOutcomeReview();
-      }
+      const proofAdBreakSubmissionId = result.submissionId;
+      const hasConfirmedDirectInsertion =
+        (result.receiptStatus === 'accepted' ||
+          result.receiptStatus === 'pending-review') &&
+        result.inputAccepted === true &&
+        result.isCorrection === false &&
+        typeof proofAdBreakSubmissionId === 'string' &&
+        proofAdBreakSubmissionId.length > 0;
 
-      if (result.milestone?.reached) {
-        setMilestoneData({
-          milestone: result.milestone.milestone,
-          reward: result.milestone.reward,
+      if (hasConfirmedDirectInsertion) {
+        // Keep the confirmed send identity before optional metadata resolves.
+        // The server claim decides cadence even when someone closes immediately.
+        pendingProofAdBreakRef.current = {
+          submissionId: proofAdBreakSubmissionId,
+        };
+        proofAdBreakHintRequestRef.current = proofAdBreakSubmissionId;
+        const hintPromise = result.proofAdBreakHint
+          ? Promise.resolve(result.proofAdBreakHint)
+          : getProofAdBreakHint(proofAdBreakSubmissionId);
+        void hintPromise.then(hint => {
+          if (
+            !mountedRef.current ||
+            proofAdBreakHintRequestRef.current !== proofAdBreakSubmissionId
+          ) {
+            return;
+          }
+
+          if (!hint?.due) {
+            proofAdBreakHintRequestRef.current = null;
+            return;
+          }
+
+          setProofAdBreakHint(hint);
         });
       }
-    }
-  }, []);
+
+      if (result.receiptStatus === 'accepted') {
+        if (result.inputAccepted === true && result.submissionId) {
+          setCelebrationId(result.submissionId);
+        }
+        const receipt = createConfirmedReceipt(
+          'proof',
+          result.submissionId ?? result.clientEventId
+        );
+        void emitConfirmedSuccess(receipt);
+
+        if (result.inputAccepted === true) {
+          await queuePositiveOutcomeReview();
+        }
+
+        if (result.milestone?.reached) {
+          setMilestoneData({
+            milestone: result.milestone.milestone,
+            reward: result.milestone.reward,
+          });
+        }
+      }
+    },
+    [challengeId, user?.id]
+  );
 
   const applySubmissionError = useCallback(
     (error: unknown) => {
@@ -483,16 +538,17 @@ export default function ChallengeVerificationScreen() {
             'photo',
           reason: getProofOutcomeReason(error.code),
         });
-        setActiveDraft(error.draft);
+        draftRevisionRef.current += 1;
+        setActiveDraft(
+          isProofDraftForContext(error.draft, user?.id, challengeId)
+            ? error.draft
+            : null
+        );
         setReceiptStatus(error.receiptStatus);
         setScreenMode('receipt');
         setSubmissionErrorCode(error.code);
         setReceiptDetailOverride(
-          error.code === 'DAILY_SUBMISSION_EXISTS'
-            ? error.message
-            : error.code === 'NOT_JOINED'
-              ? 'You need to join this promise before you can send proof.'
-              : null
+          getProofSubmissionReceiptOverride(error.code, t)
         );
         if (error.receiptStatus === 'failed') {
           void emitHaptic({ type: 'error' });
@@ -508,13 +564,18 @@ export default function ChallengeVerificationScreen() {
         reason: 'network_or_server',
       });
       setSubmissionErrorCode(null);
-      setReceiptDetailOverride(
-        'Proof was not sent. Check your connection and try again. Your draft stays here if it was saved locally.'
-      );
+      setReceiptDetailOverride(getProofFailedDetail(t));
       setScreenMode('receipt');
       void emitHaptic({ type: 'error' });
     },
-    [activeDraft?.proofType, correctionNotice, verificationType]
+    [
+      activeDraft?.proofType,
+      challengeId,
+      correctionNotice,
+      user?.id,
+      verificationType,
+      t,
+    ]
   );
 
   const submitProof = useCallback(
@@ -571,9 +632,7 @@ export default function ChallengeVerificationScreen() {
     const note = textProof.trim();
     const genericOnly = /^(done|finished|completed|did it)[.!]?$/i.test(note);
     if (note.length < 8 || genericOnly) {
-      setTextProofError(
-        'Add a detail to continue. “Done” alone is not enough.'
-      );
+      setTextProofError(getTextProofValidationError(t));
       return;
     }
 
@@ -583,7 +642,7 @@ export default function ChallengeVerificationScreen() {
       proofType: 'text',
       proofValue: note,
     });
-  }, [clientEventId, submitProof, textProof]);
+  }, [clientEventId, submitProof, t, textProof]);
 
   const handleCapturedProof = useCallback(
     (proof: CapturedMediaProof) => {
@@ -595,7 +654,12 @@ export default function ChallengeVerificationScreen() {
 
   const handleLocalDraftSaved = useCallback(
     (draft: ProofDraft) => {
-      if (!mountedRef.current) return;
+      if (
+        !mountedRef.current ||
+        !isProofDraftForContext(draft, user?.id, challengeId)
+      )
+        return;
+      draftRevisionRef.current += 1;
       setActiveDraft(draft);
       setReceiptStatus(draft.status);
       setReceiptDetailOverride(null);
@@ -606,12 +670,14 @@ export default function ChallengeVerificationScreen() {
         proof_type: draft.proofType,
       });
     },
-    [correctionNotice]
+    [challengeId, correctionNotice, user?.id]
   );
 
   const handleCaptureIssue = useCallback(
     (draft: ProofDraft | null, message: string) => {
       if (!mountedRef.current) return;
+      if (!isProofDraftForContext(draft, user?.id, challengeId)) draft = null;
+      draftRevisionRef.current += 1;
       setActiveDraft(draft);
       setReceiptStatus(draft?.status ?? 'failed');
       setReceiptDetailOverride(message);
@@ -623,7 +689,7 @@ export default function ChallengeVerificationScreen() {
         proof_type: draft?.proofType ?? verificationType ?? 'photo',
       });
     },
-    [correctionNotice, verificationType]
+    [challengeId, correctionNotice, user?.id, verificationType]
   );
 
   const resetForNewProof = useCallback(() => {
@@ -634,6 +700,7 @@ export default function ChallengeVerificationScreen() {
         receipt_status: getProofReceiptActionStatus(currentStatus),
       });
     }
+    draftRevisionRef.current += 1;
     setClientEventId(createClientEventId());
     setActiveDraft(null);
     setReceiptStatus(null);
@@ -1113,7 +1180,7 @@ export default function ChallengeVerificationScreen() {
           ) : null}
           {showsCameraAccess || showsMediaPreview ? null : (
             <Text style={styles.safetyDisclosure}>
-              {PROOF_SAFETY_DISCLOSURE}
+              {getProofSafetyDisclosure(t)}
             </Text>
           )}
           {verificationType === 'text' ? (

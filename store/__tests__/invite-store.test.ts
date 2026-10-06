@@ -81,8 +81,7 @@ describe('invite-store', () => {
     });
 
     let processResult:
-      | Awaited<ReturnType<typeof result.current.processIfAny>>
-      | undefined;
+      Awaited<ReturnType<typeof result.current.processIfAny>> | undefined;
     await act(async () => {
       processResult = await result.current.processIfAny('user-1');
     });
@@ -116,8 +115,7 @@ describe('invite-store', () => {
     });
 
     let processResult:
-      | Awaited<ReturnType<typeof result.current.processIfAny>>
-      | undefined;
+      Awaited<ReturnType<typeof result.current.processIfAny>> | undefined;
     await act(async () => {
       processResult = await result.current.processIfAny('user-1');
     });

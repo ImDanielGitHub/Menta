@@ -159,9 +159,7 @@ export const sanitizeRetentionEventProperties = (
     PERMISSION_STATUSES.has(input.permission_status)
   ) {
     output.permission_status = input.permission_status as
-      | 'granted'
-      | 'denied'
-      | 'undetermined';
+      'granted' | 'denied' | 'undetermined';
   }
   if (typeof input.source === 'string' && SOURCES.has(input.source)) {
     output.source = input.source as RetentionEventProperties['source'];
@@ -462,9 +460,7 @@ export class RetentionNotificationClient {
       PERMISSION_STATUSES.has(input.notification_permission)
     ) {
       tags.notification_permission = input.notification_permission as
-        | 'granted'
-        | 'denied'
-        | 'undetermined';
+        'granted' | 'denied' | 'undetermined';
     }
     if (typeof input.notification_qa === 'boolean') {
       tags.notification_qa = input.notification_qa;

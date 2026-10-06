@@ -2,7 +2,7 @@ import React from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { AppOptionCard } from '@/components/ui/AppChoice';
 import { StandardTextInputRef } from '@/components/ui/StandardTextInput';
-import CreationTextInput from '@/components/creation/shared/CreationTextInput';
+import MentaCreationTextInput from '@/components/creation/shared/CreationTextInput';
 import type { ThemeContextType } from '@/constants/ThemeContext';
 import type {
   CategoryOption,
@@ -50,7 +50,7 @@ export function BasicsStep({
           </>
         ) : null}
 
-        <CreationTextInput
+        <MentaCreationTextInput
           ref={titleInputRef}
           label={t('todayProof.create.promise_label')}
           required
@@ -66,7 +66,7 @@ export function BasicsStep({
           fieldStyle={styles.inputGroup}
         />
 
-        <CreationTextInput
+        <MentaCreationTextInput
           ref={descriptionInputRef}
           label={t('todayProof.create.what_counts')}
           required

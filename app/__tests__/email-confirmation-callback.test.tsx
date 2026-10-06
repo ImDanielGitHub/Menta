@@ -6,6 +6,7 @@ import EmailConfirmationCallbackScreen, {
   classifyEmailConfirmationFailure,
 } from '@/app/email-confirmation/callback';
 import { ThemeProvider } from '@/constants/ThemeContext';
+import { runAuthTransition } from '@/lib/auth/auth-transition';
 
 const mockReplace = jest.fn();
 const mockExchange = jest.fn();
@@ -106,13 +107,57 @@ describe('EmailConfirmationCallbackScreen', () => {
     mockSetUserAndSession.mockImplementation(async user => {
       mockAuthState = {
         ...mockAuthState,
-        isAuthenticated: true,
-        user: { id: user.id },
+        isAuthenticated: Boolean(user),
+        user: user ? { id: user.id } : null,
       };
     });
     mockHydrate.mockResolvedValue(mockPending);
     mockClearForEmail.mockResolvedValue(true);
     mockSignOut.mockResolvedValue({ error: null });
+  });
+
+  it('waits for pending logout teardown before exchanging a callback', async () => {
+    let release!: () => void;
+    const gate = new Promise<void>(resolve => {
+      release = resolve;
+    });
+    const logout = runAuthTransition(async () => {
+      await gate;
+    });
+    const user = { id: 'pending-user', email: 'alex@example.com' };
+    mockExchange.mockResolvedValue({
+      data: { user, session: { access_token: 'token', user } },
+      error: null,
+    });
+    renderCallback();
+    await Promise.resolve();
+    const prematureExchanges = mockExchange.mock.calls.length;
+    release();
+    await logout;
+    await waitFor(() =>
+      expect(mockReplace).toHaveBeenCalledWith('/onboarding')
+    );
+    expect(prematureExchanges).toBe(0);
+  });
+
+  it('clears stale app authority after a mismatched callback replaces then removes persisted credentials', async () => {
+    mockAuthState = {
+      ...mockAuthState,
+      isAuthenticated: true,
+      user: { id: 'previous-user' },
+    };
+    const user = { id: 'other-user', email: 'other@example.com' };
+    mockExchange.mockResolvedValue({
+      data: { user, session: { access_token: 'token', user } },
+      error: null,
+    });
+    renderCallback();
+    await waitFor(() =>
+      expect(mockReplace).toHaveBeenCalledWith(
+        '/email-confirmation?status=account-mismatch'
+      )
+    );
+    expect(mockAuthState.isAuthenticated).toBe(false);
   });
 
   it('accepts a matching PKCE session, clears the handoff, and replaces the callback', async () => {
@@ -126,7 +171,11 @@ describe('EmailConfirmationCallbackScreen', () => {
     renderCallback();
 
     await waitFor(() =>
-      expect(mockSetUserAndSession).toHaveBeenCalledWith(user, session)
+      expect(mockSetUserAndSession).toHaveBeenCalledWith(
+        user,
+        session,
+        expect.any(Object)
+      )
     );
     expect(mockClearForEmail).toHaveBeenCalledWith('alex@example.com');
     expect(mockReplace).toHaveBeenCalledWith('/onboarding');
@@ -162,7 +211,11 @@ describe('EmailConfirmationCallbackScreen', () => {
     await waitFor(() =>
       expect(mockSignOut).toHaveBeenCalledWith({ scope: 'local' })
     );
-    expect(mockSetUserAndSession).not.toHaveBeenCalled();
+    expect(mockSetUserAndSession).toHaveBeenCalledWith(
+      null,
+      null,
+      expect.any(Object)
+    );
     expect(mockClearForEmail).not.toHaveBeenCalled();
     expect(mockReplace).toHaveBeenCalledWith(
       '/email-confirmation?status=account-mismatch'

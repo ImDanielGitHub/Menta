@@ -276,6 +276,8 @@ export const spanishAccountabilityDelta = {
     'Menta no pudo actualizar este rol.',
   'groups.source.accountability.member.choose_role':
     'Elige un rol para esta promesa.',
+  'groups.source.accountability.member.partner_requires_acceptance':
+    'Hacerlo juntos requiere su aceptación y no se puede cambiar aquí. Su rol actual se mantiene.',
   'groups.source.accountability.member.remove_action': 'Quitar de esta promesa',
   'groups.source.accountability.member.remove_question': '¿Quitar a {name}?',
   'groups.source.accountability.member.remove_confirm': 'Quitar persona',
@@ -346,8 +348,11 @@ export const spanishAccountabilityDelta = {
   'groups.source.accountability.invite.private_note':
     'Tu promesa seguirá siendo privada hasta que se acepte una invitación.',
   'groups.source.accountability.share.title': 'Únete a {promise}',
+  'groups.source.accountability.share.title_unnamed': 'Únete a esta promesa',
   'groups.source.accountability.share.message':
     'Únete conmigo a “{promise}” en Menta. Te invito a {invitation}.\n\n{shareUrl}\nCódigo de invitación: {code}',
+  'groups.source.accountability.share.message_unnamed':
+    'Únete a esta promesa en Menta. Te invito a {invitation}.\n\n{shareUrl}\nCódigo de invitación: {code}',
   'groups.source.accountability.share.still_ready_title':
     'La invitación sigue lista',
   'groups.source.accountability.share.still_ready_detail':

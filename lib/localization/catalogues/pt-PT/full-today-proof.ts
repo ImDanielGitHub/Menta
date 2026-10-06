@@ -433,12 +433,12 @@ export const fullTodayProofPtPT = {
   'todayProof.promise.preparing_invite': 'A preparar o convite…',
   'todayProof.promise.open_review_queue': 'Abrir fila de análise',
   'todayProof.promise.report': 'Denunciar promessa',
-  'todayProof.promise.reminder_question': 'Gostaria de um lembrete?',
+  'todayProof.promise.reminder_question': 'Quer lembretes de comprovativo?',
   'todayProof.promise.reminder_detail':
     'A Menta pode lembrá-lo antes do prazo desta promessa.',
   'todayProof.promise.remind_about': 'Lembrar-me desta promessa',
   'todayProof.promise.remind_detail':
-    'Enviar um lembrete antes do comprovativo vencer.',
+    'Aplica-se a todas as promessas, não só a esta.',
   'todayProof.promise.set_reminders': 'Configurar lembretes',
   'todayProof.promise.without_reminders': 'Continuar sem lembretes',
   'todayProof.promise.invite_question': 'Convidar alguém para esta promessa?',
@@ -582,6 +582,14 @@ export const fullTodayProofPtPT = {
     'Não conseguimos confirmar se o comprovativo foi enviado. Verifique o estado antes de tentar novamente.',
   'todayProof.proof.failed_detail':
     'O comprovativo não foi enviada. Verifique a ligação e tente novamente. O seu rascunho permanece aqui se guardado localmente.',
+  'todayProof.proof.already_sent':
+    'O comprovativo de hoje já está nesta promessa. Não precisas de o enviar outra vez.',
+  'todayProof.proof.not_joined':
+    'Precisas de entrar nesta promessa antes de enviar um comprovativo.',
+  'todayProof.proof.text_too_generic':
+    'Adiciona um detalhe. Só “Done” não chega.',
+  'todayProof.proof.safety_disclosure':
+    'O comprovativo deve ser adequado para o trabalho (SFW). Se alguém o denunciar, a equipa autorizada da Menta pode revê-lo por segurança.',
   'todayProof.proof.receipt': 'Comprovativo',
   'todayProof.proof.share_title': 'Recibo de comprovativo da Menta',
   'todayProof.proof.ad_break': 'Próximo intervalo publicitário',
@@ -650,6 +658,10 @@ export const fullTodayProofPtPT = {
   'todayProof.review.queue': 'Fila de análise',
   'todayProof.review.nothing_else': 'Nada mais para analisar ainda',
   'todayProof.review.no_submissions': 'Nenhum envio para analisar',
+  'todayProof.review.empty_title_approved': 'Nenhum comprovativo aprovado aqui',
+  'todayProof.review.empty_title_retry':
+    'Nenhum comprovativo precisa de outra tentativa',
+  'todayProof.review.empty_title_all': 'Nenhum comprovativo aqui',
   'todayProof.review.reward_unconfirmed':
     'A decisão do comprovativo foi guardada, mas a recompensa não foi confirmada.',
   'todayProof.review.reward_failed':
@@ -884,15 +896,15 @@ export const fullTodayProofPtPT = {
   'todayProof.residual.reminder': 'Lembrete',
   'todayProof.residual.open_proof_recovery':
     'Abrir recuperação de comprovativo',
-  'todayProof.residual.not_counted_yet': 'Ainda não contado',
+  'todayProof.residual.not_counted_yet': 'Hoje ainda não conta',
   'todayProof.residual.the_saved_proof_remains_on_this_device_until_menta_confirms_the_':
-    'O comprovativo guardado permanece neste dispositivo até que a Menta confirme o recebimento no servidor.',
+    'O comprovativo guardado permanece neste dispositivo até que a Menta o confirme. Não é preciso enviá-lo de novo.',
   'todayProof.residual.view_proof_history': 'Ver histórico de comprovativo',
   'todayProof.residual.check_again': 'Verificar novamente',
   'todayProof.residual.no_new_proof_was_started':
     'Nenhuma novo comprovativo foi iniciada',
   'todayProof.residual.check_the_current_server_status_before_sending_or_retrying_proof':
-    'Verifique o estado atual do servidor antes de enviar ou tentar novamente o comprovativo.',
+    'Verifique se este comprovativo foi guardado antes de enviar ou tentar novamente.',
   'todayProof.residual.a_previous_day_was_protected':
     'Um dia anterior foi protegido',
   'todayProof.residual.the_protected_day_remains_in_proof_history_today_still_needs_its':
@@ -1053,6 +1065,8 @@ export const fullTodayProofPtPT = {
   'todayProof.milestone.reached.one': 'Chegou ao dia {count}.',
   'todayProof.milestone.reached.other': 'Chegou aos {count} dias.',
   'todayProof.milestone.reward': '+{reward} Momenta',
+  'todayProof.milestone.approved_now': 'Aprovado agora',
+  'todayProof.milestone.approved_at': 'Aprovado {date}',
   'todayProof.streak.day_count': 'Sequência de {count} dia',
   'todayProof.streak.day_count.one': 'Sequência de {count} dia',
   'todayProof.streak.day_count.other': 'Sequência de {count} dia',
@@ -1161,4 +1175,41 @@ export const fullTodayProofPtPT = {
   'todayProof.createFlow.editPromise': 'Editar promessa',
   'todayProof.createFlow.dayToggle': '{day}, conta',
   'todayProof.createFlow.dayToggleOff': '{day}, dia de descanso',
+  'todayProof.promise.personal_cue': 'Promessa pessoal',
+  'todayProof.promise.queued_prompt':
+    'O Menta ainda não confirmou o envio. Abra o comprovativo guardado antes de adicionar outro.',
+  'todayProof.promise.one_change': 'É preciso uma alteração',
+  'todayProof.promise.correction_prompt':
+    'Quem revê pediu um comprovativo mais claro. A tentativa anterior continua no histórico.',
+  'todayProof.promise.approved_prompt':
+    'O comprovativo de hoje foi aprovado. O próximo dia devido aparece quando o calendário avançar.',
+  'todayProof.promise.missed_in_history': 'Há um dia perdido no seu histórico',
+  'todayProof.promise.recovery_prompt':
+    'A sequência anterior terminou, mas pode recomeçar com o próximo comprovativo de hoje.',
+  'todayProof.promise.unknown_paused_prompt':
+    'O envio está em pausa até o Menta confirmar se já existe comprovativo para hoje.',
+  'todayProof.promise.protected_due':
+    'Sequência protegida · Comprovativo devido hoje',
+  'todayProof.promise.active_prompt':
+    'Adicione o comprovativo de hoje quando tiver feito o que prometeu.',
+  'todayProof.promise.progress_approved': '{approved} de {total} aprovados',
+  'todayProof.promise.duration_days': 'Promessa de {days} dias',
+  'todayProof.promise.complete_title':
+    '{approved} de {total} dias foram aprovados.',
+  'todayProof.promise.complete_tally': '{approved} de {total} dias aprovados',
+  'todayProof.promise.reviewed_own': 'reviu o seu próprio comprovativo',
+  'todayProof.promise.reviewed_group':
+    'o grupo da promessa reviu o comprovativo',
+  'todayProof.promise.share_complete':
+    '{title}: {approved} de {total} dias aprovados no Menta.',
+  'todayProof.promise.group_fallback': 'Promessa de grupo',
+  'todayProof.promise.reviewer_has_proof': '{name} tem o seu comprovativo.',
+  'todayProof.promise.proof_submitted': 'Comprovativo enviado',
+  'todayProof.promise.waiting_unavailable':
+    'O Menta confirmou uma revisão pendente, mas o comprovativo enviado não pôde ser carregado.',
+  'todayProof.promise.your_log_starts':
+    'Envie o comprovativo de hoje e o seu registo começa aqui.',
+  'todayProof.promise.self_review': 'Autorrevisão',
+  'todayProof.promise.peer_review_one': '{count} revisão de pares',
+  'todayProof.promise.peer_review_other': '{count} revisões de pares',
 } as const satisfies Partial<Pick<EnglishCatalogue, FullTodayProofKey>>;

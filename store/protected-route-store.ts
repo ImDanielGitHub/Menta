@@ -4,9 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isEventCapabilityToken, isValidEventId } from '@/lib/events/links';
 
 export type PendingProtectedRouteSource =
-  | 'auth_gate'
-  | 'deep_link'
-  | 'onboarding_gate';
+  'auth_gate' | 'deep_link' | 'onboarding_gate';
 
 export type PendingProtectedRoute = {
   path: string;

@@ -115,7 +115,7 @@ export const notificationsPtPT = {
   'notifications.onboarding.permission_off.title': 'Não faz mal.',
   'notifications.onboarding.permission_off.body':
     'A Menta funciona sem notificações. Pode ativar os lembretes mais tarde nas Definições.',
-  'notifications.onboarding.permission_off.action': 'Continuar',
+  'notifications.onboarding.permission_off.action': 'Continuar sem lembretes',
   'notifications.onboarding.permission_off.settings': 'Abrir definições',
   'notifications.onboarding.granted.title': 'Está tudo pronto.',
   'notifications.onboarding.granted.body':

@@ -15,6 +15,7 @@ import { ExternalLinkIcon, RefreshCcwIcon } from '@/components/ui/icons';
 import Modal from '@/components/ui/modal/ModalCard';
 
 import { shouldUseIPadTwoColumnLayout } from '@/constants/responsive-layout';
+import { getOptionalUpdateDismissCopy } from '@/lib/app-update-copy';
 import type { AppUpdateMode } from '@/lib/app-update-policy';
 import { useTranslation } from '@/lib/localization/use-translation';
 
@@ -164,7 +165,7 @@ export const AppUpdateGateSurface = ({
                   onPress={onDismiss}
                   size="large"
                   testID="app-update-not-now"
-                  title={t('shared.adTracking.notNow')}
+                  title={getOptionalUpdateDismissCopy(t)}
                   variant="ghost"
                 />
               )}

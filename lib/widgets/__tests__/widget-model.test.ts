@@ -36,6 +36,24 @@ describe('streak widget presentation authority', () => {
     expect(snapshot({}, true).title).toBe(promise.title);
   });
 
+  it('names that waiting proof does not count yet, and a freeze is a Streak Freeze', () => {
+    expect(snapshot({ proofStatus: 'pending' }).detail).toBe(
+      'Today does not count yet. A reviewer still needs to accept it.'
+    );
+    expect(snapshot({ outcome: 'protected', proofStatus: 'none' }).detail).toBe(
+      'A Streak Freeze covered a missed day.'
+    );
+  });
+
+  it('puts the deadline on ordinary due copy, not only at-risk copy', () => {
+    const due = snapshot({
+      atRisk: false,
+      deadline: now + 12 * 60 * 60 * 1000,
+    });
+    expect(due.state).toBe('due');
+    expect(due.detail).toMatch(/Today still needs proof before /);
+  });
+
   it('keeps a pending review out of risk copy without inventing a streak increment', () => {
     expect(snapshot({ proofStatus: 'pending' })).toMatchObject({
       state: 'waiting',

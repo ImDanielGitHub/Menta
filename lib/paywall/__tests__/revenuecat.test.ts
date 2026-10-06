@@ -25,10 +25,23 @@ jest.mock('@/lib/queryClient', () => ({
     invalidateQueries: (...args: unknown[]) => mockInvalidateQueries(...args),
   },
 }));
-const mockAuth = { user: { id: 'user-1' } };
+const mockAuth = {
+  user: { id: 'user-1' },
+  isAuthenticated: true,
+  isLoading: false,
+};
 const mockGetAppUserID = jest.fn();
+const mockGenerateRewardToken = jest.fn();
+const mockPollRewardVerification = jest.fn();
 let mockAdTracker:
-  { trackAdDisplayed?: jest.Mock; trackAdLoaded?: jest.Mock } | undefined;
+  | {
+      trackAdDisplayed?: jest.Mock;
+      trackAdLoaded?: jest.Mock;
+      trackAdOpened?: jest.Mock;
+      trackAdRevenue?: jest.Mock;
+      trackAdFailedToLoad?: jest.Mock;
+    }
+  | undefined;
 
 jest.mock('@/store/auth-store', () => ({
   useAuthStore: { getState: () => mockAuth },
@@ -36,6 +49,10 @@ jest.mock('@/store/auth-store', () => ({
 
 jest.mock('react-native-purchases', () => ({
   getAppUserID: () => mockGetAppUserID(),
+  generateRewardVerificationToken: (...args: unknown[]) =>
+    mockGenerateRewardToken(...args),
+  pollRewardVerification: (...args: unknown[]) =>
+    mockPollRewardVerification(...args),
   get adTracker() {
     return mockAdTracker;
   },
@@ -82,6 +99,8 @@ jest.mock('@/lib/sentry', () => ({
 
 import {
   purchasePlan,
+  prepareRevenueCatAdReward,
+  pollRevenueCatAdReward,
   restorePurchases,
   RevenueCatAPI,
   trackRevenueCatAdEvent,
@@ -130,6 +149,9 @@ describe('RevenueCat authority', () => {
     mockAdTracker = {
       trackAdDisplayed: jest.fn().mockResolvedValue(undefined),
       trackAdLoaded: jest.fn().mockResolvedValue(undefined),
+      trackAdOpened: jest.fn().mockResolvedValue(undefined),
+      trackAdRevenue: jest.fn().mockResolvedValue(undefined),
+      trackAdFailedToLoad: jest.fn().mockResolvedValue(undefined),
     };
     mockConfigure.mockResolvedValue(undefined);
     mockGetOfferings.mockResolvedValue(currentOffering);
@@ -235,6 +257,61 @@ describe('RevenueCat authority', () => {
     await expect(trackRevenueCatAdEvent('user-1', payload)).resolves.toBe(
       false
     );
+  });
+
+  it('forwards revenue through the account-bound native tracker', async () => {
+    const data = {
+      mediatorName: 'AdMob',
+      adFormat: 'rewarded',
+      adUnitId: 'ad-unit',
+      impressionId: 'impression',
+      revenueMicros: 70_000,
+      currency: 'USD',
+      precision: 'exact',
+    };
+    await expect(
+      trackRevenueCatAdEvent('user-1', { type: 'revenue', data })
+    ).resolves.toBe(true);
+    expect(mockAdTracker?.trackAdRevenue).toHaveBeenCalledWith(data);
+    expect(mockAdTracker?.trackAdRevenue?.mock.contexts[0]).toBe(mockAdTracker);
+  });
+
+  it('rejects reward tokens for another account or with missing verification data', async () => {
+    for (const token of [
+      {
+        appUserID: 'user-2',
+        clientTransactionId: 'receipt',
+        customData: 'signed',
+      },
+      { appUserID: 'user-1', clientTransactionId: 'receipt', customData: '' },
+      { appUserID: 'user-1', clientTransactionId: '', customData: 'signed' },
+    ]) {
+      mockGenerateRewardToken.mockResolvedValueOnce(token);
+      await expect(
+        prepareRevenueCatAdReward('user-1', 'impression')
+      ).resolves.toBeNull();
+    }
+    const token = {
+      appUserID: 'user-1',
+      clientTransactionId: 'receipt',
+      customData: 'signed',
+    };
+    mockGenerateRewardToken.mockResolvedValueOnce(token);
+    await expect(
+      prepareRevenueCatAdReward('user-1', 'impression')
+    ).resolves.toEqual(token);
+  });
+
+  it('cannot verify an old account reward after SDK identity changes', async () => {
+    mockGetAppUserID.mockResolvedValue('user-2');
+    await expect(
+      pollRevenueCatAdReward('user-1', 'receipt', {
+        mediatorName: 'AdMob',
+        adUnitId: 'ad-unit',
+        impressionId: 'impression',
+      })
+    ).resolves.toBeNull();
+    expect(mockPollRewardVerification).not.toHaveBeenCalled();
   });
 
   it('never reports an old account ad under the new purchase identity', async () => {

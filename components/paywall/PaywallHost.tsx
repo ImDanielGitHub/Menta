@@ -69,6 +69,9 @@ export const PaywallHost: React.FC = () => {
       onWatchAd={handleWatchAd}
       context={pending?.context || 'general'}
       initialView={pending?.initialView}
+      variant={
+        pending?.shortfall && pending.shortfall > 0 ? 'insufficient' : 'default'
+      }
       shortfall={pending?.shortfall}
       adRewardAmount={rewardedAdsAvailable ? adReward : 0}
     />

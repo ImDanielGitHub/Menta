@@ -335,6 +335,9 @@ export const fullAuthAccountEsMX = {
     'La foto no cambió. {photoError}',
   'fullAuth.edit_profile.photo_visibility': 'Visibilidad de la foto',
   'fullAuth.edit_profile.photo_will_be_removed': 'Se quitará la foto',
+  'fullAuth.edit_profile.photo_too_large': 'Elige una foto de menos de 5 MB.',
+  'fullAuth.edit_profile.photo_type_rejected':
+    'Elige una imagen JPEG, PNG o WebP para tu foto de perfil.',
   'fullAuth.edit_profile.profile_unavailable': 'Perfil no disponible',
   'fullAuth.edit_profile.profile_updated': 'Perfil actualizado',
   'fullAuth.edit_profile.remove_photo': 'Quitar foto',
@@ -729,6 +732,8 @@ export const fullAuthAccountEsMX = {
   'fullAuth.onboarding.every_day': 'Cada día',
   'fullAuth.onboarding.every_day_2': '· Cada día ·',
   'fullAuth.promise.frequency.once_a_week': 'Una vez a la semana',
+  'fullAuth.promise.frequency.three_times_a_week': 'Tres veces por semana',
+  'fullAuth.promise.frequency.custom': 'Horario personalizado',
   'fullAuth.onboarding.first_promise': 'Primera promesa',
   'fullAuth.onboarding.first_promise_firstpromisecost_momenta_after_cre':
     'Primera promesa, {firstPromiseCost} Momenta. Después de crearla, {welcomeBonus} Momenta de bienvenida para lo que elijas más adelante.',
@@ -1527,6 +1532,10 @@ export const fullAuthAccountEsMX = {
   'fullAuth.residual.report.report_context_label': 'el informe',
   'fullAuth.residual.report.feedback_label': 'Comentarios',
   'fullAuth.residual.report.feedback_title': 'Comentarios sobre Menta',
+  'fullAuth.residual.report.feedback_privacy':
+    'Tus comentarios y cualquier captura que elijas llegan en privado al equipo de Menta.',
+  'fullAuth.residual.report.feedback_send_helper':
+    'Envía cuando estés listo. Puedes volver y cambiar lo que quieras.',
   'fullAuth.residual.report.category_promise': 'Promesa',
   'fullAuth.residual.report.category_group': 'Grupo',
   'fullAuth.residual.report.category_proof': 'Prueba',

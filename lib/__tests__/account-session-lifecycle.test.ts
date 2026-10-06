@@ -51,7 +51,10 @@ jest.mock('@/store/referral-store', () => {
   return { useReferralStore: { getState: () => ({ clearState }) } };
 });
 
-import { clearAccountScopedState } from '@/lib/account-session-lifecycle';
+import {
+  clearAccountScopedState,
+  ensurePrivateImageCachesCleared,
+} from '@/lib/account-session-lifecycle';
 import {
   clearAllEventCapabilitiesForTests,
   holdEventCapability,
@@ -69,8 +72,54 @@ import { useInviteStore } from '@/store/invite-store';
 import { useMomentaStore } from '@/store/momenta-store';
 import { useProtectedRouteStore } from '@/store/protected-route-store';
 import { useReferralStore } from '@/store/referral-store';
+import { Image } from 'expo-image';
+import { clearVideoCacheAsync, getCurrentVideoCacheSize } from 'expo-video';
+import { Platform } from 'react-native';
 
 describe('account session lifecycle', () => {
+  it('allows web account binding without native caches', async () => {
+    const platformDescriptor = Object.getOwnPropertyDescriptor(Platform, 'OS');
+    Object.defineProperty(Platform, 'OS', { value: 'web', configurable: true });
+    try {
+      const diskPurge = jest
+        .spyOn(Image, 'clearDiskCache')
+        .mockResolvedValue(false);
+      await expect(
+        clearAccountScopedState('web-user')
+      ).resolves.toBeUndefined();
+      expect(diskPurge).not.toHaveBeenCalled();
+    } finally {
+      if (platformDescriptor)
+        Object.defineProperty(Platform, 'OS', platformDescriptor);
+      jest.clearAllMocks();
+    }
+  });
+  it('removes other account data but prevents binding until private media caches clear', async () => {
+    jest.spyOn(Image, 'clearMemoryCache').mockResolvedValue(true);
+    const diskPurge = jest
+      .spyOn(Image, 'clearDiskCache')
+      .mockResolvedValue(false);
+    await expect(clearAccountScopedState('user-1')).rejects.toThrow(
+      'Private media caches'
+    );
+    expect(useMomentaStore.getState().clearMomentaData).toHaveBeenCalled();
+    expect(useGroupStore.getState().clearGroupData).toHaveBeenCalled();
+    await expect(ensurePrivateImageCachesCleared()).rejects.toThrow(
+      'Private media caches'
+    );
+    diskPurge.mockResolvedValue(true);
+    jest.mocked(getCurrentVideoCacheSize).mockReturnValue(1024);
+    const videoPurge = jest.mocked(clearVideoCacheAsync);
+    videoPurge.mockRejectedValueOnce(new Error('video cache busy'));
+    await expect(ensurePrivateImageCachesCleared()).rejects.toThrow(
+      'video cache busy'
+    );
+    videoPurge.mockResolvedValueOnce(undefined);
+    await expect(ensurePrivateImageCachesCleared()).resolves.toBeUndefined();
+    expect(videoPurge).toHaveBeenCalledTimes(2);
+    jest.mocked(getCurrentVideoCacheSize).mockReturnValue(0);
+    jest.clearAllMocks();
+  });
   it('stops account work before clearing all account-scoped caches', async () => {
     clearAllEventCapabilitiesForTests();
     const eventId = '11111111-1111-4111-8111-111111111111';
@@ -91,6 +140,12 @@ describe('account session lifecycle', () => {
     const stopUserScopedWork = jest.mocked(
       notificationService.stopUserScopedWork
     );
+    const memoryPurge = jest
+      .spyOn(Image, 'clearMemoryCache')
+      .mockResolvedValue(true);
+    const diskPurge = jest
+      .spyOn(Image, 'clearDiskCache')
+      .mockResolvedValue(true);
     const clearQueryCache = jest.mocked(clearAllCache);
     const unbindRetentionNotifications = jest.mocked(
       retentionNotificationClient.unbindAccount
@@ -115,6 +170,8 @@ describe('account session lifecycle', () => {
     );
 
     await clearAccountScopedState('user-1');
+    expect(memoryPurge).toHaveBeenCalledTimes(1);
+    expect(diskPurge).toHaveBeenCalledTimes(1);
 
     expect(stopUserScopedWork).toHaveBeenCalledWith('user-1');
     expect(unbindRetentionNotifications).toHaveBeenCalledWith('user-1');

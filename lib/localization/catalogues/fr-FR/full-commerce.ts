@@ -215,6 +215,8 @@ export const fullCommerceFrFR = {
   'commerce.wallet.adjustmentDescription': 'Ajustement du solde',
   'commerce.wallet.activityDescription': 'Activité Momenta',
   'commerce.wallet.promiseCreated': 'Promesse créée',
+  'commerce.wallet.promiseJoined': 'Promesse rejointe : {title}',
+  'commerce.wallet.promiseJoinedUnknown': 'Une promesse a été rejointe',
   'commerce.wallet.groupCreated': 'Groupe créé',
   'commerce.shop.title': 'Boutique',
   'commerce.shop.intro':

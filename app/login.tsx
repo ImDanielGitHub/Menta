@@ -32,6 +32,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { useInviteStore } from '@/store/invite-store';
 import { withReadableLeading } from '@/constants/phone-layout';
 import { usePhoneLayout } from '@/constants/use-phone-layout';
+import { getLoginInviteSkipCopy } from '@/lib/auth/login-invite-skip-copy';
 import { useTranslation } from '@/lib/localization';
 import { trackProductEvent } from '@/lib/posthog';
 
@@ -424,7 +425,7 @@ export default function LoginScreen() {
                 fullWidth
                 size="small"
                 testID="login-dismiss-promise-invite"
-                title={t('groups.source.accountability.common.not_now')}
+                title={getLoginInviteSkipCopy(t)}
                 variant="ghost"
                 textScale={phoneLayout.textScale}
                 onPress={dismissInvite}

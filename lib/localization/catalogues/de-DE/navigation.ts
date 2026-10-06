@@ -29,6 +29,7 @@ export const navigationDeDE = {
   'navigation.personal.active': '{count} aktive Versprechen',
   'navigation.personal.active.one': '{count} aktives Versprechen',
   'navigation.personal.active.other': '{count} aktive Versprechen',
+  'navigation.personal.streak_label': 'Längste aktive Serie',
   'navigation.personal.longest': '{active} · Längste aktive Serie: {days}',
   'navigation.notifications.accessibility': 'Mitteilungseinstellungen',
   'navigation.notifications.hint':

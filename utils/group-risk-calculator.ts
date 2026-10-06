@@ -71,8 +71,11 @@ export function calculateGroupRiskLevel(
   }
 
   // Calculate days until potential failure
-  const daysUntilFailure = Math.max(0, failure_threshold_days - consecutiveMissedDays);
-  
+  const daysUntilFailure = Math.max(
+    0,
+    failure_threshold_days - consecutiveMissedDays
+  );
+
   // Determine risk level based on consecutive missed days
   let level: GroupRiskLevel['level'] = 'safe';
   let warningMessage = '';
@@ -90,7 +93,10 @@ export function calculateGroupRiskLevel(
     level = 'at_risk';
     warningMessage = `Warning: ${daysUntilFailure} days remaining before group failure`;
     actionRequired = 'Encourage members to submit daily';
-  } else if (todayParticipationRate < min_participation_rate && todayParticipationRate > 0) {
+  } else if (
+    todayParticipationRate < min_participation_rate &&
+    todayParticipationRate > 0
+  ) {
     level = 'at_risk';
     warningMessage = `Today's participation (${Math.round(todayParticipationRate * 100)}%) is below target (${Math.round(min_participation_rate * 100)}%)`;
     actionRequired = 'More members need to submit today';
@@ -169,13 +175,13 @@ export function getRiskLevelStyling(level: GroupRiskLevel['level']) {
  */
 export function isGroupAccessible(group: GroupWithRisk): boolean {
   if (!group.riskLevel) return true;
-  
+
   // Failed groups are read-only
   if (group.riskLevel.level === 'failed') return false;
-  
-  // Expired groups are read-only  
+
+  // Expired groups are read-only
   if (group.riskLevel.level === 'expired') return false;
-  
+
   // All other states allow access
   return true;
 }
@@ -186,9 +192,9 @@ export function isGroupAccessible(group: GroupWithRisk): boolean {
 export function getGroupStatusText(riskLevel: GroupRiskLevel): string {
   switch (riskLevel.level) {
     case 'safe':
-      return riskLevel.currentParticipationRate > 0 ? 
-        `${Math.round(riskLevel.currentParticipationRate * 100)}% active today` : 
-        'On track';
+      return riskLevel.currentParticipationRate > 0
+        ? `${Math.round(riskLevel.currentParticipationRate * 100)}% active today`
+        : 'On track';
     case 'at_risk':
       return `${riskLevel.daysUntilFailure} days to improve`;
     case 'critical':
@@ -200,4 +206,4 @@ export function getGroupStatusText(riskLevel: GroupRiskLevel): string {
     default:
       return 'Unknown';
   }
-} 
+}

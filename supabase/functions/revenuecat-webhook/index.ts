@@ -9,7 +9,7 @@ interface RevenueCatEvent {
   event_timestamp_ms?: number;
   app_id?: string;
   product_id?: string;
-  entitlement_ids?: string[];
+  entitlement_ids?: string[] | null;
   cancel_reason?: string | null;
   expiration_reason?: string | null;
   original_transaction_id?: string;
@@ -43,7 +43,7 @@ const purchaseTypes =
   /(INITIAL_PURCHASE|NON_RENEWING_PURCHASE|PURCHASE|RENEWAL)/i;
 const entitlementActivationTypes =
   /(INITIAL_PURCHASE|NON_RENEWING_PURCHASE|RENEWAL|UNCANCELLATION|SUBSCRIPTION_EXTENDED|TEMPORARY_ENTITLEMENT_GRANT|REFUND_REVERSED)/i;
-const entitlementDeactivationTypes = /(EXPIRATION)/i;
+const entitlementDeactivationTypes = /^EXPIRATION$/i;
 const proEntitlementKeys = ['pro_access', 'Pro', 'pro'];
 const adRewardIgnoredReasons = new Set([
   'amount_mismatch',
@@ -328,14 +328,37 @@ Deno.serve(async (req: Request): Promise<Response> => {
     const expiresAt = Number.isFinite(expirationAtMs)
       ? new Date(expirationAtMs as number).toISOString()
       : null;
-    const entitlementIds = Array.isArray(event.entitlement_ids)
-      ? event.entitlement_ids
-      : [];
+    // A cancellation reason alone does not prove revocation. Preserve prepaid
+    // access and billing grace; only an already-ended refund/revocation is final.
+    const isEndedCancellation =
+      event.type === 'CANCELLATION' &&
+      (event.cancel_reason === 'CUSTOMER_SUPPORT' ||
+        event.cancel_reason === 'DEVELOPER_INITIATED') &&
+      Number.isFinite(expirationAtMs) &&
+      Number.isFinite(event.event_timestamp_ms) &&
+      (expirationAtMs as number) <= (event.event_timestamp_ms as number);
+    const isEntitlementDeactivation =
+      entitlementDeactivationTypes.test(event.type || '') ||
+      isEndedCancellation;
+    const invalidEntitlementIds =
+      event.entitlement_ids != null &&
+      (!Array.isArray(event.entitlement_ids) ||
+        !event.entitlement_ids.every(
+          key => typeof key === 'string' && key.length > 0 && key === key.trim()
+        ));
+    // Preserve the raw payload for a durable terminal-event retry. SQL may
+    // recover exact keys from owned provider lineage; never guess or trim IDs.
+    if (invalidEntitlementIds && !isEntitlementDeactivation) {
+      return json(
+        { ok: false, retry: true, code: 'invalid_entitlement_ids' },
+        503
+      );
+    }
+    const entitlementIds = invalidEntitlementIds
+      ? []
+      : (event.entitlement_ids ?? []);
     const hasPro = entitlementIds.some(key => proEntitlementKeys.includes(key));
     const isEntitlementActivation = entitlementActivationTypes.test(
-      event.type || ''
-    );
-    const isEntitlementDeactivation = entitlementDeactivationTypes.test(
       event.type || ''
     );
     const isPurchase = purchaseTypes.test(event.type || '');

@@ -13,6 +13,10 @@ import { AppInlineNotice } from '@/components/ui/AppFeedback';
 import { AppScreen, AppTopBar } from '@/components/ui/AppShell';
 
 import { parseInviteLink, PRIMARY_INVITE_HOST } from '@/lib/invite-links';
+import {
+  getJoinRedirectMissingCodeCopy,
+  resolveJoinRedirectDestination,
+} from '@/lib/invites/join-redirect-copy';
 import { useTranslation } from '@/lib/localization';
 
 export default function JoinRedirectScreen() {
@@ -37,6 +41,10 @@ export default function JoinRedirectScreen() {
   const invite = parseInviteLink(
     `https://${PRIMARY_INVITE_HOST}/join?${inviteQuery}`,
     'group'
+  );
+  const missingCodeCopy = getJoinRedirectMissingCodeCopy(
+    resolveJoinRedirectDestination(params),
+    t
   );
 
   // A valid link is transport, not a separate product screen. Redirect also
@@ -64,23 +72,23 @@ export default function JoinRedirectScreen() {
       <AppTopBar title={t('groups.redirect.title')} titleIsHeading={false} />
       <View style={styles.heading}>
         <Text accessibilityRole="header" style={styles.title}>
-          {t('groups.redirect.needs_code')}
+          {missingCodeCopy.title}
         </Text>
-        <Text style={styles.subtitle}>
-          {t('groups.redirect.needs_code_subtitle')}
-        </Text>
+        <Text style={styles.subtitle}>{missingCodeCopy.subtitle}</Text>
       </View>
       <AppInlineNotice
-        title={t('groups.redirect.missing_code')}
-        description={t('groups.redirect.missing_code_detail')}
+        title={missingCodeCopy.noticeTitle}
+        description={missingCodeCopy.noticeDetail}
         tone="warning"
         testID="join-link-status-notice"
       />
-      <AppButton
-        title={t('groups.redirect.enter_group_code')}
-        onPress={() => router.replace('/join-group')}
-        fullWidth
-      />
+      {missingCodeCopy.canEnterGroupCode ? (
+        <AppButton
+          title={t('groups.redirect.enter_group_code')}
+          onPress={() => router.replace('/join-group')}
+          fullWidth
+        />
+      ) : null}
       <AppButton
         title={t('groups.redirect.without_invite')}
         variant="outline"

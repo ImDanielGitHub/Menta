@@ -97,7 +97,10 @@ type MockFile = { uri: string };
 const fileSystemMock = (
   jest.requireMock('expo-file-system') as {
     __mock: {
-      copy: jest.Mock<Promise<void>, [MockFile, MockFile, { overwrite: true }]>;
+      copy: jest.Mock<
+        Promise<void>,
+        [MockFile, MockFile, { overwrite: boolean }]
+      >;
       directories: Set<string>;
       files: Map<string, MockFileEntry>;
     };
@@ -125,12 +128,15 @@ describe('proof media persistence', () => {
     manipulateMock.mockReset();
   });
 
-  it('awaits video copy completion and explicitly overwrites the durable destination', async () => {
+  it('awaits video copy completion without replacing an earlier durable capture', async () => {
     const sourceUri = 'file:///tmp/capture.mov';
     const destinationUri =
-      'file:///documents/menta-proof-drafts/video-event.mov';
+      'file:///documents/menta-proof-drafts/00000000-0000-4000-8000-000000000001.mov';
     fileSystemMock.files.set(sourceUri, { exists: true });
-    fileSystemMock.files.set(destinationUri, { exists: true });
+    fileSystemMock.files.set(destinationUri, {
+      exists: true,
+      base64: 'earlier-proof',
+    });
 
     const pendingCopy = createDeferred<void>();
     fileSystemMock.copy.mockReturnValueOnce(pendingCopy.promise);
@@ -139,7 +145,7 @@ describe('proof media persistence', () => {
     const persistence = persistProofMediaLocally({
       sourceUri,
       mediaType: 'video',
-      clientEventId: 'video-event',
+      clientEventId: '00000000-0000-4000-8000-000000000001',
     }).then(result => {
       settled = true;
       return result;
@@ -148,35 +154,42 @@ describe('proof media persistence', () => {
     expect(fileSystemMock.copy).toHaveBeenCalledTimes(1);
     const [source, destination, options] = fileSystemMock.copy.mock.calls[0];
     expect(source.uri).toBe(sourceUri);
-    expect(destination.uri).toBe(destinationUri);
-    expect(options).toEqual({ overwrite: true });
+    expect(destination.uri).not.toBe(destinationUri);
+    expect(destination.uri).toMatch(/menta-proof-drafts\/[0-9a-f-]{36}\.mov$/i);
+    expect(options).toEqual({ overwrite: false });
     await Promise.resolve();
     expect(settled).toBe(false);
 
     pendingCopy.resolve();
 
     await expect(persistence).resolves.toEqual({
-      localMediaUri: destinationUri,
+      localMediaUri: destination.uri,
       mediaType: 'video',
       fileExt: 'mov',
       contentType: 'video/quicktime',
     });
     expect(settled).toBe(true);
+    expect(fileSystemMock.files.get(destinationUri)?.base64).toBe(
+      'earlier-proof'
+    );
   });
 
-  it('surfaces a rejected copy and can recover by retrying the same durable key', async () => {
+  it('surfaces a rejected copy and retries with a fresh durable filename', async () => {
     const sourceUri = 'file:///tmp/capture.mp4';
     const destinationUri =
-      'file:///documents/menta-proof-drafts/retry-event.mp4';
+      'file:///documents/menta-proof-drafts/00000000-0000-4000-8000-000000000002.mp4';
     fileSystemMock.files.set(sourceUri, { exists: true });
-    fileSystemMock.files.set(destinationUri, { exists: true });
+    fileSystemMock.files.set(destinationUri, {
+      exists: true,
+      base64: 'earlier-proof',
+    });
 
     fileSystemMock.copy.mockRejectedValueOnce(new Error('disk unavailable'));
 
     const input = {
       sourceUri,
       mediaType: 'video' as const,
-      clientEventId: 'retry-event',
+      clientEventId: '00000000-0000-4000-8000-000000000002',
     };
 
     await expect(persistProofMediaLocally(input)).rejects.toThrow(
@@ -187,21 +200,29 @@ describe('proof media persistence', () => {
       fileSystemMock.files.set(destination.uri, { exists: true });
     });
 
-    await expect(persistProofMediaLocally(input)).resolves.toEqual({
-      localMediaUri: destinationUri,
+    const retried = await persistProofMediaLocally(input);
+    const retryUri = fileSystemMock.copy.mock.calls[1][1].uri;
+    expect(retried).toEqual({
+      localMediaUri: retryUri,
       mediaType: 'video',
       fileExt: 'mp4',
       contentType: 'video/mp4',
     });
     expect(fileSystemMock.copy).toHaveBeenCalledTimes(2);
-    expect(fileSystemMock.copy.mock.calls[1][2]).toEqual({ overwrite: true });
+    expect(retryUri).toMatch(/menta-proof-drafts\/[0-9a-f-]{36}\.mp4$/i);
+    expect(retryUri).not.toBe(fileSystemMock.copy.mock.calls[0][1].uri);
+    expect(retryUri).not.toBe(destinationUri);
+    expect(fileSystemMock.copy.mock.calls[1][2]).toEqual({ overwrite: false });
+    expect(fileSystemMock.files.get(destinationUri)?.base64).toBe(
+      'earlier-proof'
+    );
   });
 
   it('awaits the compressed photo copy before returning a durable draft', async () => {
     const sourceUri = 'file:///tmp/photo.heic';
     const compressedUri = 'file:///tmp/compressed.jpg';
     const destinationUri =
-      'file:///documents/menta-proof-drafts/photo-event.jpg';
+      'file:///documents/menta-proof-drafts/00000000-0000-4000-8000-000000000003.jpg';
     fileSystemMock.files.set(sourceUri, { exists: true });
     fileSystemMock.files.set(compressedUri, { exists: true });
 
@@ -217,7 +238,7 @@ describe('proof media persistence', () => {
     const persistence = persistProofMediaLocally({
       sourceUri,
       mediaType: 'photo',
-      clientEventId: 'photo-event',
+      clientEventId: '00000000-0000-4000-8000-000000000003',
     }).then(result => {
       settled = true;
       return result;
@@ -235,17 +256,59 @@ describe('proof media persistence', () => {
     const [copySource, copyDestination, options] =
       fileSystemMock.copy.mock.calls[0];
     expect(copySource.uri).toBe(compressedUri);
-    expect(copyDestination.uri).toBe(destinationUri);
-    expect(options).toEqual({ overwrite: true });
+    expect(copyDestination.uri).not.toBe(destinationUri);
+    expect(copyDestination.uri).toMatch(
+      /menta-proof-drafts\/[0-9a-f-]{36}\.jpg$/i
+    );
+    expect(options).toEqual({ overwrite: false });
     expect(settled).toBe(false);
 
     pendingCopy.resolve();
 
     await expect(persistence).resolves.toEqual({
-      localMediaUri: destinationUri,
+      localMediaUri: copyDestination.uri,
       mediaType: 'photo',
       fileExt: 'jpg',
       contentType: 'image/jpeg',
     });
   });
+  it.each([
+    '../escape',
+    '',
+    'valid-id/../../other',
+    '11111111-1111-4111-8111-111111111111.jpg',
+  ])(
+    'rejects unsafe event ID %s before native preparation',
+    async clientEventId => {
+      await expect(
+        persistProofMediaLocally({
+          sourceUri: 'file:///tmp/proof.jpg',
+          mediaType: 'photo',
+          clientEventId,
+        })
+      ).rejects.toThrow('Invalid proof event ID');
+      expect(manipulateMock).not.toHaveBeenCalled();
+      expect(fileSystemMock.copy).not.toHaveBeenCalled();
+      expect(fileSystemMock.directories.size).toBe(0);
+    }
+  );
 });
+
+it.each([
+  '../private',
+  '..\\private',
+  '/absolute',
+  '%2e%2e%2fprivate',
+  'bad\u0000id',
+])(
+  'rejects a non-UUID proof filename key %s before touching media',
+  async clientEventId => {
+    await expect(
+      persistProofMediaLocally({
+        sourceUri: 'file:///tmp/capture.mp4',
+        mediaType: 'video',
+        clientEventId,
+      })
+    ).rejects.toThrow('Invalid proof event ID');
+  }
+);

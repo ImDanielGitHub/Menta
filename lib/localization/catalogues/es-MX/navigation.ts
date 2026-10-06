@@ -28,6 +28,7 @@ export const navigationEsMX = {
   'navigation.personal.active': '{count} promesas activas',
   'navigation.personal.active.one': '{count} promesa activa',
   'navigation.personal.active.other': '{count} promesas activas',
+  'navigation.personal.streak_label': 'Racha activa más larga',
   'navigation.personal.longest': '{active} · Racha activa más larga: {days}',
   'navigation.notifications.accessibility': 'Configuración de notificaciones',
   'navigation.notifications.hint':

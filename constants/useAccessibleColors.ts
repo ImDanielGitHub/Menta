@@ -27,12 +27,21 @@ export const useAccessibleColors = () => {
 
   // Get the best accessible color for text on a given background
   const getAccessibleTextColor = useMemo(() => {
-    return (backgroundColor: string, preferredColor?: string): AccessibleColorResult => {
+    return (
+      backgroundColor: string,
+      preferredColor?: string
+    ): AccessibleColorResult => {
       // If a preferred color is provided, check if it's accessible
       if (preferredColor) {
-        const contrast = accessibility.getContrastRatio(preferredColor, backgroundColor);
-        const isAccessible = accessibility.isAccessible(preferredColor, backgroundColor);
-        
+        const contrast = accessibility.getContrastRatio(
+          preferredColor,
+          backgroundColor
+        );
+        const isAccessible = accessibility.isAccessible(
+          preferredColor,
+          backgroundColor
+        );
+
         if (isAccessible) {
           return {
             color: preferredColor,
@@ -53,7 +62,10 @@ export const useAccessibleColors = () => {
       ];
 
       for (const textColor of textOptions) {
-        const contrast = accessibility.getContrastRatio(textColor, backgroundColor);
+        const contrast = accessibility.getContrastRatio(
+          textColor,
+          backgroundColor
+        );
         if (accessibility.isAccessible(textColor, backgroundColor)) {
           return {
             color: textColor,
@@ -69,22 +81,29 @@ export const useAccessibleColors = () => {
         color,
         contrast: accessibility.getContrastRatio(color, backgroundColor),
         isAccessible: accessibility.isAccessible(color, backgroundColor),
-        level: accessibility.getContrastRatio(color, backgroundColor) >= 7 ? 'AAA' as const : 
-               accessibility.getContrastRatio(color, backgroundColor) >= 4.5 ? 'AA' as const : 'FAIL' as const,
+        level:
+          accessibility.getContrastRatio(color, backgroundColor) >= 7
+            ? ('AAA' as const)
+            : accessibility.getContrastRatio(color, backgroundColor) >= 4.5
+              ? ('AA' as const)
+              : ('FAIL' as const),
       }));
 
-      return contrastResults.reduce((best, current) => 
+      return contrastResults.reduce((best, current) =>
         current.contrast > best.contrast ? current : best
       );
     };
-  }, [colors, isDark]);
+  }, [colors]);
 
   // Validate a color combination
   const validateColorCombination = useMemo(() => {
-    return (foreground: string, background: string): AccessibilityValidation => {
+    return (
+      foreground: string,
+      background: string
+    ): AccessibilityValidation => {
       const contrast = accessibility.getContrastRatio(foreground, background);
       const isAccessible = accessibility.isAccessible(foreground, background);
-      
+
       let wcagLevel: 'FAIL' | 'AA' | 'AAA' = 'FAIL';
       if (contrast >= 7) wcagLevel = 'AAA';
       else if (contrast >= 4.5) wcagLevel = 'AA';
@@ -100,7 +119,7 @@ export const useAccessibleColors = () => {
       // Provide recommendations if not accessible
       if (!isAccessible) {
         const colorValues = Object.values(palette.gray);
-        
+
         result.recommendations = {
           lightAlternatives: colorValues
             .filter(color => accessibility.isAccessible(color, background))
@@ -124,34 +143,34 @@ export const useAccessibleColors = () => {
         background: colors.primary,
         text: getAccessibleTextColor(colors.primary).color,
       },
-      
+
       // Secondary actions
       secondaryAction: {
         background: colors.secondary,
         text: getAccessibleTextColor(colors.secondary).color,
       },
-      
+
       // Status colors - accessible versions
       success: {
         background: colors.status.success,
         text: getAccessibleTextColor(colors.status.success).color,
       },
-      
+
       error: {
         background: colors.status.error,
         text: getAccessibleTextColor(colors.status.error).color,
       },
-      
+
       warning: {
         background: colors.status.warning,
         text: getAccessibleTextColor(colors.status.warning).color,
       },
-      
+
       info: {
         background: colors.status.info,
         text: getAccessibleTextColor(colors.status.info).color,
       },
-      
+
       // Surface colors with guaranteed readability
       surface: {
         primary: {
@@ -172,10 +191,14 @@ export const useAccessibleColors = () => {
 
   // Utility to automatically adjust color for better accessibility
   const makeAccessible = useMemo(() => {
-    return (foreground: string, background: string, targetLevel: 'AA' | 'AAA' = 'AA'): string => {
+    return (
+      foreground: string,
+      background: string,
+      targetLevel: 'AA' | 'AAA' = 'AA'
+    ): string => {
       const current = accessibility.getContrastRatio(foreground, background);
       const threshold = targetLevel === 'AAA' ? 7 : 4.5;
-      
+
       if (current >= threshold) {
         return foreground; // Already accessible
       }
@@ -187,23 +210,35 @@ export const useAccessibleColors = () => {
       // Gradually darken or lighten the color until it becomes accessible
       let attempts = 0;
       let adjustedColor = foreground;
-      
-      while (attempts < 50) { // Prevent infinite loops
+
+      while (attempts < 50) {
+        // Prevent infinite loops
         const factor = isDark ? 1.1 : 0.9; // Lighten for dark theme, darken for light theme
-        
-        foregroundRgb.r = Math.min(255, Math.max(0, Math.round(foregroundRgb.r * factor)));
-        foregroundRgb.g = Math.min(255, Math.max(0, Math.round(foregroundRgb.g * factor)));
-        foregroundRgb.b = Math.min(255, Math.max(0, Math.round(foregroundRgb.b * factor)));
-        
+
+        foregroundRgb.r = Math.min(
+          255,
+          Math.max(0, Math.round(foregroundRgb.r * factor))
+        );
+        foregroundRgb.g = Math.min(
+          255,
+          Math.max(0, Math.round(foregroundRgb.g * factor))
+        );
+        foregroundRgb.b = Math.min(
+          255,
+          Math.max(0, Math.round(foregroundRgb.b * factor))
+        );
+
         adjustedColor = `#${foregroundRgb.r.toString(16).padStart(2, '0')}${foregroundRgb.g.toString(16).padStart(2, '0')}${foregroundRgb.b.toString(16).padStart(2, '0')}`;
-        
-        if (accessibility.getContrastRatio(adjustedColor, background) >= threshold) {
+
+        if (
+          accessibility.getContrastRatio(adjustedColor, background) >= threshold
+        ) {
           return adjustedColor;
         }
-        
+
         attempts++;
       }
-      
+
       // Fallback to high contrast colors
       return isDark ? '#ffffff' : '#000000';
     };
@@ -222,11 +257,13 @@ export const useAccessibleColors = () => {
 // Helper function to convert hex to RGB
 const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result ? {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16)
-  } : null;
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : null;
 };
 
-export default useAccessibleColors; 
+export default useAccessibleColors;

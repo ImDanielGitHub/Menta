@@ -41,6 +41,8 @@ module.exports = defineConfig([
       'web-build/**',
       'build/**',
       'tools/**',
+      // Paper's DOM/CSS export archive is design evidence, not app source.
+      'paper-screens/**',
       'domain/menta.quest/lovable-overlay/**',
       '**/*.test.ts',
       '**/*.test.tsx',
@@ -68,6 +70,27 @@ module.exports = defineConfig([
     languageOptions: {
       parserOptions: {
         project: null,
+      },
+    },
+  },
+  {
+    files: ['scripts/**/*.js', 'extract-icons.js', 'find-missing-aliases.js'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: {
+        __dirname: 'readonly',
+        Buffer: 'readonly',
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        Buffer: 'readonly',
       },
     },
   },

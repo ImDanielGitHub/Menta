@@ -23,8 +23,7 @@ export const fullDomainFeedbackEnNZ = {
   'domain.error.review':
     'Review action failed. Please try again or contact support.',
   'domain.error.database': 'Data sync issue. Please try again in a moment.',
-  'domain.error.challenge':
-    'Challenge state error. Please refresh and try again.',
+  'domain.error.challenge': 'Menta could not refresh this promise. Try again.',
   'domain.error.group': 'Group action failed. Please try again.',
   'domain.error.unknown': 'Something went wrong. Please try again.',
   'domain.error.title.network': 'Connection Error',
@@ -36,7 +35,7 @@ export const fullDomainFeedbackEnNZ = {
   'domain.error.title.submission': 'Submission Failed',
   'domain.error.title.review': 'Review Error',
   'domain.error.title.database': 'Sync Error',
-  'domain.error.title.challenge': 'Challenge Error',
+  'domain.error.title.challenge': 'This promise could not update',
   'domain.error.title.group': 'Group Error',
   'domain.error.title.unknown': 'Error',
   'domain.error.connection_tips': 'Connection Tips',
@@ -504,4 +503,11 @@ export const fullDomainFeedbackEnNZ = {
   'domain.notifications.members': 'Members',
   'domain.notifications.review': 'review',
   'domain.notifications.reviews': 'reviews',
+  'domain.feedback.checkin.a11y': 'How is Menta going?',
+  'domain.feedback.checkin.heading': 'How is Menta going?',
+  'domain.feedback.checkin.body':
+    'Tell us what works for you, or what could be clearer.',
+  'domain.feedback.checkin.working': "Yes, it's working for me",
+  'domain.feedback.checkin.better': 'Something could be better',
+  'domain.feedback.checkin.not_now': 'Not now',
 } as const;

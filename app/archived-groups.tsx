@@ -25,25 +25,15 @@ import { type Group, useGroupStore } from '@/store/group-store';
 
 import { useLargeTypeLineLimit } from '@/lib/accessibility';
 import { backOrReplace } from '@/lib/navigation/safe-back';
+import { formatArchivedGroupDate } from '@/lib/groups/archive-copy';
 import { useTranslation } from '@/lib/localization';
-const formatArchiveDate = (value?: string | null) => {
-  if (!value) return 'Archived group';
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Archived group';
-
-  return `Archived ${new Intl.DateTimeFormat(undefined, {
-    day: 'numeric',
-    month: 'long',
-  }).format(date)}`;
-};
 
 export default function ArchivedGroupsScreen() {
   const mentaColors = useMentaPalette();
   const { styles } = useMentaStyles(createPaletteStyles);
 
   const router = useRouter();
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
   const { user } = useAuthStore();
   const { fetchArchivedGroups } = useGroupStore();
   const groupNameLines = useLargeTypeLineLimit(1);
@@ -202,7 +192,7 @@ export default function ArchivedGroupsScreen() {
                       numberOfLines={archiveMetaLines}
                       style={styles.archiveMeta}
                     >
-                      {formatArchiveDate(group.archived_at)}
+                      {formatArchivedGroupDate(group.archived_at, locale, t)}
                     </Text>
                     <Text style={styles.readOnly}>
                       {t('groups.board.read_only')}

@@ -1,7 +1,5 @@
 import * as Clipboard from 'expo-clipboard';
-import { Share, Platform } from 'react-native';
-
-const qrDebugLog = (..._args: unknown[]) => {};
+import { Share } from 'react-native';
 
 export type ShareTextResult = 'shared' | 'dismissed' | 'copied_fallback';
 
@@ -25,10 +23,8 @@ export const shareText = async (
     );
 
     if (result.action === Share.sharedAction) {
-      qrDebugLog('Content shared successfully');
       return 'shared';
     } else if (result.action === Share.dismissedAction) {
-      qrDebugLog('Share dialog dismissed');
       return 'dismissed';
     }
     return 'dismissed';
@@ -37,7 +33,6 @@ export const shareText = async (
     // More graceful fallback - copy to clipboard on error
     try {
       await Clipboard.setStringAsync(message);
-      qrDebugLog('Sharing failed, copied to clipboard instead');
       return 'copied_fallback';
     } catch (clipboardError) {
       console.error('Error copying to clipboard:', clipboardError);

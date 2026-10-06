@@ -28,6 +28,8 @@ const mockRouter = {
   replace: jest.fn(),
 };
 let mockFocused = true;
+let mockBoardAccessDenied = false;
+let mockPromiseAccessDenied = false;
 const mockFocusListeners = {
   focus: new Set<() => void>(),
   blur: new Set<() => void>(),
@@ -76,7 +78,7 @@ const mockGroupStoreState = {
   leaveGroup: jest.fn(),
   userGroups: [] as string[],
 };
-const mockGroupDetailState = { loaded: false };
+const mockGroupDetailState = { loaded: false, privateAccessConfirmed: true };
 let mockViewerId = 'user-1';
 let mockBoardSnapshot: GroupAccountabilitySnapshot | undefined;
 let mockGroupStatus = 'active';
@@ -136,6 +138,7 @@ jest.mock('@/hooks/useGroupDetail', () => ({
     mockGroupDetailState.loaded
       ? {
           challenges: mockGroupChallenges,
+          privateAccessConfirmed: mockGroupDetailState.privateAccessConfirmed,
           error: null,
           errorKind: null,
           group: {
@@ -217,6 +220,7 @@ jest.mock('@/hooks/useGroupPendingReviews', () => ({
 
 jest.mock('@/hooks/usePromiseAccountability', () => ({
   usePromiseAccountability: () => ({
+    accessDenied: mockPromiseAccessDenied,
     data: { members: [{ id: 'user-1', role: 'owner' }] },
     isLoading: false,
     error: null,
@@ -225,6 +229,7 @@ jest.mock('@/hooks/usePromiseAccountability', () => ({
 
 jest.mock('@/hooks/useGroupAccountabilityBoard', () => ({
   useGroupAccountabilityBoard: () => ({
+    accessDenied: mockBoardAccessDenied,
     data: mockBoardSnapshot,
     error: null,
     fetchStatus: 'idle',
@@ -281,6 +286,8 @@ jest.mock('@/store/selectors', () => ({
 describe('Groups production-route geometry and accessibility', () => {
   afterEach(() => jest.restoreAllMocks());
   beforeEach(() => {
+    mockBoardAccessDenied = false;
+    mockPromiseAccessDenied = false;
     jest.clearAllMocks();
     mockFocused = true;
     mockFocusListeners.focus.clear();
@@ -289,6 +296,7 @@ describe('Groups production-route geometry and accessibility', () => {
     mockFetchUserGroups.mockResolvedValue(undefined);
     mockGroupsListProps = null;
     mockGroupDetailState.loaded = false;
+    mockGroupDetailState.privateAccessConfirmed = true;
     mockViewerId = 'user-1';
     mockGroupStatus = 'active';
     mockGroupKind = 'saved';
@@ -300,6 +308,28 @@ describe('Groups production-route geometry and accessibility', () => {
       success: true,
     });
   });
+
+  it('hides cached private group content when current membership is absent', () => {
+    mockGroupDetailState.loaded = true;
+    mockGroupDetailState.privateAccessConfirmed = false;
+    mockGroupStoreState.userGroups = ['group-1'];
+    render(<GroupDetailScreen />);
+    expect(screen.queryByText('Morning walk group')).toBeNull();
+    expect(screen.queryByTestId('group-detail-header')).toBeNull();
+  });
+
+  it.each(['board', 'promise'])(
+    'keeps the cached header hidden for a latched %s denial after the current error changes',
+    scope => {
+      mockGroupDetailState.loaded = true;
+      mockGroupChallenges = [{ id: 'promise-1', title: 'Private promise' }];
+      if (scope === 'board') mockBoardAccessDenied = true;
+      else mockPromiseAccessDenied = true;
+      render(<GroupDetailScreen />);
+      expect(screen.queryByText('Morning walk group')).toBeNull();
+      expect(screen.queryByTestId('group-detail-header')).toBeNull();
+    }
+  );
 
   it('exposes the Shared and Discover switch as selectable native controls', async () => {
     render(<GroupsScreen />);

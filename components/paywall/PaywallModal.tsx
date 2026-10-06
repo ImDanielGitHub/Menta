@@ -6,6 +6,7 @@ import {
   mentaTypography,
 } from '@/constants/MentaDesignSystem';
 import { useMentaPalette } from '@/constants/use-menta-palette';
+import { router } from 'expo-router';
 import React, {
   useEffect,
   useMemo,
@@ -197,6 +198,8 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
     width >= IPAD_BOUNDED_SHEET_MIN_WIDTH;
   const { enabled: adsFlag } = useOperationalFlag('ads_enabled');
   const { enabled: safeMode } = useOperationalFlag('safe_mode');
+  const { enabled: revenueCatFlag } = useOperationalFlag('revenuecat_enabled');
+  const revenueCatEnabled = REVENUECAT_SUPPORTED && revenueCatFlag && !safeMode;
   const adsEnabled = Boolean(onWatchAd) && adsFlag && !safeMode;
   const paywallViewedRef = useRef(false);
   const [offeringsUnavailable, setOfferingsUnavailable] = useState(false);
@@ -280,7 +283,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
   // Extract offerings loading logic for reusability
   const loadOfferings = useCallback(async () => {
     const request = ++offeringsRequest.current;
-    if (!REVENUECAT_SUPPORTED) {
+    if (!revenueCatEnabled) {
       setOfferingsUnavailable(true);
       setOfferingsLoading(false);
       return;
@@ -367,7 +370,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
         });
       } catch {}
     }
-  }, []);
+  }, [revenueCatEnabled]);
 
   useEffect(() => {
     if (visible && (variant === 'default' || showFullPaywall)) {
@@ -416,7 +419,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
     });
     setSubscriptionLoading(plan);
     try {
-      if (!REVENUECAT_SUPPORTED) {
+      if (!revenueCatEnabled) {
         trackProductEvent('Subscription Outcome', {
           action: 'purchase',
           outcome: 'unsupported',
@@ -869,8 +872,9 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
   // Restore outcomes stay visible until the person chooses to continue.
   const handleRestorePurchases = useCallback(async () => {
     const revision = operationRevision.current;
-    if (!REVENUECAT_SUPPORTED || restoreInFlightRef.current) return;
+    if (!revenueCatEnabled || restoreInFlightRef.current) return;
     restoreInFlightRef.current = true;
+    setShowFullPaywall(true);
     setPaywallStage('restoring');
     setRestoreLoading(true);
     try {
@@ -944,7 +948,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
       restoreInFlightRef.current = false;
       setRestoreLoading(false);
     }
-  }, [t]);
+  }, [revenueCatEnabled, t]);
 
   const handleCheckAccess = useCallback(async () => {
     const revision = operationRevision.current;
@@ -1385,6 +1389,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
       onRetry={() => void loadOfferings()}
       onRestore={() => void handleRestorePurchases()}
       restoring={restoreLoading}
+      restoreDisabled={!revenueCatEnabled}
       legalLinks={renderLegalLinks('center')}
     />
   );
@@ -1415,6 +1420,14 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
       credited={adCredited}
       feedback={renderAdFeedback()}
       onGoPro={handleGoProPress}
+      onOpenWallet={
+        revenueCatEnabled
+          ? () => {
+              onClose();
+              router.push('/momenta');
+            }
+          : undefined
+      }
       onCheckProof={
         onCheckProof
           ? () => {
@@ -1476,12 +1489,12 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
       <Pressable
         style={styles.restoreLink}
         onPress={handleRestorePurchases}
-        disabled={!REVENUECAT_SUPPORTED || restoreLoading}
+        disabled={!revenueCatEnabled || restoreLoading}
         accessibilityRole="button"
         accessibilityLabel={t('commerce.paywall.restore')}
         accessibilityState={{
           busy: restoreLoading,
-          disabled: !REVENUECAT_SUPPORTED || restoreLoading,
+          disabled: !revenueCatEnabled || restoreLoading,
         }}
       >
         <Text style={styles.restoreLinkText}>

@@ -30,7 +30,6 @@ export const getApprovedCreditSkus = (): string[] => {
   if (envValue !== undefined) return normalizeSkuList(envValue);
 
   const extra = Constants.expoConfig?.extra as
-    | { commerce?: { approvedCreditSkus?: unknown } }
-    | undefined;
+    { commerce?: { approvedCreditSkus?: unknown } } | undefined;
   return normalizeSkuList(extra?.commerce?.approvedCreditSkus);
 };

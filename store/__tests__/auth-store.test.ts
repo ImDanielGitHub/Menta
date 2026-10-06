@@ -10,6 +10,13 @@ import { OAuthService } from '@/lib/oauth';
 import { useEmailConfirmationStore } from '@/store/email-confirmation-store';
 import * as onboardingDraft from '@/lib/onboarding-draft';
 import { logError } from '@/lib/sentry';
+import { RevenueCatAPI } from '@/lib/paywall/revenuecat';
+import Constants from 'expo-constants';
+import {
+  getAuthTransitionGeneration,
+  runAuthContinuation,
+  runAuthTransition,
+} from '@/lib/auth/auth-transition';
 
 const mockTrackProductEvent = jest.fn();
 const mockTrackProductOperation = jest.fn();
@@ -66,6 +73,7 @@ jest.mock('@/lib/oauth', () => ({
 }));
 
 jest.mock('@/lib/account-session-lifecycle', () => ({
+  ensurePrivateImageCachesCleared: jest.fn().mockResolvedValue(undefined),
   clearAccountScopedState: jest.fn().mockResolvedValue(undefined),
 }));
 
@@ -138,6 +146,7 @@ jest.mock('@/lib/sentry', () => ({
   setUser: jest.fn(),
   clearUser: jest.fn(),
   logError: jest.fn(),
+  addBreadcrumb: jest.fn(),
 }));
 
 const mockSupabase = supabase as jest.Mocked<typeof supabase>;
@@ -160,6 +169,14 @@ const mockOAuthService = OAuthService as jest.Mocked<typeof OAuthService>;
 describe('AuthStore', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSupabase.auth.signOut
+      .mockReset()
+      .mockResolvedValue({ error: null } as any);
+    mockGetMyProfile.mockReset();
+    mockOAuthService.signInWithGoogleOAuth.mockReset();
+    mockOAuthService.signInWithGoogle.mockReset();
+    mockOAuthService.signInWithApple.mockReset();
+    mockOAuthService.signInWithAppleOAuth.mockReset();
     const profile = {
       id: 'user-1',
       email: 'test@example.com',
@@ -633,6 +650,48 @@ describe('AuthStore', () => {
       consoleError.mockRestore();
     });
 
+    it('preserves the account on the reported Expo auth connection loss without logging an error', async () => {
+      const consoleError = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+      const existingUser = { id: 'user-1', username: 'testuser' };
+      const existingSession = { access_token: 'current-token' } as any;
+      useAuthStore.setState({
+        user: existingUser,
+        session: existingSession,
+        isAuthenticated: true,
+        isInitialized: true,
+        hasCompletedOnboarding: true,
+      });
+      mockSupabase.auth.refreshSession.mockResolvedValue({
+        data: { session: null },
+        error: Object.assign(
+          new Error(
+            'fetch failed: UnexpectedException: The network connection was lost. (at ExpoModulesCore/Promise.swift:56)'
+          ),
+          {
+            name: 'AuthRetryableFetchError',
+            status: 0,
+          }
+        ),
+      } as any);
+      try {
+        await act(async () => {
+          await useAuthStore.getState().refreshSession();
+        });
+        expect(consoleError).not.toHaveBeenCalled();
+        expect(mockClearAccountScopedState).not.toHaveBeenCalled();
+        expect(useAuthStore.getState()).toMatchObject({
+          user: existingUser,
+          session: existingSession,
+          isAuthenticated: true,
+          hasCompletedOnboarding: true,
+        });
+      } finally {
+        consoleError.mockRestore();
+      }
+    });
+
     it('silently clears account work when the refresh token is revoked', async () => {
       const consoleError = jest
         .spyOn(console, 'error')
@@ -742,6 +801,44 @@ describe('AuthStore', () => {
     });
   });
 
+  describe('Apple sign-in', () => {
+    it('does not turn an exhausted transport retry into Apple Sign-In failed', async () => {
+      const error = Object.assign(
+        new Error('fetch failed: The network connection was lost.'),
+        {
+          name: 'AuthRetryableFetchError',
+          status: 0,
+        }
+      );
+      mockOAuthService.signInWithApple.mockResolvedValueOnce({
+        success: false,
+        error: 'Check your connection and try again.',
+        cause: error,
+      });
+      await expect(
+        useAuthStore.getState().signInWithApple()
+      ).rejects.toBeDefined();
+      expect(logError).not.toHaveBeenCalled();
+      expect(useAuthStore.getState().isLoading).toBe(false);
+      expect(useAuthStore.getState().isAuthenticated).toBe(false);
+    });
+
+    it('continues to report genuine Apple provider failures', async () => {
+      mockOAuthService.signInWithApple.mockResolvedValueOnce({
+        success: false,
+        error: 'Invalid identity token',
+      });
+      await expect(
+        useAuthStore.getState().signInWithApple()
+      ).rejects.toBeDefined();
+      expect(logError).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Apple Sign-In failed' }),
+        expect.any(Object)
+      );
+      expect(useAuthStore.getState().isLoading).toBe(false);
+    });
+  });
+
   describe('Google sign-in', () => {
     it('preserves provider cancellation as a non-failure result', async () => {
       mockOAuthService.signInWithGoogle.mockResolvedValueOnce({
@@ -756,6 +853,39 @@ describe('AuthStore', () => {
       });
       expect(result.current.isLoading).toBe(false);
     });
+
+    it.each([
+      { oauthUseWeb: true, browserCalls: 1, nativeCalls: 0 },
+      { oauthUseWeb: false, browserCalls: 0, nativeCalls: 1 },
+    ])(
+      'routes Google sign-in according to oauthUseWeb=$oauthUseWeb',
+      async ({ oauthUseWeb, browserCalls, nativeCalls }) => {
+        const extra = Constants.expoConfig?.extra as Record<string, unknown>;
+        const previous = extra.oauthUseWeb;
+        extra.oauthUseWeb = oauthUseWeb;
+        mockOAuthService.signInWithGoogleOAuth.mockResolvedValueOnce({
+          success: true,
+        });
+        mockOAuthService.signInWithGoogle.mockResolvedValueOnce({
+          success: true,
+        });
+        try {
+          await expect(
+            useAuthStore.getState().signInWithGoogle()
+          ).resolves.toBeUndefined();
+          expect(mockOAuthService.signInWithGoogleOAuth).toHaveBeenCalledTimes(
+            browserCalls
+          );
+          expect(mockOAuthService.signInWithGoogle).toHaveBeenCalledTimes(
+            nativeCalls
+          );
+          expect(useAuthStore.getState().isLoading).toBe(false);
+        } finally {
+          if (previous === undefined) delete extra.oauthUseWeb;
+          else extra.oauthUseWeb = previous;
+        }
+      }
+    );
   });
 
   describe('register', () => {
@@ -877,7 +1007,9 @@ describe('AuthStore', () => {
         .register('same@example.com', 'password123', 'sameuser');
 
       expect(first).toBe(second);
-      expect(mockSupabase.auth.signUp).toHaveBeenCalledTimes(1);
+      await waitFor(() =>
+        expect(mockSupabase.auth.signUp).toHaveBeenCalledTimes(1)
+      );
 
       resolveSignup?.({
         data: {
@@ -914,7 +1046,9 @@ describe('AuthStore', () => {
         .resendEmailConfirmation('me@example.com');
 
       expect(first).toBe(second);
-      expect(mockSupabase.auth.resend).toHaveBeenCalledTimes(1);
+      await waitFor(() =>
+        expect(mockSupabase.auth.resend).toHaveBeenCalledTimes(1)
+      );
       expect(mockSupabase.auth.resend).toHaveBeenCalledWith({
         type: 'signup',
         email: 'me@example.com',
@@ -1057,17 +1191,309 @@ describe('AuthStore', () => {
   });
 
   describe('logout', () => {
+    it('preserves a newly confirmed session for the same user when logout was queued for the old session', async () => {
+      let release!: () => void;
+      const gate = new Promise<void>(resolve => {
+        release = resolve;
+      });
+      const user = {
+        id: 'user-1',
+        email: 'test@example.com',
+        user_metadata: {},
+      };
+      const nextSession = { access_token: 'fresh-session', user };
+      useAuthStore.setState({
+        user: { id: 'user-1', username: 'same' },
+        session: { access_token: 'old-session', user } as any,
+        isAuthenticated: true,
+        isInitialized: true,
+        isLoading: false,
+      });
+      mockSupabase.auth.signOut.mockResolvedValue({ error: null });
+      const confirmation = runAuthTransition(async transition => {
+        await gate;
+        await useAuthStore
+          .getState()
+          .setUserAndSession(user as any, nextSession as any, transition);
+      });
+      const result = useAuthStore
+        .getState()
+        .logout()
+        .then(
+          () => null,
+          error => error
+        );
+      release();
+      await confirmation;
+      expect((await result)?.message).toContain('account changed');
+      expect(mockSupabase.auth.signOut).not.toHaveBeenCalled();
+      expect(useAuthStore.getState().session).toEqual(nextSession);
+    });
+
+    it('still logs out the same session after ordinary token rotation', async () => {
+      let release!: () => void;
+      const gate = new Promise<void>(resolve => {
+        release = resolve;
+      });
+      const user = {
+        id: 'user-1',
+        email: 'test@example.com',
+        user_metadata: {},
+      };
+      useAuthStore.setState({
+        user: { id: 'user-1', username: 'same' },
+        session: { access_token: 'old-token', user } as any,
+        isAuthenticated: true,
+        isInitialized: true,
+        isLoading: false,
+      });
+      mockSupabase.auth.signOut.mockResolvedValue({ error: null });
+      const earlier = runAuthTransition(async () => {
+        await gate;
+      });
+      const rotation = runAuthContinuation(
+        getAuthTransitionGeneration(),
+        transition =>
+          useAuthStore
+            .getState()
+            .setUserAndSession(
+              user as any,
+              { access_token: 'rotated-token', user } as any,
+              transition
+            )
+      );
+      const logout = useAuthStore.getState().logout();
+      release();
+      await Promise.all([earlier, rotation, logout]);
+      expect(mockSupabase.auth.signOut).toHaveBeenCalledTimes(1);
+      expect(useAuthStore.getState().isAuthenticated).toBe(false);
+    });
+
+    it.each(['provider', 'account'] as const)(
+      'keeps the next grant behind %s teardown',
+      async pending => {
+        let release!: () => void;
+        const gate = new Promise<void>(resolve => {
+          release = resolve;
+        });
+        const provider =
+          pending === 'provider'
+            ? jest
+                .spyOn(RevenueCatAPI, 'logOut')
+                .mockImplementationOnce(() => gate)
+            : null;
+        if (pending === 'account')
+          mockClearAccountScopedState.mockImplementationOnce(() => gate);
+        mockSupabase.auth.signOut.mockResolvedValue({ error: null });
+        mockSupabase.auth.signInWithPassword.mockResolvedValue({
+          data: { user: null, session: null },
+          error: null,
+        } as any);
+        useAuthStore.setState({
+          user: { id: 'user-1', username: 'first' },
+          session: { access_token: 'token' } as any,
+          isAuthenticated: true,
+          isLoading: false,
+        });
+        const logout = useAuthStore.getState().logout();
+        await waitFor(() =>
+          expect(provider ?? mockClearAccountScopedState).toHaveBeenCalled()
+        );
+        const login = useAuthStore
+          .getState()
+          .login('new@example.com', 'synthetic-password');
+        await Promise.resolve();
+        const prematureGrants =
+          mockSupabase.auth.signInWithPassword.mock.calls.length;
+        release();
+        await Promise.all([logout, login]);
+        provider?.mockRestore();
+        expect(prematureGrants).toBe(0);
+        expect(mockSupabase.auth.signInWithPassword).toHaveBeenCalledTimes(1);
+      }
+    );
+
+    it('keeps account authority bound until persisted cleanup is verified', async () => {
+      mockSupabase.auth.signOut.mockResolvedValue({ error: null });
+      useAuthStore.setState({
+        user: { id: 'user-1', username: 'first' },
+        session: { access_token: 'token' } as any,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+      const originalRead = jest
+        .mocked(AsyncStorage.multiGet)
+        .getMockImplementation()!;
+      const read = jest
+        .spyOn(AsyncStorage, 'multiGet')
+        .mockResolvedValueOnce([['synthetic-auth-key', 'still-present']]);
+      try {
+        await expect(useAuthStore.getState().logout()).rejects.toThrow(
+          'cleanup was not verified'
+        );
+        expect(useAuthStore.getState().isAuthenticated).toBe(true);
+        expect(
+          mockNotificationService.startUserScopedWork
+        ).toHaveBeenCalledWith('user-1');
+      } finally {
+        read.mockImplementation(originalRead);
+      }
+    });
+
+    it('finishes web Google session adoption before releasing its credential transition', async () => {
+      const user = {
+        id: 'user-1',
+        email: 'test@example.com',
+        user_metadata: { username: 'testuser' },
+      };
+      const session = { access_token: 'web-token', user };
+      mockOAuthService.signInWithGoogleOAuth.mockResolvedValue({
+        success: true,
+        user,
+        session,
+      } as any);
+      await useAuthStore.getState().signInWithGoogleOAuth();
+      expect(useAuthStore.getState()).toMatchObject({
+        isAuthenticated: true,
+        user: { id: 'user-1' },
+        session,
+      });
+    });
+
+    it('rejects a logout queued for A after a confirmation transition adopts B', async () => {
+      let release!: () => void;
+      const gate = new Promise<void>(resolve => {
+        release = resolve;
+      });
+      const user = {
+        id: 'user-2',
+        email: 'other@example.com',
+        user_metadata: {},
+      };
+      const session = { access_token: 'other-token', user };
+      mockGetMyProfile.mockResolvedValue({
+        id: 'user-2',
+        username: 'other',
+        has_completed_onboarding: true,
+      } as any);
+      useAuthStore.setState({
+        user: { id: 'user-1', username: 'first' },
+        session: { access_token: 'first-token' } as any,
+        isAuthenticated: true,
+        isInitialized: true,
+        isLoading: false,
+      });
+      const confirmation = runAuthTransition(async transition => {
+        await gate;
+        await useAuthStore
+          .getState()
+          .setUserAndSession(user as any, session as any, transition);
+      });
+      const logout = useAuthStore.getState().logout();
+      const observed = logout.then(
+        () => 'resolved',
+        error => String(error.message)
+      );
+      release();
+      await confirmation;
+      expect(await observed).toContain('account changed');
+      expect(mockSupabase.auth.signOut).not.toHaveBeenCalled();
+      expect(useAuthStore.getState().user?.id).toBe('user-2');
+    });
+
+    it('does not restore a profile response that arrives after logout', async () => {
+      let finish!: (profile: any) => void;
+      mockUpdateMyProfile.mockImplementationOnce(
+        () =>
+          new Promise(resolve => {
+            finish = resolve;
+          }) as any
+      );
+      mockSupabase.auth.updateUser.mockResolvedValue({
+        data: { user: null },
+        error: null,
+      } as any);
+      mockSupabase.auth.signOut.mockResolvedValue({ error: null });
+      useAuthStore.setState({
+        user: { id: 'user-1', username: 'before' },
+        session: { access_token: 'token' } as any,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+      const update = useAuthStore
+        .getState()
+        .updateProfile({ username: 'after' });
+      await useAuthStore.getState().logout();
+      finish({ id: 'user-1', username: 'after' });
+      await update;
+      expect(useAuthStore.getState().user).toBeNull();
+      expect(mockSupabase.auth.updateUser).not.toHaveBeenCalled();
+    });
+
+    it('clears app authority when the SDK reports remote failure after local cleanup', async () => {
+      mockSupabase.auth.signOut.mockResolvedValue({
+        error: new Error('Remote revocation unavailable'),
+      } as any);
+      useAuthStore.setState({
+        user: { id: 'user-1', username: 'testuser' },
+        session: { access_token: 'token' } as any,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+      await expect(useAuthStore.getState().logout()).rejects.toThrow(
+        'Remote revocation unavailable'
+      );
+      expect(useAuthStore.getState().isAuthenticated).toBe(false);
+      expect(useAuthStore.getState().user).toBeNull();
+      expect(
+        mockNotificationService.startUserScopedWork
+      ).not.toHaveBeenCalled();
+      expect(mockClearAccountScopedState).toHaveBeenCalledWith('user-1');
+    });
+
+    it('does not start a new password grant before the pending logout settles', async () => {
+      let finish!: (value: { error: null }) => void;
+      mockSupabase.auth.signOut.mockImplementationOnce(
+        () =>
+          new Promise(resolve => {
+            finish = resolve;
+          }) as any
+      );
+      mockSupabase.auth.signInWithPassword.mockResolvedValue({
+        data: { user: null, session: null },
+        error: null,
+      } as any);
+      useAuthStore.setState({
+        user: { id: 'user-1', username: 'testuser' },
+        session: { access_token: 'token' } as any,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+      const logout = useAuthStore.getState().logout();
+      const login = useAuthStore
+        .getState()
+        .login('other@example.com', 'synthetic-password');
+      await Promise.resolve();
+      const prematureGrants =
+        mockSupabase.auth.signInWithPassword.mock.calls.length;
+      finish({ error: null });
+      await logout;
+      await login;
+      expect(prematureGrants).toBe(0);
+      expect(mockSupabase.auth.signInWithPassword).toHaveBeenCalledTimes(1);
+    });
+
     it('successfully logs out user', async () => {
       mockSupabase.auth.signOut.mockResolvedValue({ error: null });
 
       const { result } = renderHook(() => useAuthStore());
 
-      // Set initial authenticated state
       act(() => {
-        result.current.setUserAndSession(
-          { id: 'user-1', email: 'test@example.com' } as any,
-          { access_token: 'token' } as any
-        );
+        useAuthStore.setState({
+          user: { id: 'user-1', username: 'testuser' },
+          session: { access_token: 'token' } as any,
+          isAuthenticated: true,
+        });
       });
 
       await act(async () => {
@@ -1078,9 +1504,10 @@ describe('AuthStore', () => {
       expect(
         mockSupabase.auth.signOut.mock.invocationCallOrder[0]
       ).toBeLessThan(mockClearAccountScopedState.mock.invocationCallOrder[0]);
+      expect(mockClearAccountScopedState).toHaveBeenCalledTimes(1);
     });
 
-    it('keeps the current account signed in when remote sign-out fails', async () => {
+    it('ends local access when remote sign-out fails', async () => {
       mockSupabase.auth.signOut.mockRejectedValue(new Error('Network error'));
       useAuthStore.setState({
         user: { id: 'user-1', username: 'testuser' },
@@ -1090,14 +1517,111 @@ describe('AuthStore', () => {
 
       const { result } = renderHook(() => useAuthStore());
 
-      await expect(result.current.logout()).rejects.toThrow('Network error');
+      await act(async () => {
+        await expect(result.current.logout()).resolves.toBeUndefined();
+      });
 
-      expect(result.current.isAuthenticated).toBe(true);
-      expect(result.current.user?.id).toBe('user-1');
-      expect(mockClearAccountScopedState).not.toHaveBeenCalled();
-      expect(mockNotificationService.startUserScopedWork).toHaveBeenCalledWith(
-        'user-1'
+      expect(result.current.isAuthenticated).toBe(false);
+      expect(result.current.user).toBeNull();
+      expect(result.current.session).toBeNull();
+      expect(mockClearAccountScopedState).toHaveBeenCalledWith('user-1');
+      expect(
+        mockNotificationService.startUserScopedWork
+      ).not.toHaveBeenCalled();
+    });
+
+    it('attempts provider logout even when account cache teardown fails', async () => {
+      const providerLogout = jest.spyOn(RevenueCatAPI, 'logOut');
+      mockClearAccountScopedState.mockRejectedValue(
+        new Error('native cache unavailable')
       );
+      useAuthStore.setState({
+        user: { id: 'user-1', username: 'testuser' },
+        session: { access_token: 'token' } as any,
+        isAuthenticated: true,
+      });
+      try {
+        await act(async () => {
+          await expect(useAuthStore.getState().logout()).rejects.toThrow(
+            'native cache unavailable'
+          );
+        });
+        expect(providerLogout).toHaveBeenCalled();
+        expect(useAuthStore.getState().isAuthenticated).toBe(false);
+      } finally {
+        mockClearAccountScopedState.mockResolvedValue(undefined);
+        providerLogout.mockRestore();
+      }
+    });
+
+    it('keeps the current account bound when persisted token cleanup fails', async () => {
+      jest
+        .mocked(AsyncStorage.multiRemove)
+        .mockRejectedValueOnce(new Error('storage unavailable'));
+      const providerLogout = jest.spyOn(RevenueCatAPI, 'logOut');
+      useAuthStore.setState({
+        user: { id: 'user-1', username: 'testuser' },
+        session: { access_token: 'token' } as any,
+        isAuthenticated: true,
+      });
+      try {
+        await expect(useAuthStore.getState().logout()).rejects.toThrow(
+          'storage unavailable'
+        );
+        expect(useAuthStore.getState()).toMatchObject({
+          isAuthenticated: true,
+          isLoading: false,
+          user: { id: 'user-1' },
+          session: { access_token: 'token' },
+        });
+        expect(
+          mockNotificationService.startUserScopedWork
+        ).toHaveBeenCalledWith('user-1');
+        expect(mockClearAccountScopedState).not.toHaveBeenCalled();
+        expect(providerLogout).not.toHaveBeenCalled();
+      } finally {
+        providerLogout.mockRestore();
+      }
+    });
+
+    it('clears persisted bearer tokens when the SDK rejects logout', async () => {
+      mockSupabase.auth.signOut.mockRejectedValueOnce(new Error('offline'));
+      await AsyncStorage.setItem(
+        'menta-main-auth-storage-unresolved',
+        'private-session'
+      );
+      await AsyncStorage.setItem(
+        'menta-main-auth-storage-unresolved-user',
+        'private-user'
+      );
+      useAuthStore.setState({
+        user: { id: 'user-1', username: 'testuser' },
+        session: { access_token: 'token' } as any,
+        isAuthenticated: true,
+      });
+      await useAuthStore.getState().logout();
+      expect(
+        await AsyncStorage.getItem('menta-main-auth-storage-unresolved')
+      ).toBeNull();
+      expect(
+        await AsyncStorage.getItem('menta-main-auth-storage-unresolved-user')
+      ).toBeNull();
+      expect(useAuthStore.getState().isAuthenticated).toBe(false);
+    });
+
+    it('remains signed out when RevenueCat logout fails', async () => {
+      mockSupabase.auth.signOut.mockResolvedValueOnce({ error: null });
+      jest
+        .spyOn(RevenueCatAPI, 'logOut')
+        .mockRejectedValueOnce(new Error('provider offline'));
+      useAuthStore.setState({
+        user: { id: 'user-1', username: 'testuser' },
+        session: { access_token: 'token' } as any,
+        isAuthenticated: true,
+      });
+      await expect(useAuthStore.getState().logout()).resolves.toBeUndefined();
+      expect(useAuthStore.getState().user).toBeNull();
+      expect(useAuthStore.getState().session).toBeNull();
     });
 
     it('does not send a second sign-out while the first request is active', async () => {
@@ -1127,6 +1651,300 @@ describe('AuthStore', () => {
         await first;
       });
     });
+  });
+
+  describe('session acceptance ordering', () => {
+    const quarantineKey = 'menta.main-auth.recovery-quarantine.v1';
+    const deferred = <T>() => {
+      let resolve!: (value: T) => void;
+      let reject!: (reason: Error) => void;
+      const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+        resolve = resolvePromise;
+        reject = rejectPromise;
+      });
+      return { promise, resolve, reject };
+    };
+    const sessionFor = (id: string, token: string) => ({
+      access_token: token,
+      user: { id, user_metadata: {} },
+    });
+    const pendingReads: Promise<string | null>[] = [];
+    let originalStorageRead: typeof AsyncStorage.getItem;
+
+    beforeEach(() => {
+      pendingReads.length = 0;
+      originalStorageRead = jest
+        .mocked(AsyncStorage.getItem)
+        .getMockImplementation()!;
+      jest.mocked(AsyncStorage.getItem).mockImplementation((key, callback) => {
+        if (key === quarantineKey && pendingReads.length) {
+          return pendingReads.shift()!;
+        }
+        return originalStorageRead(key, callback);
+      });
+    });
+
+    afterEach(() => {
+      jest.mocked(AsyncStorage.getItem).mockImplementation(originalStorageRead);
+    });
+
+    it.each(['older first', 'newer first'])(
+      'keeps the latest requested account when quarantine reads finish %s',
+      async order => {
+        const olderRead = deferred<string | null>();
+        const newerRead = deferred<string | null>();
+        pendingReads.push(olderRead.promise, newerRead.promise);
+        const olderSession = sessionFor('user-2', 'older-token');
+        const newerSession = sessionFor('user-3', 'newer-token');
+        const older = useAuthStore
+          .getState()
+          .setUserAndSession(olderSession.user as any, olderSession as any);
+        const newer = useAuthStore
+          .getState()
+          .setUserAndSession(newerSession.user as any, newerSession as any);
+
+        if (order === 'older first') {
+          await act(async () => {
+            olderRead.resolve(null);
+            await older;
+          });
+        } else {
+          await act(async () => {
+            newerRead.resolve(null);
+            await newer;
+          });
+        }
+        await act(async () => {
+          olderRead.resolve(null);
+          newerRead.resolve(null);
+          await Promise.all([older, newer]);
+        });
+
+        expect(useAuthStore.getState()).toMatchObject({
+          user: { id: 'user-3' },
+          session: newerSession,
+          isAuthenticated: true,
+          isLoading: false,
+        });
+      }
+    );
+
+    it('does not roll back a ready account token when an older quarantine read finishes last', async () => {
+      const olderRead = deferred<string | null>();
+      const newerRead = deferred<string | null>();
+      pendingReads.push(olderRead.promise, newerRead.promise);
+      useAuthStore.setState({
+        user: { id: 'user-1', username: 'existing' },
+        session: sessionFor('user-1', 'initial-token') as any,
+        isAuthenticated: true,
+        isInitialized: true,
+        isLoading: false,
+      });
+      const olderSession = sessionFor('user-1', 'older-token');
+      const newerSession = sessionFor('user-1', 'newer-token');
+      const older = useAuthStore
+        .getState()
+        .setUserAndSession(olderSession.user as any, olderSession as any);
+      const newer = useAuthStore
+        .getState()
+        .setUserAndSession(newerSession.user as any, newerSession as any);
+      await act(async () => {
+        newerRead.resolve(null);
+        await newer;
+        olderRead.resolve(null);
+        await older;
+      });
+
+      expect(useAuthStore.getState().session).toEqual(newerSession);
+      expect(useAuthStore.getState().isAuthenticated).toBe(true);
+      expect(mockClearAccountScopedState).not.toHaveBeenCalled();
+      expect(mockGetMyProfile).not.toHaveBeenCalled();
+    });
+
+    it('does not let a superseded read failure cancel a newer pending account', async () => {
+      const olderRead = deferred<string | null>();
+      const newerRead = deferred<string | null>();
+      pendingReads.push(olderRead.promise, newerRead.promise);
+      const olderSession = sessionFor('user-2', 'older-token');
+      const newerSession = sessionFor('user-3', 'newer-token');
+      const older = useAuthStore
+        .getState()
+        .setUserAndSession(olderSession.user as any, olderSession as any);
+      const newer = useAuthStore
+        .getState()
+        .setUserAndSession(newerSession.user as any, newerSession as any);
+      await act(async () => {
+        olderRead.reject(new Error('Storage unavailable'));
+        await older;
+        newerRead.resolve(null);
+        await newer;
+      });
+
+      expect(useAuthStore.getState()).toMatchObject({
+        user: { id: 'user-3' },
+        session: newerSession,
+        isAuthenticated: true,
+      });
+    });
+
+    it('does not let a stale read failure sign out a newer ready same-account session', async () => {
+      useAuthStore.setState({
+        user: { id: 'user-1', username: 'existing' },
+        session: sessionFor('user-1', 'initial-token') as any,
+        isAuthenticated: true,
+        isInitialized: true,
+        isLoading: false,
+      });
+      const olderRead = deferred<string | null>();
+      const newerRead = deferred<string | null>();
+      pendingReads.push(olderRead.promise, newerRead.promise);
+      const olderSession = sessionFor('user-1', 'older-token');
+      const newerSession = sessionFor('user-1', 'newer-token');
+      const older = useAuthStore
+        .getState()
+        .setUserAndSession(olderSession.user as any, olderSession as any);
+      const newer = useAuthStore
+        .getState()
+        .setUserAndSession(newerSession.user as any, newerSession as any);
+      await act(async () => {
+        newerRead.resolve(null);
+        await newer;
+        olderRead.reject(new Error('Storage unavailable'));
+        await older;
+      });
+
+      expect(useAuthStore.getState()).toMatchObject({
+        user: { id: 'user-1' },
+        session: newerSession,
+        isAuthenticated: true,
+      });
+      expect(mockClearAccountScopedState).not.toHaveBeenCalled();
+    });
+
+    it.each(['clearAuthData', 'null session'])(
+      'keeps logout authoritative when %s supersedes a pending quarantine read',
+      async clearMethod => {
+        const read = deferred<string | null>();
+        pendingReads.push(read.promise);
+        const session = sessionFor('user-2', 'pending-token');
+        const acceptance = useAuthStore
+          .getState()
+          .setUserAndSession(session.user as any, session as any);
+        await act(async () => {
+          if (clearMethod === 'clearAuthData') {
+            useAuthStore.getState().clearAuthData();
+          } else {
+            await useAuthStore.getState().setUserAndSession(null, null);
+          }
+          read.resolve(null);
+          await acceptance;
+        });
+
+        expect(useAuthStore.getState()).toMatchObject({
+          user: null,
+          session: null,
+          isAuthenticated: false,
+          isLoading: false,
+        });
+        expect(mockGetMyProfile).not.toHaveBeenCalled();
+      }
+    );
+
+    it('fails closed when the current quarantine read fails', async () => {
+      const read = deferred<string | null>();
+      pendingReads.push(read.promise);
+      const session = sessionFor('user-1', 'pending-token');
+      const acceptance = useAuthStore
+        .getState()
+        .setUserAndSession(session.user as any, session as any);
+      await act(async () => {
+        read.reject(new Error('Storage unavailable'));
+        await acceptance;
+      });
+      expect(useAuthStore.getState()).toMatchObject({
+        user: null,
+        session: null,
+        isAuthenticated: false,
+      });
+      expect(mockGetMyProfile).not.toHaveBeenCalled();
+    });
+
+    it('retains recovery quarantine when rejecting a session cannot verify local cleanup', async () => {
+      const session = sessionFor('user-1', 'recovery-token');
+      await AsyncStorage.setItem(quarantineKey, 'user-1');
+      mockSupabase.auth.signOut.mockResolvedValueOnce({ error: null });
+      const originalRemove = jest
+        .mocked(AsyncStorage.multiRemove)
+        .getMockImplementation()!;
+      jest
+        .mocked(AsyncStorage.multiRemove)
+        .mockRejectedValueOnce(new Error('Storage unavailable'));
+      try {
+        await act(async () => {
+          await useAuthStore
+            .getState()
+            .setUserAndSession(session.user as any, session as any);
+        });
+        expect(useAuthStore.getState()).toMatchObject({
+          user: null,
+          session: null,
+          isAuthenticated: false,
+        });
+        expect(await AsyncStorage.getItem(quarantineKey)).toBe('user-1');
+        expect(mockGetMyProfile).not.toHaveBeenCalled();
+      } finally {
+        jest
+          .mocked(AsyncStorage.multiRemove)
+          .mockImplementation(originalRemove);
+      }
+    });
+
+    it.each(['success', 'failure'])(
+      'does not let an already accepted older account profile %s replace a later accepted account',
+      async outcome => {
+        const olderProfile =
+          deferred<Awaited<ReturnType<typeof getMyProfile>>>();
+        const olderProfileStarted = deferred<void>();
+        mockGetMyProfile.mockImplementationOnce(() => {
+          olderProfileStarted.resolve();
+          return olderProfile.promise;
+        });
+        const olderSession = sessionFor('user-2', 'older-token');
+        const newerSession = sessionFor('user-3', 'newer-token');
+        const older = useAuthStore
+          .getState()
+          .setUserAndSession(olderSession.user as any, olderSession as any);
+        await act(async () => {
+          await olderProfileStarted.promise;
+          await useAuthStore
+            .getState()
+            .setUserAndSession(newerSession.user as any, newerSession as any);
+          if (outcome === 'success') {
+            olderProfile.resolve({
+              id: 'user-2',
+              username: 'older',
+              momenta_balance: 999,
+              has_completed_onboarding: true,
+            } as any);
+          } else {
+            olderProfile.reject(
+              new Error('AUTH_SESSION_REVOKED: session revoked')
+            );
+          }
+          await older;
+        });
+
+        expect(useAuthStore.getState()).toMatchObject({
+          user: { id: 'user-3' },
+          session: newerSession,
+          isAuthenticated: true,
+          isLoading: false,
+        });
+        expect(
+          mockNotificationService.startUserScopedWork
+        ).not.toHaveBeenCalledWith('user-2');
+      }
+    );
   });
 
   describe('setUserAndSession', () => {
@@ -1203,7 +2021,13 @@ describe('AuthStore', () => {
           expect.objectContaining({
             message: 'Account profile could not be confirmed',
           }),
-          { context: 'auth_profile_hydration', reason: 'timeout' }
+          {
+            context: 'auth_profile_hydration',
+            reason: 'timeout',
+            stage: 'profile_read',
+            error_name: 'Error',
+            error_code: 'TIMEOUT',
+          }
         );
 
         mockSupabase.auth.refreshSession.mockResolvedValueOnce({

@@ -119,3 +119,36 @@ describe('accountability client contract', () => {
     from.mockRestore();
   });
 });
+
+describe('accountability fallback authority', () => {
+  beforeEach(() => jest.clearAllMocks());
+  afterEach(() => jest.restoreAllMocks());
+  it.each(['42501', '57014', 'PGRST301'])(
+    'propagates %s without a legacy read',
+    async code => {
+      const error = { code, message: 'read rejected' };
+      const rpc = jest
+        .spyOn(supabase, 'rpc')
+        .mockResolvedValue({ data: null, error } as never);
+      await expect(readTodayAccountability('UTC')).rejects.toBe(error);
+      expect(rpc).toHaveBeenCalledTimes(1);
+    }
+  );
+  it('retains the legacy compatibility read only for a missing RPC', async () => {
+    const rpc = jest
+      .spyOn(supabase, 'rpc')
+      .mockResolvedValueOnce({
+        data: null,
+        error: { code: 'PGRST202' },
+      } as never)
+      .mockResolvedValueOnce({
+        data: [{ challenge_id: 'legacy' }],
+        error: null,
+      } as never);
+    await expect(readTodayAccountability('UTC')).resolves.toEqual({
+      rows: [{ challenge_id: 'legacy' }],
+      source: 'legacy',
+    });
+    expect(rpc).toHaveBeenCalledTimes(2);
+  });
+});

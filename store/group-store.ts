@@ -1,10 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-function, prefer-const -- Legacy store decoders remain outside this server-authority patch. */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-function -- Legacy store decoders remain outside this server-authority patch. */
+import { normalizeGroupReadError } from '@/lib/groups/group-access-boundary';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 import { translate } from '@/lib/localization';
-// import type { Database } from '@/lib/database.types';
+import type { Database } from '@/lib/database.types';
 import { notificationService } from '@/lib/services/notification-service';
 import { isOperationalFeatureEnabled } from '@/lib/operational-flags';
 import { withAuth } from '@/lib/auth-helper';
@@ -29,6 +30,7 @@ import {
 } from '@/lib/group-governance';
 import { decodeGroupRiskSnapshot, type GroupRiskSnapshot } from '@/lib/loop';
 import type { GroupImagePresetKey } from '@/lib/groups/group-image-presets';
+import { describeGroupMembershipActivity } from '@/lib/groups/group-activity-copy';
 import {
   decodeOnboardingGroupLinkReceipt,
   onboardingGroupLinkErrorMessage,
@@ -58,6 +60,30 @@ const normalizeStatus = (status: unknown): 'active' | 'failed' | 'expired' => {
 const GROUP_UNAVAILABLE_MESSAGE =
   'This group is unavailable or invite-only. Refresh groups or use an invite code.';
 const groupStoreDebugLog = (..._args: unknown[]) => {};
+
+// General group reads never carry invite secrets. Invite management uses its
+// dedicated server-authorized receipt rather than the member-facing store.
+const GROUP_COLUMNS = (
+  [
+    'id',
+    'name',
+    'description',
+    'owner_id',
+    'status',
+    'kind',
+    'duration_days',
+    'current_streak',
+    'created_at',
+    'privacy',
+    'image_url',
+    'notify_on_member_miss',
+    'updated_at',
+    'cooldown_until',
+    'archived_at',
+    'start_date',
+    'end_date',
+  ] satisfies (keyof Database['public']['Tables']['teams']['Row'])[]
+).join(',');
 
 type GroupOperationScope = {
   accountId: string;
@@ -289,7 +315,6 @@ const normalizeGroupRow = (row: any, memberCount?: number): Group => {
         : typeof row.member_count === 'number'
           ? row.member_count
           : undefined,
-    invite_code: row.invite_code ?? undefined,
     privacy: row.privacy ?? null,
     privacy_level: row.privacy_level ?? null,
     image_url: row.image_url ?? null,
@@ -336,7 +361,6 @@ export interface Group {
   kind?: 'saved' | 'promise';
   shared_promises?: SharedPromiseSummary[];
   member_count?: number;
-  invite_code?: string;
 
   // Database schema fields
   privacy?: string | null;
@@ -402,11 +426,7 @@ export interface TodaysSubmission {
   timeRemaining: string;
   hasSubmittedToday: boolean;
   submissionStatus?:
-    | 'not_submitted'
-    | 'pending'
-    | 'approved'
-    | 'rejected'
-    | 'unknown';
+    'not_submitted' | 'pending' | 'approved' | 'rejected' | 'unknown';
   isSolo: boolean; // New field to indicate if this is a solo challenge
 }
 
@@ -529,7 +549,6 @@ interface GroupState {
   ) => Promise<GroupGovernanceOutcome>;
   deleteGroup: (groupId: string) => Promise<GroupGovernanceOutcome>;
   fetchGroupDetails: (groupId: string) => Promise<Group>;
-  getTodaysSubmissions: (userId: string) => Promise<TodaysSubmission[]>;
   getPendingReviewsForUser: (userId: string) => Promise<PendingReview[]>;
 
   // Group failure and accessibility functions
@@ -600,7 +619,7 @@ export const useGroupStore = create<GroupState>()(
         try {
           const { data: groupsData, error } = await supabase.from('teams')
             .select(`
-              *,
+              ${GROUP_COLUMNS},
               group_streak_tracking (
                 current_streak,
                 longest_streak,
@@ -900,12 +919,15 @@ export const useGroupStore = create<GroupState>()(
         if (!operationScope) return;
 
         try {
-          const { data: membersData, error } = await supabase.rpc(
-            'list_authorized_group_members',
-            { p_group_id: groupId }
-          );
+          const {
+            data: membersData,
+            error,
+            status,
+          } = await supabase.rpc('list_authorized_group_members', {
+            p_group_id: groupId,
+          });
 
-          if (error) throw error;
+          if (error) throw normalizeGroupReadError(error, status);
 
           const members = (membersData || []).map((member: any) => {
             const username = member.username ?? member.display_name ?? null;
@@ -1039,8 +1061,11 @@ export const useGroupStore = create<GroupState>()(
                     .single(),
                 ]);
               const jp = joiner as any;
-              const memberName = jp?.username || jp?.display_name || 'A member';
-              const groupName = (group as any)?.name || 'Group';
+              const copy = describeGroupMembershipActivity({
+                memberName: jp?.username || jp?.display_name,
+                groupName: (group as any)?.name,
+                kind: 'joined',
+              });
               const targets = (members || [])
                 .map((m: any) => m.user_id)
                 .filter((id: string) => id !== userId);
@@ -1048,10 +1073,10 @@ export const useGroupStore = create<GroupState>()(
                 targets.map((targetId: string) =>
                   notificationService.sendGroupActivity(
                     targetId,
-                    memberName,
-                    groupName,
+                    copy.memberName,
+                    copy.groupName,
                     groupId,
-                    'joined the group'
+                    copy.activity
                   )
                 )
               );
@@ -1191,7 +1216,11 @@ export const useGroupStore = create<GroupState>()(
                   .single(),
               ]);
               const jp = joiner as any;
-              const memberName = jp?.username || jp?.display_name || 'A member';
+              const copy = describeGroupMembershipActivity({
+                memberName: jp?.username || jp?.display_name,
+                groupName: group.name,
+                kind: 'joined',
+              });
               const targets = (members || [])
                 .map((m: any) => m.user_id)
                 .filter((id: string) => id !== userId);
@@ -1199,10 +1228,10 @@ export const useGroupStore = create<GroupState>()(
                 targets.map((targetId: string) =>
                   notificationService.sendGroupActivity(
                     targetId,
-                    memberName,
-                    group.name,
+                    copy.memberName,
+                    copy.groupName,
                     group.id,
-                    'joined the group'
+                    copy.activity
                   )
                 )
               );
@@ -1812,8 +1841,11 @@ export const useGroupStore = create<GroupState>()(
                 ]);
               await assertGroupOperationScopeCurrent(operationScope);
               const lp = leaver as any;
-              const memberName = lp?.username || lp?.display_name || 'A member';
-              const groupName = (group as any)?.name || 'Group';
+              const copy = describeGroupMembershipActivity({
+                memberName: lp?.username || lp?.display_name,
+                groupName: (group as any)?.name,
+                kind: 'left',
+              });
               const targets = (members || [])
                 .map((m: any) => m.user_id)
                 .filter((id: string) => id !== userId);
@@ -1821,10 +1853,10 @@ export const useGroupStore = create<GroupState>()(
                 targets.map((targetId: string) =>
                   notificationService.sendGroupActivity(
                     targetId,
-                    memberName,
-                    groupName,
+                    copy.memberName,
+                    copy.groupName,
                     groupId,
-                    'left the group'
+                    copy.activity
                   )
                 )
               );
@@ -1976,11 +2008,15 @@ export const useGroupStore = create<GroupState>()(
 
       fetchGroupDetails: async (groupId: string) => {
         try {
-          const { data: group, error } = await supabase
+          const {
+            data: group,
+            error,
+            status,
+          } = await supabase
             .from('teams')
             .select(
               `
-              *,
+              ${GROUP_COLUMNS},
               group_streak_tracking (
                 current_streak,
                 longest_streak,
@@ -1991,7 +2027,7 @@ export const useGroupStore = create<GroupState>()(
             .eq('id', groupId)
             .single();
 
-          if (error) throw error;
+          if (error) throw normalizeGroupReadError(error, status);
 
           // Get member count
           const { count } = await supabase
@@ -2003,287 +2039,6 @@ export const useGroupStore = create<GroupState>()(
         } catch (error) {
           console.error('Error fetching group details:', error);
           throw error;
-        }
-      },
-
-      getTodaysSubmissions: async (
-        userId: string
-      ): Promise<TodaysSubmission[]> => {
-        try {
-          const submissions: TodaysSubmission[] = [];
-          const challengeChecks: Promise<TodaysSubmission | null>[] = [];
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-
-          const { data: participantRows, error: participantError } =
-            await supabase
-              .from('challenge_participants')
-              .select('challenge_id')
-              .eq('user_id', userId);
-
-          if (participantError) {
-            console.error(
-              'Error fetching challenge participants:',
-              participantError
-            );
-          }
-
-          const enrolledChallengeIds = new Set(
-            (participantRows || []).map(row => row.challenge_id)
-          );
-
-          // Helper function to process challenges - defined first
-          const processChallenge = async (
-            challenge: any,
-            userId: string,
-            today: Date,
-            options: {
-              groupId?: string;
-              groupName?: string;
-              memberCount: number;
-              isSolo: boolean;
-            }
-          ): Promise<TodaysSubmission | null> => {
-            // Calculate day number based on challenge start date
-            const startDate = new Date(challenge.start_date);
-            startDate.setHours(0, 0, 0, 0);
-            const daysDiff = Math.floor(
-              (today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-            );
-            const dayNumber = daysDiff + 1;
-
-            // Skip if challenge hasn't started yet or is beyond duration
-            if (dayNumber < 1 || dayNumber > challenge.duration) return null;
-
-            // Check if user has already submitted today using server-side RPC (UTC consistent)
-            const { data: hasSubmittedData, error: verError } =
-              await supabase.rpc('has_submitted_today', {
-                p_challenge_id: challenge.id,
-                p_user_id: userId,
-                p_tz: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
-              });
-
-            if (verError) {
-              console.error(
-                "Error checking today's verification (RPC):",
-                verError
-              );
-              return null;
-            }
-
-            const hasSubmittedToday = hasSubmittedData === true;
-            let submissionStatus: TodaysSubmission['submissionStatus'] =
-              hasSubmittedToday ? 'unknown' : 'not_submitted';
-
-            if (hasSubmittedToday) {
-              const { data: statusData, error: statusError } =
-                await supabase.rpc('get_todays_submission_status', {
-                  p_challenge_id: challenge.id,
-                  p_user_id: userId,
-                  p_tz:
-                    Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
-                });
-
-              if (statusError) {
-                console.error(
-                  "Error checking today's submission status (RPC):",
-                  statusError
-                );
-              } else {
-                const rawStatus = Array.isArray(statusData)
-                  ? statusData[0]?.submission_status
-                  : undefined;
-                submissionStatus =
-                  rawStatus === 'pending' ||
-                  rawStatus === 'approved' ||
-                  rawStatus === 'rejected' ||
-                  rawStatus === 'not_submitted'
-                    ? rawStatus
-                    : 'unknown';
-              }
-            }
-
-            const now = new Date();
-            let deadline = new Date(now);
-            const expectation =
-              challenge.submission_expectations || challenge.expectations || {};
-            const deadlineHourUtc = Number(
-              expectation.daily_deadline_hour_utc ?? 23
-            );
-            const graceMinutes = Number(expectation.grace_minutes ?? 0);
-
-            deadline.setUTCHours(deadlineHourUtc, graceMinutes, 0, 0);
-            if (deadline.getTime() <= now.getTime()) {
-              deadline.setUTCDate(deadline.getUTCDate() + 1);
-            }
-
-            const diffMs = Math.max(0, deadline.getTime() - now.getTime());
-            const totalMinutes = Math.floor(diffMs / (1000 * 60));
-            const hoursRemaining = Math.floor(totalMinutes / 60);
-            const minutesRemaining = totalMinutes % 60;
-
-            let timeRemaining = '';
-            let isUrgent = false;
-
-            if (!hasSubmittedToday) {
-              isUrgent = diffMs <= 3 * 60 * 60 * 1000;
-              if (hoursRemaining > 0) {
-                timeRemaining = `${hoursRemaining}h${minutesRemaining > 0 ? ` ${minutesRemaining}m` : ''}`;
-              } else {
-                timeRemaining = `${minutesRemaining}m`;
-              }
-            }
-
-            return {
-              id: options.groupId
-                ? `${options.groupId}-${challenge.id}`
-                : `solo-${challenge.id}`,
-              groupId: options.groupId,
-              challengeId: challenge.id,
-              groupName: options.groupName,
-              challengeTitle: challenge.title,
-              dayNumber,
-              totalDays: challenge.duration,
-              memberCount: options.memberCount,
-              submissionType: challenge.verification_type as
-                | 'photo'
-                | 'text'
-                | 'video',
-              isUrgent,
-              timeRemaining,
-              hasSubmittedToday,
-              submissionStatus,
-              isSolo: options.isSolo,
-            };
-          };
-
-          // 1. Get group challenges
-          const { data: groupData, error: groupError } = await supabase
-            .from('team_members')
-            .select(
-              `
-              group_id,
-              teams!inner(
-                id,
-                name,
-                current_streak,
-                duration_days,
-                status,
-                team_challenges!inner(
-                  challenge_id,
-                  challenges!inner(
-                    id,
-                    title,
-                    verification_type,
-                    start_date,
-                    duration,
-                    status,
-                    submission_expectations
-                  )
-                )
-              )
-            `
-            )
-            .eq('user_id', userId);
-          if (groupError) {
-            console.error('Error fetching group challenges:', groupError);
-          } else if (groupData) {
-            // Process group challenges
-            for (const membership of groupData) {
-              const membershipRow = membership as any;
-              const group = Array.isArray(membershipRow.teams)
-                ? membershipRow.teams[0]
-                : membershipRow.teams;
-              if (!group || !group.team_challenges) continue;
-              if (group.status !== 'active') continue;
-
-              // Get member count for this group from store
-              const storeGroup = get().groups.find(g => g.id === group.id);
-              const memberCount = storeGroup?.member_count || 1;
-
-              const teamChallenges = Array.isArray(group.team_challenges)
-                ? group.team_challenges
-                : [];
-              for (const groupChallenge of teamChallenges) {
-                const challenge = Array.isArray(groupChallenge.challenges)
-                  ? groupChallenge.challenges[0]
-                  : groupChallenge.challenges;
-                if (!challenge) continue;
-                if (challenge.status !== 'active') continue;
-                if (!enrolledChallengeIds.has(challenge.id)) continue;
-
-                challengeChecks.push(
-                  processChallenge(challenge, userId, today, {
-                    groupId: group.id,
-                    groupName: group.name,
-                    memberCount,
-                    isSolo: false,
-                  })
-                );
-              }
-            }
-          }
-
-          // 2. Get solo challenges
-          const { data: soloData, error: soloError } = await supabase
-            .from('challenge_participants')
-            .select(
-              `
-              challenge_id,
-              challenges!inner(
-                id,
-                title,
-                verification_type,
-                start_date,
-                duration,
-                status,
-                allow_self_review,
-                submission_expectations
-              )
-            `
-            )
-            .eq('user_id', userId)
-            .eq('challenges.status', 'active')
-            .eq('challenges.allow_self_review', true);
-
-          if (soloError) {
-            console.error('Error fetching solo challenges:', soloError);
-          } else if (soloData) {
-            // Process solo challenges
-            for (const userChallenge of soloData) {
-              const challenge = Array.isArray(userChallenge.challenges)
-                ? userChallenge.challenges[0]
-                : userChallenge.challenges;
-              if (!challenge) continue;
-              if (challenge.status !== 'active') continue;
-
-              challengeChecks.push(
-                processChallenge(challenge, userId, today, {
-                  memberCount: 1,
-                  isSolo: true,
-                })
-              );
-            }
-          }
-
-          const resolvedSubmissions = await Promise.allSettled(challengeChecks);
-          resolvedSubmissions.forEach(result => {
-            if (result.status === 'fulfilled' && result.value) {
-              submissions.push(result.value);
-            }
-          });
-
-          // Sort by urgency first, then by time remaining
-          return submissions.sort((a, b) => {
-            if (a.isUrgent && !b.isUrgent) return -1;
-            if (!a.isUrgent && b.isUrgent) return 1;
-            if (a.hasSubmittedToday && !b.hasSubmittedToday) return 1;
-            if (!a.hasSubmittedToday && b.hasSubmittedToday) return -1;
-            return 0;
-          });
-        } catch (error) {
-          console.error('Error in getTodaysSubmissions:', error);
-          return [];
         }
       },
 
@@ -2458,9 +2213,7 @@ export const useGroupStore = create<GroupState>()(
       fixScheduleAlignment: async (
         groupId: string,
         fixStrategy:
-          | 'shorten_challenge'
-          | 'extend_group'
-          | 'report_only' = 'report_only'
+          'shorten_challenge' | 'extend_group' | 'report_only' = 'report_only'
       ): Promise<any> => {
         try {
           const { data, error } = await supabase.rpc('fix_schedule_alignment', {
@@ -2731,7 +2484,7 @@ export const useGroupStore = create<GroupState>()(
               `
               group_id,
               teams!inner(
-                *
+                ${GROUP_COLUMNS}
               )
             `
             )

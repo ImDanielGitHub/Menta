@@ -28,6 +28,7 @@ export const navigationFrFR = {
   'navigation.personal.active': '{count} promesses actives',
   'navigation.personal.active.one': '{count} promesse active',
   'navigation.personal.active.other': '{count} promesses actives',
+  'navigation.personal.streak_label': 'Plus longue série active',
   'navigation.personal.longest': '{active} · Plus longue série active : {days}',
   'navigation.notifications.accessibility': 'Réglages des notifications',
   'navigation.notifications.hint':

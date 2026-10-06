@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { CommerceReceiptRows } from '@/components/commerce/CommerceReceiptRows';
 import { AppButton } from '@/components/ui/AppButton';
-import SimpleBottomSheet from '@/components/ui/SimpleBottomSheet';
+import MentaBottomSheet from '@/components/ui/SimpleBottomSheet';
 import { useTheme } from '@/constants/ThemeContext';
 import { mentaSpacing, mentaTypography } from '@/constants/MentaDesignSystem';
 import { useTranslation } from '@/lib/localization/use-translation';
@@ -54,7 +54,7 @@ export function MomentaActionNoticeSheet({
   };
 
   return (
-    <SimpleBottomSheet
+    <MentaBottomSheet
       visible={visible}
       onClose={handleClose}
       maxHeight={maxHeight}

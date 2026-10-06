@@ -1187,8 +1187,10 @@ describe('SettingsScreen release-safe account feedback', () => {
 
     fireEvent.press(screen.getByTestId('settings-sign-in-again'));
 
-    expect(mockAuthState.clearAuthData).toHaveBeenCalledTimes(1);
-    expect(mockRouter.replace).toHaveBeenCalledWith('/login');
+    await waitFor(() => {
+      expect(mockAuthState.logout).toHaveBeenCalledTimes(1);
+      expect(mockRouter.replace).toHaveBeenCalledWith('/login');
+    });
   });
 
   it('clears a revoked local session before returning to sign-in', async () => {
@@ -1203,8 +1205,51 @@ describe('SettingsScreen release-safe account feedback', () => {
     fireEvent.press(screen.getByTestId('settings-sign-in-again'));
 
     expect(mockedGetMyProfile).not.toHaveBeenCalled();
-    expect(mockAuthState.clearAuthData).toHaveBeenCalledTimes(1);
-    expect(mockRouter.replace).toHaveBeenCalledWith('/login');
+    await waitFor(() => {
+      expect(mockAuthState.logout).toHaveBeenCalledTimes(1);
+      expect(mockRouter.replace).toHaveBeenCalledWith('/login');
+    });
+  });
+
+  it('waits for the persisted session to end before sign-in recovery navigation', async () => {
+    mockedGetMyProfile.mockResolvedValue(null);
+    let finishLogout: (() => void) | undefined;
+    mockAuthState.logout.mockImplementationOnce(
+      () =>
+        new Promise<void>(resolve => {
+          finishLogout = resolve;
+        })
+    );
+
+    renderSettings();
+    await waitFor(() => {
+      expect(screen.getByTestId('settings-sign-in-again')).toBeTruthy();
+    });
+    fireEvent.press(screen.getByTestId('settings-sign-in-again'));
+
+    expect(mockAuthState.logout).toHaveBeenCalledTimes(1);
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+    finishLogout?.();
+    await waitFor(() => {
+      expect(mockRouter.replace).toHaveBeenCalledWith('/login');
+    });
+  });
+
+  it('keeps sign-in recovery on Settings when ending the session fails', async () => {
+    mockedGetMyProfile.mockResolvedValue(null);
+    mockAuthState.logout.mockRejectedValueOnce(new Error('session end failed'));
+
+    renderSettings();
+    await waitFor(() => {
+      expect(screen.getByTestId('settings-sign-in-again')).toBeTruthy();
+    });
+    fireEvent.press(screen.getByTestId('settings-sign-in-again'));
+
+    await waitFor(() => {
+      expect(screen.getByText('You are still signed in')).toBeTruthy();
+    });
+    expect(mockAuthState.logout).toHaveBeenCalledTimes(1);
+    expect(mockRouter.replace).not.toHaveBeenCalled();
   });
 
   it('ignores a completed check for the account that signed out during it', async () => {

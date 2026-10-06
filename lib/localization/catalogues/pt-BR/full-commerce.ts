@@ -207,6 +207,8 @@ export const fullCommercePtBR = {
   'commerce.wallet.adjustmentDescription': 'Ajuste de saldo',
   'commerce.wallet.activityDescription': 'Atividade Momenta',
   'commerce.wallet.promiseCreated': 'Promessa criada',
+  'commerce.wallet.promiseJoined': 'Entrou na promessa: {title}',
+  'commerce.wallet.promiseJoinedUnknown': 'Entrou em uma promessa',
   'commerce.wallet.groupCreated': 'Grupo criado',
   'commerce.shop.title': 'Loja',
   'commerce.shop.intro':

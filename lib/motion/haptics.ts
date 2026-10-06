@@ -55,19 +55,10 @@ export type ConfirmedHapticOutcome =
 export type ConfirmedHapticTier = 'quiet' | 'achievement';
 
 export type HapticBlockedReason =
-  | 'validation'
-  | 'permission'
-  | 'insufficient-momenta'
-  | 'quota';
+  'validation' | 'permission' | 'insufficient-momenta' | 'quota';
 
 export type HapticFailedOperation =
-  | 'save'
-  | 'submit'
-  | 'join'
-  | 'review'
-  | 'purchase'
-  | 'leave'
-  | 'delete';
+  'save' | 'submit' | 'join' | 'review' | 'purchase' | 'leave' | 'delete';
 
 export type ConfirmedReceipt = Readonly<{
   confirmed: true;

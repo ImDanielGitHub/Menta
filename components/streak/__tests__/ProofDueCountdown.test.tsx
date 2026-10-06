@@ -10,6 +10,7 @@ jest.mock('@/lib/time/proof-due', () => {
     ...actual,
     resolveProofDueCountdown: jest.fn(() => ({
       phase: 'due',
+      target: 'reminder',
       hours: 2,
       minutes: 14,
       proofDueLabel: '8:00 PM',
@@ -45,16 +46,17 @@ describe('ProofDueCountdown', () => {
 
     expect(screen.getByTestId('proof-due-countdown')).toBeTruthy();
     expect(screen.getByText('Reminder in')).toBeTruthy();
-    expect(screen.getByText('2 h 14 m')).toBeTruthy();
-    expect(screen.getByText('2 h 14 m')).toHaveStyle({
+    expect(screen.getByText('2h 14m')).toBeTruthy();
+    expect(screen.getByText('2h 14m')).toHaveStyle({
       fontSize: 31.2,
       lineHeight: 40.3,
     });
     expect(
       screen.getByText(
-        /Walk before dusk · aim to send by 8:00 PM.*counts until midnight/i
+        /Walk before dusk · Preferred time: 8:00 PM\. Proof counts until midnight/i
       )
     ).toBeTruthy();
+    expect(screen.queryByText(/Aim to send by/i)).toBeNull();
     expect(screen.queryByText(/\d+s/)).toBeNull();
   });
 
@@ -70,8 +72,8 @@ describe('ProofDueCountdown', () => {
       />
     );
 
-    expect(screen.getByText('2 h 14 m to reminder')).toBeTruthy();
-    expect(screen.getByText('2 h 14 m to reminder')).toHaveStyle({
+    expect(screen.getByText('2h 14m to reminder')).toBeTruthy();
+    expect(screen.getByText('2h 14m to reminder')).toHaveStyle({
       fontSize: 40,
       lineHeight: 46,
     });

@@ -116,6 +116,36 @@ describe('invite-links', () => {
     ).toContain('https://menta.quest/join?invite=ABC123');
   });
 
+  it('names a promise invite without calling it a challenge', () => {
+    const message = buildInviteShareMessage({
+      kind: 'challenge',
+      code: 'fit2026',
+      title: 'Morning miles',
+    });
+
+    const [headline] = message.split('\n');
+    expect(headline).toBe('Join "Morning miles" on Menta.');
+    expect(headline.toLowerCase()).not.toContain('challenge');
+    expect(message).toContain('Invite code: FIT2026');
+  });
+
+  it('names an unnamed invite as this promise or this group', () => {
+    expect(
+      buildInviteShareMessage({
+        kind: 'challenge',
+        code: 'fit2026',
+        title: '   ',
+      })
+    ).toContain('Join this promise on Menta.');
+    expect(
+      buildInviteShareMessage({
+        kind: 'group',
+        code: 'abc123',
+        title: '',
+      })
+    ).toContain('Join this group on Menta.');
+  });
+
   it('builds app referral links with HTTPS fallback by default', () => {
     const code = '00112233445566778899AABBCCDDEEFF';
     expect(buildReferralShareUrl(code.toLowerCase())).toBe(

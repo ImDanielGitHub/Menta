@@ -55,12 +55,32 @@ describe('menta.quest release source', () => {
         '/invite',
         '/event',
         '/event/*',
+        '/password-recovery/callback',
       ])
     );
     expect(assetLinks[0]?.target.sha256_cert_fingerprints).toEqual([
       '0F:59:AE:D3:F7:70:BC:E7:35:A2:E0:04:F4:E0:8C:76:15:D0:20:21:3B:24:89:22:6F:77:61:9A:7F:F2:5D:99',
       'AF:A3:E7:D5:44:A3:04:1F:9F:A5:57:CD:51:2C:6E:8B:CC:E9:C7:3D:B1:50:63:26:0F:6D:99:C3:3F:B9:FA:3C',
     ]);
+  });
+
+  it('claims recovery with an exact verified HTTPS Android path', () => {
+    const config = JSON.parse(readText('app.json')).expo;
+    const verified = config.android.intentFilters.filter(
+      (filter: { autoVerify?: boolean }) => filter.autoVerify === true
+    );
+    expect(
+      verified.flatMap((filter: { data: unknown[] }) => filter.data)
+    ).toContainEqual({
+      scheme: 'https',
+      host: 'menta.quest',
+      path: '/password-recovery/callback',
+    });
+    expect(config.ios.associatedDomains).toContain('applinks:menta.quest');
+    expect(config.runtimeVersion).toBe('1.9.9');
+    expect(readText('ios/LockedInPro/Supporting/Expo.plist')).toMatch(
+      /<key>EXUpdatesRuntimeVersion<\/key>\s*<string>1\.9\.9<\/string>/
+    );
   });
 
   it('uses exactly the current appIDs and components AASA structure', () => {
@@ -79,7 +99,7 @@ describe('menta.quest release source', () => {
     expect(detail).not.toHaveProperty('paths');
   });
 
-  it('contains the event fallback and no placeholder or automatic referral promise', () => {
+  it('keeps private links on HTTPS and manual codes without release placeholders', () => {
     const appSource = readText(
       'domain/menta.quest/lovable-overlay/src/App.tsx'
     );
@@ -89,17 +109,28 @@ describe('menta.quest release source', () => {
     const joinSource = readText(
       'domain/menta.quest/lovable-overlay/src/pages/Join.tsx'
     );
+    const eventSource = readText(
+      'domain/menta.quest/lovable-overlay/src/pages/Event.tsx'
+    );
+    const releaseLinksSource = readText(
+      'domain/menta.quest/lovable-overlay/src/lib/release-links.ts'
+    );
     const releaseSource = readText(
       'domain/menta.quest/lovable-overlay/src/lib/release-config.ts'
     );
-    const combinedSource = `${appSource}\n${inviteSource}\n${releaseSource}`;
+    const combinedSource = `${appSource}\n${inviteSource}\n${joinSource}\n${eventSource}\n${releaseLinksSource}\n${releaseSource}`;
 
     expect(appSource).toContain('path="/event/:eventId"');
     expect(appSource).toContain('path="/join/*"');
     expect(appSource).toContain('path="/invite"');
     expect(appSource).not.toContain('path="/invite/*"');
     expect(joinSource).toContain('{resolution.code}');
-    expect(joinSource).toContain('href={resolution.appUrl}');
+    expect(joinSource).toContain('Copy the code above');
+    expect(eventSource).toContain('open this same link again');
+    expect(combinedSource).not.toContain('appUrl');
+    expect(combinedSource).not.toMatch(
+      /\b(?:menta|lockedin|lockedinprod):(?!\s)/i
+    );
     expect(combinedSource).not.toContain('id0000000000');
     expect(inviteSource.toLowerCase()).not.toContain(
       'referral attaches automatically'

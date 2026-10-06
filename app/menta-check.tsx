@@ -10,8 +10,12 @@ import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import { SimpleBottomSheet } from '@/components/ui/SimpleBottomSheet';
 import { MentaMascot } from '@/components/ui/MentaMascot';
 import { useTheme, type AppColors } from '@/constants/ThemeContext';
-import { MentaConsent } from '@/components/menta-check/menta-consent';
+import {
+  MentaConsent,
+  MentaPermission,
+} from '@/components/menta-check/menta-consent';
 import { useMentaCheckOverview } from '@/hooks/use-menta-check';
+import { useMentaMediaPermission } from '@/hooks/use-menta-media-permission';
 import { useTranslation } from '@/lib/localization';
 import {
   buyMentaCheckPass,
@@ -35,7 +39,11 @@ export default function MentaCheckScreen() {
   const queryClient = useQueryClient();
   const query = useMentaCheckOverview();
   const [consent, setConsent] = useState(false);
+  const [permissionVisible, setPermissionVisible] = useState(false);
   const [withdrawVisible, setWithdrawVisible] = useState(false);
+  const permission = useMentaMediaPermission(
+    permissionVisible && !consent && !withdrawVisible
+  );
   const [selected, setSelected] = useState<MentaPromiseSetting | null>(null);
   const [history, setHistory] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -201,8 +209,8 @@ export default function MentaCheckScreen() {
                 onPress={() => setHistory(true)}
               />
               <AppListRow
-                title={t('mentaCheck.settings.whatMentaSees')}
-                onPress={() => setConsent(true)}
+                title={t('mentaCheck.permission.bubble')}
+                onPress={() => setPermissionVisible(true)}
               />
             </View>
             <View style={styles.footer}>
@@ -237,10 +245,27 @@ export default function MentaCheckScreen() {
       <MentaConsent
         visible={consent}
         source="settings"
-        onClose={() => setConsent(false)}
-        onAccepted={() => {
+        renewal={data?.consented === true}
+        onClose={() => {
           setConsent(false);
+          setPermissionVisible(true);
+        }}
+        onAccepted={() => {
+          permission.refresh();
+          setConsent(false);
+          setPermissionVisible(true);
           void query.refetch();
+        }}
+      />
+      <MentaPermission
+        visible={permissionVisible && !consent && !withdrawVisible}
+        state={permission.state}
+        onRetry={permission.refresh}
+        onClose={() => setPermissionVisible(false)}
+        onReview={() => setConsent(true)}
+        onWithdraw={() => {
+          setPermissionVisible(false);
+          withdraw();
         }}
       />
       <SimpleBottomSheet
@@ -261,7 +286,10 @@ export default function MentaCheckScreen() {
             onPress={() => {
               void run(async () => {
                 const result = await setMentaCheckConsent(false, 'settings');
-                if (result.success) setWithdrawVisible(false);
+                if (result.success) {
+                  permission.refresh();
+                  setWithdrawVisible(false);
+                }
                 return result;
               });
             }}

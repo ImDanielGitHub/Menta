@@ -300,7 +300,7 @@ export function HoldToSendButton({
         testID={`${testID}-progress`}
       />
       <View style={styles.iconLane} accessibilityElementsHidden>
-        <SendIcon size={20} color={mentaColors.canvas} />
+        <SendIcon size={20} color={mentaColors.text.onPaper} />
       </View>
       <View style={styles.copy}>
         <Text
@@ -431,14 +431,14 @@ const createPaletteStyles = (mentaColors: MentaPalette) => {
       color: mentaColors.text.primary,
     },
     titleOnFill: {
-      color: mentaColors.canvas,
+      color: mentaColors.text.onPaper,
     },
     subtitle: {
       ...mentaTypography.caption,
       color: mentaColors.text.secondary,
     },
     subtitleOnFill: {
-      color: mentaColors.canvas,
+      color: mentaColors.text.onPaper,
       opacity: 0.78,
     },
     footer: {

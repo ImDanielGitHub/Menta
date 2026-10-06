@@ -38,6 +38,7 @@ import { SupportLedgerCard } from '@/components/support/SupportSurface';
 import { CheckCircleIcon } from '@/components/ui/icons';
 import { AppChoiceChip } from '@/components/ui/AppChoice';
 import { trackProductEvent } from '@/lib/posthog';
+import { describeFeedbackReviewCopy } from '@/lib/support/feedback-review-copy';
 import { supabase } from '@/lib/supabase';
 import { useNetworkState } from '@/lib/network';
 import { backOrReplace } from '@/lib/navigation/safe-back';
@@ -356,6 +357,7 @@ export default function ReportIssueScreen() {
     reportMode === 'feedback' ||
     activeDraft?.source === 'settings_feedback' ||
     activeDraft?.source === 'activation_feedback';
+  const feedbackReviewCopy = describeFeedbackReviewCopy(t);
   const draftId = activeDraft?.id;
   const draftStatus = activeDraft?.status;
   // Once a saved draft is selected, every saved value (including null) wins.
@@ -1519,7 +1521,7 @@ export default function ReportIssueScreen() {
               ) : null}
               <Text style={styles.contextCopy}>
                 {isFeedback
-                  ? 'Your feedback and any screenshot you choose go privately to the Menta team.'
+                  ? feedbackReviewCopy.privacy
                   : t(
                       'fullAuth.report_issue.menta_does_not_add_device_diagnostics_to_this_re'
                     )}
@@ -1559,7 +1561,7 @@ export default function ReportIssueScreen() {
             ) : null}
             <Text style={styles.submitHelper}>
               {isFeedback
-                ? 'Send when you are ready. You can go back and change anything.'
+                ? feedbackReviewCopy.sendHelper
                 : t(
                     'fullAuth.report_issue.we_ll_show_a_support_reference_only_after_the_re'
                   )}

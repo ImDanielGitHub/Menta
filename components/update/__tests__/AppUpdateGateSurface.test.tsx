@@ -68,6 +68,8 @@ describe('AppUpdateGateSurface', () => {
     const screen = renderGate('optional');
     expect(screen.getByTestId('app-update-optional-sheet')).toBeTruthy();
     expect(screen.getByText('A new Menta update is ready')).toBeTruthy();
+    expect(screen.getByText('Keep this version')).toBeTruthy();
+    expect(screen.queryByText('Not now')).toBeNull();
     fireEvent.press(screen.getByTestId('app-update-not-now'));
     expect(screen.onDismiss).toHaveBeenCalledTimes(1);
   });
